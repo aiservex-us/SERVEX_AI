@@ -11,6 +11,8 @@ import PriceProduct from './components/priceProduct';
 import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
 import PrecentMain from './components/PrecentMain';
+// --- IMPORTACIÓN SOLICITADA ---
+import UploadFileCmpare from './components/comparePDF/UploadFileCmpare'; 
 
 export default function MenuInicial() {
   const [active, setActive] = useState('presentation');
@@ -19,7 +21,7 @@ export default function MenuInicial() {
 
   const router = useRouter();
 
-  {/*
+
   // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -27,7 +29,7 @@ export default function MenuInicial() {
         router.replace('/login');
       }
     }); 
-  }, [router]); */}
+  }, [router]); 
 
   // --- EXIT ATTEMPT DETECTION LOGIC ---
   useEffect(() => {
@@ -57,6 +59,8 @@ export default function MenuInicial() {
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
       case 'presentation': return <PrecentMain />;
+      // --- RENDERIZADO DEL COMPONENTE DE COMPARACIÓN ---
+      case 'notifications': return <UploadFileCmpare />; 
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
     }

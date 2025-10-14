@@ -116,9 +116,7 @@ export default function LesroAIPanel() {
             <div className="relative z-10">
               <h3 className="text-[14px] font-semibold mb-1">XML Finalization</h3>
               <p className="text-[11px] text-[#EAEBFA] mb-4">Direct export for Catalog Creator without manual intervention.</p>
-              <button className="w-full bg-white text-[#464775] py-2 rounded-[4px] text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-[#F3F5F8] transition-colors">
-                <FileCode size={16} /> GENERATE VITAL CATALOG
-              </button>
+           
             </div>
             <Layers className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10" />
           </div>
@@ -240,15 +238,18 @@ export default function LesroAIPanel() {
               </p>
             </div>
 
-            <button className="w-full bg-white border border-[#EDEBE9] p-4 rounded-[6px] hover:bg-[#FAF9F8] transition-colors flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#F3F5F8] rounded-[4px] group-hover:bg-[#464775] group-hover:text-white transition-colors">
-                  <BarChart3 size={16} />
-                </div>
-                <span className="text-[13px] font-semibold">View Detailed AI Report</span>
-              </div>
-              <ArrowRightLeft size={14} className="text-[#616161]" />
-            </button>
+            <button 
+  onClick={() => window.location.href = 'https://servex-us.com/servex-online-product-configurator/'}
+  className="w-full bg-white border border-[#EDEBE9] p-4 rounded-[6px] hover:bg-[#FAF9F8] transition-colors flex items-center justify-between group"
+>
+  <div className="flex items-center gap-3">
+    <div className="p-2 bg-[#F3F5F8] rounded-[4px] group-hover:bg-[#464775] group-hover:text-white transition-colors">
+      <BarChart3 size={16} />
+    </div>
+    <span className="text-[13px] font-semibold">View Detailed in</span>
+  </div>
+  <ArrowRightLeft size={14} className="text-[#616161]" />
+</button>
           </div>
         </div>
       </motion.div>

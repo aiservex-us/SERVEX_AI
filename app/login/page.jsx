@@ -21,7 +21,14 @@ export default function LoginPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.push('/panel');
+      if (user) {
+        // --- Lógica de sonido añadida ---
+        const audio = new Audio('/tu-sonido.mp3'); // Asegúrate de que el nombre coincida
+        audio.play().catch(err => console.log("El navegador bloqueó el autoplay:", err));
+        
+        // Redirigir
+        router.push('/panel');
+      }
     });
   }, [router]);
 
