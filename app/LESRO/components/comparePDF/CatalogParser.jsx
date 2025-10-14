@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, 
   RefreshCw, 
@@ -9,7 +10,10 @@ import {
   Zap, 
   Info, 
   FileSpreadsheet,
-  AlertCircle
+  AlertCircle,
+  FileUp,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 const LesroPricingFix = () => {
@@ -108,190 +112,211 @@ const LesroPricingFix = () => {
   const totalPages = Math.ceil(results.length / itemsPerPage);
   const currentResults = results.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  if (!pdfLib) return <div className="p-10 text-[#6264A7] font-sans flex items-center gap-3">
-    <RefreshCw className="animate-spin" size={20} />
-    Loading synchronization engine...
-  </div>;
+  if (!pdfLib) return (
+    <div className="flex h-screen w-full items-center justify-center bg-white">
+      <div className="flex items-center gap-3 text-[#464775] font-medium">
+        <RefreshCw className="animate-spin" size={20} />
+        <span className="text-sm">Initializing Synchronization Engine...</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#FFF] font-sans text-[11px] text-[#242424]">
-    
-
-      <div className="max-w-[1600px] mx-auto p-6">
-        
-        {/* INFORMATION BANNER */}
-        <div className="mb-8 bg-gradient-to-r from-[#6264A7] to-[#464775] rounded-xl p-8 text-white shadow-lg relative overflow-hidden">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2 mb-3 bg-white/20 w-fit px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                <Zap size={12} className="fill-white" /> AI-Powered Extraction
+    <div className="min-h-screen bg-white font-sans text-[11px] text-[#242424] antialiased">
+      <motion.div 
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="max-w-[1400px] mx-auto p-8"
+      >
+        {/* HEADER SECTION */}
+        <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#EDEBE9] pb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="bg-[#F5F5F5] p-1.5 rounded">
+                <Zap size={14} className="text-[#464775] fill-[#464775]" />
               </div>
-              <h1 className="text-2xl font-bold mb-2">Automated Catalog Synchronizer</h1>
-              <p className="text-[13px] opacity-90 leading-relaxed">
-                This tool processes the official Lesro PDF, extracting SKUs and the 12 pricing categories (G2-G13). 
-                Upon completion, it automatically generates a structured **CSV file** ready for import into the SVX synchronization engine.
-              </p>
+              <span className="text-[#616161] font-semibold uppercase tracking-wider text-[10px]">SVX Intelligence</span>
             </div>
-            <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg border border-white/20 flex flex-col items-center">
-              <FileSpreadsheet size={40} className="mb-2 text-gray-300" />
-              <span className="text-[10px] font-bold">OUTPUT FORMAT</span>
-              <span className="text-lg font-black">CSV UTF-8</span>
-            </div>
+            <h1 className="text-2xl font-semibold text-[#242424] tracking-tight">Automated Catalog Synchronizer</h1>
+            <p className="text-[13px] text-[#616161] mt-1 max-w-xl">
+              Process official Lesro PDF catalogs to extract SKUs and grade-based pricing. 
+              Outputs a structured CSV optimized for SVX engine integration.
+            </p>
           </div>
-          {/* Background Decoration */}
-          <div className="absolute top-0 right-0 -mr-10 -mt-10 opacity-10">
-            <RefreshCw size={200} />
+          
+          <div className="flex gap-4">
+            <div className="flex flex-col items-end border-r border-[#EDEBE9] pr-4">
+              <span className="text-[10px] font-bold text-[#616161] uppercase">Output</span>
+              <span className="text-sm font-semibold text-[#242424]">CSV UTF-8</span>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-bold text-[#616161] uppercase">Status</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-sm font-semibold text-[#242424]">System Ready</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* STEPS AND UPLOAD */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          <div className="lg:col-span-1 space-y-4">
-            <div className="bg-white p-5 rounded-lg border border-[#E1DFDD] shadow-sm">
-              <h3 className="font-bold text-[#6264A7] mb-4 flex items-center gap-2">
-                <Info size={14} /> Process Guide
+        {/* MAIN CONTROLS */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+          <div className="lg:col-span-4 space-y-6">
+            <div className="bg-white border border-[#EDEBE9] rounded-lg p-6">
+              <h3 className="text-sm font-semibold text-[#242424] mb-5 flex items-center gap-2">
+                <Info size={16} className="text-[#464775]" /> Workflow Instructions
               </h3>
-              <div className="space-y-4 relative">
+              <div className="space-y-6">
                 {[
-                  { icon: FileText, t: "Upload PDF", d: "Upload the price catalog." },
-                  { icon: RefreshCw, t: "Process", d: "SVX analyzes SKUs and Grades." },
-                  { icon: Download, t: "Download", d: "The CSV will download automatically." }
+                  { icon: FileText, t: "Upload Catalog", d: "Select the original Lesro price list PDF." },
+                  { icon: RefreshCw, t: "Automated Analysis", d: "SVX identifies SKUs and Grade (G2-G13) values." },
+                  { icon: Download, t: "Instant Export", d: "CSV is generated and downloaded automatically." }
                 ].map((step, i) => (
-                  <div key={i} className="flex gap-3 items-start">
-                    <div className="bg-[#F3F2F1] p-2 rounded text-[#6264A7]">
-                      <step.icon size={16} />
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className="bg-[#F5F5F5] p-2 rounded-md text-[#616161]">
+                      <step.icon size={18} />
                     </div>
                     <div>
-                      <p className="font-bold leading-none">{step.t}</p>
-                      <p className="text-[10px] text-[#616161] mt-1">{step.d}</p>
+                      <p className="text-[12px] font-semibold text-[#242424] leading-none">{step.t}</p>
+                      <p className="text-[11px] text-[#616161] mt-1.5 leading-normal">{step.d}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-[#FFF4CE] p-4 rounded-lg border border-[#F3D372] flex gap-3">
-              <AlertCircle size={18} className="text-[#7A5407] shrink-0" />
-              <p className="text-[10px] text-[#7A5407] leading-tight">
-                <strong>Note:</strong> Ensure the PDF is not password protected to allow SKU reading.
+            <div className="bg-[#F5F5F5] p-4 rounded-lg border border-[#EDEBE9] flex gap-3">
+              <AlertCircle size={18} className="text-[#464775] shrink-0" />
+              <p className="text-[11px] text-[#616161] leading-relaxed">
+                <strong className="text-[#242424]">Security Note:</strong> Ensure PDF files are decrypted. Encrypted files will prevent the extraction of SKU metadata.
               </p>
             </div>
           </div>
 
-          <div className="lg:col-span-3">
-            <div className={`bg-white border-2 border-dashed rounded-xl p-12 transition-all flex flex-col items-center justify-center
-              ${loading ? 'border-[#6264A7] bg-[#F3F2F1]' : 'border-[#C8C6C4] hover:border-[#6264A7] hover:bg-[#FAF9F8]'}`}>
+          <div className="lg:col-span-8">
+            <div className={`relative bg-white border border-[#EDEBE9] rounded-lg p-12 transition-all duration-200 flex flex-col items-center justify-center min-h-[320px]
+              ${loading ? 'bg-[#F5F5F5]' : 'hover:border-[#464775]/30'}`}>
               
-              <div className="w-16 h-16 bg-[#6264A7]/10 rounded-full flex items-center justify-center mb-4">
-                {loading ? <RefreshCw className="text-[#6264A7] animate-spin" size={32} /> : <FileUp size={32} className="text-[#6264A7]" />}
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 transition-colors
+                ${loading ? 'bg-white' : 'bg-[#F5F5F5]'}`}>
+                {loading ? (
+                  <RefreshCw className="text-[#464775] animate-spin" size={36} />
+                ) : (
+                  <FileUp size={36} className="text-[#464775]" />
+                )}
               </div>
               
-              <h3 className="text-sm font-bold mb-1">Drag your catalog here</h3>
-              <p className="text-[#616161] mb-6">Supports Lesro price list PDF formats</p>
+              <h3 className="text-base font-semibold text-[#242424] mb-2">Import Price Catalog</h3>
+              <p className="text-[#616161] text-[13px] mb-8">Drag and drop or browse for the Lesro PDF file</p>
               
-              <input 
-                type="file" 
-                accept=".pdf"
-                onChange={(e) => processPDF(e.target.files[0])} 
-                className="text-[11px] file:bg-[#6264A7] file:text-white file:border-0 file:py-2.5 file:px-6 file:rounded-md file:font-bold cursor-pointer file:shadow-md file:hover:bg-[#4f508a] transition-all"
-              />
-              
-              {loading && <p className="mt-4 text-[#6264A7] font-bold animate-pulse">Analyzing pricing structure...</p>}
+              <div className="relative">
+                <input 
+                  type="file" 
+                  accept=".pdf"
+                  onChange={(e) => processPDF(e.target.files[0])} 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={loading}
+                />
+                <button className={`px-8 py-2.5 rounded-md font-bold text-[12px] transition-all shadow-sm
+                  ${loading ? 'bg-[#EDEBE9] text-[#616161]' : 'bg-[#464775] text-white hover:bg-[#3b3c63]'}`}>
+                  {loading ? 'PROCESSING DATA...' : 'SELECT PDF FILE'}
+                </button>
+              </div>
+
+              {loading && (
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="mt-6 text-[#464775] font-semibold tracking-wide uppercase text-[10px]"
+                >
+                  Analyzing Pricing Matrix Structure
+                </motion.p>
+              )}
             </div>
           </div>
         </div>
 
-        {results.length > 0 && (
-          <div className="bg-white rounded-lg shadow-md border border-[#E1E1E1] overflow-hidden transition-all animate-in fade-in slide-in-from-bottom-4">
-            <div className="p-4 bg-[#F8F8F8] border-b flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full border border-green-200">
-                  <ShieldCheck size={14} />
-                  <span className="font-bold uppercase tracking-tighter">Extraction Successful</span>
+        {/* RESULTS TABLE */}
+        <AnimatePresence>
+          {results.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-lg border border-[#EDEBE9] overflow-hidden shadow-sm"
+            >
+              <div className="p-5 border-b border-[#EDEBE9] flex justify-between items-center bg-white">
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-[#F5F5F5] text-[#242424] rounded border border-[#EDEBE9]">
+                    <ShieldCheck size={14} className="text-[#464775]" />
+                    <span className="font-bold uppercase text-[10px]">Verified Data</span>
+                  </div>
+                  <span className="font-semibold text-[#464775] text-[13px]">{results.length} Products Found</span>
                 </div>
-                <span className="font-bold text-[#6264A7] text-[13px]">{results.length} products detected</span>
+                
+                <div className="flex items-center bg-white border border-[#EDEBE9] rounded-md overflow-hidden">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => prev - 1)}
+                    className="p-2 hover:bg-[#F5F5F5] disabled:opacity-30 transition-colors border-r border-[#EDEBE9]"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="px-4 text-[12px] font-medium text-[#242424]">
+                    Page {currentPage} <span className="text-[#616161]">of</span> {totalPages}
+                  </span>
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => prev + 1)}
+                    className="p-2 hover:bg-[#F5F5F5] disabled:opacity-30 transition-colors border-l border-[#EDEBE9]"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F5F5F5] border-b border-[#EDEBE9]">
+                      <th className="p-4 font-bold text-[#242424] border-r border-[#EDEBE9] w-40">MODEL SKU</th>
+                      <th className="p-4 font-bold text-[#242424] border-r border-[#EDEBE9]">DIMENSIONS</th>
+                      <th className="p-4 text-center border-r border-[#EDEBE9] font-bold text-[#464775]">G2 (BASE)</th>
+                      {['G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13'].map(g => (
+                        <th key={g} className="p-4 text-center border-r border-[#EDEBE9] font-semibold text-[#616161]">{g}</th>
+                      ))}
+                      <th className="p-4 text-center text-[#616161] font-semibold w-16">PDF</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EDEBE9]">
+                    {currentResults.map((r, i) => (
+                      <tr key={i} className="hover:bg-[#F5F5F5]/40 transition-colors group">
+                        <td className="p-4 font-bold text-[#464775] border-r border-[#EDEBE9] text-[12px]">{r.sku}</td>
+                        <td className="p-4 text-[#616161] border-r border-[#EDEBE9]">{r.dims}</td>
+                        <td className="p-4 text-center border-r border-[#EDEBE9] font-bold text-[#242424] bg-[#F5F5F5]/20">${r.g2}</td>
+                        {[r.g3, r.g4, r.g5, r.g6, r.g7, r.g8, r.g9, r.g10, r.g11, r.g12, r.g13].map((v, idx) => (
+                          <td key={idx} className="p-4 text-center border-r border-[#EDEBE9] text-[#616161]">
+                            {v !== '---' ? <span className="font-medium text-[#242424]">${v}</span> : <span className="text-[#C8C6C4]">—</span>}
+                          </td>
+                        ))}
+                        <td className="p-4 text-center text-[#C8C6C4] font-mono text-[10px]">{r.page}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
               
-              <div className="flex items-center space-x-3 bg-white p-1 rounded-md border border-[#EDEBE9]">
-                <button 
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => prev - 1)}
-                  className="px-3 py-1.5 hover:bg-[#F3F2F1] rounded disabled:opacity-20 transition-colors font-bold"
-                > Previous </button>
-                <div className="h-4 w-[1px] bg-[#EDEBE9]"></div>
-                <span className="px-2 font-medium">Page {currentPage} of {totalPages}</span>
-                <div className="h-4 w-[1px] bg-[#EDEBE9]"></div>
-                <button 
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  className="px-3 py-1.5 hover:bg-[#F3F2F1] rounded disabled:opacity-20 transition-colors font-bold"
-                > Next </button>
+              <div className="p-4 bg-white border-t border-[#EDEBE9] flex items-center gap-2 text-[#616161]">
+                <Info size={14} className="text-[#464775]" />
+                <p className="text-[11px]">CSV formatted for direct SVX database injection. No manual sanitization required.</p>
               </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-[#F3F2F1]">
-                  <tr>
-                    <th className="p-3 text-left border-r w-32 font-bold text-[#444]">MODEL SKU</th>
-                    <th className="p-3 text-left border-r w-48 font-bold text-[#444]">DIMENSIONS</th>
-                    <th className="p-3 text-center border-r bg-[#E8E8FF] text-[#6264A7] font-black italic">G2 / BASE</th>
-                    {['G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13'].map(g => (
-                      <th key={g} className="p-3 text-center border-r font-bold text-[#616161]">{g}</th>
-                    ))}
-                    <th className="p-3 text-center w-12 text-gray-400 font-bold">PDF P.</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {currentResults.map((r, i) => (
-                    <tr key={i} className="hover:bg-[#F3F2F1]/50 transition-colors group">
-                      <td className="p-3 font-black text-[#6264A7] border-r text-[12px]">{r.sku}</td>
-                      <td className="p-3 text-gray-500 border-r">{r.dims}</td>
-                      <td className="p-3 text-center border-r font-black bg-[#F9F9FB] text-[#2B579A] text-[12px]">${r.g2}</td>
-                      {[r.g3, r.g4, r.g5, r.g6, r.g7, r.g8, r.g9, r.g10, r.g11, r.g12, r.g13].map((v, idx) => (
-                        <td key={idx} className="p-3 text-center border-r group-hover:bg-white transition-colors">
-                          {v !== '---' ? (
-                            <span className="font-semibold text-gray-700">${v}</span>
-                          ) : (
-                            <span className="text-gray-300">—</span>
-                          )}
-                        </td>
-                      ))}
-                      <td className="p-3 text-center text-gray-400 font-mono">{r.page}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Table Footer */}
-            <div className="p-4 bg-[#FAF9F8] border-t flex items-center gap-2 text-[#616161]">
-              <span className="shrink-0"><Info size={14} /></span>
-              <p>The CSV file has been optimized for direct import. It does not require manual data cleaning.</p>
-            </div>
-          </div>
-        )}
-      </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 };
-
-// Helper Icon for the upload button
-const FileUp = ({ size, className }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
-  </svg>
-);
 
 export default LesroPricingFix;
