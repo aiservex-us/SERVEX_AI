@@ -100,7 +100,7 @@ export function LoginPopup({ visible, onClose }) {
             </button>
 
             {/* Microsoft */}
-            <button
+            <buttona
               onClick={handleMicrosoftLogin}
               className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-[#2F2F2F] text-white text-sm font-semibold shadow-md hover:bg-[#1f1f1f] transition"
             >
