@@ -35,7 +35,7 @@ export default function LoginPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f4f3ff] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#fff] px-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}

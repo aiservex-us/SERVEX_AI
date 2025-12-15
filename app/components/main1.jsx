@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { LoginPopup } from './LoginPopup';
+import { useRouter } from 'next/navigation';
 
 export default function Main1() {
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const router = useRouter();
 
   return (
     <main
@@ -116,7 +115,7 @@ export default function Main1() {
               "
             >
               <button
-                onClick={() => setShowLoginModal(true)}
+                onClick={() => router.push('/login')}
                 className="
                   w-full sm:w-auto
                   rounded-full
@@ -199,11 +198,6 @@ export default function Main1() {
           </div>
         </div>
       </section>
-
-      <LoginPopup
-        visible={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-      />
     </main>
   );
 }
