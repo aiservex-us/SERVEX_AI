@@ -1,9 +1,11 @@
 // app/lib/supabaseClient.js
 import { createClient } from '@supabase/supabase-js';
 
+//
 // =======================
 // CONFIGURACIÓN SUPABASE
 // =======================
+//
 
 // 🔹 Project URL (TU PROYECTO REAL)
 const supabaseUrl = 'https://mdjalirluzzvanrcjead.supabase.co';
@@ -29,6 +31,18 @@ export async function signInWithGoogle() {
 
   if (error) {
     console.error('❌ Error login Google:', error);
+    throw error;
+  }
+}
+
+// 🔐 Login con Microsoft (Azure)
+export async function signInWithAzure() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'azure',
+  });
+
+  if (error) {
+    console.error('❌ Error login Azure:', error);
     throw error;
   }
 }
