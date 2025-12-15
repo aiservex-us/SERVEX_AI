@@ -19,23 +19,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 //
 // =======================
-// AUTH
+// AUTH (SOLO AZURE)
 // =======================
 //
 
-// 🔐 Login con Google
-export async function signInWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-  });
-
-  if (error) {
-    console.error('❌ Error login Google:', error);
-    throw error;
-  }
-}
-
-// 🔐 Login con Microsoft (Azure)
+// 🔐 Login con Microsoft Entra ID (Azure)
 export async function signInWithAzure() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'azure',
@@ -47,7 +35,8 @@ export async function signInWithAzure() {
   }
 }
 
-// 👤 Obtener usuario autenticado (CORREGIDO PARA AZURE)
+// 👤 Obtener usuario autenticado
+// 🔒 VALIDADO PARA AZURE + DOMINIO CORPORATIVO
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
 
@@ -58,20 +47,41 @@ export async function getCurrentUser() {
 
   const user = data.user;
 
-  // Normalizamos identidad (Google / Azure)
+  // 📧 Azure puede enviar el email en distintos campos
+  const email =
+    user.email ||
+    user.user_metadata?.email ||
+    user.user_metadata?.preferred_username ||
+    null;
+
+  const provider = user.app_metadata?.provider;
+
+  // 🔐 VALIDACIONES DE SEGURIDAD
+  const isAzure = provider === 'azure';
+  const isAuthorizedDomain =
+    email && email.toLowerCase().endsWith('@servex-us.com');
+
+  if (!isAzure || !isAuthorizedDomain) {
+    console.warn(
+      '🚫 Acceso denegado:',
+      { email, provider }
+    );
+
+    // Cerramos sesión inmediatamente
+    await supabase.auth.signOut();
+    return null;
+  }
+
+  // ✅ Usuario válido
   return {
     id: user.id,
-    email:
-      user.email ||
-      user.user_metadata?.email ||
-      user.user_metadata?.preferred_username ||
-      null,
-    provider: user.app_metadata?.provider || null,
-    raw: user, // por si necesitas todo el objeto
+    email,
+    provider,
+    raw: user, // objeto completo por si se necesita
   };
 }
 
-// 🔁 Escuchar cambios de sesión
+// 🔁 Escuchar cambios de sesión (opcional pero útil)
 export function subscribeToAuthState(callback) {
   const {
     data: { subscription },
@@ -109,7 +119,7 @@ export async function saveAuditToSupabase({ audit_content, user }) {
       {
         audit_content: JSON.stringify(audit_content),
         user_id: user.id,
-        user_email: user.email, // puede ser null (Azure)
+        user_email: user.email,
         provider: user.provider,
       },
     ])
