@@ -1,139 +1,178 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { LoginPopup } from './LoginPopup';
 
 export default function Main1() {
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showLogo, setShowLogo] = useState(false);
-  const [bgImage, setBgImage] = useState('https://i.pinimg.com/originals/8f/f8/66/8ff8667b888e69fe37a636312a55d2e9.gif');
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 700;
-      setIsMobile(mobile);
-      setBgImage(
-        mobile
-          ? 'https://i.pinimg.com/originals/5f/37/df/5f37dfeb8007f33e29f4137d072462fb.gif'
-          : 'https://i.pinimg.com/originals/8f/f8/66/8ff8667b888e69fe37a636312a55d2e9.gif'
-      );
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setShowLogo(true), 1000);
-    return () => clearTimeout(timeout);
-  }, []);
 
   return (
-    <main className="relative w-full h-[100vh] overflow-hidden font-inter">
-      {/* 🔹 Imagen de fondo */}
-      <div className="absolute top-0 left-0 w-full h-full">
-        <img
-          src={bgImage}
-          alt="Fondo GLYNNE - Arquitectura de software B2B"
-          className="w-full h-full object-cover transition-all duration-700 ease-in-out"
-        />
-      </div>
-
-      {/* 🔹 Capa oscura */}
-      <div className="absolute inset-0 bg-black/70 z-10" />
-
-      {/* 🔹 CONTENIDO PRINCIPAL */}
-      <div className="relative z-40 w-full h-full flex items-center justify-center px-4 sm:px-16">
-        {isMobile ? (
-          // 🔹 VERSIÓN MÓVIL
-          <div className="w-full max-w-xl p-6 sm:p-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl text-white text-center space-y-4">
-            <img
-              src="/logo.png"
-              alt="Logo GLYNNE Framework"
-              className={`w-20 sm:w-24 mx-auto transition-all duration-1000 ${
-                showLogo ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-              }`}
-            />
-            <h2 className="text-xl sm:text-2xl font-semibold mt-2 uppercase">
-              SOLUCIONES B2B PARA EMPRESAS{' '}
-              <span className={isMobile ? 'text-white' : 'text-red-500'}>
-                SOFTWARE A MEDIDA
-              </span>
-            </h2>
-
-            <button
-              onClick={() => {
-                localStorage.removeItem('glyiaChatClosed');
-                setShowLoginModal(true);
-              }}
-              className="relative mt-3 px-6 py-2 text-sm font-semibold bg-white text-black rounded-lg group overflow-hidden transition-all hover:scale-105 z-[9999]"
-            >
-              <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-black/10 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-              <span className="relative z-10">DESCUBRE NUESTROS SERVICIOS</span>
-            </button>
+    <main className="relative w-full min-h-screen bg-white flex items-center justify-center font-inter px-3 sm:px-6">
+      
+      {/* Card principal */}
+      <section className="
+        relative 
+        w-full max-w-[1400px]
+        min-h-[85vh] md:h-[80vh]
+        mx-auto 
+        rounded-[24px] md:rounded-[28px] 
+        bg-white 
+        overflow-hidden 
+        flex flex-col
+      ">
+        
+        {/* Navbar */}
+        <header className="
+          flex items-center justify-between 
+          px-4 sm:px-6 md:px-10 
+          py-4 md:py-6 
+          shrink-0
+        ">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-black" />
+            <span className="font-semibold text-sm md:text-base">SERVEX US</span>
           </div>
-        ) : (
-          // 🔹 VERSIÓN DESKTOP
-          <div className="w-full h-full flex flex-col sm:flex-row items-center justify-between">
-            {/* TEXTO PRINCIPAL */}
-            <div className="w-full sm:w-1/2 text-left text-white space-y-4">
-              <h2 className="text-3xl sm:text-4xl font-bold leading-snug mt-6">
-                COMPLEMENTA EL SOFTWARE DE TU EMPRESA CON IA:{' '}
-                <span className={isMobile ? 'text-purple-500' : 'text-red-800'}>
-                  Procesos de inteligencia artificial a la medida de tu negocio
-                </span>
-              </h2>
 
+          <nav className="hidden md:flex items-center gap-8 text-sm text-black/70">
+            <a>Doc</a>
+            <a>Automatización</a>
+            <a>Datos</a>
+            <a>Casos de uso</a>
+            <a>Soporte</a>
+          </nav>
+        </header>
+
+        {/* Hero */}
+        <div className="
+          flex-1 
+          grid grid-cols-1 md:grid-cols-2 
+          gap-10 
+          px-4 sm:px-6 md:px-10 
+          pb-6 md:pb-10 
+          items-center
+        ">
+          
+          {/* Texto izquierda */}
+          <div className="bg-transparent">
+            <span className="
+              inline-block mb-5 
+              rounded-full 
+              border border-black/10 
+              px-4 py-1 
+              text-[11px] sm:text-xs
+            ">
+              Plataforma interna · CET Servex US
+            </span>
+
+            <h1 className="
+              text-3xl sm:text-4xl md:text-5xl 
+              font-medium 
+              leading-tight 
+              tracking-tight
+            ">
+              Automatización <br />
+              y Gestión <br />
+              de Datos <span className="opacity-60">*</span>
+            </h1>
+
+            <p className="
+              mt-5 sm:mt-6 
+              max-w-md 
+              text-sm 
+              text-black/60
+            ">
+              Esta plataforma centraliza herramientas de automatización y control
+              de datos diseñadas para optimizar procesos operativos fuera de CET
+              Designer, permitiendo a los equipos de CET Servex trabajar de forma
+              más eficiente, ordenada y escalable.
+            </p>
+
+            <div className="
+              mt-7 sm:mt-8 
+              flex flex-col sm:flex-row 
+              sm:items-center 
+              gap-5 sm:gap-6
+            ">
               <button
-                onClick={() => {
-                  localStorage.removeItem('glyiaChatClosed');
-                  setShowLoginModal(true);
-                }}
-                className="relative mt-4 px-6 py-2 text-sm font-semibold bg-white text-black rounded-lg group overflow-hidden transition-all hover:scale-105 z-[9999]"
+                onClick={() => setShowLoginModal(true)}
+                className="
+                  w-full sm:w-auto
+                  rounded-full 
+                  bg-black 
+                  px-8 py-3 
+                  text-sm 
+                  font-medium 
+                  text-white 
+                  shadow-lg 
+                  transition hover:scale-[1.03]
+                "
               >
-                <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-black/10 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-                <span className="relative z-10">Explora GLYNNE Framework</span>
+                Acceder a la plataforma
               </button>
-            </div>
 
-            {/* IMAGEN MOCKUP */}
-            <div className="hidden sm:flex w-full sm:w-1/2 justify-center items-center">
-              <img
-                src="/mokup.png"
-                alt="Imagen lateral GLYNNE - Soluciones de software B2B"
-                className="w-full h-auto object-contain"
-              />
+              <div className="flex items-center gap-4 text-xs text-black/60">
+                <span>✓ Procesos centralizados</span>
+                <span>✓ Datos controlados</span>
+              </div>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* 🔹 CURVA INFERIOR */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-20 pointer-events-none border-none shadow-none bg-transparent">
-        <svg
-          viewBox="0 -50 1440 320"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-[60vh] border-none shadow-none"
-          preserveAspectRatio="none"
-          style={{ filter: 'none' }}
-        >
-          <path
-            fill="#fff"
-            fillOpacity="1"
-            d="
-              M0,250 
-              C360,230 720,260 1080,220 
-              C1260,200 1380,180 1440,160 
-              L1440,320 L0,320Z
-            "
-          />
-        </svg>
-      </div>
+          {/* Visual derecha */}
+          <div className="
+            relative 
+            flex items-center justify-center 
+            w-full 
+            min-h-[260px] sm:min-h-[320px] md:h-full
+          ">
+            
+            {/* Fondo */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-sky-300 via-purple-300 to-pink-300 opacity-80" />
 
-      {/* 🔹 MODAL DE LOGIN */}
-      <LoginPopup visible={showLoginModal} onClose={() => setShowLoginModal(false)} />
+            {/* Contenedor */}
+            <div className="
+              relative z-10 
+              w-full max-w-md 
+              h-[260px] sm:h-[320px] 
+              rounded-3xl 
+              overflow-hidden 
+              bg-transparent
+            ">
+              
+              <div className="
+                absolute right-4 sm:right-6 top-4 sm:top-6 
+                w-48 sm:w-56 
+                rounded-2xl 
+                bg-white/70 
+                backdrop-blur-xl 
+                p-4 sm:p-5 
+                shadow-xl
+              ">
+                <p className="text-base sm:text-lg font-semibold">Automatización</p>
+                <p className="text-xs text-black/60 mt-1">
+                  Procesos operativos fuera de CET Designer
+                </p>
+              </div>
+
+              <div className="
+                absolute left-4 sm:left-6 bottom-4 sm:bottom-6 
+                rounded-full 
+                bg-white/80 
+                backdrop-blur 
+                px-4 py-2 
+                text-xs 
+                shadow
+              ">
+                Uso interno · CET Servex US
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <LoginPopup
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </main>
   );
 }

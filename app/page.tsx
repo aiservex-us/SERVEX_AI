@@ -1,10 +1,25 @@
-import Image from "next/image";
-import Maim1 from './components/main1'
+import Header from './components/header';
+import Main1 from './components/main1';
+import Main2 from './components/main2';
+import Main3 from './components/imgS'
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full  flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-       <Maim1 />
+    <div className="min-h-screen w-full bg-white">
+      {/* Header fijo */}
+      <Header />
+
+      {/* Contenido principal */}
+      <main className="pt-[80px] -mt-[30px] flex flex-col">
+        <section className="w-full">
+          <Main1 />
+        </section>
+
+        <section className="w-full">
+          <Main2 />
+        </section>
+        <section className="w-full">
+         
+        </section>
       </main>
     </div>
   );
