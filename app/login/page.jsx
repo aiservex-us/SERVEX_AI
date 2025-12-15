@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { supabase } from '../lib/supabaseClient';
+// 💡 IMPORTANTE: Importar tanto supabase como getCurrentUser para validar
+import { supabase, getCurrentUser } from '../lib/supabaseClient'; 
 import { FaMicrosoft } from 'react-icons/fa';
 import Image from 'next/image';
 
@@ -20,11 +21,29 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
+    const checkAuthAndRedirect = async () => {
+      // 1. Intentar obtener el usuario. 
+      // Esta función llama a getUser() y ejecuta la validación de dominio.
+      const user = await getCurrentUser(); 
+
+      if (user) {
+        // 2. Si hay un usuario y pasó la validación, redirigir
         router.replace('/panel');
+      } 
+      // 3. Si no hay usuario, o si no pasó la validación (porque getCurrentUser
+      //    cierra la sesión inmediatamente), el usuario se queda en /login.
+      //    Esto elimina el bucle.
+    };
+
+    // Esto se ejecuta en la carga inicial y también después del callback de OAuth.
+    checkAuthAndRedirect();
+
+    // Opcionalmente, puedes volver a usar onAuthStateChange para manejar 
+    // el evento 'SIGNED_IN' si quieres una respuesta más inmediata, 
+    // pero DEBE invocar a getCurrentUser() para validar.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        checkAuthAndRedirect();
       }
     });
 
@@ -74,6 +93,15 @@ export default function LoginPage() {
             <p className="text-sm text-gray-500 mb-6">
               Access restricted to authorized company accounts.
             </p>
+
+            {/* MENSAJE CORPORATIVO AÑADIDO POR CONSISTENCIA */}
+            <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                🔒 Only users with an authorized <br />
+                <span className="font-medium text-gray-900">
+                    @servex-us.com
+                </span>{' '}
+                email address can sign in.
+            </div>
 
             <button
               onClick={handleMicrosoftLogin}
