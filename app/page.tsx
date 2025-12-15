@@ -9,7 +9,7 @@ export default function Home() {
       <Header />
 
       {/* Contenido principal */}
-      <main className="pt-[80px] -mt-[30px] flex flex-col">
+      <main className="pt-[80px]  flex flex-col">
         <section className="w-full">
           <Main1 />
         </section>
