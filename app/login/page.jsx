@@ -10,32 +10,19 @@ import Image from 'next/image';
 export default function LoginPage() {
   const router = useRouter();
 
-  // 🔐 Login con Microsoft Entra ID
   const handleMicrosoftLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    await supabase.auth.signInWithOAuth({
       provider: 'azure',
       options: {
         redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
-        skipBrowserRedirect: false,
       },
     });
-
-    if (error) {
-      console.error('❌ Error login Azure:', error);
-    }
   };
 
-  // ✅ ESCUCHAR SESIÓN (FORMA CORRECTA PARA OAUTH)
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        router.replace('/panel');
-      }
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) router.push('/panel');
     });
-
-    return () => subscription.unsubscribe();
   }, [router]);
 
   return (
@@ -57,11 +44,10 @@ export default function LoginPage() {
         {/* PANEL IZQUIERDO */}
         <div className="relative hidden md:flex flex-col justify-end p-10 text-white">
           <div className="absolute inset-0 bg-gradient-to-br from-[#4f46e5] via-[#7c3aed] to-[#60a5fa]" />
+
           <div className="relative z-10">
             <div className="text-4xl font-bold mb-4">*</div>
-            <p className="text-sm opacity-80 mb-2">
-              Secure corporate access
-            </p>
+            <p className="text-sm opacity-80 mb-2">Secure corporate access</p>
             <h2 className="text-2xl font-semibold leading-snug">
               Your centralized workspace for productivity and clarity
             </h2>
@@ -107,17 +93,7 @@ export default function LoginPage() {
             {/* BOTÓN MICROSOFT */}
             <button
               onClick={handleMicrosoftLogin}
-              className="
-                w-full
-                flex items-center justify-center gap-3
-                py-3
-                rounded-xl
-                border border-gray-200
-                hover:border-gray-300
-                hover:bg-gray-50
-                transition
-                font-medium
-              "
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
             >
               <FaMicrosoft className="text-lg" />
               Continue with Microsoft

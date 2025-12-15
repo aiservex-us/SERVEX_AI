@@ -8,9 +8,9 @@ import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
 
 export function LoginPopup({ visible, onClose }) {
   const router = useRouter();
-  const [email, setEmail] = useState(null);
+  const [email, setEmail] = useState('');
 
-  // 🔐 Login con Google (sí respeta redirectTo)
+  // 🔐 Google
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -20,42 +20,36 @@ export function LoginPopup({ visible, onClose }) {
         },
       });
 
-      if (error) {
-        alert('Error al iniciar sesión con Google');
-        console.error(error);
-      }
-    } catch (err) {
-      console.error(err);
-    }
+      if (error) alert('Error al iniciar sesión con Google');
+    } catch (_) {}
   };
 
-  // 🔐 Login con Microsoft (Azure) ❗ SIN redirectTo
+  // 🔐 Microsoft (Azure)
   const handleMicrosoftLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'azure',
+        options: {
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
+        },
       });
 
-      if (error) {
-        alert('Error al iniciar sesión con Microsoft');
-        console.error(error);
-      }
-    } catch (err) {
-      console.error(err);
-    }
+      if (error) alert('Error al iniciar sesión con Microsoft');
+    } catch (_) {}
   };
 
-  // ✅ Detecta sesión y redirige a /panel
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      if (user) {
-        setEmail(user.email);
-        router.push('/panel');
-      }
+        if (user?.email) {
+          setEmail(user.email);
+          router.push('/panel');
+        }
+      } catch (_) {}
     };
 
     checkUser();
@@ -100,7 +94,7 @@ export function LoginPopup({ visible, onClose }) {
             </button>
 
             {/* Microsoft */}
-            <buttona
+            <button
               onClick={handleMicrosoftLogin}
               className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-[#2F2F2F] text-white text-sm font-semibold shadow-md hover:bg-[#1f1f1f] transition"
             >
