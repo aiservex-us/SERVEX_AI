@@ -8,9 +8,9 @@ import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
 
 export function LoginPopup({ visible, onClose }) {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(null);
 
-  // 🔐 Google
+  // 🔐 Login con Google (sí respeta redirectTo)
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -20,36 +20,42 @@ export function LoginPopup({ visible, onClose }) {
         },
       });
 
-      if (error) alert('Error al iniciar sesión con Google');
-    } catch (_) {}
+      if (error) {
+        alert('Error al iniciar sesión con Google');
+        console.error(error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // 🔐 Microsoft (Azure)
+  // 🔐 Login con Microsoft (Azure) ❗ SIN redirectTo
   const handleMicrosoftLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'azure',
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
-        },
       });
 
-      if (error) alert('Error al iniciar sesión con Microsoft');
-    } catch (_) {}
+      if (error) {
+        alert('Error al iniciar sesión con Microsoft');
+        console.error(error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
+  // ✅ Detecta sesión y redirige a /panel
   useEffect(() => {
     const checkUser = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-        if (user?.email) {
-          setEmail(user.email);
-          router.push('/panel');
-        }
-      } catch (_) {}
+      if (user) {
+        setEmail(user.email);
+        router.push('/panel');
+      }
     };
 
     checkUser();
