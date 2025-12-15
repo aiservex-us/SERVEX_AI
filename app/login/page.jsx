@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '../lib/supabaseClient';
 
 const supabaseUrl = 'https://mdjalirluzzvanrcjead.supabase.co';
 const supabaseAnonKey =
