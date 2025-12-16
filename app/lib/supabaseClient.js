@@ -7,10 +7,10 @@ import { createClient } from '@supabase/supabase-js';
 // =======================
 //
 
-// 🔹 Project URL
+// 🔹 Project URL (Tu URL de Supabase)
 const supabaseUrl = 'https://mdjalirluzzvanrcjead.supabase.co';
 
-// 🔹 Publishable key (segura para frontend)
+// 🔹 Publishable key (Tu Anon Key)
 const supabaseAnonKey =
   'sb_publishable_I8pdJT2l9dXxMFwf0zEfpw_00Yo3vFC';
 
@@ -58,6 +58,7 @@ export async function getCurrentUser() {
 
   // 🔐 VALIDACIONES DE SEGURIDAD
   const isAzure = provider === 'azure';
+  // >>> REGLA DE DOMINIO: SOLO @servex-us.com
   const isAuthorizedDomain =
     email && email.toLowerCase().endsWith('@servex-us.com');
 
@@ -67,7 +68,7 @@ export async function getCurrentUser() {
       { email, provider }
     );
 
-    // Cerramos sesión inmediatamente
+    // Cerramos sesión inmediatamente si no cumple con la regla de negocio
     await supabase.auth.signOut();
     return null;
   }

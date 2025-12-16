@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '../lib/supabaseClient';
+// 💡 Importación clave: Importar getCurrentUser para validar el dominio
+import { supabase, getCurrentUser } from '../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
 import { FaMicrosoft } from 'react-icons/fa';
 import Image from 'next/image';
@@ -14,19 +15,42 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'azure',
       options: {
+        // La URL final a la que Supabase redirigirá después de la autenticación
         redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
       },
     });
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.push('/panel');
+    const checkAuthAndRedirect = async () => {
+      // Llama a getCurrentUser, que ejecuta la validación de dominio.
+      // Si el dominio no es @servex-us.com, cierra la sesión y devuelve null.
+      const user = await getCurrentUser(); 
+
+      if (user) {
+        // Solo redirige si el usuario existe y pasó la validación.
+        router.replace('/panel');
+      } 
+      // Si no hay usuario o la validación falló, el usuario se queda en /login.
+    };
+
+    // 1. Ejecuta el chequeo en la carga inicial (cubre el callback de OAuth)
+    checkAuthAndRedirect();
+
+    // 2. Escucha cambios de estado para una mejor reactividad
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        checkAuthAndRedirect();
+      }
     });
+
+    return () => subscription.unsubscribe();
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f4f3ff] px-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -47,7 +71,11 @@ export default function LoginPage() {
 
           <div className="relative z-10">
             <div className="text-4xl font-bold mb-4">*</div>
-            <p className="text-sm opacity-80 mb-2">Secure corporate access</p>
+
+            <p className="text-sm opacity-80 mb-2">
+              Secure corporate access
+            </p>
+
             <h2 className="text-2xl font-semibold leading-snug">
               Your centralized workspace for productivity and clarity
             </h2>
@@ -65,7 +93,7 @@ export default function LoginPage() {
               </h1>
             </div>
 
-            {/* LOGO */}
+            {/* LOGO SERVEX */}
             <div className="mt-4 mb-6">
               <Image
                 src="/logo.png"
@@ -78,16 +106,16 @@ export default function LoginPage() {
             </div>
 
             <p className="text-sm text-gray-500 mb-6">
-              Access is restricted to authorized company accounts.
+              Access restricted to authorized company accounts.
             </p>
-
+            
             {/* MENSAJE CORPORATIVO */}
-            <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-              🔒 Only users with an authorized <br />
-              <span className="font-medium text-gray-900">
-                @servex-us.com
-              </span>{' '}
-              email address can sign in.
+            <div className="mb-8 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                🔒 Only users with an authorized <br />
+                <span className="font-medium text-gray-900">
+                    @servex-us.com
+                </span>{' '}
+                email address can sign in.
             </div>
 
             {/* BOTÓN MICROSOFT */}
