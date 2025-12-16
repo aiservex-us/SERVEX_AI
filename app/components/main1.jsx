@@ -17,7 +17,7 @@ function SimpleModal({ isOpen, onClose, title }) {
             flex items-center justify-center
             p-4 sm:p-6
             backdrop-filter backdrop-blur-md 
-            bg-black/20
+      
           "
           // Animación del fondo (Overlay)
           initial={{ opacity: 0 }}

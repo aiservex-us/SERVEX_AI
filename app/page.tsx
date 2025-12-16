@@ -2,6 +2,7 @@ import Header from './components/header';
 import Main1 from './components/main1';
 import Main2 from './components/main2';
 import Main3 from './components/carrucelEmpresas'
+import Cards from './components/cards'
 export default function Home() {
   return (
     <div className="min-h-screen w-full bg-white">
@@ -19,7 +20,9 @@ export default function Home() {
         <section className="w-full">
           <Main2 />
         </section>
-     
+        <section className="w-full">
+          <Cards />
+        </section>
       </main>
     </div>
   );

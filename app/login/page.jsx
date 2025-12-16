@@ -26,7 +26,7 @@ export default function LoginPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f4f3ff] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#fff] px-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -35,7 +35,7 @@ export default function LoginPage() {
       >
         {/* PANEL IZQUIERDO */}
         <div className="relative hidden md:flex flex-col justify-end p-10 text-white">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#4f46e5] via-[#7c3aed] to-[#60a5fa]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#c7d2fe] via-[#ddd6fe] to-[#bfdbfe]" />
           <div className="relative z-10">
             <div className="text-4xl font-bold mb-4">*</div>
             <p className="text-sm opacity-80 mb-2">

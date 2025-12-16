@@ -38,7 +38,7 @@ export default function Hero() {
         {/* Texto */}
         <div className="text-center pt-16 sm:pt-20 md:pt-24">
           <span className="block mb-3 text-xs sm:text-sm text-black/60 italic">
-            Your day, in perfect rhythm.
+            Servex AI Platform
           </span>
 
           <h1
@@ -49,21 +49,19 @@ export default function Hero() {
               text-black
             "
           >
-            Work Smarter, <br /> Not Harder
+            Your AI Hub for Business
           </h1>
 
           <p
             className="
-              mt-4 sm:mt-5
-              text-sm sm:text-base md:text-lg
+              mt-2 sm:mt-3
+              text-xs sm:text-sm md:text-base
               text-black/60
               max-w-xl
               mx-auto
             "
           >
-            Take control of your time with an all-in-one productivity platform.
-            Organize processes, manage data, and focus on what truly matters—
-            without unnecessary complexity.
+            Centralize your AI tools, automate tasks, and optimize business decisions.
           </p>
         </div>
 
