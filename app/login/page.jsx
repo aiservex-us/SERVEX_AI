@@ -4,19 +4,10 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
+import { FaMicrosoft } from 'react-icons/fa';
 
 export default function LoginPage() {
   const router = useRouter();
-
-  const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
-      },
-    });
-  };
 
   const handleMicrosoftLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -44,14 +35,9 @@ export default function LoginPage() {
         {/* PANEL IZQUIERDO */}
         <div className="relative hidden md:flex flex-col justify-end p-10 text-white">
           <div className="absolute inset-0 bg-gradient-to-br from-[#4f46e5] via-[#7c3aed] to-[#60a5fa]" />
-
           <div className="relative z-10">
             <div className="text-4xl font-bold mb-4">*</div>
-
-            <p className="text-sm opacity-80 mb-2">
-              You can easily
-            </p>
-
+            <p className="text-sm opacity-80 mb-2">You can easily</p>
             <h2 className="text-2xl font-semibold leading-snug">
               Get access your personal hub for clarity and productivity
             </h2>
@@ -73,15 +59,7 @@ export default function LoginPage() {
               keep everything flowing in one place.
             </p>
 
-            {/* BOTONES */}
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium mb-4"
-            >
-              <FaGoogle className="text-lg" />
-              Continue with Google
-            </button>
-
+            {/* BOTÓN MICROSOFT */}
             <button
               onClick={handleMicrosoftLogin}
               className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
