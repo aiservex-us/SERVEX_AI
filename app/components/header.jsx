@@ -54,12 +54,12 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-black/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          
-          {/* Logo */}
+
+          {/* Logo - Tamaño adaptado: h-7 en móvil y h-9 en escritorio (md) */}
           <img
             src="/logo.png"
             alt="Logo"
-            className="h-9 cursor-pointer"
+            className="h-4 md:h-9 cursor-pointer"
             onClick={() => router.push('/')}
           />
 
@@ -102,10 +102,11 @@ export default function Header() {
         <div className="fixed inset-0 z-50 bg-white">
           
           <div className="flex items-center justify-between px-4 py-4 border-b border-black/10">
+            {/* Logo en el overlay - Tamaño adaptado: h-7 en móvil y h-9 en escritorio (md) */}
             <img
               src="/logo.png"
               alt="Logo"
-              className="h-9 cursor-pointer"
+              className="h-7 md:h-9 cursor-pointer" 
               onClick={() => {
                 router.push('/');
                 setOpen(false);
