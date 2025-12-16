@@ -40,8 +40,22 @@ export async function signInWithAzure() {
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
 
-  if (error || !data?.user) {
+  // 💡 CORRECCIÓN APLICADA AQUÍ: Manejar el error de sesión faltante silenciosamente
+  if (error) {
+    // Si el error es una 'Sesión Faltante', es un comportamiento esperado (usuario deslogueado).
+    if (error.message.includes('Auth session missing')) {
+        // No hacer nada o registrar un log informativo, no un error.
+        // console.log('ℹ️ Auth session missing. User is logged out.');
+        return null; 
+    }
+    
+    // Si es cualquier otro error, imprimirlo
     console.error('❌ Error fetching user:', error);
+    return null;
+  }
+
+  // Si no hay data.user pero no hubo un error formal (caso borde, devolvemos null)
+  if (!data?.user) {
     return null;
   }
 
