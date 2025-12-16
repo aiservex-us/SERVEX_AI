@@ -4,6 +4,7 @@ import Main2 from './components/main2';
 import Main3 from './components/carrucelEmpresas'
 import Cards from './components/cards'
 import Baner from './components/imgS'
+import Footer from './components/footer'
 export default function Home() {
   return (
     <div className="min-h-screen w-full bg-white">
@@ -27,6 +28,7 @@ export default function Home() {
         <section className="w-full">
           <Baner />
         </section>
+        <Footer />
       </main>
     </div>
   );

@@ -7,7 +7,7 @@ export default function BgLogo() {
       {/* Imagen de fondo (se mantiene) */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/FONT.webp')" }}
+        style={{ backgroundImage: "url('/foondo.png')" }}
       />
 
       {/* Fade blanco superior e inferior (se mantienen) */}

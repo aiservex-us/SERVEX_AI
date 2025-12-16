@@ -19,7 +19,7 @@ export default function ProductFeatures() {
       <div className="max-w-6xl mx-auto grid grid-cols-12 gap-4 sm:gap-6">
         {/* Left Big Card */}
         <div className="col-span-12 md:col-span-5 rounded-3xl border border-white bg-gradient-to-br from-[#fff7f2] via-white to-[#fff] shadow-[0_10px_40px_rgba(0,0,0,0.03)] p-5 sm:p-6 md:p-8 relative overflow-hidden">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-orange-500 flex items-center justify-center text-white font-bold mb-5 sm:mb-6">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-purple-200 flex items-center justify-center text-white font-bold mb-5 sm:mb-6">
             ✳
           </div>
 
