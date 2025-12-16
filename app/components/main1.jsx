@@ -145,12 +145,19 @@ export default function Main1() {
             shrink-0
           "
         >
-          <div className="flex items-center gap-2">
-            <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-black" />
-            <span className="font-semibold text-sm md:text-base">
-              SERVEX US
-            </span>
-          </div>
+
+ <div className="flex items-center gap-2">
+    {/* Reemplazamos el span por la imagen del logo */}
+    <img 
+        src="/logo2.png" // Ruta de tu archivo de logo
+        alt="Logo de Servex US"
+        // Clases para mantener el tamaño pequeño y la forma
+        className="w-5 h-5 md:w-6 md:h-6 object-contain" 
+    />
+    <span className="font-semibold text-sm md:text-base">
+      SERVEX US
+    </span>
+</div>
 
           <nav className="hidden md:flex items-center gap-8 text-sm text-black/70">
             {navItems.map((item) => (

@@ -1,72 +1,86 @@
-import React from 'react';
+'use client'
+import React, { useState, useEffect } from 'react';
 
 const ServexModernFooter = () => {
-    // Definición de la información por secciones
-    const services = [
-        '3D Visualization',
-        'Product Configurator',
-        'Design & Specification',
-        'Electronic Catalogs',
-        'CET Extensions',
-        'SketchUp',
-    ];
+    // Datos
+    const services = ['3D Visualization', 'Product Configurator', 'Design & Specification', 'Electronic Catalogs', 'CET Extensions', 'SketchUp'];
+    const about = ['Meet our team', 'Rendering Gallery', 'Library'];
+    const paymentMethods = ['Visa', 'Mastercard', 'PayPal', 'Amex', 'Discover'];
 
-    const about = [
-        'Meet our team',
-        'Rendering Gallery',
-        'Library',
-    ];
+    // Estado para gestionar comportamiento responsive
+    const [isMobile, setIsMobile] = useState(false);
+    const [isTablet, setIsTablet] = useState(false);
+    const [hoveredLink, setHoveredLink] = useState(null);
+    const [hoveredSocial, setHoveredSocial] = useState(null);
+    const [isButtonHovered, setIsButtonHovered] = useState(false);
 
-    const paymentMethods = [
-        'Visa', 'Mastercard', 'PayPal', 'Amex', 'Discover',
-    ];
-    
-    // --- Colores del Gradiente ---
-    const GRADIENT_COLOR = 'linear-gradient(to right, #FBCFE8, #E9D5FF)'; // from-pink-300 via-purple-200
+    // Detectar tamaño de pantalla
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+            setIsTablet(window.innerWidth > 768 && window.innerWidth <= 1024);
+        };
+        
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
-    // --- Estilos Actualizados (Fondo Blanco y Gradiente) ---
+    // Configuración de colores
+    const COLORS = {
+        primary: '#1A1A1A',
+        secondary: '#555555',
+        accent: '#7C3AED',
+        gradient: 'linear-gradient(135deg, #FBCFE8 0%, #E9D5FF 50%, #D8B4FE 100%)',
+        hover: '#4F46E5',
+    };
+
+    // Estilos base con diseño mobile-first
     const styles = {
-        // Estilo base de todo el footer contenedor
         container: {
-            fontFamily: 'Arial, sans-serif',
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
             overflow: 'hidden',
-            backgroundColor: 'white', // Fondo blanco para todo el contenedor
+            backgroundColor: '#FFFFFF',
+            width: '100%',
         },
 
-        // 1. Sección Superior (Contact Us)
+        // SECCIÓN DE CONTACTO - MOBILE FIRST
         contactSection: {
-            backgroundColor: 'white',
-            padding: '60px 80px',
+            backgroundColor: '#FAFAFA',
+            padding: '40px 20px',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderBottom: '1px solid #E0E0E0',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '25px',
+            borderBottom: '1px solid #E5E7EB',
+            width: '100%',
         },
         contactContent: {
             display: 'flex',
             flexDirection: 'column',
+            gap: '8px',
+            width: '100%',
         },
         contactSubtitle: {
             fontSize: '12px',
-            fontWeight: '600',
-            color: '#777',
+            fontWeight: 600,
+            color: COLORS.secondary,
             textTransform: 'uppercase',
-            marginBottom: '5px',
+            letterSpacing: '1.5px',
         },
         contactTitle: {
-            fontSize: '48px',
-            fontWeight: 'bold',
-            color: '#1A1A1A',
-            // Aplicamos el gradiente al borde inferior
-            borderBottom: '4px solid transparent', 
-            borderImage: `${GRADIENT_COLOR} 1`, // Aplica el gradiente como borde
-            paddingBottom: '5px',
+            fontSize: '36px',
+            fontWeight: 800,
+            color: COLORS.primary,
+            margin: 0,
             lineHeight: '1.2',
+            background: COLORS.gradient,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
         },
         contactButton: {
-            // Aplicamos el gradiente al fondo del botón
-            background: GRADIENT_COLOR, 
-            color: '#1A1A1A',
+            background: COLORS.gradient,
             width: '60px',
             height: '60px',
             borderRadius: '50%',
@@ -75,189 +89,412 @@ const ServexModernFooter = () => {
             alignItems: 'center',
             fontSize: '24px',
             cursor: 'pointer',
-            transition: 'opacity 0.3s',
-            border: 'none', // Aseguramos que no haya bordes
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            border: 'none',
+            boxShadow: '0 4px 15px rgba(124, 58, 237, 0.2)',
+            color: COLORS.primary,
+            fontWeight: 700,
+            alignSelf: 'flex-end',
         },
 
-        // 2. Sección Inferior (Footer de Navegación)
+        // SECCIÓN PRINCIPAL - MOBILE
         navSection: {
-            backgroundColor: 'white', // Fondo blanco
-            color: '#1A1A1A',
-            padding: '40px 80px 30px',
+            backgroundColor: '#FFFFFF',
+            padding: '40px 20px',
             display: 'flex',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap', 
-            gap: '20px',
+            flexDirection: 'column',
+            gap: '40px',
+            borderBottom: '1px solid #E5E7EB',
+            width: '100%',
         },
-        // Columna Izquierda (Logo e Info de la Empresa)
+        
+        // COLUMNA IZQUIERDA
         companyColumn: {
-            flexBasis: '30%',
-            minWidth: '250px',
-            paddingRight: '30px',
-            marginBottom: '30px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            textAlign: 'left',
         },
-        logoPlaceholder: {
+        logo: {
             fontSize: '32px',
-            fontWeight: '900',
-            color: '#1A1A1A',
-            marginBottom: '15px',
+            fontWeight: 900,
+            color: COLORS.primary,
+            letterSpacing: '-1px',
+            marginBottom: '10px',
+        },
+        companyTitle: {
+            fontSize: '16px',
+            fontWeight: 700,
+            color: COLORS.primary,
+            marginBottom: '5px',
         },
         companyText: {
             fontSize: '14px',
-            lineHeight: '1.5',
-            marginBottom: '10px',
-            color: '#555555',
+            lineHeight: '1.6',
+            color: COLORS.secondary,
+            margin: 0,
         },
-        
-        // Columna Derecha (Enlaces de Navegación y Contacto)
+
+        // COLUMNAS DERECHAS - MOBILE: ACORDEÓN
         linksContainer: {
-            flexBasis: '65%',
             display: 'flex',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
+            flexDirection: 'column',
             gap: '20px',
         },
         navColumn: {
-            flexBasis: '25%', 
-            minWidth: '130px',
-            marginBottom: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            borderBottom: `1px solid #E5E7EB`,
+            paddingBottom: '20px',
         },
         columnTitle: {
-            fontWeight: 'bold',
+            fontWeight: 700,
             fontSize: '14px',
-            marginBottom: '15px',
-            color: '#333333',
+            color: COLORS.primary,
             textTransform: 'uppercase',
-        },
-        link: {
-            display: 'block',
-            textDecoration: 'none',
-            color: '#555555',
-            marginBottom: '6px',
-            fontSize: '14px',
-        },
-        contactDetail: {
-            fontSize: '14px',
-            marginBottom: '5px',
-            lineHeight: '1.4',
-        },
-        
-        // Fila de Pie (Copyright y Métodos de Pago)
-        bottomRow: {
-            borderTop: '1px solid #E0E0E0',
-            padding: '20px 80px',
-            backgroundColor: 'white', // Fondo blanco
+            letterSpacing: '1px',
+            marginBottom: '10px',
+            position: 'relative',
+            paddingBottom: '8px',
+            cursor: 'pointer',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+        },
+        columnTitleUnderline: {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            width: '40px',
+            height: '3px',
+            background: COLORS.gradient,
+            borderRadius: '2px',
+        },
+        link: {
+            textDecoration: 'none',
+            color: COLORS.secondary,
+            fontSize: '15px',
+            fontWeight: 500,
+            transition: 'all 0.3s ease',
+            position: 'relative',
+            paddingLeft: '0',
+            padding: '8px 0',
+            display: 'block',
+        },
+
+        // MÉTODOS DE PAGO
+        paymentSection: {
+            marginTop: '20px',
+        },
+        paymentTitle: {
             fontSize: '12px',
-            color: '#777777',
+            fontWeight: 700,
+            color: COLORS.primary,
+            marginBottom: '10px',
+            textTransform: 'uppercase',
         },
         paymentLogos: {
             display: 'flex',
-            gap: '10px',
+            gap: '8px',
+            flexWrap: 'wrap',
         },
         paymentText: {
-            // Un color neutro para los placeholders de pago en fondo blanco
-            backgroundColor: '#F0F0F0', 
-            padding: '2px 5px',
-            borderRadius: '2px',
-            fontSize: '10px',
-            fontWeight: 'bold',
-        }
+            backgroundColor: '#F3F4F6',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '11px',
+            fontWeight: 600,
+            color: COLORS.primary,
+            border: '1px solid #E5E7EB',
+        },
+
+        // BOTTOM BAR - MOBILE
+        bottomRow: {
+            padding: '25px 20px',
+            backgroundColor: '#F9FAFB',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            alignItems: 'center',
+            textAlign: 'center',
+        },
+        copyright: {
+            fontSize: '13px',
+            color: COLORS.secondary,
+            fontWeight: 500,
+            margin: 0,
+        },
+        copyrightLink: {
+            color: COLORS.secondary,
+            textDecoration: 'none',
+            fontWeight: 600,
+            transition: 'color 0.3s',
+        },
+        socialLinks: {
+            display: 'flex',
+            gap: '15px',
+            justifyContent: 'center',
+        },
+        socialLink: {
+            color: COLORS.secondary,
+            textDecoration: 'none',
+            fontSize: '13px',
+            fontWeight: 600,
+            transition: 'all 0.3s',
+            padding: '8px 12px',
+            borderRadius: '6px',
+        },
+
+        // MEDIA QUERIES - TABLET (768px - 1024px)
+        '@media (min-width: 769px)': {
+            contactSection: {
+                flexDirection: 'row',
+                padding: '60px 40px',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+            },
+            contactTitle: {
+                fontSize: '48px',
+            },
+            contactButton: {
+                width: '65px',
+                height: '65px',
+                alignSelf: 'center',
+            },
+            navSection: {
+                padding: '50px 40px',
+                flexDirection: 'row',
+                gap: '40px',
+            },
+            companyColumn: {
+                flex: '1',
+                minWidth: '280px',
+            },
+            linksContainer: {
+                flex: '2',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '30px',
+            },
+            bottomRow: {
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                padding: '25px 40px',
+            },
+        },
+
+        // MEDIA QUERIES - DESKTOP (1025px+)
+        '@media (min-width: 1025px)': {
+            contactSection: {
+                padding: '80px 60px',
+            },
+            contactTitle: {
+                fontSize: '56px',
+            },
+            contactButton: {
+                width: '70px',
+                height: '70px',
+            },
+            navSection: {
+                padding: '60px 60px 40px',
+                display: 'grid',
+                gridTemplateColumns: '1fr 2fr',
+                gap: '60px',
+            },
+            linksContainer: {
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '40px',
+            },
+            bottomRow: {
+                padding: '30px 60px',
+            },
+        },
     };
 
-    // La lógica de media queries (no visible aquí por ser JS in-line) sigue siendo esencial 
-    // para la responsividad completa.
+    // Componente de columna con acordeón para mobile
+    const NavColumn = ({ title, items }) => {
+        const [isOpen, setIsOpen] = useState(!isMobile); // Abierto por defecto en desktop
 
-    const currentStyles = {...styles}; 
-    
+        return (
+            <div style={styles.navColumn}>
+                <h3 
+                    style={styles.columnTitle}
+                    onClick={() => isMobile && setIsOpen(!isOpen)}
+                >
+                    {title}
+                    <span style={styles.columnTitleUnderline}></span>
+                    {isMobile && <span>{isOpen ? '−' : '+'}</span>}
+                </h3>
+                
+                {(isOpen || !isMobile) && items.map((item, index) => (
+                    <a 
+                        key={index} 
+                        href="#" 
+                        style={{
+                            ...styles.link,
+                            ...(hoveredLink === `${title}-${index}` ? {
+                                color: COLORS.accent,
+                                paddingLeft: '8px',
+                            } : {}),
+                        }}
+                        onMouseEnter={() => setHoveredLink(`${title}-${index}`)}
+                        onMouseLeave={() => setHoveredLink(null)}
+                    >
+                        {item}
+                    </a>
+                ))}
+            </div>
+        );
+    };
+
     return (
-        <div style={currentStyles.container}>
+        <div style={styles.container}>
             
-            {/* 1. SECCIÓN SUPERIOR: Contact Us (Fondo Blanco) */}
-            <div style={currentStyles.contactSection}>
-                <div style={currentStyles.contactContent}>
-                    <span style={currentStyles.contactSubtitle}>HEARD ENOUGH? →</span>
-                    <h2 style={currentStyles.contactTitle}>Contact us</h2>
+            {/* SECCIÓN DE CONTACTO */}
+            <div style={styles.contactSection}>
+                <div style={styles.contactContent}>
+                    <span style={styles.contactSubtitle}>HEARD ENOUGH? →</span>
+                    <h2 style={styles.contactTitle}>Contact us</h2>
                 </div>
-                {/* Botón con el nuevo Gradiente */}
-              
+               
             </div>
 
-            {/* 2. SECCIÓN INFERIOR: Navegación y Contacto (Fondo Blanco) */}
-            <div style={currentStyles.navSection}>
+            {/* SECCIÓN PRINCIPAL */}
+            <div style={styles.navSection}>
                 
-                {/* Columna Izquierda: Logo y Misión/Historia */}
-                <div style={currentStyles.companyColumn}>
-                    {/* **REEMPLAZAR CON <img src="/ruta/a/log.png" ... />** */}
-                    <div style={currentStyles.logoPlaceholder}>Servex</div>
+                {/* COLUMNA IZQUIERDA: EMPRESA */}
+                <div style={styles.companyColumn}>
+                    <div style={styles.logo}>Servex</div>
                     
-                    <p style={currentStyles.companyText}>
-                        **Descripción:** Servex provides BIM Modeling, Electronic Catalog, and 3D Visualization solutions for manufacturers and distributors internationally.
-                    </p>
-                    <p style={currentStyles.companyText}>
-                        **Historia/Misión:** Since 2004, we’ve been adapting and growing to assist our clients to fulfill today’s digital demands.
-                    </p>
-                </div>
-
-                {/* Contenedor de las Columnas de la Derecha */}
-                <div style={currentStyles.linksContainer}>
-                    
-                    {/* Columna 1: Servicios */}
-                    <div style={currentStyles.navColumn}>
-                        <h3 style={currentStyles.columnTitle}>🛠️ Servicios</h3>
-                        {services.map((service, index) => (
-                            <a key={index} href="#" style={currentStyles.link}>{service}</a>
-                        ))}
+                    <div>
+                        <h4 style={styles.companyTitle}>Descripción</h4>
+                        <p style={styles.companyText}>
+                            Servex provides BIM Modeling, Electronic Catalog, and 3D Visualization solutions for manufacturers and distributors internationally.
+                        </p>
                     </div>
 
-                    {/* Columna 2: About (Acerca de) */}
-                    <div style={currentStyles.navColumn}>
-                        <h3 style={currentStyles.columnTitle}>ℹ️ About</h3>
+                    <div>
+                        <h4 style={styles.companyTitle}>Historia & Misión</h4>
+                        <p style={styles.companyText}>
+                            Since 2004, we’ve been adapting and growing to assist our clients to fulfill today’s digital demands.
+                        </p>
+                    </div>
+                </div>
+
+                {/* COLUMNAS DERECHAS: ENLACES */}
+                <div style={styles.linksContainer}>
+                    {/* SERVICIOS */}
+                    <NavColumn 
+                        title="Servicios" 
+                        items={services}
+                    />
+
+                    {/* ACERCA DE */}
+                    <div style={styles.navColumn}>
+                        <h3 style={styles.columnTitle}>
+                            About
+                            <span style={styles.columnTitleUnderline}></span>
+                            {isMobile && <span>{true ? '−' : '+'}</span>}
+                        </h3>
                         {about.map((item, index) => (
-                            <a key={index} href="#" style={currentStyles.link}>{item}</a>
+                            <a 
+                                key={index} 
+                                href="#" 
+                                style={{
+                                    ...styles.link,
+                                    ...(hoveredLink === `About-${index}` ? {
+                                        color: COLORS.accent,
+                                        paddingLeft: '8px',
+                                    } : {}),
+                                }}
+                                onMouseEnter={() => setHoveredLink(`About-${index}`)}
+                                onMouseLeave={() => setHoveredLink(null)}
+                            >
+                                {item}
+                            </a>
                         ))}
-                        <h4 style={{...currentStyles.columnTitle, marginTop: '20px'}}>Métodos de Pago</h4>
-                        <div style={currentStyles.paymentLogos}>
-                            {paymentMethods.map((method, index) => (
-                                <span key={index} style={currentStyles.paymentText}>{method}</span>
-                            ))}
+                        
+                        {/* MÉTODOS DE PAGO */}
+                        <div style={styles.paymentSection}>
+                            <h4 style={styles.paymentTitle}>Métodos de Pago</h4>
+                            <div style={styles.paymentLogos}>
+                                {paymentMethods.map((method, index) => (
+                                    <span key={index} style={styles.paymentText}>{method}</span>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Columna 3: Contact Us (Contáctanos) */}
-                    <div style={currentStyles.navColumn}>
-                        <h3 style={currentStyles.columnTitle}>📞 Contact Us</h3>
-                        <p style={currentStyles.contactDetail}>
-                            **Email:** <a href="mailto:servex@servex-us.com" style={currentStyles.link}>servex@servex-us.com</a>
-                        </p>
-                        <p style={currentStyles.contactDetail}>
-                            **Teléfono:** 718-701-4709
-                        </p>
-                        <p style={currentStyles.contactDetail}>
-                            **Dirección:** PO Box 657 Bedford, NY 10506
-                        </p>
+                    {/* CONTACTO */}
+                    <div style={styles.navColumn}>
+                        <h3 style={styles.columnTitle}>
+                            Contact Us
+                            <span style={styles.columnTitleUnderline}></span>
+                            {isMobile && <span>{true ? '−' : '+'}</span>}
+                        </h3>
+                        
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                            <div>
+                                <p style={{...styles.companyText, fontWeight: 700, marginBottom: '5px'}}>Email:</p>
+                                <a href="mailto:servex@servex-us.com" style={styles.link}>
+                                    servex@servex-us.com
+                                </a>
+                            </div>
+                            
+                            <div>
+                                <p style={{...styles.companyText, fontWeight: 700, marginBottom: '5px'}}>Teléfono:</p>
+                                <a href="tel:718-701-4709" style={styles.link}>
+                                    718-701-4709
+                                </a>
+                            </div>
+                            
+                            <div>
+                                <p style={{...styles.companyText, fontWeight: 700, marginBottom: '5px'}}>Dirección:</p>
+                                <p style={styles.companyText}>
+                                    PO Box 657<br />
+                                    Bedford, NY 10506
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* 3. SECCIÓN INFERIOR FINAL: Copyright y Redes Sociales */}
-            <div style={currentStyles.bottomRow}>
-            <p>
-    <a 
-        href="https://glynneai.com" 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        style={{ color: 'inherit', textDecoration: 'none' }} // Estilos para que no se vea como un enlace web tradicional
-    >
-        &copy; {new Date().getFullYear()} GLYNNE S.A.S. All rights reserved.
-    </a>
-</p>
-                <div style={currentStyles.paymentLogos}>
-                    <a href="#" style={{...currentStyles.link, margin: '0 5px'}}>Bé</a>
-                    <a href="#" style={{...currentStyles.link, margin: '0 5px'}}>Insta</a>
-                    <a href="#" style={{...currentStyles.link, margin: '0 5px'}}>In</a>
+            {/* BOTTOM BAR */}
+            <div style={styles.bottomRow}>
+                <p style={styles.copyright}>
+                    <a 
+                        href="https://glynneai.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        style={styles.copyrightLink}
+                    >
+                        © {new Date().getFullYear()} GLYNNE S.A.S. All rights reserved.
+                    </a>
+                </p>
+                
+                <div style={styles.socialLinks}>
+                    {['Behance', 'Instagram', 'LinkedIn'].map((social, index) => {
+                        const key = social.toLowerCase();
+                        return (
+                            <a 
+                                key={index} 
+                                href="#" 
+                                style={{
+                                    ...styles.socialLink,
+                                    ...(hoveredSocial === key ? {
+                                        color: COLORS.primary,
+                                        backgroundColor: '#EEF2FF',
+                                    } : {}),
+                                }}
+                                onMouseEnter={() => setHoveredSocial(key)}
+                                onMouseLeave={() => setHoveredSocial(null)}
+                            >
+                                {social}
+                            </a>
+                        );
+                    })}
                 </div>
             </div>
 
