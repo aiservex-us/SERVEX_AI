@@ -51,7 +51,7 @@ const ServexModernFooter = () => {
     <footer className="font-inter bg-white overflow-hidden">
       
       {/* CONTACT SECTION */}
-      <div className="bg-gray-50 border-b border-gray-200 px-6 py-14 md:px-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+      <div className="bg-gray-50 border-b border-white px-6 py-14 md:px-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
         <div className="space-y-2">
           <span className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
             Heard enough? →
@@ -201,16 +201,32 @@ const ServexModernFooter = () => {
         </a>
 
         <div className="flex gap-3 text-xs font-semibold">
-          {['Behance', 'Instagram', 'LinkedIn'].map((s) => (
-            <a
-              key={s}
-              href="#"
-              className="px-3 py-1 rounded transition hover:bg-indigo-50 hover:text-gray-900 text-gray-600"
-            >
-              {s}
-            </a>
-          ))}
-        </div>
+  <a
+    href="https://www.youtube.com/@AXGLYNNE"
+    className="px-3 py-1 rounded transition hover:bg-indigo-50 hover:text-gray-900 text-gray-600"
+  >
+    youtube
+  </a>
+
+  <a
+    href="https://www.instagram.com/glynneai/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="px-3 py-1 rounded transition hover:bg-indigo-50 hover:text-gray-900 text-gray-600"
+  >
+    Instagram
+  </a>
+
+  <a
+    href="https://www.linkedin.com/in/alexander-quiroga-a992452b4/"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="px-3 py-1 rounded transition hover:bg-indigo-50 hover:text-gray-900 text-gray-600"
+  >
+    LinkedIn
+  </a>
+</div>
+
       </div>
     </footer>
   )

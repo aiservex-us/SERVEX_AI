@@ -7,7 +7,7 @@ export default function BgLogo() {
       {/* Imagen de fondo (se mantiene) */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/foondo.png')" }}
+        style={{ backgroundImage: "url('/')" }}
       />
 
       {/* Fade blanco superior e inferior (se mantienen) */}
@@ -45,6 +45,8 @@ export default function BgLogo() {
             shadow-2xl shadow-gray-500/50 /* Sombra sutil gris/negra */
             flex items-center justify-center
             transition-all duration-300
+            h-[70vh]
+            w-[70%]
           "
         >
           {/* Logo */}
@@ -52,7 +54,7 @@ export default function BgLogo() {
             src="/logo.png"
             alt="Logo"
             className="
-              w-48 sm:w-56 md:w-64 
+              w-108 sm:w-106 md:w-104 
               max-w-full
               drop-shadow-[0_10px_30px_rgba(0,0,0,0.2)]
             "

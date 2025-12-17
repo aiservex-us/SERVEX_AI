@@ -155,7 +155,7 @@ export default function Main1() {
         className="w-5 h-5 md:w-6 md:h-6 object-contain" 
     />
     <span className="font-semibold text-sm md:text-base">
-      SERVEX US
+      SVX COPILOT
     </span>
 </div>
 

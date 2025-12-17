@@ -15,7 +15,7 @@ export default function TutorialBanner() {
        {/* Text */}
 <div className="w-full md:w-1/2 text-center md:text-left">
   <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
-    Centralized <span className="text-purple-300">Artificial Intelligence</span> platform
+    Centralized <span className="text-gray-400">Artificial Intelligence</span> platform
     for process automation at <strong>SERVEX</strong>.
   </h2>
 
