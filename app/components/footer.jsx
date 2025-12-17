@@ -1,505 +1,219 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+
+import React from 'react'
 
 const ServexModernFooter = () => {
-    // Datos
-    const services = ['3D Visualization', 'Product Configurator', 'Design & Specification', 'Electronic Catalogs', 'CET Extensions', 'SketchUp'];
-    const about = ['Meet our team', 'Rendering Gallery', 'Library'];
-    const paymentMethods = ['Visa', 'Mastercard', 'PayPal', 'Amex', 'Discover'];
+  const services = [
+    {
+      label: '3D Visualization',
+      href: 'https://servex-us.com/3d-visualization/',
+    },
+    {
+      label: 'Product Configurator',
+      href: 'https://servex-us.com/servex-online-product-configurator/',
+    },
+    {
+      label: 'Design & Specification',
+      href: 'https://servex-us.com/servex-design-specification/',
+    },
+    {
+      label: 'Electronic Catalogs',
+      href: 'https://servex-us.com/servex-design-specification/',
+    },
+    {
+      label: 'CET Extensions',
+      href: 'https://servex-us.com/servex-cet/',
+    },
+    {
+      label: 'SketchUp',
+      href: 'https://servex-us.com/servex-sketchup/',
+    },
+  ]
 
-    // Estado para gestionar comportamiento responsive
-    const [isMobile, setIsMobile] = useState(false);
-    const [isTablet, setIsTablet] = useState(false);
-    const [hoveredLink, setHoveredLink] = useState(null);
-    const [hoveredSocial, setHoveredSocial] = useState(null);
-    const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const about = [
+    {
+      label: 'Meet our team',
+      href: 'https://servex-us.com/meet-our-team/',
+    },
+    {
+      label: 'Rendering Gallery',
+      href: 'https://servex-us.com/3d-visualization/rendering-gallery/',
+    },
+    {
+      label: 'Library',
+      href: 'https://servex-us.com/library/',
+    },
+  ]
 
-    // Detectar tamaño de pantalla
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 768);
-            setIsTablet(window.innerWidth > 768 && window.innerWidth <= 1024);
-        };
-        
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+  const paymentMethods = ['Visa', 'Mastercard', 'PayPal', 'Amex', 'Discover']
 
-    // Configuración de colores
-    const COLORS = {
-        primary: '#1A1A1A',
-        secondary: '#555555',
-        accent: '#7C3AED',
-        gradient: 'linear-gradient(135deg, #FBCFE8 0%, #E9D5FF 50%, #D8B4FE 100%)',
-        hover: '#4F46E5',
-    };
-
-    // Estilos base con diseño mobile-first
-    const styles = {
-        container: {
-            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
-            overflow: 'hidden',
-            backgroundColor: '#FFFFFF',
-            width: '100%',
-        },
-
-        // SECCIÓN DE CONTACTO - MOBILE FIRST
-        contactSection: {
-            backgroundColor: '#FAFAFA',
-            padding: '40px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            gap: '25px',
-            borderBottom: '1px solid #E5E7EB',
-            width: '100%',
-        },
-        contactContent: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            width: '100%',
-        },
-        contactSubtitle: {
-            fontSize: '12px',
-            fontWeight: 600,
-            color: COLORS.secondary,
-            textTransform: 'uppercase',
-            letterSpacing: '1.5px',
-        },
-        contactTitle: {
-            fontSize: '36px',
-            fontWeight: 800,
-            color: COLORS.primary,
-            margin: 0,
-            lineHeight: '1.2',
-            background: COLORS.gradient,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-        },
-        contactButton: {
-            background: COLORS.gradient,
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            fontSize: '24px',
-            cursor: 'pointer',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            border: 'none',
-            boxShadow: '0 4px 15px rgba(124, 58, 237, 0.2)',
-            color: COLORS.primary,
-            fontWeight: 700,
-            alignSelf: 'flex-end',
-        },
-
-        // SECCIÓN PRINCIPAL - MOBILE
-        navSection: {
-            backgroundColor: '#FFFFFF',
-            padding: '40px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '40px',
-            borderBottom: '1px solid #E5E7EB',
-            width: '100%',
-        },
-        
-        // COLUMNA IZQUIERDA
-        companyColumn: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            textAlign: 'left',
-        },
-        logo: {
-            fontSize: '32px',
-            fontWeight: 900,
-            color: COLORS.primary,
-            letterSpacing: '-1px',
-            marginBottom: '10px',
-        },
-        companyTitle: {
-            fontSize: '16px',
-            fontWeight: 700,
-            color: COLORS.primary,
-            marginBottom: '5px',
-        },
-        companyText: {
-            fontSize: '14px',
-            lineHeight: '1.6',
-            color: COLORS.secondary,
-            margin: 0,
-        },
-
-        // COLUMNAS DERECHAS - MOBILE: ACORDEÓN
-        linksContainer: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-        },
-        navColumn: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            borderBottom: `1px solid #E5E7EB`,
-            paddingBottom: '20px',
-        },
-        columnTitle: {
-            fontWeight: 700,
-            fontSize: '14px',
-            color: COLORS.primary,
-            textTransform: 'uppercase',
-            letterSpacing: '1px',
-            marginBottom: '10px',
-            position: 'relative',
-            paddingBottom: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        },
-        columnTitleUnderline: {
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            width: '40px',
-            height: '3px',
-            background: COLORS.gradient,
-            borderRadius: '2px',
-        },
-        link: {
-            textDecoration: 'none',
-            color: COLORS.secondary,
-            fontSize: '15px',
-            fontWeight: 500,
-            transition: 'all 0.3s ease',
-            position: 'relative',
-            paddingLeft: '0',
-            padding: '8px 0',
-            display: 'block',
-        },
-
-        // MÉTODOS DE PAGO
-        paymentSection: {
-            marginTop: '20px',
-        },
-        paymentTitle: {
-            fontSize: '12px',
-            fontWeight: 700,
-            color: COLORS.primary,
-            marginBottom: '10px',
-            textTransform: 'uppercase',
-        },
-        paymentLogos: {
-            display: 'flex',
-            gap: '8px',
-            flexWrap: 'wrap',
-        },
-        paymentText: {
-            backgroundColor: '#F3F4F6',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: '11px',
-            fontWeight: 600,
-            color: COLORS.primary,
-            border: '1px solid #E5E7EB',
-        },
-
-        // BOTTOM BAR - MOBILE
-        bottomRow: {
-            padding: '25px 20px',
-            backgroundColor: '#F9FAFB',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            alignItems: 'center',
-            textAlign: 'center',
-        },
-        copyright: {
-            fontSize: '13px',
-            color: COLORS.secondary,
-            fontWeight: 500,
-            margin: 0,
-        },
-        copyrightLink: {
-            color: COLORS.secondary,
-            textDecoration: 'none',
-            fontWeight: 600,
-            transition: 'color 0.3s',
-        },
-        socialLinks: {
-            display: 'flex',
-            gap: '15px',
-            justifyContent: 'center',
-        },
-        socialLink: {
-            color: COLORS.secondary,
-            textDecoration: 'none',
-            fontSize: '13px',
-            fontWeight: 600,
-            transition: 'all 0.3s',
-            padding: '8px 12px',
-            borderRadius: '6px',
-        },
-
-        // MEDIA QUERIES - TABLET (768px - 1024px)
-        '@media (min-width: 769px)': {
-            contactSection: {
-                flexDirection: 'row',
-                padding: '60px 40px',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-            },
-            contactTitle: {
-                fontSize: '48px',
-            },
-            contactButton: {
-                width: '65px',
-                height: '65px',
-                alignSelf: 'center',
-            },
-            navSection: {
-                padding: '50px 40px',
-                flexDirection: 'row',
-                gap: '40px',
-            },
-            companyColumn: {
-                flex: '1',
-                minWidth: '280px',
-            },
-            linksContainer: {
-                flex: '2',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '30px',
-            },
-            bottomRow: {
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                padding: '25px 40px',
-            },
-        },
-
-        // MEDIA QUERIES - DESKTOP (1025px+)
-        '@media (min-width: 1025px)': {
-            contactSection: {
-                padding: '80px 60px',
-            },
-            contactTitle: {
-                fontSize: '56px',
-            },
-            contactButton: {
-                width: '70px',
-                height: '70px',
-            },
-            navSection: {
-                padding: '60px 60px 40px',
-                display: 'grid',
-                gridTemplateColumns: '1fr 2fr',
-                gap: '60px',
-            },
-            linksContainer: {
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '40px',
-            },
-            bottomRow: {
-                padding: '30px 60px',
-            },
-        },
-    };
-
-    // Componente de columna con acordeón para mobile
-    const NavColumn = ({ title, items }) => {
-        const [isOpen, setIsOpen] = useState(!isMobile); // Abierto por defecto en desktop
-
-        return (
-            <div style={styles.navColumn}>
-                <h3 
-                    style={styles.columnTitle}
-                    onClick={() => isMobile && setIsOpen(!isOpen)}
-                >
-                    {title}
-                    <span style={styles.columnTitleUnderline}></span>
-                    {isMobile && <span>{isOpen ? '−' : '+'}</span>}
-                </h3>
-                
-                {(isOpen || !isMobile) && items.map((item, index) => (
-                    <a 
-                        key={index} 
-                        href="#" 
-                        style={{
-                            ...styles.link,
-                            ...(hoveredLink === `${title}-${index}` ? {
-                                color: COLORS.accent,
-                                paddingLeft: '8px',
-                            } : {}),
-                        }}
-                        onMouseEnter={() => setHoveredLink(`${title}-${index}`)}
-                        onMouseLeave={() => setHoveredLink(null)}
-                    >
-                        {item}
-                    </a>
-                ))}
-            </div>
-        );
-    };
-
-    return (
-        <div style={styles.container}>
-            
-            {/* SECCIÓN DE CONTACTO */}
-            <div style={styles.contactSection}>
-                <div style={styles.contactContent}>
-                    <span style={styles.contactSubtitle}>HEARD ENOUGH? →</span>
-                    <h2 style={styles.contactTitle}>Contact us</h2>
-                </div>
-               
-            </div>
-
-            {/* SECCIÓN PRINCIPAL */}
-            <div style={styles.navSection}>
-                
-                {/* COLUMNA IZQUIERDA: EMPRESA */}
-                <div style={styles.companyColumn}>
-                    <div style={styles.logo}>Servex</div>
-                    
-                    <div>
-                        <h4 style={styles.companyTitle}>Descripción</h4>
-                        <p style={styles.companyText}>
-                            Servex provides BIM Modeling, Electronic Catalog, and 3D Visualization solutions for manufacturers and distributors internationally.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h4 style={styles.companyTitle}>Historia & Misión</h4>
-                        <p style={styles.companyText}>
-                            Since 2004, we’ve been adapting and growing to assist our clients to fulfill today’s digital demands.
-                        </p>
-                    </div>
-                </div>
-
-                {/* COLUMNAS DERECHAS: ENLACES */}
-                <div style={styles.linksContainer}>
-                    {/* SERVICIOS */}
-                    <NavColumn 
-                        title="Servicios" 
-                        items={services}
-                    />
-
-                    {/* ACERCA DE */}
-                    <div style={styles.navColumn}>
-                        <h3 style={styles.columnTitle}>
-                            About
-                            <span style={styles.columnTitleUnderline}></span>
-                            {isMobile && <span>{true ? '−' : '+'}</span>}
-                        </h3>
-                        {about.map((item, index) => (
-                            <a 
-                                key={index} 
-                                href="#" 
-                                style={{
-                                    ...styles.link,
-                                    ...(hoveredLink === `About-${index}` ? {
-                                        color: COLORS.accent,
-                                        paddingLeft: '8px',
-                                    } : {}),
-                                }}
-                                onMouseEnter={() => setHoveredLink(`About-${index}`)}
-                                onMouseLeave={() => setHoveredLink(null)}
-                            >
-                                {item}
-                            </a>
-                        ))}
-                        
-                        {/* MÉTODOS DE PAGO */}
-                        <div style={styles.paymentSection}>
-                            <h4 style={styles.paymentTitle}>Métodos de Pago</h4>
-                            <div style={styles.paymentLogos}>
-                                {paymentMethods.map((method, index) => (
-                                    <span key={index} style={styles.paymentText}>{method}</span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* CONTACTO */}
-                    <div style={styles.navColumn}>
-                        <h3 style={styles.columnTitle}>
-                            Contact Us
-                            <span style={styles.columnTitleUnderline}></span>
-                            {isMobile && <span>{true ? '−' : '+'}</span>}
-                        </h3>
-                        
-                        <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-                            <div>
-                                <p style={{...styles.companyText, fontWeight: 700, marginBottom: '5px'}}>Email:</p>
-                                <a href="mailto:servex@servex-us.com" style={styles.link}>
-                                    servex@servex-us.com
-                                </a>
-                            </div>
-                            
-                            <div>
-                                <p style={{...styles.companyText, fontWeight: 700, marginBottom: '5px'}}>Teléfono:</p>
-                                <a href="tel:718-701-4709" style={styles.link}>
-                                    718-701-4709
-                                </a>
-                            </div>
-                            
-                            <div>
-                                <p style={{...styles.companyText, fontWeight: 700, marginBottom: '5px'}}>Dirección:</p>
-                                <p style={styles.companyText}>
-                                    PO Box 657<br />
-                                    Bedford, NY 10506
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* BOTTOM BAR */}
-            <div style={styles.bottomRow}>
-                <p style={styles.copyright}>
-                    <a 
-                        href="https://glynneai.com" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        style={styles.copyrightLink}
-                    >
-                        © {new Date().getFullYear()} GLYNNE S.A.S. All rights reserved.
-                    </a>
-                </p>
-                
-                <div style={styles.socialLinks}>
-                    {['Behance', 'Instagram', 'LinkedIn'].map((social, index) => {
-                        const key = social.toLowerCase();
-                        return (
-                            <a 
-                                key={index} 
-                                href="#" 
-                                style={{
-                                    ...styles.socialLink,
-                                    ...(hoveredSocial === key ? {
-                                        color: COLORS.primary,
-                                        backgroundColor: '#EEF2FF',
-                                    } : {}),
-                                }}
-                                onMouseEnter={() => setHoveredSocial(key)}
-                                onMouseLeave={() => setHoveredSocial(null)}
-                            >
-                                {social}
-                            </a>
-                        );
-                    })}
-                </div>
-            </div>
-
+  return (
+    <footer className="font-inter bg-white overflow-hidden">
+      
+      {/* CONTACT SECTION */}
+      <div className="bg-gray-50 border-b border-gray-200 px-6 py-14 md:px-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+        <div className="space-y-2">
+          <span className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
+            Heard enough? →
+          </span>
         </div>
-    );
-};
+      </div>
 
-export default ServexModernFooter;
+      {/* MAIN FOOTER */}
+      <div className="px-6 md:px-16 py-14 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-12 border-b border-gray-200">
+
+        {/* COMPANY */}
+        <div className="space-y-8">
+          <div className="text-4xl font-black tracking-tight text-gray-900">
+            Servex
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-gray-900 mb-2">Descripción</h4>
+            <p className="text-sm leading-relaxed text-gray-600">
+              Servex provides BIM Modeling, Electronic Catalog, and 3D Visualization
+              solutions for manufacturers and distributors internationally.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-gray-900 mb-2">
+              Historia & Misión
+            </h4>
+            <p className="text-sm leading-relaxed text-gray-600">
+              Since 2004, we’ve been adapting and growing to assist our clients
+              to fulfill today’s digital demands.
+            </p>
+          </div>
+        </div>
+
+        {/* LINKS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+          {/* SERVICES */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 relative pb-2">
+              Servicios
+              <span className="absolute left-0 bottom-0 w-10 h-[3px] rounded bg-gradient-to-r from-pink-200 via-purple-200 to-purple-300" />
+            </h3>
+
+            {services.map((item, i) => (
+              <a
+                key={i}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative text-sm font-medium text-gray-600 transition-all hover:text-purple-600 hover:pl-2 block w-fit"
+              >
+                {item.label}
+                <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-gradient-to-r from-pink-200 via-purple-200 to-purple-300 transition-all group-hover:w-full" />
+              </a>
+            ))}
+          </div>
+
+          {/* ABOUT */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 relative pb-2">
+              About
+              <span className="absolute left-0 bottom-0 w-10 h-[3px] rounded bg-gradient-to-r from-pink-200 via-purple-200 to-purple-300" />
+            </h3>
+
+            {about.map((item, i) => (
+              <a
+                key={i}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative text-sm font-medium text-gray-600 transition-all hover:text-purple-600 hover:pl-2 block w-fit"
+              >
+                {item.label}
+                <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-gradient-to-r from-pink-200 via-purple-200 to-purple-300 transition-all group-hover:w-full" />
+              </a>
+            ))}
+
+            {/* PAYMENT METHODS */}
+            <div className="pt-4 space-y-2">
+              <h4 className="text-[11px] font-bold uppercase text-gray-900">
+                Métodos de Pago
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {paymentMethods.map((m, i) => (
+                  <span
+                    key={i}
+                    className="text-[11px] font-semibold px-2 py-1 rounded border border-gray-200 bg-gray-100 text-gray-900"
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* CONTACT */}
+          <div className="space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-900 relative pb-2">
+              Contact Us
+              <span className="absolute left-0 bottom-0 w-10 h-[3px] rounded bg-gradient-to-r from-pink-200 via-purple-200 to-purple-300" />
+            </h3>
+
+            <div className="space-y-3 text-sm text-gray-600">
+              <div>
+                <p className="font-semibold">Email:</p>
+                <a
+                  href="mailto:servex@servex-us.com"
+                  className="hover:text-purple-600"
+                >
+                  servex@servex-us.com
+                </a>
+              </div>
+
+              <div>
+                <p className="font-semibold">Teléfono:</p>
+                <a
+                  href="tel:718-701-4709"
+                  className="hover:text-purple-600"
+                >
+                  718-701-4709
+                </a>
+              </div>
+
+              <div>
+                <p className="font-semibold">Dirección:</p>
+                <p>
+                  PO Box 657<br />
+                  Bedford, NY 10506
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BOTTOM BAR */}
+      <div className="bg-gray-50 px-6 md:px-16 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <a
+          href="https://glynneai.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-semibold text-gray-600 hover:text-gray-900"
+        >
+          © {new Date().getFullYear()} GLYNNE S.A.S. All rights reserved.
+        </a>
+
+        <div className="flex gap-3 text-xs font-semibold">
+          {['Behance', 'Instagram', 'LinkedIn'].map((s) => (
+            <a
+              key={s}
+              href="#"
+              className="px-3 py-1 rounded transition hover:bg-indigo-50 hover:text-gray-900 text-gray-600"
+            >
+              {s}
+            </a>
+          ))}
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+export default ServexModernFooter

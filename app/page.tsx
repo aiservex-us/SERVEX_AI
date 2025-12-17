@@ -30,9 +30,7 @@ export default function Home() {
         <section className="w-full">
           <Cdata />
         </section>
-        <section className="w-full">
-          <Baner />
-        </section>
+     
         <Footer />
       </main>
     </div>
