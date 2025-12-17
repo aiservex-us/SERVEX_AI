@@ -158,7 +158,7 @@ const ServexModernFooter = () => {
 
             <div className="space-y-3 text-sm text-gray-600">
               <div>
-                <p className="font-semibold">Email:</p>
+                <p className="font-semibold">Email: </p>
                 <a
                   href="mailto:servex@servex-us.com"
                   className="hover:text-purple-600"
