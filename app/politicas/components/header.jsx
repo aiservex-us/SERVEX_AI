@@ -65,15 +65,39 @@ export default function Header() {
 
           {/* Navegación desktop */}
           <nav className="hidden md:flex items-center gap-8">
-            {/* 🟢 REDIRECCIÓN AÑADIDA AQUÍ */}
-            <NavItem 
-              icon={FiInfo} 
-              label="About" 
-              onClick={() => router.push('/politicas')} 
+            <NavItem
+              icon={FiInfo}
+              label="About"
+              onClick={() => router.push('/politicas')}
             />
-            <NavItem icon={FiBriefcase} label="Portfolio" />
-            <NavItem icon={FiBookOpen} label="Blog" />
-            <NavItem icon={FiMail} label="Contact" />
+
+            <NavItem
+              icon={FiBriefcase}
+              label="Portfolio"
+              onClick={() =>
+                window.open(
+                  'https://servex-us.com/3d-visualization/rendering-gallery/',
+                  '_blank'
+                )
+              }
+            />
+
+            <NavItem
+              icon={FiBookOpen}
+              label="Blog"
+              onClick={() => router.push('/firstai')}
+            />
+
+            <NavItem
+              icon={FiMail}
+              label="Contact"
+              onClick={() =>
+                window.open(
+                  'https://servex-us.com/3d-visualization/rendering-gallery/#getintouch',
+                  '_blank'
+                )
+              }
+            />
           </nav>
 
           {/* Botón login / dashboard */}
@@ -105,12 +129,11 @@ export default function Header() {
       {/* Overlay móvil */}
       {open && (
         <div className="fixed inset-0 z-50 bg-white">
-          
           <div className="flex items-center justify-between px-4 py-4 border-b border-black/10">
             <img
               src="/logo.png"
               alt="Logo"
-              className="h-7 md:h-9 cursor-pointer" 
+              className="h-7 md:h-9 cursor-pointer"
               onClick={() => {
                 router.push('/');
                 setOpen(false);
@@ -126,18 +149,47 @@ export default function Header() {
           </div>
 
           <nav className="px-6 py-8 flex flex-col gap-6">
-            {/* 🟢 REDIRECCIÓN AÑADIDA AQUÍ TAMBIÉN */}
-            <NavItem 
-              icon={FiInfo} 
-              label="About" 
+            <NavItem
+              icon={FiInfo}
+              label="About"
               onClick={() => {
                 router.push('/politicas');
                 setOpen(false);
-              }} 
+              }}
             />
-            <NavItem icon={FiBriefcase} label="Portfolio" onClick={() => setOpen(false)} />
-            <NavItem icon={FiBookOpen} label="Blog" onClick={() => setOpen(false)} />
-            <NavItem icon={FiMail} label="Contact" onClick={() => setOpen(false)} />
+
+            <NavItem
+              icon={FiBriefcase}
+              label="Portfolio"
+              onClick={() => {
+                window.open(
+                  'https://servex-us.com/3d-visualization/rendering-gallery/',
+                  '_blank'
+                );
+                setOpen(false);
+              }}
+            />
+
+            <NavItem
+              icon={FiBookOpen}
+              label="Blog"
+              onClick={() => {
+                router.push('/firstai');
+                setOpen(false);
+              }}
+            />
+
+            <NavItem
+              icon={FiMail}
+              label="Contact"
+              onClick={() => {
+                window.open(
+                  'https://servex-us.com/3d-visualization/rendering-gallery/#getintouch',
+                  '_blank'
+                );
+                setOpen(false);
+              }}
+            />
 
             <div className="pt-6 border-t border-black/10">
               <button
