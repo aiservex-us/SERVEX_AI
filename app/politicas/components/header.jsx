@@ -93,7 +93,7 @@ export default function Header() {
               label="Contact"
               onClick={() =>
                 window.open(
-                  'https://servex-us.com/3d-visualization/rendering-gallery/#getintouch',
+                  'https://servex-us.com/#getintouch',
                   '_blank'
                 )
               }
@@ -103,15 +103,19 @@ export default function Header() {
           {/* Botón login / dashboard */}
           <button
             onClick={handleMainButton}
-            className="
+            className={`
               hidden md:inline-flex
               px-5 py-2
               text-sm font-medium
-              bg-black text-white
               rounded-full
               shadow
               transition hover:scale-[1.03]
-            "
+              ${
+                isAuthenticated
+                  ? 'bg-gray-600 text-white hover:bg-gray-700'
+                  : 'bg-black text-white'
+              }
+            `}
           >
             {isAuthenticated ? 'Dashboard' : 'Iniciar sesión'}
           </button>
@@ -197,7 +201,13 @@ export default function Header() {
                   handleMainButton();
                   setOpen(false);
                 }}
-                className="w-full rounded-full bg-black px-6 py-3 text-sm font-medium text-white shadow transition hover:scale-[1.03]"
+                className={`w-full rounded-full px-6 py-3 text-sm font-medium text-white shadow transition hover:scale-[1.03]
+                  ${
+                    isAuthenticated
+                      ? 'bg-gray-600 hover:bg-gray-700'
+                      : 'bg-black'
+                  }
+                `}
               >
                 {isAuthenticated ? 'Dashboard' : 'Iniciar sesión'}
               </button>
