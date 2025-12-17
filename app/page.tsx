@@ -6,6 +6,7 @@ import Cards from './components/cards'
 import Baner from './components/imgS'
 import Footer from './components/footer'
 import Cdata from './components/DataPcimg'
+import MainGif from './components/main3'
 export default function Home() {
   return (
     <div className="min-h-screen w-full bg-white">
@@ -20,17 +21,20 @@ export default function Home() {
         <section className="w-full">
         <Main3 />
          </section>
-       
+         <section className="w-full">
+          <MainGif />
+        </section>
         <section className="w-full">
           <Main2 />
         </section>
+       
         <section className="w-full">
           <Cards />
         </section>
         <section className="w-full">
           <Cdata />
         </section>
-     
+
         <Footer />
       </main>
     </div>

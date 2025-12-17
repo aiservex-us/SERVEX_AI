@@ -10,6 +10,16 @@ export default function TutorialBanner() {
           rounded-2xl p-6 md:p-10
         "
       >
+        
+
+          {/* Image */}
+          <div className="w-full md:w-1/2 flex justify-center">
+          <img
+            src="/CData.png"
+            alt="Tutoriales SERVEX"
+            className="w-full max-w-md h-auto"
+          />
+        </div>
         {/* Text */}
         <div className="w-full md:w-1/2 text-center md:text-left">
           <h2
@@ -48,14 +58,7 @@ export default function TutorialBanner() {
           </p>
         </div>
 
-        {/* Image */}
-        <div className="w-full md:w-1/2 flex justify-center">
-          <img
-            src="/CData.png"
-            alt="Tutoriales SERVEX"
-            className="w-full max-w-md h-auto"
-          />
-        </div>
+      
       </div>
     </section>
   );

@@ -195,26 +195,26 @@ export default function GLYNNEOverviewComponent() {
 
   return (
     <div ref={contentRef} className="max-w-6xl mt-10 mx-auto p-6">
-
+  
       {/* ================================ */}
-      {/* 🔥 SEO AGREGADO EXACTAMENTE COMO PEDISTE */}
+      {/* 🔥 SEO */}
       {/* ================================ */}
       <Head>
         <title>GLYNNE – Documentación Legal y Arquitectura de Plataforma IA</title>
-
+  
         <meta
           name="description"
           content="GLYNNE ofrece agentes de inteligencia artificial, automatización avanzada y arquitecturas escalables para empresas B2B. Consulta documentación legal, alcances del servicio y lineamientos técnicos."
         />
-
+  
         <meta
           name="keywords"
           content="GLYNNE, documentación legal, agentes IA, inteligencia artificial empresarial, automatización B2B, arquitectura de software, LangChain, integración de APIs, Next.js, automatización corporativa"
         />
-
+  
         <meta name="author" content="GLYNNE Tech" />
         <meta name="robots" content="index, follow" />
-
+  
         {/* Open Graph */}
         <meta property="og:type" content="article" />
         <meta property="og:title" content="GLYNNE – Documentación y Alcances de Servicio" />
@@ -225,11 +225,9 @@ export default function GLYNNEOverviewComponent() {
         <meta property="og:image" content="https://glynneai.com/meta-banner.jpg" />
         <meta property="og:url" content="https://glynneai.com/politicas" />
         <meta property="og:site_name" content="GLYNNE" />
-
-        {/* Canonical */}
+  
         <link rel="canonical" href="https://glynneai.com/politicas" />
-
-        {/* Structured Data */}
+  
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -250,15 +248,12 @@ export default function GLYNNEOverviewComponent() {
           }}
         />
       </Head>
-
-      {/* ================================ */}
-      {/* TODO TU CÓDIGO ORIGINAL SIN CAMBIAR NADA */}
-      {/* ================================ */}
-
+  
       <Header />
-
+  
       <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* SIDEBAR FIXED */}
+  
+        {/* SIDEBAR */}
         <aside
           className="
             hidden md:block
@@ -275,7 +270,7 @@ export default function GLYNNEOverviewComponent() {
         >
           <div className="p-4 rounded-2xl shadow-sm bg-white/60 backdrop-blur">
             <h3 className="font-semibold">Secciones</h3>
-
+  
             <ul className="mt-3 space-y-2 text-sm">
               {sections.map((s) => (
                 <li key={s.id}>
@@ -299,7 +294,7 @@ export default function GLYNNEOverviewComponent() {
                 </li>
               ))}
             </ul>
-
+  
             <div className="mt-4 flex gap-2">
               <button
                 onClick={() => copyToClipboard("https://glynneai.com")}
@@ -309,93 +304,97 @@ export default function GLYNNEOverviewComponent() {
               </button>
             </div>
           </div>
-
+  
           <div className="p-4 rounded-2xl bg-white/60 backdrop-blur shadow-sm">
             <h4 className="text-xs uppercase text-gray-500">Estado</h4>
-            <div className="mt-2 text-sm">Presets: Ventas, Finanzas, Operaciones</div>
-            <div className="mt-3 text-xs text-gray-400">Entornos: dev • staging • prod</div>
+            <div className="mt-2 text-sm">
+              Presets: Ventas, Finanzas, Operaciones
+            </div>
+            <div className="mt-3 text-xs text-gray-400">
+              Entornos: dev • staging • prod
+            </div>
           </div>
         </aside>
-
-        {/* MAIN — TEXTO */}
-<main
-  className="
-    md:col-span-2
-    md:ml-[280px]
-    w-full
-    max-w-none
-  "
->
-  {sections.map((s) => (
-    <section
-      key={s.id}
-      id={`section-${s.id}`}
-      className="mb-16 scroll-mt-24"
-    >
-      <h2
-        className="
-          text-3xl md:text-4xl
-          font-medium
-          tracking-tight
-          mb-4
-        "
-      >
-        {s.title}
-      </h2>
-
-      <p
-        className="
-          text-base md:text-lg
-          text-black/60
-          leading-relaxed
-          max-w-3xl
-          whitespace-pre-line
-        "
-      >
-        {s.content}
-      </p>
-
-      <hr className="my-12 border-black/10" />
-    </section>
-  ))}
-
-  {/* DOCUMENTACIÓN EXTENDIDA */}
-  <section className="mt-16">
-    <h3
-      className="
-        text-2xl md:text-3xl
-        font-medium
-        tracking-tight
-        mb-3
-      "
-    >
-      Documentación extendida
-    </h3>
-
-    <p className="text-base md:text-lg text-black/60 max-w-3xl">
-      Aquí puedes pegar artículos largos, contenido técnico o guías completas.
-    </p>
-
-    <div className="mt-6 flex gap-2">
-      <button
-        className="py-2 px-4 rounded-full border text-sm hover:bg-gray-50 transition"
-        onClick={generarPDF}
-      >
-        Exportar PDF
-      </button>
-
-      <button className="py-2 px-4 rounded-full border text-sm hover:bg-gray-50 transition">
-        Abrir Editor
-      </button>
-    </div>
-  </section>
-</main>
-
+  
+        {/* MAIN */}
+        <main
+          className="
+            md:col-span-2
+            md:ml-[280px]
+            w-full
+            max-w-none
+          "
+        >
+          {sections.map((s) => (
+            <section
+              key={s.id}
+              id={`section-${s.id}`}
+              className="mb-16 scroll-mt-24"
+            >
+              <h2
+                className="
+                  text-3xl md:text-4xl
+                  font-medium
+                  tracking-tight
+                  mb-4
+                "
+              >
+                {s.title}
+              </h2>
+  
+              <p
+                className="
+                  text-sm md:text-base
+                  text-black/60
+                  leading-normal
+                  max-w-3xl
+                  whitespace-pre-line
+                "
+              >
+                {s.content}
+              </p>
+  
+              <hr className="my-12 border-black/10" />
+            </section>
+          ))}
+  
+          {/* DOCUMENTACIÓN EXTENDIDA */}
+          <section className="mt-16">
+            <h3
+              className="
+                text-2xl md:text-3xl
+                font-medium
+                tracking-tight
+                mb-3
+              "
+            >
+              Documentación extendida
+            </h3>
+  
+            <p className="text-sm md:text-base text-black/60 max-w-3xl leading-normal">
+              Aquí puedes pegar artículos largos, contenido técnico o guías completas.
+            </p>
+  
+            <div className="mt-6 flex gap-2">
+              <button
+                className="py-2 px-4 rounded-full border text-sm hover:bg-gray-50 transition"
+                onClick={generarPDF}
+              >
+                Exportar PDF
+              </button>
+  
+              <button className="py-2 px-4 rounded-full border text-sm hover:bg-gray-50 transition">
+                Abrir Editor
+              </button>
+            </div>
+          </section>
+        </main>
       </div>
-
+  
       <footer className="mt-6 text-sm text-gray-500 text-center">
         GLYNNE · Plataforma de agentes y automatización guiada por IA
       </footer>
     </div>
   );
+  
 }

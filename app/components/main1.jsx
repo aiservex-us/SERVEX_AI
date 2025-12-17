@@ -331,29 +331,21 @@ export default function Main1() {
               "
             />
 
-            {/* Image container */}
-            <div
-              className="
-                relative z-10
-                w-full h-full
-                flex items-center justify-center
-                p-10
-              "
-            >
-              <Image
-                src="/imgMain1.png"
-                alt="Platform preview"
-                width={1100}
-                height={1100}
-                className="
-                  max-w-full
-                  max-h-full
-                  object-contain
-                  drop-shadow-2xl
-                "
-                priority
-              />
-            </div>
+<div className="relative z-10 flex items-center justify-center overflow-visible">
+  <Image
+    src="/imgMain1.png"
+    alt="Platform preview"
+    width={2000}
+    height={2000}
+    className="
+      w-[180%]
+      h-auto
+      object-contain
+      drop-shadow-2xl
+    "
+  />
+</div>
+
           </div>
         </div>
       </section>
