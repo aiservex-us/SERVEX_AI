@@ -10,33 +10,49 @@ export default function TutorialBanner() {
           rounded-2xl p-6 md:p-10
         "
       >
-     
+        {/* Text */}
+        <div className="w-full md:w-1/2 text-center md:text-left">
+          <h2
+            className="
+              text-3xl sm:text-4xl
+              font-semibold
+              tracking-tight
+              text-black
+              leading-tight
+            "
+          >
+            Centralized{" "}
+            <span className="text-black/60">
+              Artificial Intelligence
+            </span>{" "}
+            platform for process automation at{" "}
+            <strong className="font-semibold">SERVEX</strong>.
+          </h2>
 
-       {/* Text */}
-<div className="w-full md:w-1/2 text-center md:text-left">
-  <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
-    Centralized <span className="text-gray-400">Artificial Intelligence</span> platform
-    for process automation at <strong>SERVEX</strong>.
-  </h2>
+          <p
+            className="
+              mt-3 sm:mt-4
+              text-xs sm:text-sm md:text-base
+              text-black/60
+              max-w-md
+            "
+          >
+            This platform brings together SERVEX’s core artificial intelligence
+            tools into a single, unified environment designed to optimize,
+            automate, and scale business processes.
+            <br /><br />
+            By leveraging AI models connected to internal data, the platform
+            helps reduce manual tasks, improve decision-making, and accelerate
+            operational, technical, and commercial workflows—all from a
+            centralized and adaptable system tailored to the company’s needs.
+          </p>
+        </div>
 
-  <p className="text-gray-600 mt-4 text-xs sm:text-base max-w-md">
-    This platform brings together SERVEX’s core artificial intelligence tools
-    into a single, unified environment designed to optimize, automate, and
-    scale business processes.
-    <br /><br />
-    By leveraging AI models connected to internal data, the platform helps
-    reduce manual tasks, improve decision-making, and accelerate operational,
-    technical, and commercial workflows—all from a centralized and adaptable
-    system tailored to the company’s needs.
-  </p>
-</div>
-
-
-           {/* Imagen */}
-           <div className="w-full md:w-1/2 flex justify-center">
+        {/* Image */}
+        <div className="w-full md:w-1/2 flex justify-center">
           <img
             src="/CData.png"
-            alt="Tutoriales GLYNNE"
+            alt="Tutoriales SERVEX"
             className="w-full max-w-md h-auto"
           />
         </div>

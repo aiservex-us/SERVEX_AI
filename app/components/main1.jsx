@@ -4,8 +4,11 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Componente básico del Modal
-function SimpleModal({ isOpen, onClose, title }) {
+// ====================================================================
+// MODAL
+// ====================================================================
+
+function SimpleModal({ isOpen, onClose, title, description }) {
   if (!isOpen) return null;
 
   return (
@@ -16,17 +19,14 @@ function SimpleModal({ isOpen, onClose, title }) {
             fixed inset-0 z-50
             flex items-center justify-center
             p-4 sm:p-6
-            backdrop-filter backdrop-blur-md 
-      
+            backdrop-filter backdrop-blur-md
           "
-          // Animación del fondo (Overlay)
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          onClick={onClose} // Cierra si se hace clic fuera del modal
+          onClick={onClose}
         >
-          {/* Contenedor del Modal (Contenido) */}
           <motion.div
             className="
               relative
@@ -35,39 +35,44 @@ function SimpleModal({ isOpen, onClose, title }) {
               rounded-xl shadow-2xl
               p-6 sm:p-8
             "
-            // Animación del contenido
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
-            onClick={(e) => e.stopPropagation()} // Evita que el clic en el modal cierre el overlay
+            transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            {/* TITLE */}
+            <h2
+              className="
+                text-xl sm:text-2xl
+                font-semibold
+                tracking-tight
+                text-black
+                mb-3
+              "
+            >
               {title}
             </h2>
-            
-            {/* Contenido para futuras importaciones */}
-            <div className="text-gray-600 space-y-3">
-              <p>
-                Este es el cuerpo del modal. Aquí podrás importar el contenido y la información específica para: 
-              </p>
-              <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
-                <p className="font-mono text-sm text-black/80">
-                  // FUTURA IMPORTACIÓN DE COMPONENTE O DATA AQUÍ
-                </p>
-                <p className="text-xs mt-2">
-                    (Por ejemplo, documentación, herramientas de automatización, o visualización de datos).
-                </p>
-              </div>
-            </div>
+
+            {/* DESCRIPTION */}
+            <p
+              className="
+                text-xs sm:text-sm md:text-base
+                text-black/60
+                leading-relaxed
+              "
+            >
+              {description}
+            </p>
 
             <button
               onClick={onClose}
               className="
-                mt-6 inline-flex justify-center 
-                rounded-full border border-transparent 
-                bg-black px-4 py-2 text-sm font-medium 
-                text-white shadow-sm hover:bg-gray-800
+                mt-6 inline-flex justify-center
+                rounded-full
+                bg-black px-4 py-2
+                text-sm font-medium text-white
+                shadow-sm hover:bg-gray-800
                 transition
               "
             >
@@ -80,30 +85,76 @@ function SimpleModal({ isOpen, onClose, title }) {
   );
 }
 
+
 // ====================================================================
-// COMPONENTE PRINCIPAL
+// MAIN
 // ====================================================================
 
 export default function Main1() {
   const [modalState, setModalState] = useState({
     isOpen: false,
     title: '',
+    description: '',
   });
 
-  const openModal = (title) => {
-    setModalState({ isOpen: true, title });
+  const openModal = (title, description) => {
+    setModalState({
+      isOpen: true,
+      title,
+      description,
+    });
   };
 
   const closeModal = () => {
-    setModalState({ isOpen: false, title: '' });
+    setModalState({
+      isOpen: false,
+      title: '',
+      description: '',
+    });
   };
 
   const navItems = [
-    { name: 'Docs', action: () => openModal('Documentación (Docs)') },
-    { name: 'Automation', action: () => openModal('Herramientas de Automatización') },
-    { name: 'Data', action: () => openModal('Visualización y Gestión de Datos') },
-    { name: 'Use Cases', action: () => openModal('Casos de Uso Empresariales') },
-    { name: 'Support', action: () => openModal('Soporte y Asistencia') },
+    {
+      name: 'Docs',
+      action: () =>
+        openModal(
+          'SERVEX Ecosystem Documentation',
+          'SERVEX is an AI-driven software ecosystem designed to digitize, automate, and scale Servex’s manual and operational work. Its documentation defines the system architecture, automation flows, module interactions, and the way artificial intelligence operates as the central layer for decision-making, orchestration, and continuous process improvement.'
+        ),
+    },
+    {
+      name: 'Automation',
+      action: () =>
+        openModal(
+          'Intelligent Operational Automation',
+          'Automation in SERVEX goes beyond rigid scripts or static workflows. Each process is analyzed, executed, and optimized by artificial intelligence, transforming repetitive tasks into autonomous, adaptive, and scalable flows. The goal is to reduce operational friction, minimize human error, and free up time for higher-value work.'
+        ),
+    },
+    {
+      name: 'Data',
+      action: () =>
+        openModal(
+          'Data as a Decision Engine',
+          'SERVEX centralizes operational data generated by every process and converts it into actionable knowledge. The platform structures, analyzes, and correlates information so artificial intelligence can identify patterns, anticipate issues, and continuously improve operational workflows.'
+        ),
+    },
+    {
+      name: 'Use Cases',
+      action: () =>
+        openModal(
+          'AI Applied to Real Work',
+          'SERVEX use cases are born directly from daily operations. The platform is designed to address real, repetitive, and mission-critical processes by applying artificial intelligence in a practical and measurable way, delivering immediate operational impact, scalability, and continuous adaptation.'
+        ),
+    },
+    {
+      name: 'Support',
+      action: () =>
+        openModal(
+          'AI-Guided Support',
+          'Support in SERVEX is part of the ecosystem, not an isolated service. Artificial intelligence monitors process behavior, detects deviations, assists users, and proactively proposes optimizations, ensuring operational stability, continuous evolution, and efficient adoption of the platform.'
+        ),
+    },
+    
   ];
 
   return (
@@ -112,62 +163,55 @@ export default function Main1() {
         relative w-full min-h-[90%]
         bg-white text-black
         flex items-center justify-center
-        font-inter
         px-3 sm:px-6
       "
     >
-      {/* Modal Overlay y Contenido */}
       <SimpleModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
         title={modalState.title}
+        description={modalState.description}
       />
-      
-      {/* Main Card */}
+
       <section
         className="
           relative
           w-full max-w-[1400px]
           min-h-[80vh] md:h-[80vh]
           mx-auto
-          rounded-[24px] md:rounded-[28px]
+          rounded-[24px]
           bg-white
           overflow-hidden
           flex flex-col
         "
       >
-        {/* Navbar */}
         <header
           className="
             flex items-center justify-between
             px-4 sm:px-6 md:px-10
             py-4 md:py-6
-            shrink-0
           "
         >
-
- <div className="flex items-center gap-2">
-    {/* Reemplazamos el span por la imagen del logo */}
-    <img 
-        src="/logo2.png" // Ruta de tu archivo de logo
-        alt="Logo de Servex US"
-        // Clases para mantener el tamaño pequeño y la forma
-        className="w-5 h-5 md:w-6 md:h-6 object-contain" 
-    />
-    <span className="font-semibold text-sm md:text-base">
-      SVX COPILOT
-    </span>
-</div>
+          <div className="flex items-center gap-2">
+            <img
+              src="/logo2.png"
+              alt="Servex Logo"
+              className="w-5 h-5 md:w-6 md:h-6 object-contain"
+            />
+            <span className="font-semibold text-sm md:text-base">
+              SVX COPILOT
+            </span>
+          </div>
 
           <nav className="hidden md:flex items-center gap-8 text-sm text-black/70">
             {navItems.map((item) => (
-              <a 
+              <span
                 key={item.name}
                 onClick={item.action}
                 className="cursor-pointer hover:text-black transition font-medium"
               >
                 {item.name}
-              </a>
+              </span>
             ))}
           </nav>
         </header>
@@ -187,11 +231,14 @@ export default function Main1() {
           <div>
             <span
               className="
-                inline-block mb-5
-                rounded-full
-                border border-black/10
-                px-4 py-1
-                text-[11px] sm:text-xs
+              relative
+              inline-block
+              top-[-20px]
+              mb-5
+              rounded-full
+              border border-black/10
+              px-4 py-1
+              text-[11px] sm:text-xs
               "
             >
               Internal Platform · CET Servex US
@@ -252,7 +299,7 @@ export default function Main1() {
                   transition hover:scale-[1.03]
                 "
               >
-                Access the platform
+                Go to SERVEX
               </a>
 
               <div className="flex items-center gap-4 text-xs text-black/60">
