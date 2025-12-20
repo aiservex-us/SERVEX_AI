@@ -20,7 +20,7 @@ export default function Home() {
       <main className="flex min-h-screen w-full flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
         
         <div className="w-full flex justify-between items-center">
-          <p className="text-lg font-semibold">Panel</p>
+          <p className="text-lg font-semibold"> Panel hi</p>
 
           {/* 🔒 Logout */}
           <button
