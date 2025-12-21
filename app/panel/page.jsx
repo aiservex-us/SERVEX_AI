@@ -4,52 +4,44 @@ import { useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
-// ✅ IMPORT DEL COMPONENTE (NUEVO)
+// COMPONENTES
 import IncertXML from './components/incertXML';
+import PanelHeader from './components/PanelHeader';
 
 export default function PanelPage() {
   const router = useRouter();
 
-  // 🔒 PROTECCIÓN DE RUTA (OBLIGATORIO)
+  // 🔒 PROTECCIÓN DE RUTA (MISMA LÓGICA)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
+
       if (!data?.user) {
         router.replace('/login');
       }
+
     });
   }, [router]);
 
-  // 🔓 LOGOUT SEGURO
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      router.replace('/login');
-    } catch (error) {
-      console.error('❌ Error al cerrar sesión:', error);
-    }
-  };
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <div className="min-h-screen bg-[#f8fafc] font-sans">
+      
+      {/* HEADER SEPARADO */}
+      <PanelHeader />
 
-        <div className="w-full flex justify-between items-center">
-          <p className="text-lg font-semibold">Panel</p>
+      {/* CONTENIDO */}
+      <main className="pt-24 pb-12 px-6 max-w-5xl mx-auto">
+        <div className="relative group">
+          
+          {/* Glow decorativo */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
 
-          {/* 🔒 Logout */}
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 rounded-lg text-sm font-semibold bg-red-500 text-white hover:bg-red-600 transition"
-          >
-            Cerrar sesión
-          </button>
+          <div className="relative bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50">
+            <div className="p-1">
+              <IncertXML />
+            </div>
+          </div>
+
         </div>
-
-        {/* ✅ COMPONENTE INSERT XML (AISLADO) */}
-        <div className="w-full mt-12">
-          <IncertXML />
-        </div>
-
       </main>
     </div>
   );
