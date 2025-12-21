@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase, getCurrentUser } from '../../lib/supabaseClient';
+import { supabase } from '@/app/lib/supabaseClient';
 
 export default function UploadClientXML() {
   const [companyName, setCompanyName] = useState('');
@@ -25,39 +25,32 @@ export default function UploadClientXML() {
     setLoading(true);
 
     try {
-      // 🔐 Usuario autenticado (usa TU lógica actual)
-      const user = await getCurrentUser();
+      // 👤 SOLO sesión, sin reglas de negocio
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (!user?.id) {
+      if (!user) {
         setMessage('❌ Unauthorized user');
-        setLoading(false);
         return;
       }
 
-      // 💾 Insert directo (sin procesar el XML)
       const { error } = await supabase
         .from('ClientsSERVEX')
-        .insert([
-          {
-            company_name: companyName,
-            file_name: null, // No guardamos archivo
-            xml_raw: xmlContent, // XML COMPLETO COMO TEXTO
-            json_data: null,
-            user_id: user.id,
-          },
-        ]);
+        .insert({
+          company_name: companyName,
+          xml_raw: xmlContent, // XML crudo, tal cual
+          user_id: user.id,
+        });
 
       if (error) {
         console.error(error);
-        setMessage('❌ Error saving XML to database');
+        setMessage('❌ Error saving XML');
       } else {
         setMessage('✅ XML saved successfully');
         setCompanyName('');
         setXmlContent('');
       }
-    } catch (err) {
-      console.error(err);
-      setMessage('❌ Unexpected error');
     } finally {
       setLoading(false);
     }
@@ -69,52 +62,29 @@ export default function UploadClientXML() {
         Upload CET Catalog XML
       </h2>
 
-      {/* Company Name */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">
-          Company Name
-        </label>
-        <input
-          type="text"
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
-          className="w-full border rounded-lg p-2"
-          placeholder="Ashford Furniture"
-        />
-      </div>
+      <input
+        className="w-full border p-2 mb-3"
+        placeholder="Company name"
+        value={companyName}
+        onChange={(e) => setCompanyName(e.target.value)}
+      />
 
-      {/* XML Content */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">
-          XML Content (raw)
-        </label>
-        <textarea
-          value={xmlContent}
-          onChange={(e) => setXmlContent(e.target.value)}
-          rows={10}
-          className="w-full border rounded-lg p-2 font-mono text-xs"
-          placeholder="Paste full CET XML here..."
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          The XML will be stored as raw text. No parsing or validation is applied.
-        </p>
-      </div>
+      <textarea
+        className="w-full border p-2 h-64 font-mono text-xs"
+        placeholder="Paste full XML here"
+        value={xmlContent}
+        onChange={(e) => setXmlContent(e.target.value)}
+      />
 
-      {/* Action */}
       <button
         onClick={handleSave}
         disabled={loading}
-        className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+        className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded"
       >
-        {loading ? 'Saving...' : 'Save XML'}
+        {loading ? 'Saving…' : 'Save XML'}
       </button>
 
-      {/* Message */}
-      {message && (
-        <p className="mt-4 text-sm">
-          {message}
-        </p>
-      )}
+      {message && <p className="mt-3 text-sm">{message}</p>}
     </section>
   );
 }
