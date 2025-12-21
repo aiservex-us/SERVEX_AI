@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase, getCurrentUser } from '@/app/lib/supabaseClient';
+import { supabase, getCurrentUser } from '../../lib/supabaseClient';
 
 export default function UploadClientXML() {
   const [companyName, setCompanyName] = useState('');
