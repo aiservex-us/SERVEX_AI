@@ -14,29 +14,36 @@ const PanelMenur = () => {
   const [priceFilter, setPriceFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
 
+  // ESTADOS PARA EL MODAL DE EDICIÓN
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [newPrice, setNewPrice] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+
   // 1. OBTENER XML DE SUPABASE
+  const fetchXMLFromSupabase = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('ClientsSERVEX')
+        .select('xml_raw')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data) setXmlString(data.xml_raw);
+    } catch (err) {
+      console.error("Error fetching:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchXMLFromSupabase = async () => {
-      try {
-        setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data } = await supabase
-          .from('ClientsSERVEX')
-          .select('xml_raw')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (data) setXmlString(data.xml_raw);
-      } catch (err) {
-        console.error("Error fetching:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchXMLFromSupabase();
   }, []);
 
@@ -106,6 +113,65 @@ const PanelMenur = () => {
     });
   }, [searchTerm, products, priceFilter, categoryFilter]);
 
+  // --- LÓGICA DE ACTUALIZACIÓN DEL XML ---
+  const handleEditClick = (product) => {
+    setEditingProduct(product);
+    setNewPrice(product.price.toString());
+    setIsModalOpen(true);
+  };
+
+  const handleUpdateXML = async () => {
+    try {
+      setIsUpdating(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // 1. Parsear el string XML actual a un objeto DOM
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+      
+      // 2. Buscar el producto por su código (SKU)
+      const productNodes = xmlDoc.getElementsByTagName("Product");
+      let found = false;
+
+      for (let i = 0; i < productNodes.length; i++) {
+        const code = productNodes[i].getElementsByTagName("Code")[0]?.textContent;
+        if (code === editingProduct.code) {
+          const priceNode = productNodes[i].getElementsByTagName("Value")[0];
+          if (priceNode) {
+            priceNode.textContent = newPrice;
+            found = true;
+            break;
+          }
+        }
+      }
+
+      if (!found) throw new Error("Product not found in XML");
+
+      // 3. Convertir el DOM de nuevo a String
+      const serializer = new XMLSerializer();
+      const updatedXmlString = serializer.serializeToString(xmlDoc);
+
+      // 4. Actualizar en Supabase
+      const { error } = await supabase
+        .from('ClientsSERVEX')
+        .update({ xml_raw: updatedXmlString })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // 5. Refrescar datos locales
+      setXmlString(updatedXmlString);
+      setIsModalOpen(false);
+      alert("XML updated successfully");
+
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("Error updating XML");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-slate-900">
       
@@ -119,7 +185,6 @@ const PanelMenur = () => {
           <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 shadow-sm text-slate-700">
             Export
           </button>
-        
         </div>
       </div>
 
@@ -127,7 +192,6 @@ const PanelMenur = () => {
       <div className="px-8 pb-4 space-y-6">
         <div className="flex flex-col md:flex-row items-center gap-4">
           
-          {/* BUSCADOR SKU / NOMBRE */}
           <div className="relative w-full md:w-[450px]">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -140,7 +204,6 @@ const PanelMenur = () => {
             />
           </div>
 
-          {/* FILTROS TIPO DROPDOWN ESTILIZADOS */}
           <div className="flex items-center gap-2">
             <div className="flex bg-[#f8f9fb] p-1 rounded-xl border border-slate-100">
               {[
@@ -162,17 +225,13 @@ const PanelMenur = () => {
                 </button>
               ))}
             </div>
-
-           
           </div>
         </div>
 
-        {/* TABS CON CONTADOR DINÁMICO */}
         <div className="flex items-center gap-8 border-b border-slate-100">
           <button className="pb-3 text-sm font-bold text-[#0047FF] border-b-2 border-[#0047FF] px-1 flex items-center gap-2 transition-all">
             Results <span className="bg-blue-50 text-[#0047FF] text-[10px] px-2 py-0.5 rounded-md font-black">{filteredProducts.length}</span>
           </button>
-        
         </div>
       </div>
 
@@ -213,7 +272,12 @@ const PanelMenur = () => {
                     </td>
                     <td className="px-4 py-5">
                       <div className="flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="text-blue-600 text-xs font-bold hover:underline">Edit</button>
+                        <button 
+                          onClick={() => handleEditClick(item)}
+                          className="text-blue-600 text-xs font-bold hover:underline"
+                        >
+                          Edit
+                        </button>
                         <button className="text-slate-400 hover:text-slate-900 text-[10px] font-bold border border-slate-100 rounded px-1.5 py-0.5">More</button>
                       </div>
                     </td>
@@ -226,6 +290,44 @@ const PanelMenur = () => {
           </table>
         </div>
       </div>
+
+      {/* MODAL DE EDICIÓN ESTILIZADO */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-in fade-in zoom-in duration-200">
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Edit Product Price</h2>
+            <p className="text-sm text-slate-500 mb-6">Updating price for SKU: <span className="font-mono font-bold text-blue-600">{editingProduct?.code}</span></p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">New Price ({catalogInfo.currency})</label>
+                <input 
+                  type="number" 
+                  value={newPrice}
+                  onChange={(e) => setNewPrice(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#f8f9fb] border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 font-bold text-lg"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 mt-8">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleUpdateXML}
+                disabled={isUpdating}
+                className="flex-1 px-4 py-2.5 bg-[#0047FF] text-white rounded-xl text-sm font-bold hover:bg-blue-700 disabled:bg-slate-300 transition-all shadow-lg shadow-blue-200"
+              >
+                {isUpdating ? "Updating XML..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
