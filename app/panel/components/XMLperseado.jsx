@@ -155,7 +155,7 @@ export default function PanelMenur() {
           {!xmlContent ? (
             <div className="border-2 border-dashed border-slate-200 rounded-3xl p-20 text-center flex flex-col items-center justify-center bg-white/50">
               <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-2xl mb-4">📄</div>
-              <p className="text-slate-400 text-sm italic font-medium">Sube un archivo  XML para ver el desglose de precios aquí.</p>
+              <p className="text-slate-400 text-sm italic font-medium">Sube un archivo   c XML para ver el desglose de precios aquí.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
