@@ -36,13 +36,12 @@ const PanelMenur = () => {
     fetchXMLFromSupabase();
   }, []);
 
-  // 2. PARSEAR XML CON DATOS TÉCNICOS REALES (Dimensiones, Categoría, Fechas)
+  // 2. PARSEAR XML (Lógica de dimensiones corregida)
   useEffect(() => {
     if (!xmlString) return;
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
 
-    // Datos generales del catálogo
     const effectiveDate = xmlDoc.getElementsByTagName("EffectiveDate")[0]?.textContent || "N/A";
     const currency = xmlDoc.getElementsByTagName("Currency")[0]?.textContent || "USD";
     setCatalogInfo({ date: effectiveDate, currency });
@@ -55,17 +54,21 @@ const PanelMenur = () => {
       const code = product.getElementsByTagName("Code")[0]?.textContent || "N/A";
       const description = product.getElementsByTagName("Description")[0]?.textContent || "Sin descripción";
       
-      // Precio
       const priceNode = product.getElementsByTagName("Price")[0];
       const priceValue = priceNode ? priceNode.getElementsByTagName("Value")[0]?.textContent : "0";
 
-      // Dimensiones REALES (X, Y, Z del XML)
-      const x = product.getElementsByTagName("X")[0]?.textContent;
-      const y = product.getElementsByTagName("Y")[0]?.textContent;
-      const z = product.getElementsByTagName("Z")[0]?.textContent;
-      const dimensions = x ? `${x}" x ${y}" x ${z}"` : "N/A";
+      // --- CORRECCIÓN DE DIMENSIONES ---
+      // Buscamos X, Y, Z dentro de todo el sub-árbol del producto por si están anidados
+      const xVal = product.getElementsByTagName("X")[0]?.textContent;
+      const yVal = product.getElementsByTagName("Y")[0]?.textContent;
+      const zVal = product.getElementsByTagName("Z")[0]?.textContent;
 
-      // Categoría REAL (Classification)
+      let dimensions = "N/A";
+      if (xVal || yVal || zVal) {
+        // Formateamos solo si existen, usando "-" si falta alguno individualmente
+        dimensions = `${xVal || '-'} x ${yVal || '-'} x ${zVal || '-'}`;
+      }
+
       const category = product.getElementsByTagName("ClassificationRef")[0]?.textContent || "General";
 
       extracted.push({
