@@ -1,17 +1,16 @@
 'use client';
-import { useEffect, useState } from 'react';
+
+import { useState, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 
 /* =========================================================
-    🔧 UTILIDADES DE PARSEO (Similares a Python)
+    🔧 UTILIDADES DE EXTRACCIÓN (Lógica Unificada)
 ========================================================= */
 const getCleanTag = (node) => {
   if (!node || !node.tagName) return '';
-  // Elimina namespaces (ej: "ns:Product" -> "Product")
   return node.tagName.includes(':') ? node.tagName.split(':').pop() : node.tagName;
 };
 
-// Busca el texto de un tag dentro de un nodo específico (descendientes)
 const getTagText = (container, tagName) => {
   const elements = container.getElementsByTagName('*');
   for (let i = 0; i < elements.length; i++) {
@@ -22,21 +21,14 @@ const getTagText = (container, tagName) => {
   return '';
 };
 
-/* =========================================================
-    🧠 LÓGICA DE EXTRACCIÓN MEJORADA
-========================================================= */
-const extractProductsFromXML = (xmlString) => {
+const parseXMLToProducts = (xmlString) => {
+  if (!xmlString) return [];
   const parser = new DOMParser();
   const xml = parser.parseFromString(xmlString, 'text/xml');
   
-  if (xml.getElementsByTagName('parsererror').length > 0) {
-    throw new Error('Error al leer el formato XML');
-  }
-
-  // 1. Mapear Precios (Igual que en Python: price_map)
+  // Mapeo de precios por Referencia
   const priceMap = {};
   const allNodes = xml.getElementsByTagName('*');
-  
   for (let i = 0; i < allNodes.length; i++) {
     const node = allNodes[i];
     if (getCleanTag(node) === 'Product') {
@@ -46,117 +38,149 @@ const extractProductsFromXML = (xmlString) => {
     }
   }
 
-  // 2. Buscar Contenedores de Productos (Igual que root.iter() en Python)
   const finalProducts = [];
   const seenSkus = new Set();
-
   for (let i = 0; i < allNodes.length; i++) {
     const container = allNodes[i];
-    // Buscamos el SKU dentro de este nodo para ver si es un "contenedor" válido
     const sku = getTagText(container, 'ProductCode');
-
     if (sku && !seenSkus.has(sku)) {
       const description = getTagText(container, 'SelectionDescription') || getTagText(container, 'Description');
       const refId = getTagText(container, 'ProductRef');
+      let price = getTagText(container, 'Value') || priceMap[refId] || '0';
       
-      // Lógica de precio: prioridad al valor directo, luego al mapa por refId
-      let price = getTagText(container, 'Value');
-      if (!price && refId && priceMap[refId]) {
-        price = priceMap[refId];
-      }
-
-      finalProducts.push({
-        sku,
-        description,
-        base_price: price,
-        ref_id: refId
-      });
-      
+      finalProducts.push({ sku, description, price: parseFloat(price) || 0, refId });
       seenSkus.add(sku);
     }
   }
-
   return finalProducts;
 };
 
 /* =========================================================
-    🧩 COMPONENTE VISUAL
+    🧩 COMPONENTE UNIFICADO
 ========================================================= */
-export default function ParsedXMLViewer() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export default function PanelMenur() {
+  const [companyName, setCompanyName] = useState('');
+  const [xmlContent, setXmlContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState({ type: '', msg: '' });
 
-  useEffect(() => {
-    const loadXML = async () => {
-      try {
-        const { data, error: sbError } = await supabase
-          .from('ClientsSERVEX')
-          .select('xml_raw')
-          .order('created_at', { ascending: false })
-          .limit(1);
+  // Parseo automático cuando cambia el contenido del XML
+  const previewProducts = useMemo(() => parseXMLToProducts(xmlContent), [xmlContent]);
 
-        if (sbError) throw sbError;
-        if (!data?.[0]?.xml_raw) {
-          setError('No se encontró el XML en la base de datos');
-          return;
-        }
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => setXmlContent(event.target.result);
+    reader.readAsText(file);
+  };
 
-        const parsed = extractProductsFromXML(data[0].xml_raw);
-        setProducts(parsed);
-      } catch (err) {
-        console.error('Error detallado:', err);
-        setError('Error procesando el catálogo');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleSave = async () => {
+    if (!companyName.trim() || !xmlContent.trim()) {
+      setStatus({ type: 'error', msg: '❌ Empresa y XML son requeridos' });
+      return;
+    }
 
-    loadXML();
-  }, []);
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from('ClientsSERVEX').insert({
+        company_name: companyName,
+        xml_raw: xmlContent,
+        user_id: user?.id,
+      });
 
-  if (loading) return <div className="p-10 text-center font-sans">Cargando catálogo...</div>;
-  if (error) return <div className="p-10 text-red-500 text-center font-sans">{error}</div>;
+      if (error) throw error;
+      setStatus({ type: 'success', msg: '✅ Catálogo guardado correctamente' });
+      // Limpiar campos tras éxito si se desea
+    } catch (err) {
+      setStatus({ type: 'error', msg: '❌ Error al guardar en Supabase' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <section className="max-w-6xl mx-auto py-12 px-4 font-sans bg-gray-50 min-h-screen">
-      <header className="flex justify-between items-center mb-8 border-b pb-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Catálogo de Productos</h2>
-          <p className="text-gray-500 mt-1">Sincronizado desde XML LESTest</p>
-        </div>
-        <span className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm">
-          {products.length} Items
-        </span>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((p, i) => (
-          <div key={i} className="flex flex-col border border-gray-200 rounded-xl p-6 bg-white hover:border-indigo-300 transition-colors shadow-sm">
-            <div className="flex justify-between items-start mb-4">
-              <div className="bg-gray-100 px-2 py-1 rounded text-[10px] font-bold text-gray-600 uppercase">
-                SKU: {p.sku}
-              </div>
-              <div className="text-xl font-bold text-gray-900">
-                {p.base_price ? `$${p.base_price}` : <span className="text-gray-300 text-sm italic font-normal">N/A</span>}
-              </div>
-            </div>
-
-            <h3 className="text-gray-800 font-semibold text-lg leading-tight mb-2 min-h-[3rem]">
-              {p.description || 'Sin descripción'}
-            </h3>
-
-            <div className="mt-auto pt-4 border-t border-gray-100">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-400">
-                  Ref ID: <span className="font-mono">{p.ref_id || '---'}</span>
-                </span>
-                <span className={`h-2 w-2 rounded-full ${p.base_price ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-              </div>
-            </div>
+    <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
+      {/* 1. SECCIÓN SUPERIOR: CARGA Y EMPRESA */}
+      <div className="bg-white p-6 border-b shadow-sm z-10">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase">Nombre de la Empresa</label>
+            <input
+              className="w-full rounded-lg bg-slate-100 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              placeholder="Ej: Lesro Industries"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
           </div>
-        ))}
+          
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase">Archivo XML (Arrastra o selecciona)</label>
+            <input
+              type="file"
+              accept=".xml"
+              onChange={handleFileUpload}
+              className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleSave}
+              disabled={loading || !xmlContent}
+              className="flex-1 bg-black text-white py-2 rounded-lg text-sm font-bold hover:bg-slate-800 disabled:opacity-40 transition-all"
+            >
+              {loading ? 'Guardando...' : 'Subir Catálogo'}
+            </button>
+          </div>
+        </div>
+        {status.msg && (
+          <div className={`mt-4 text-center text-xs font-bold ${status.type === 'error' ? 'text-red-500' : 'text-green-600'}`}>
+            {status.msg}
+          </div>
+        )}
       </div>
-    </section>
+
+      {/* 2. SECCIÓN INFERIOR: VISTA PREVIA DEL PARSEO */}
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-extrabold text-slate-800">Vista Previa del Catálogo</h3>
+            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
+              {previewProducts.length} Productos Detectados
+            </span>
+          </div>
+
+          {!xmlContent ? (
+            <div className="border-2 border-dashed border-slate-200 rounded-3xl p-20 text-center flex flex-col items-center justify-center bg-white/50">
+              <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-2xl mb-4">📄</div>
+              <p className="text-slate-400 text-sm italic font-medium">Sube un archivo XML para ver el desglose de precios aquí.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {previewProducts.map((p, i) => (
+                <div key={i} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:border-blue-400 transition-all group">
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded uppercase tracking-wider group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                      SKU: {p.sku}
+                    </span>
+                    <span className="text-lg font-black text-slate-900">
+                      ${p.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-semibold text-slate-700 leading-snug line-clamp-2 min-h-[2.5rem]">
+                    {p.description}
+                  </h4>
+                  <div className="mt-4 pt-3 border-t border-slate-50 text-[10px] text-slate-400 font-mono">
+                    Ref ID: {p.refId || 'N/A'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
