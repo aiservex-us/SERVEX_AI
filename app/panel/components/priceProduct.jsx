@@ -10,6 +10,10 @@ const PanelMenur = () => {
   const [loading, setLoading] = useState(true);
   const [catalogInfo, setCatalogInfo] = useState({ date: '', currency: '' });
 
+  // ESTADOS DE FILTRADO FUNCIONAL
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [priceRange, setPriceRange] = useState("All");
+
   // 1. OBTENER XML DE SUPABASE
   useEffect(() => {
     const fetchXMLFromSupabase = async () => {
@@ -36,7 +40,7 @@ const PanelMenur = () => {
     fetchXMLFromSupabase();
   }, []);
 
-  // 2. PARSEAR XML (Lógica de dimensiones corregida)
+  // 2. PARSEAR XML
   useEffect(() => {
     if (!xmlString) return;
     const parser = new DOMParser();
@@ -57,15 +61,12 @@ const PanelMenur = () => {
       const priceNode = product.getElementsByTagName("Price")[0];
       const priceValue = priceNode ? priceNode.getElementsByTagName("Value")[0]?.textContent : "0";
 
-      // --- CORRECCIÓN DE DIMENSIONES ---
-      // Buscamos X, Y, Z dentro de todo el sub-árbol del producto por si están anidados
       const xVal = product.getElementsByTagName("X")[0]?.textContent;
       const yVal = product.getElementsByTagName("Y")[0]?.textContent;
       const zVal = product.getElementsByTagName("Z")[0]?.textContent;
 
       let dimensions = "N/A";
       if (xVal || yVal || zVal) {
-        // Formateamos solo si existen, usando "-" si falta alguno individualmente
         dimensions = `${xVal || '-'} x ${yVal || '-'} x ${zVal || '-'}`;
       }
 
@@ -82,13 +83,28 @@ const PanelMenur = () => {
     setProducts(extracted);
   }, [xmlString]);
 
-  // 3. FILTRADO
+  // OBTENER CATEGORÍAS ÚNICAS PARA EL DROPDOWN
+  const uniqueCategories = useMemo(() => {
+    const categories = products.map(p => p.category);
+    return ["All", ...new Set(categories)];
+  }, [products]);
+
+  // 3. FILTRADO MULTI-CRITERIO (Buscador + Categoría + Rango de Precio)
   const filteredProducts = useMemo(() => {
-    return products.filter(p => 
-      p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, products]);
+    return products.filter(p => {
+      const matchesSearch = p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            p.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+
+      let matchesPrice = true;
+      if (priceRange === "low") matchesPrice = p.price < 500;
+      if (priceRange === "mid") matchesPrice = p.price >= 500 && p.price <= 1500;
+      if (priceRange === "high") matchesPrice = p.price > 1500;
+
+      return matchesSearch && matchesCategory && matchesPrice;
+    });
+  }, [searchTerm, products, selectedCategory, priceRange]);
 
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-slate-900">
@@ -109,12 +125,12 @@ const PanelMenur = () => {
         </div>
       </div>
 
-      {/* SECCIÓN 2: BUSCADOR Y FILTROS */}
+      {/* SECCIÓN 2: BUSCADOR Y FILTROS FUNCIONALES */}
       <div className="px-8 pb-4 space-y-6">
         <div className="flex flex-col md:flex-row items-center gap-4">
           <div className="relative w-full md:w-[450px]">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" x1="21" x2="16.65" y2="16.65"></line></svg>
             </span>
             <input
               type="text"
@@ -124,20 +140,36 @@ const PanelMenur = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {['Category', 'Dimensions', 'Price Range'].map((filter) => (
-              <button key={filter} className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-slate-200 rounded-lg bg-white hover:bg-slate-50 text-slate-700 whitespace-nowrap">
-                {filter}
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-            ))}
+          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+            {/* Filtro de Categoría */}
+            <select 
+              className="px-3 py-2 text-sm font-medium border border-slate-200 rounded-lg bg-white hover:bg-slate-50 text-slate-700 outline-none"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              {uniqueCategories.map(cat => (
+                <option key={cat} value={cat}>{cat === "All" ? "All Categories" : cat}</option>
+              ))}
+            </select>
+
+            {/* Filtro de Precio */}
+            <select 
+              className="px-3 py-2 text-sm font-medium border border-slate-200 rounded-lg bg-white hover:bg-slate-50 text-slate-700 outline-none"
+              value={priceRange}
+              onChange={(e) => setPriceRange(e.target.value)}
+            >
+              <option value="All">All Prices</option>
+              <option value="low">Under $500</option>
+              <option value="mid">$500 - $1,500</option>
+              <option value="high">Over $1,500</option>
+            </select>
           </div>
         </div>
 
-        {/* SECCIÓN 3: TABS CON DATA REAL */}
+        {/* SECCIÓN 3: TABS */}
         <div className="flex items-center gap-8 border-b border-slate-100 overflow-x-auto no-scrollbar">
           <button className="pb-3 text-sm font-bold text-[#0047FF] border-b-2 border-[#0047FF] px-1 flex items-center gap-2 whitespace-nowrap transition-all">
-            All Products <span className="bg-[#FFEDD5] text-[#C2410C] text-[10px] px-1.5 py-0.5 rounded-md font-black">{products.length}</span>
+            All Products <span className="bg-[#FFEDD5] text-[#C2410C] text-[10px] px-1.5 py-0.5 rounded-md font-black">{filteredProducts.length}</span>
           </button>
           <button className="pb-3 text-sm font-bold text-slate-400 px-1 whitespace-nowrap hover:text-slate-600">
             Current Selection
@@ -193,7 +225,7 @@ const PanelMenur = () => {
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan="7" className="px-6 py-20 text-center text-slate-400">No se encontraron productos en el catálogo actual.</td></tr>
+                <tr><td colSpan="7" className="px-6 py-20 text-center text-slate-400">No products found with current filters.</td></tr>
               )}
             </tbody>
           </table>
