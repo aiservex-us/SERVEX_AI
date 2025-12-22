@@ -10,9 +10,9 @@ const PanelMenur = () => {
   const [loading, setLoading] = useState(true);
   const [catalogInfo, setCatalogInfo] = useState({ date: '', currency: '' });
 
-  // ESTADOS DE FILTRADO FUNCIONAL
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [priceRange, setPriceRange] = useState("All");
+  // ESTADOS DE FILTRADO
+  const [priceFilter, setPriceFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
 
   // 1. OBTENER XML DE SUPABASE
   useEffect(() => {
@@ -22,7 +22,7 @@ const PanelMenur = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data, error: sbError } = await supabase
+        const { data } = await supabase
           .from('ClientsSERVEX')
           .select('xml_raw')
           .eq('user_id', user.id)
@@ -83,110 +83,121 @@ const PanelMenur = () => {
     setProducts(extracted);
   }, [xmlString]);
 
-  // OBTENER CATEGORÍAS ÚNICAS PARA EL DROPDOWN
-  const uniqueCategories = useMemo(() => {
-    const categories = products.map(p => p.category);
-    return ["All", ...new Set(categories)];
+  // CATEGORÍAS ÚNICAS
+  const categories = useMemo(() => {
+    return ["All", ...new Set(products.map(p => p.category))];
   }, [products]);
 
-  // 3. FILTRADO MULTI-CRITERIO (Buscador + Categoría + Rango de Precio)
+  // 3. LÓGICA DE FILTRADO (SKU, Nombre y Precio)
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
-      const matchesSearch = p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            p.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = 
+        p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+      const matchesCategory = categoryFilter === "All" || p.category === categoryFilter;
 
       let matchesPrice = true;
-      if (priceRange === "low") matchesPrice = p.price < 500;
-      if (priceRange === "mid") matchesPrice = p.price >= 500 && p.price <= 1500;
-      if (priceRange === "high") matchesPrice = p.price > 1500;
+      if (priceFilter === "low") matchesPrice = p.price < 500;
+      if (priceFilter === "mid") matchesPrice = p.price >= 500 && p.price <= 1500;
+      if (priceFilter === "high") matchesPrice = p.price > 1500;
 
       return matchesSearch && matchesCategory && matchesPrice;
     });
-  }, [searchTerm, products, selectedCategory, priceRange]);
+  }, [searchTerm, products, priceFilter, categoryFilter]);
 
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-slate-900">
       
-      {/* SECCIÓN 1: TÍTULO Y ACCIONES */}
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center px-8 py-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-black">Catalog Products</h1>
           <p className="text-xs text-slate-400 font-medium mt-1">Effective Date: {catalogInfo.date}</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 shadow-sm transition-all text-slate-700">
+          <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 shadow-sm text-slate-700">
             Export
           </button>
-          <button className="flex items-center gap-2 px-5 py-2 bg-[#0047FF] text-white rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm transition-all">
+          <button className="px-5 py-2 bg-[#0047FF] text-white rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm">
             + Create Item
           </button>
         </div>
       </div>
 
-      {/* SECCIÓN 2: BUSCADOR Y FILTROS FUNCIONALES */}
+      {/* BARRA DE FILTROS ESTILIZADA */}
       <div className="px-8 pb-4 space-y-6">
         <div className="flex flex-col md:flex-row items-center gap-4">
+          
+          {/* BUSCADOR SKU / NOMBRE */}
           <div className="relative w-full md:w-[450px]">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" x1="21" x2="16.65" y2="16.65"></line></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </span>
             <input
               type="text"
-              placeholder="Search by code or description..."
+              placeholder="Search by SKU or product name..."
               className="w-full pl-12 pr-4 py-2.5 bg-[#f8f9fb] border border-transparent rounded-xl text-sm outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
-            {/* Filtro de Categoría */}
+          {/* FILTROS TIPO DROPDOWN ESTILIZADOS */}
+          <div className="flex items-center gap-2">
+            <div className="flex bg-[#f8f9fb] p-1 rounded-xl border border-slate-100">
+              {[
+                { label: 'All Prices', value: 'All' },
+                { label: '< $500', value: 'low' },
+                { label: '$500 - $1.5k', value: 'mid' },
+                { label: '> $1.5k', value: 'high' }
+              ].map((range) => (
+                <button
+                  key={range.value}
+                  onClick={() => setPriceFilter(range.value)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    priceFilter === range.value 
+                    ? 'bg-white text-[#0047FF] shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  {range.label}
+                </button>
+              ))}
+            </div>
+
             <select 
-              className="px-3 py-2 text-sm font-medium border border-slate-200 rounded-lg bg-white hover:bg-slate-50 text-slate-700 outline-none"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="bg-[#f8f9fb] border border-slate-100 text-slate-600 text-xs font-bold py-2.5 px-3 rounded-xl outline-none focus:bg-white transition-all cursor-pointer"
             >
-              {uniqueCategories.map(cat => (
+              {categories.map(cat => (
                 <option key={cat} value={cat}>{cat === "All" ? "All Categories" : cat}</option>
               ))}
-            </select>
-
-            {/* Filtro de Precio */}
-            <select 
-              className="px-3 py-2 text-sm font-medium border border-slate-200 rounded-lg bg-white hover:bg-slate-50 text-slate-700 outline-none"
-              value={priceRange}
-              onChange={(e) => setPriceRange(e.target.value)}
-            >
-              <option value="All">All Prices</option>
-              <option value="low">Under $500</option>
-              <option value="mid">$500 - $1,500</option>
-              <option value="high">Over $1,500</option>
             </select>
           </div>
         </div>
 
-        {/* SECCIÓN 3: TABS */}
-        <div className="flex items-center gap-8 border-b border-slate-100 overflow-x-auto no-scrollbar">
-          <button className="pb-3 text-sm font-bold text-[#0047FF] border-b-2 border-[#0047FF] px-1 flex items-center gap-2 whitespace-nowrap transition-all">
-            All Products <span className="bg-[#FFEDD5] text-[#C2410C] text-[10px] px-1.5 py-0.5 rounded-md font-black">{filteredProducts.length}</span>
+        {/* TABS CON CONTADOR DINÁMICO */}
+        <div className="flex items-center gap-8 border-b border-slate-100">
+          <button className="pb-3 text-sm font-bold text-[#0047FF] border-b-2 border-[#0047FF] px-1 flex items-center gap-2 transition-all">
+            Results <span className="bg-blue-50 text-[#0047FF] text-[10px] px-2 py-0.5 rounded-md font-black">{filteredProducts.length}</span>
           </button>
-          <button className="pb-3 text-sm font-bold text-slate-400 px-1 whitespace-nowrap hover:text-slate-600">
-            Current Selection
+          <button className="pb-3 text-sm font-bold text-slate-400 px-1 hover:text-slate-600 transition-all">
+            Selected Items
           </button>
         </div>
       </div>
 
-      {/* TABLA DE PRODUCTOS */}
+      {/* TABLA */}
       <div className="flex-1 overflow-auto px-8 pb-10">
         <div className="border border-slate-100 rounded-2xl shadow-sm overflow-hidden bg-white">
           <table className="min-w-full divide-y divide-slate-100">
             <thead className="bg-[#fcfcfd]">
               <tr>
-                <th className="px-6 py-4 text-left w-12"><input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" /></th>
+                <th className="px-6 py-4 text-left w-12"><input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-blue-600" /></th>
                 <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">SKU / Code</th>
                 <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Product Name</th>
-                <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Dimensions (WxDxH)</th>
+                <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Dimensions</th>
                 <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-left">Category</th>
                 <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-right">Price ({catalogInfo.currency})</th>
                 <th className="px-4 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest text-center">Actions</th>
@@ -194,18 +205,16 @@ const PanelMenur = () => {
             </thead>
             <tbody className="bg-white divide-y divide-slate-50">
               {loading ? (
-                <tr><td colSpan="7" className="px-6 py-20 text-center text-slate-400 animate-pulse">Sincronizando catálogo con Supabase...</td></tr>
+                <tr><td colSpan="7" className="px-6 py-20 text-center text-slate-400 animate-pulse">Loading catalog...</td></tr>
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/80 transition-colors group cursor-default">
-                    <td className="px-6 py-5"><input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" /></td>
-                    <td className="px-4 py-5 text-sm text-slate-500 font-medium whitespace-nowrap font-mono">{item.code}</td>
+                  <tr key={idx} className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="px-6 py-5"><input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-blue-600" /></td>
+                    <td className="px-4 py-5 text-sm text-slate-500 font-medium font-mono">{item.code}</td>
                     <td className="px-4 py-5">
                       <div className="text-sm font-bold text-slate-900 leading-tight">{item.description}</div>
                     </td>
-                    <td className="px-4 py-5 text-xs text-slate-500 font-medium">
-                      {item.dimensions}
-                    </td>
+                    <td className="px-4 py-5 text-xs text-slate-500 font-medium">{item.dimensions}</td>
                     <td className="px-4 py-5">
                       <span className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-blue-50 text-blue-600 border border-blue-100">
                         {item.category}
@@ -215,17 +224,15 @@ const PanelMenur = () => {
                       ${item.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-4 py-5">
-                      <div className="flex items-center justify-center gap-3">
-                        <button className="text-blue-600 text-xs font-bold hover:underline transition-all">Details</button>
-                        <button className="text-slate-400 hover:text-slate-900 flex items-center gap-1 text-[10px] font-bold border border-slate-100 rounded px-1.5 py-0.5 shadow-sm transition-all">
-                          More <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 9 6 6 6-6"/></svg>
-                        </button>
+                      <div className="flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="text-blue-600 text-xs font-bold hover:underline">Edit</button>
+                        <button className="text-slate-400 hover:text-slate-900 text-[10px] font-bold border border-slate-100 rounded px-1.5 py-0.5">More</button>
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
-                <tr><td colSpan="7" className="px-6 py-20 text-center text-slate-400">No products found with current filters.</td></tr>
+                <tr><td colSpan="7" className="px-6 py-20 text-center text-slate-400 font-medium">No results found for your selection.</td></tr>
               )}
             </tbody>
           </table>
