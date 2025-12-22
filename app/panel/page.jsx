@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 // COMPONENTES
 import IncertXML from './components/incertXML';
 import PanelHeader from './components/PanelHeader';
-import PanelMenur from './components/seeXML';
+import PanelMenur from './components/XMLperseado';
 
 export default function PanelPage() {
   const router = useRouter();
