@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 
 /* =========================================================
-   🔧 UTILIDADES (idénticas a Python)
+   🔧 UTILIDADES (IGUAL A PYTHON)
 ========================================================= */
 
 const getCleanTag = (node) => {
@@ -26,7 +26,7 @@ const getTextByTag = (container, tagName) => {
 };
 
 /* =========================================================
-   🧠 PARSEO XML — PORT EXACTO DEL SCRIPT PYTHON
+   🧠 PARSEO XML (MISMA LÓGICA QUE PYTHON)
 ========================================================= */
 
 const extractProductsFromXML = (xmlString) => {
@@ -38,43 +38,44 @@ const extractProductsFromXML = (xmlString) => {
   }
 
   const root = xml.documentElement;
-
-  /* =========================================
-     1️⃣ PRICE MAP (igual que Python)
-  ========================================= */
-
-  const priceMap = {};
   const allNodes = root.getElementsByTagName('*');
 
+  /* -------------------------------------------------------
+     1️⃣ MAPEAR PRECIOS POR PRODUCT (price_map)
+  ------------------------------------------------------- */
+
+  const priceMap = {};
+
   for (let node of allNodes) {
-    if (getCleanTag(node) === 'Product') {
-      const productId =
-        node.getAttribute('ID') || getTextByTag(node, 'ProductRef');
+    if (getCleanTag(node) !== 'Product') continue;
 
-      let priceVal = '';
+    const refId =
+      node.getAttribute('ID') ||
+      getTextByTag(node, 'ProductRef');
 
-      for (let child of node.getElementsByTagName('*')) {
-        if (getCleanTag(child) === 'Price') {
-          priceVal = getTextByTag(child, 'Value');
-          break;
-        }
-      }
+    if (!refId) continue;
 
-      if (productId) {
-        priceMap[productId] = priceVal;
+    let price = '';
+    for (let child of node.getElementsByTagName('*')) {
+      if (getCleanTag(child) === 'Price') {
+        price = getTextByTag(child, 'Value');
+        break;
       }
     }
+
+    priceMap[refId] = price;
   }
 
-  /* =========================================
-     2️⃣ EXTRAER PRODUCTOS (NO desde <Product>)
-  ========================================= */
+  /* -------------------------------------------------------
+     2️⃣ BUSCAR SKUs Y CRUZAR CON PRECIOS
+  ------------------------------------------------------- */
 
-  const finalProducts = [];
+  const products = [];
+  const seenSku = new Set();
 
   for (let container of allNodes) {
     const sku = getTextByTag(container, 'ProductCode');
-    if (!sku) continue;
+    if (!sku || seenSku.has(sku)) continue;
 
     const description =
       getTextByTag(container, 'SelectionDescription') ||
@@ -87,21 +88,21 @@ const extractProductsFromXML = (xmlString) => {
       price = priceMap[refId];
     }
 
-    if (!finalProducts.some((p) => p.sku === sku)) {
-      finalProducts.push({
-        sku,
-        description,
-        base_price: price,
-        ref_id: refId,
-      });
-    }
+    products.push({
+      sku,
+      description,
+      base_price: price,
+      ref_id: refId,
+    });
+
+    seenSku.add(sku);
   }
 
-  return finalProducts;
+  return products;
 };
 
 /* =========================================================
-   🧩 COMPONENTE — SOLO LECTURA
+   🧩 COMPONENTE
 ========================================================= */
 
 export default function ParsedXMLViewer() {
@@ -119,8 +120,7 @@ export default function ParsedXMLViewer() {
           .limit(1);
 
         if (error) throw error;
-
-        if (!data || !data.length || !data[0].xml_raw) {
+        if (!data?.[0]?.xml_raw) {
           setError('No XML found');
           return;
         }
@@ -128,8 +128,8 @@ export default function ParsedXMLViewer() {
         const parsed = extractProductsFromXML(data[0].xml_raw);
         setProducts(parsed);
       } catch (err) {
-        console.error('XML PARSE ERROR:', err);
-        setError('Error parsing XML');
+        console.error(err);
+        setError('XML parse error');
       } finally {
         setLoading(false);
       }
@@ -139,41 +139,39 @@ export default function ParsedXMLViewer() {
   }, []);
 
   if (loading) {
-    return <p className="text-sm text-neutral-500 px-4 py-6">Loading XML…</p>;
+    return <p className="px-4 py-6 text-sm text-neutral-500">Loading XML…</p>;
   }
 
   if (error) {
-    return <p className="text-sm text-red-500 px-4 py-6">{error}</p>;
+    return <p className="px-4 py-6 text-sm text-red-500">{error}</p>;
   }
 
   return (
-    <section className="w-full max-w-6xl mx-auto py-12 px-4">
+    <section className="max-w-6xl mx-auto py-12 px-4">
       <h2 className="text-2xl font-semibold mb-6">
         Parsed XML Products ({products.length})
       </h2>
 
       <div className="space-y-4">
-        {products.map((product, index) => (
+        {products.map((p, i) => (
           <div
-            key={index}
+            key={i}
             className="rounded-2xl border bg-white p-5 shadow-sm"
           >
-            <div className="flex justify-between items-start gap-4">
+            <div className="flex justify-between gap-6">
               <div>
-                <p className="text-sm font-semibold text-black">
-                  SKU: {product.sku}
-                </p>
+                <p className="font-semibold text-sm">SKU: {p.sku}</p>
                 <p className="text-xs text-neutral-600 mt-1">
-                  {product.description || 'No description'}
+                  {p.description || '—'}
                 </p>
               </div>
 
               <div className="text-right">
                 <p className="text-sm font-medium">
-                  {product.base_price ? `$${product.base_price}` : '—'}
+                  {p.base_price ? `$${p.base_price}` : '—'}
                 </p>
                 <p className="text-[11px] text-neutral-400">
-                  Ref: {product.ref_id || '—'}
+                  Ref: {p.ref_id || '—'}
                 </p>
               </div>
             </div>
