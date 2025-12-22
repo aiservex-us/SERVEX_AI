@@ -154,7 +154,7 @@ const PanelMenur = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#F9FAFB] text-[#1F2937] font-sans overflow-hidden">
+    <div className="flex h-[100%] w-full bg-[#F9FAFB] text-[#1F2937] font-sans overflow-hidden">
       
       {/* SIDEBAR (Inspirado en la imagen) */}
       <aside className="w-64 border-r border-gray-200 bg-white flex flex-col">
