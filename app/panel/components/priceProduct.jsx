@@ -119,9 +119,7 @@ const PanelMenur = () => {
           <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 shadow-sm text-slate-700">
             Export
           </button>
-          <button className="px-5 py-2 bg-[#0047FF] text-white rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm">
-            + Create Item
-          </button>
+        
         </div>
       </div>
 
@@ -165,15 +163,7 @@ const PanelMenur = () => {
               ))}
             </div>
 
-            <select 
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-[#f8f9fb] border border-slate-100 text-slate-600 text-xs font-bold py-2.5 px-3 rounded-xl outline-none focus:bg-white transition-all cursor-pointer"
-            >
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat === "All" ? "All Categories" : cat}</option>
-              ))}
-            </select>
+           
           </div>
         </div>
 
@@ -182,9 +172,7 @@ const PanelMenur = () => {
           <button className="pb-3 text-sm font-bold text-[#0047FF] border-b-2 border-[#0047FF] px-1 flex items-center gap-2 transition-all">
             Results <span className="bg-blue-50 text-[#0047FF] text-[10px] px-2 py-0.5 rounded-md font-black">{filteredProducts.length}</span>
           </button>
-          <button className="pb-3 text-sm font-bold text-slate-400 px-1 hover:text-slate-600 transition-all">
-            Selected Items
-          </button>
+        
         </div>
       </div>
 
