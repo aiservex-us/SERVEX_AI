@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 
 const PanelMenur = () => {
@@ -19,6 +19,10 @@ const PanelMenur = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [newPrice, setNewPrice] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // EXPORT
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const exportRef = useRef(null);
 
   // 1. OBTENER XML DE SUPABASE
   const fetchXMLFromSupabase = async () => {
@@ -95,7 +99,7 @@ const PanelMenur = () => {
     return ["All", ...new Set(products.map(p => p.category))];
   }, [products]);
 
-  // 3. LÓGICA DE FILTRADO (SKU, Nombre y Precio)
+  // 3. LÓGICA DE FILTRADO
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = 
@@ -113,7 +117,7 @@ const PanelMenur = () => {
     });
   }, [searchTerm, products, priceFilter, categoryFilter]);
 
-  // --- LÓGICA DE ACTUALIZACIÓN DEL XML ---
+  // ACTUALIZAR XML
   const handleEditClick = (product) => {
     setEditingProduct(product);
     setNewPrice(product.price.toString());
@@ -124,67 +128,102 @@ const PanelMenur = () => {
     try {
       setIsUpdating(true);
       const { data: { user } } = await supabase.auth.getUser();
-      
-      // 1. Parsear el string XML actual a un objeto DOM
+
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-      
-      // 2. Buscar el producto por su código (SKU)
+
       const productNodes = xmlDoc.getElementsByTagName("Product");
-      let found = false;
 
       for (let i = 0; i < productNodes.length; i++) {
         const code = productNodes[i].getElementsByTagName("Code")[0]?.textContent;
         if (code === editingProduct.code) {
-          const priceNode = productNodes[i].getElementsByTagName("Value")[0];
-          if (priceNode) {
-            priceNode.textContent = newPrice;
-            found = true;
-            break;
-          }
+          productNodes[i].getElementsByTagName("Value")[0].textContent = newPrice;
+          break;
         }
       }
 
-      if (!found) throw new Error("Product not found in XML");
-
-      // 3. Convertir el DOM de nuevo a String
       const serializer = new XMLSerializer();
       const updatedXmlString = serializer.serializeToString(xmlDoc);
 
-      // 4. Actualizar en Supabase
-      const { error } = await supabase
+      await supabase
         .from('ClientsSERVEX')
         .update({ xml_raw: updatedXmlString })
         .eq('user_id', user.id);
 
-      if (error) throw error;
-
-      // 5. Refrescar datos locales
       setXmlString(updatedXmlString);
       setIsModalOpen(false);
       alert("XML updated successfully");
-
     } catch (err) {
-      console.error("Update error:", err);
+      console.error(err);
       alert("Error updating XML");
     } finally {
       setIsUpdating(false);
     }
   };
 
+  // EXPORT HELPERS
+  const downloadFile = (content, filename, type) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    setIsExportOpen(false);
+  };
+
+  const downloadXML = () => {
+    downloadFile(xmlString, 'catalog.xml', 'application/xml');
+  };
+
+  const downloadJSON = () => {
+    downloadFile(
+      JSON.stringify({ catalogInfo, products }, null, 2),
+      'catalog.json',
+      'application/json'
+    );
+  };
+
+  // Cerrar dropdown
+  useEffect(() => {
+    const handler = (e) => {
+      if (exportRef.current && !exportRef.current.contains(e.target)) {
+        setIsExportOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   return (
     <div className="flex flex-col h-full w-full bg-white font-sans text-slate-900">
-      
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center px-8 py-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-black">Catalog Products</h1>
-          <p className="text-xs text-slate-400 font-medium mt-1">Effective Date: {catalogInfo.date}</p>
+          <h1 className="text-3xl font-bold tracking-tight">Catalog Products</h1>
+          <p className="text-xs text-slate-400">Effective Date: {catalogInfo.date}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 shadow-sm text-slate-700">
+
+        <div className="relative" ref={exportRef}>
+          <button
+            onClick={() => setIsExportOpen(!isExportOpen)}
+            className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold hover:bg-slate-50 shadow-sm"
+          >
             Export
           </button>
+
+          {isExportOpen && (
+            <div className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-50">
+              <button onClick={downloadXML} className="w-full px-4 py-3 text-left hover:bg-slate-50 text-sm">
+                Download XML
+              </button>
+              <button onClick={downloadJSON} className="w-full px-4 py-3 text-left hover:bg-slate-50 text-sm">
+                Download JSON
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
