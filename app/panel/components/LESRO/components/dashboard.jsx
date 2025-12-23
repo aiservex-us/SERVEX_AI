@@ -69,7 +69,7 @@ const ProfessionalDashboard = () => {
   const tabs = ['Overview', 'Market Analysis', 'Dimensional Profile', 'Feature Matrix'];
 
   return (
-    <div className="h-screen w-screen bg-[#F5F5F5] text-[#242424] overflow-hidden">
+    <div className="h-screen w-screen bg-[#fff] text-[#242424] overflow-hidden">
       
       {/* NAVBAR */}
       <nav className="bg-white border-b border-gray-200 px-4 h-14">
