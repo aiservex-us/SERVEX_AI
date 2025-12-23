@@ -1,7 +1,7 @@
 'use client';
 import React, { useMemo, useState } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, Radar,
   AreaChart, Area, ScatterChart, Scatter, ZAxis, Legend
 } from 'recharts';
@@ -23,18 +23,18 @@ const ProfessionalDashboard = () => {
           name: p.category,
           count: 0,
           total: 0,
+          totalFeatures: 0,
           avgX: 0,
           avgY: 0,
           avgZ: 0,
-          totalFeatures: 0
         };
       }
       categories[p.category].count++;
       categories[p.category].total += p.price;
+      categories[p.category].totalFeatures += p.features;
       categories[p.category].avgX += p.x;
       categories[p.category].avgY += p.y;
       categories[p.category].avgZ += p.z;
-      categories[p.category].totalFeatures += p.features;
 
       const bin = Math.floor(p.price / 100) * 100;
       priceBins[bin] = (priceBins[bin] || 0) + 1;
@@ -45,7 +45,7 @@ const ProfessionalDashboard = () => {
       barDataValue: Object.values(categories).map(c => ({
         name: c.name,
         avgPrice: Math.round(c.total / c.count),
-        avgFeatures: Math.round(c.totalFeatures / c.count)
+        avgFeatures: Math.round(c.totalFeatures / c.count),
       })),
       radarData: Object.values(categories).slice(0, 5).map(c => ({
         subject: c.name,
@@ -53,14 +53,19 @@ const ProfessionalDashboard = () => {
         Y: c.avgY / c.count,
         Z: c.avgZ / c.count,
       })),
-      areaPriceData: Object.keys(priceBins).sort((a, b) => a - b)
-        .map(bin => ({ priceRange: `${bin}-${+bin + 99}`, count: priceBins[bin] }))
+      areaPriceData: Object.keys(priceBins)
+        .sort((a, b) => a - b)
+        .map(bin => ({
+          priceRange: `${bin}-${+bin + 99}`,
+          count: priceBins[bin],
+        })),
     };
   }, [products]);
 
+  /* LOADING */
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#F5F5F5]">
+      <div className="h-full w-full flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#6264A7] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -69,20 +74,25 @@ const ProfessionalDashboard = () => {
   const tabs = ['Overview', 'Market Analysis', 'Dimensional Profile', 'Feature Matrix'];
 
   return (
-    <div className="h-screen w-screen bg-white overflow-hidden flex flex-col">
+    <div className="h-full w-full flex flex-col bg-white min-h-0">
 
       {/* NAVBAR */}
       <nav className="h-14 shrink-0 border-b border-gray-200 px-4">
         <div className="h-full flex justify-between items-center max-w-7xl mx-auto">
           <div className="flex items-center gap-6">
-            <h1 className="text-lg font-bold text-[#6264A7]">Catalog Intelligence</h1>
+            <h1 className="text-lg font-bold text-[#6264A7]">
+              Catalog Intelligence
+            </h1>
+
             <div className="flex gap-1">
               {tabs.map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-3 py-3 text-xs font-medium relative
-                    ${activeTab === tab ? 'text-[#6264A7]' : 'text-gray-500 hover:text-[#6264A7]'}`}
+                  ${activeTab === tab
+                      ? 'text-[#6264A7]'
+                      : 'text-gray-500 hover:text-[#6264A7]'}`}
                 >
                   {tab}
                   {activeTab === tab && (
@@ -92,12 +102,13 @@ const ProfessionalDashboard = () => {
               ))}
             </div>
           </div>
+
           <InfoBadge label="SCHEMA" value="OFDA 01.04" />
         </div>
       </nav>
 
-      {/* MAIN */}
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 flex flex-col gap-4">
+      {/* CONTENT */}
+      <main className="flex-1 min-h-0 w-full max-w-7xl mx-auto p-4 flex flex-col gap-4">
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
@@ -107,14 +118,14 @@ const ProfessionalDashboard = () => {
           <StatCard title="Total Value" value={`$${catalogStats.totalValue}`} color="#0078D4" />
         </div>
 
-        {/* CONTENT */}
-        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 flex flex-col overflow-hidden">
+        {/* CHART AREA */}
+        <div className="flex-1 min-h-0 bg-white rounded-xl border border-gray-200 p-4 flex flex-col overflow-hidden">
           <header className="shrink-0 mb-2">
             <h2 className="text-lg font-semibold">{activeTab}</h2>
             <p className="text-xs text-gray-500 italic">Dataset analytics</p>
           </header>
 
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 min-h-0">
             {activeTab === 'Overview' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 h-full gap-4">
                 <ChartBlock title="Price Distribution">
@@ -127,21 +138,15 @@ const ProfessionalDashboard = () => {
             )}
 
             {activeTab === 'Market Analysis' && (
-              <div className="h-full">
-                <GroupedBarChartBlock data={chartData.barDataValue} />
-              </div>
+              <GroupedBarChartBlock data={chartData.barDataValue} />
             )}
 
             {activeTab === 'Dimensional Profile' && (
-              <div className="h-full">
-                <RadarChartBlock data={chartData.radarData} />
-              </div>
+              <RadarChartBlock data={chartData.radarData} />
             )}
 
             {activeTab === 'Feature Matrix' && (
-              <div className="h-full">
-                <ScatterChartBlock data={products} />
-              </div>
+              <ScatterChartBlock data={products} />
             )}
           </div>
         </div>
@@ -168,33 +173,23 @@ const InfoBadge = ({ label, value }) => (
 
 const ChartBlock = ({ title, children }) => (
   <div className="flex flex-col h-full">
-    <span className="text-[11px] font-bold mb-1 uppercase text-gray-400">{title}</span>
-    <div className="flex-1 w-full h-full">{children}</div>
+    <span className="text-[11px] font-bold mb-1 uppercase text-gray-400">
+      {title}
+    </span>
+    <div className="flex-1 min-h-0">
+      {children}
+    </div>
   </div>
 );
 
 /* ---------------- CHARTS ---------------- */
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload?.length) {
-    return (
-      <div className="bg-white p-2 border rounded text-xs">
-        <p className="font-bold">{label}</p>
-        {payload.map((e, i) => (
-          <p key={i} style={{ color: e.color }}>{e.name}: {e.value}</p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
 
 const AreaChartBlock = ({ data }) => (
   <ResponsiveContainer width="100%" height="100%">
     <AreaChart data={data}>
       <XAxis dataKey="priceRange" fontSize={10} />
       <YAxis fontSize={10} />
-      <Tooltip content={<CustomTooltip />} />
+      <Tooltip />
       <Area dataKey="count" stroke="#6264A7" fill="#6264A7" fillOpacity={0.2} />
     </AreaChart>
   </ResponsiveContainer>
@@ -204,7 +199,9 @@ const PieChartBlock = ({ data }) => (
   <ResponsiveContainer width="100%" height="100%">
     <PieChart>
       <Pie data={data} dataKey="value" innerRadius="55%" outerRadius="80%">
-        {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+        {data.map((_, i) => (
+          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+        ))}
       </Pie>
       <Legend />
     </PieChart>
@@ -218,7 +215,7 @@ const RadarChartBlock = ({ data }) => (
       <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
       <Radar dataKey="X" stroke={COLORS[0]} fill={COLORS[0]} fillOpacity={0.4} />
       <Radar dataKey="Y" stroke={COLORS[4]} fill={COLORS[4]} fillOpacity={0.4} />
-      <Tooltip content={<CustomTooltip />} />
+      <Tooltip />
     </RadarChart>
   </ResponsiveContainer>
 );
@@ -228,7 +225,7 @@ const GroupedBarChartBlock = ({ data }) => (
     <BarChart data={data}>
       <XAxis dataKey="name" fontSize={10} />
       <YAxis fontSize={10} />
-      <Tooltip content={<CustomTooltip />} />
+      <Tooltip />
       <Bar dataKey="avgPrice" fill={COLORS[0]} />
       <Bar dataKey="avgFeatures" fill={COLORS[2]} />
     </BarChart>

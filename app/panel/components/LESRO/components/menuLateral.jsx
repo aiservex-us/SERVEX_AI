@@ -1,14 +1,29 @@
 'use client';
-
-import { useEffect, useState } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
 import {
   LayoutDashboard,
-  Tags,
-  ChevronLeft,
-  ChevronRight,
-  User
+  Search,
+  BarChart3,
+  Bell,
+  Mail,
+  Inbox,
+  KanbanSquare,
+  ListChecks,
+  BookOpen,
+  Headphones,
+  Settings,
+  ChevronLeft
 } from 'lucide-react';
+
+const menuItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'search', label: 'Search', icon: Search },
+  { id: 'reporting', label: 'Reporting', icon: BarChart3 },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'mail', label: 'Mail', icon: Mail },
+  { id: 'inbox', label: 'Inbox', icon: Inbox },
+  { id: 'kanban', label: 'Kanban', icon: KanbanSquare },
+  { id: 'tasks', label: 'Tasks', icon: ListChecks },
+];
 
 export default function MenuLateral({
   active,
@@ -16,108 +31,99 @@ export default function MenuLateral({
   collapsed,
   setCollapsed
 }) {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-
-  // 🔐 Obtener usuario autenticado
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user }
-      } = await supabase.auth.getUser();
-
-      setUser(user);
-
-      // 📌 Si tienes tabla profiles
-      if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('full_name, alias, avatar_url')
-          .eq('id', user.id)
-          .single();
-
-        setProfile(data);
-      }
-    };
-
-    getUser();
-  }, []);
-
   return (
     <aside
-      className={`h-full bg-white border-r border-gray-200 flex flex-col transition-all duration-300
-      ${collapsed ? 'w-16' : 'w-64'}`}
+      className={`
+        h-full               /* 👈 YA NO 100vh */
+        shrink-0             /* 👈 NO EMPUJA EL MAIN */
+        bg-white 
+        border-r 
+        border-gray-200 
+        flex 
+        flex-col 
+        transition-all 
+        duration-300
+        ${collapsed ? 'w-[72px]' : 'w-[260px]'}
+      `}
     >
       {/* HEADER */}
-      <div className="h-14 flex items-center justify-between px-4 border-b">
-        {!collapsed && (
-          <span className="font-bold text-[#6264A7]">SERVEX</span>
-        )}
-        <button onClick={() => setCollapsed(!collapsed)}>
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+      <div className="h-16 flex items-center justify-between px-4 border-b shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
+            <span className="text-white text-xs font-bold">S</span>
+          </div>
+
+          {!collapsed && (
+            <span className="font-semibold text-sm whitespace-nowrap">
+              Beyond UI
+            </span>
+          )}
+        </div>
+
+        {/* TOGGLE */}
+        <button
+          onClick={() => setCollapsed(prev => !prev)}
+          className="p-1 rounded hover:bg-gray-100 transition"
+        >
+          <ChevronLeft
+            className={`w-4 h-4 transition-transform duration-300
+            ${collapsed ? 'rotate-180' : ''}`}
+          />
         </button>
       </div>
 
       {/* MENU */}
-      <nav className="flex-1 px-2 py-3 space-y-1">
-        <MenuItem
-          icon={<LayoutDashboard size={18} />}
-          label="Dashboard"
-          active={active === 'dashboard'}
-          collapsed={collapsed}
-          onClick={() => setActive('dashboard')}
-        />
+      <nav className="flex-1 h-[90vh] px-2 py-4 space-y-1 overflow-hidden">
+        {menuItems.map(item => {
+          const Icon = item.icon;
+          const isActive = active === item.id;
 
-        <MenuItem
-          icon={<Tags size={18} />}
-          label="Productos"
-          active={active === 'kanban'}
-          collapsed={collapsed}
-          onClick={() => setActive('kanban')}
-        />
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActive(item.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition
+              ${isActive
+                ? 'bg-gray-100 text-black font-medium'
+                : 'text-gray-500 hover:bg-gray-50'}`}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
+            </button>
+          );
+        })}
       </nav>
 
-      {/* USER INFO (PARTE BAJA) */}
-      <div className="border-t px-3 py-3 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-[#6264A7]/20 flex items-center justify-center">
-          <User size={18} className="text-[#6264A7]" />
-        </div>
+      {/* FOOTER */}
+      <div className="border-t px-3 py-3 space-y-2 shrink-0">
+        {[
+          { label: 'Documentation', icon: BookOpen },
+          { label: 'Support', icon: Headphones },
+          { label: 'Settings', icon: Settings },
+        ].map(item => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.label}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50"
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
+            </button>
+          );
+        })}
 
-        {!collapsed && (
-          <div className="text-xs leading-tight">
-            <p className="font-semibold text-gray-800">
-              {profile?.alias ||
-                profile?.full_name ||
-                'Usuario'}
-            </p>
-            <p className="text-gray-500 truncate max-w-[160px]">
-              {user?.email}
-            </p>
-          </div>
-        )}
+        {/* USER */}
+        <div className="flex items-center gap-3 px-3 py-3">
+          <div className="w-8 h-8 rounded-full bg-gray-300 shrink-0" />
+          {!collapsed && (
+            <div className="text-xs">
+              <p className="font-medium">Anna Taylor</p>
+              <p className="text-gray-400">anna.t@email.com</p>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );
 }
-
-/* ---------------- ITEM ---------------- */
-
-const MenuItem = ({
-  icon,
-  label,
-  active,
-  collapsed,
-  onClick
-}) => (
-  <button
-    onClick={onClick}
-    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition
-      ${active
-        ? 'bg-[#6264A7]/10 text-[#6264A7] font-semibold'
-        : 'text-gray-600 hover:bg-gray-100'}
-    `}
-  >
-    {icon}
-    {!collapsed && <span>{label}</span>}
-  </button>
-);
