@@ -35,7 +35,6 @@ export default function MenuLateral({
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Lógica de filtrado
   const filteredItems = menuItems.filter(item =>
     item.label.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -105,7 +104,6 @@ export default function MenuLateral({
             </button>
           )}
 
-          {/* Tooltip en colapsado */}
           {collapsed && (
             <div className="absolute inset-0 cursor-pointer" onClick={() => setCollapsed(false)} />
           )}
@@ -118,8 +116,6 @@ export default function MenuLateral({
           const Icon = item.icon;
           const isActive = active === item.id;
           const isSearching = searchQuery.length > 0;
-          
-          // Efecto de resaltado si coincide con la búsqueda
           const isMatch = isSearching && item.label.toLowerCase().includes(searchQuery.toLowerCase());
 
           return (
@@ -136,7 +132,6 @@ export default function MenuLateral({
                     : 'text-slate-500 hover:bg-slate-50/80 hover:text-slate-900'}
               `}
             >
-              {/* Teams Indicator */}
               <div className={`
                 absolute left-0 w-[2.5px] bg-[#6264A7] rounded-r-full transition-all duration-300
                 ${isActive ? 'h-5 opacity-100' : 'h-0 opacity-0'}
@@ -156,26 +151,13 @@ export default function MenuLateral({
                   {item.label}
                 </span>
               </div>
-
-              {/* Tooltip para modo colapsado */}
-              {collapsed && (
-                <div className="absolute left-14 px-2 py-1.5 bg-slate-900 text-white text-[10px] rounded-md opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none whitespace-nowrap z-50">
-                  {item.label}
-                </div>
-              )}
             </button>
           );
         })}
-
-        {filteredItems.length === 0 && (
-          <div className="py-10 text-center animate-in fade-in zoom-in-95 duration-300">
-            <p className="text-[11px] text-slate-400">No results found</p>
-          </div>
-        )}
       </nav>
 
       {/* FOOTER */}
-      <div className="p-3 border-t border-slate-50 bg-white/50">
+      <div className="p-3 border-t border-slate-50 bg-white/50 space-y-1">
         {[
           { label: 'Support', icon: Headphones },
           { label: 'Settings', icon: Settings },
@@ -200,16 +182,20 @@ export default function MenuLateral({
           );
         })}
 
-        {/* PROFILE PROFILE */}
+        {/* TARJETA SVX COPILOT (Sin la leyenda dentro) */}
         <div className={`
           mt-3 flex items-center rounded-xl transition-all duration-300
-          ${collapsed ? 'justify-center' : 'p-2 bg-slate-50/50 border border-slate-100/50'}
+          ${collapsed ? 'justify-center h-12' : 'p-2 bg-[#6264A7]/5 border border-[#6264A7]/10'}
         `}>
           <div className="relative shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#6264A7] to-[#8b8dc9] flex items-center justify-center text-[11px] font-bold text-white shadow-sm ring-2 ring-white">
-              AT
+            <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center p-1 shadow-sm">
+              <img
+                src="/logo2.png" 
+                alt="Svx"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
+            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#6264A7] rounded-full animate-pulse border border-white"></div>
           </div>
           
           <div className={`
@@ -217,10 +203,32 @@ export default function MenuLateral({
             ${collapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
           `}>
             <div className="flex flex-col leading-tight">
-              <p className="text-[12px] font-bold text-slate-700 truncate">Anna Taylor</p>
-              <p className="text-[9px] text-slate-400 font-semibold tracking-wider uppercase">Pro Account</p>
+              <p className="text-[11px] font-black text-slate-800 tracking-tight uppercase">
+                Svx <span className="text-[#6264A7]">Copilot</span>
+              </p>
+              <p className="text-[9px] text-slate-500 font-medium whitespace-nowrap">
+                Next-gen Servex Intelligence
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* LEYENDA GLYNNE: AL FINAL DE TODO */}
+        <div className={`
+          transition-all duration-[400ms] overflow-hidden pt-2
+          ${collapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
+        `}>
+          <a
+            href="https://glynneai.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block px-1"
+          >
+            <p className="text-[8px] text-slate-400 group-hover:text-[#6264A7] transition-colors leading-tight tracking-tight">
+              © 2025 GLYNNE S.A.S — <br />
+              <span className="italic font-medium">Architecting the future of work.</span>
+            </p>
+          </a>
         </div>
       </div>
     </aside>
