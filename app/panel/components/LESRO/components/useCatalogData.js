@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 
 export const useCatalogData = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [metadata, setMetadata] = useState({ materials: 0, features: 0, rawNodes: 0 });
   const [catalogStats, setCatalogStats] = useState({ totalValue: 0, avgPrice: 0, currency: 'USD' });
 
   const fetchData = async () => {
@@ -23,6 +24,12 @@ export const useCatalogData = () => {
       if (data?.xml_raw) {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
+        
+        // Extraer métricas generales de estructura
+        const materialCount = xmlDoc.getElementsByTagName("Material").length;
+        const featureCount = xmlDoc.getElementsByTagName("Feature").length;
+        const totalNodes = xmlDoc.getElementsByTagName("*").length;
+
         const productNodes = xmlDoc.getElementsByTagName("Product");
         const extracted = [];
         let totalSum = 0;
@@ -30,18 +37,22 @@ export const useCatalogData = () => {
         for (let i = 0; i < productNodes.length; i++) {
           const p = productNodes[i];
           const basePrice = parseFloat(p.getElementsByTagName("Value")[0]?.textContent || "0");
-          const category = p.getElementsByTagName("ClassificationRef")[0]?.textContent || "General";
           
           extracted.push({
+            id: i,
             code: p.getElementsByTagName("Code")[0]?.textContent || "N/A",
             description: p.getElementsByTagName("Description")[0]?.textContent || "",
             price: basePrice,
-            category: category,
-            dimensions: `${p.getElementsByTagName("X")[0]?.textContent || 0}x${p.getElementsByTagName("Y")[0]?.textContent || 0}`,
+            category: p.getElementsByTagName("ClassificationRef")[0]?.textContent || "General",
+            x: parseFloat(p.getElementsByTagName("X")[0]?.textContent || "0"),
+            y: parseFloat(p.getElementsByTagName("Y")[0]?.textContent || "0"),
+            z: parseFloat(p.getElementsByTagName("Z")[0]?.textContent || "0"),
+            features: p.getElementsByTagName("FeatureRef").length
           });
           totalSum += basePrice;
         }
 
+        setMetadata({ materials: materialCount, features: featureCount, rawNodes: totalNodes });
         setProducts(extracted);
         setCatalogStats({
           totalValue: totalSum,
@@ -58,5 +69,5 @@ export const useCatalogData = () => {
 
   useEffect(() => { fetchData(); }, []);
 
-  return { products, loading, catalogStats, refresh: fetchData };
+  return { products, loading, catalogStats, metadata, refresh: fetchData };
 };
