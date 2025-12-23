@@ -14,6 +14,9 @@ import {
   ChevronLeft
 } from 'lucide-react';
 
+import { useEffect, useState } from 'react';
+import { getCurrentUser } from '@/app/lib/supabaseClient';
+
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'search', label: 'Search', icon: Search },
@@ -31,34 +34,59 @@ export default function MenuLateral({
   collapsed,
   setCollapsed
 }) {
+
+  // 👤 USUARIO REAL (SOLO LECTURA)
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+    loadUser();
+  }, []);
+
   return (
     <aside
       className={`
-        h-full               /* 👈 YA NO 100vh */
-        shrink-0             /* 👈 NO EMPUJA EL MAIN */
-        bg-white 
-        border-r 
-        border-gray-200 
-        flex 
-        flex-col 
-        transition-all 
+        h-full
+        shrink-0
+        bg-white
+        border-r
+        border-gray-200
+        flex
+        flex-col
+        transition-all
         duration-300
         ${collapsed ? 'w-[72px]' : 'w-[260px]'}
       `}
     >
       {/* HEADER */}
       <div className="h-16 flex items-center justify-between px-4 border-b shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">S</span>
-          </div>
+
+        {/* LOGO + TITLE */}
+        <a
+          href="https://www.lesro.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`
+            flex items-center
+            ${collapsed ? 'justify-center w-full' : 'gap-3'}
+            overflow-hidden
+          `}
+        >
+          <img
+            src="/logosEmpresas/lesro.png"
+            alt="LESRO Logo"
+            className="w-18 h-18 object-contain"
+          />
 
           {!collapsed && (
-            <span className="font-semibold text-sm whitespace-nowrap">
-              Beyond UI
+            <span className="font-semibold text-sm whitespace-nowrap text-gray-800 hover:text-[#6264A7] transition">
+              Data LESRO
             </span>
           )}
-        </div>
+        </a>
 
         {/* TOGGLE */}
         <button
@@ -67,13 +95,13 @@ export default function MenuLateral({
         >
           <ChevronLeft
             className={`w-4 h-4 transition-transform duration-300
-            ${collapsed ? 'rotate-180' : ''}`}
+              ${collapsed ? 'rotate-180' : ''}`}
           />
         </button>
       </div>
 
       {/* MENU */}
-      <nav className="flex-1 h-[90vh] px-2 py-4 space-y-1 overflow-hidden">
+      <nav className="flex-1 px-2 py-4 space-y-1 overflow-hidden">
         {menuItems.map(item => {
           const Icon = item.icon;
           const isActive = active === item.id;
@@ -83,9 +111,9 @@ export default function MenuLateral({
               key={item.id}
               onClick={() => setActive(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition
-              ${isActive
-                ? 'bg-gray-100 text-black font-medium'
-                : 'text-gray-500 hover:bg-gray-50'}`}
+                ${isActive
+                  ? 'bg-gray-100 text-black font-medium'
+                  : 'text-gray-500 hover:bg-gray-50'}`}
             >
               <Icon className="w-4 h-4 shrink-0" />
               {!collapsed && <span>{item.label}</span>}
@@ -113,13 +141,19 @@ export default function MenuLateral({
           );
         })}
 
-        {/* USER */}
+        {/* USER (REAL - SUPABASE AUTH) */}
         <div className="flex items-center gap-3 px-3 py-3">
+          {/* Avatar solo visual (no inventado) */}
           <div className="w-8 h-8 rounded-full bg-gray-300 shrink-0" />
-          {!collapsed && (
-            <div className="text-xs">
-              <p className="font-medium">Anna Taylor</p>
-              <p className="text-gray-400">anna.t@email.com</p>
+
+          {!collapsed && user && (
+            <div className="text-xs overflow-hidden">
+              <p className="font-medium truncate">
+                {user.raw?.user_metadata?.name || ''}
+              </p>
+              <p className="text-gray-400 truncate">
+                {user.email}
+              </p>
             </div>
           )}
         </div>
