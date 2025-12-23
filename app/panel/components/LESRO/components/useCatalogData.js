@@ -1,62 +1,63 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 
 export const useCatalogData = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [catalogStats, setCatalogStats] = useState({ totalValue: 0, avgPrice: 0, currency: 'USD' });
+  const [data, setData] = useState({
+    products: [],
+    materials: [],
+    features: [],
+    stats: {},
+    loading: true
+  });
 
   const fetchData = async () => {
     try {
-      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: dbData } = await supabase.from('ClientsSERVEX').select('xml_raw').eq('user_id', user.id).single();
 
-      const { data } = await supabase
-        .from('ClientsSERVEX')
-        .select('xml_raw')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (data?.xml_raw) {
+      if (dbData?.xml_raw) {
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
-        const productNodes = xmlDoc.getElementsByTagName("Product");
-        const extracted = [];
-        let totalSum = 0;
+        const xmlDoc = parser.parseFromString(dbData.xml_raw, "text/xml");
 
-        for (let i = 0; i < productNodes.length; i++) {
-          const p = productNodes[i];
-          const basePrice = parseFloat(p.getElementsByTagName("Value")[0]?.textContent || "0");
-          const category = p.getElementsByTagName("ClassificationRef")[0]?.textContent || "General";
-          
-          extracted.push({
-            code: p.getElementsByTagName("Code")[0]?.textContent || "N/A",
-            description: p.getElementsByTagName("Description")[0]?.textContent || "",
-            price: basePrice,
-            category: category,
-            dimensions: `${p.getElementsByTagName("X")[0]?.textContent || 0}x${p.getElementsByTagName("Y")[0]?.textContent || 0}`,
-          });
-          totalSum += basePrice;
-        }
+        // 1. Mapeo de Materiales (Calidad y Referencias)
+        const materialNodes = Array.from(xmlDoc.getElementsByTagName("Material"));
+        const materials = materialNodes.map(m => ({
+          code: m.getElementsByTagName("Code")[0]?.textContent,
+          quality: m.getElementsByTagName("Quality")[0]?.textContent || 'N/A'
+        }));
 
-        setProducts(extracted);
-        setCatalogStats({
-          totalValue: totalSum,
-          avgPrice: totalSum / (extracted.length || 1),
-          currency: xmlDoc.getElementsByTagName("Currency")[0]?.textContent || "USD"
+        // 2. Mapeo de Productos y su Complejidad
+        const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
+        let totalValue = 0;
+        const products = productNodes.map(p => {
+          const price = parseFloat(p.getElementsByTagName("Value")[0]?.textContent || 0);
+          totalValue += price;
+          return {
+            code: p.getElementsByTagName("Code")[0]?.textContent,
+            desc: p.getElementsByTagName("Description")[0]?.textContent,
+            category: p.getElementsByTagName("ClassificationRef")[0]?.textContent || "Unassigned",
+            price,
+            optionsCount: p.getElementsByTagName("Option").length,
+            hasDimensions: !!(p.getElementsByTagName("X")[0]?.textContent)
+          };
+        });
+
+        setData({
+          products,
+          materials,
+          featuresCount: xmlDoc.getElementsByTagName("Feature").length,
+          stats: {
+            totalValue,
+            avgPrice: totalValue / products.length,
+            totalOptions: xmlDoc.getElementsByTagName("Option").length,
+            effectiveDate: xmlDoc.getElementsByTagName("EffectiveDate")[0]?.textContent
+          },
+          loading: false
         });
       }
-    } catch (err) {
-      console.error("Error parsing XML:", err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); }
   };
 
   useEffect(() => { fetchData(); }, []);
-
-  return { products, loading, catalogStats, refresh: fetchData };
+  return data;
 };
