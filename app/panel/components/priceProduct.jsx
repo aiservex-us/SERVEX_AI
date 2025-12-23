@@ -73,9 +73,29 @@ const PanelMenur = () => {
       const code = product.getElementsByTagName("Code")[0]?.textContent || "N/A";
       const description = product.getElementsByTagName("Description")[0]?.textContent || "Sin descripción";
       
+      // PRECIO BASE
       const priceNode = product.getElementsByTagName("Price")[0];
-      const priceValue = parseFloat(priceNode ? priceNode.getElementsByTagName("Value")[0]?.textContent : "0") || 0;
+      const basePrice = parseFloat(priceNode ? priceNode.getElementsByTagName("Value")[0]?.textContent : "0") || 0;
       
+      // --- LÓGICA DE MÚLTIPLES PRECIOS (GRADOS) ---
+      const extraPrices = [];
+      const options = product.getElementsByTagName("Option");
+      
+      for (let j = 0; j < options.length; j++) {
+        const opt = options[j];
+        const optDesc = opt.getElementsByTagName("Description")[0]?.textContent;
+        const optPriceNode = opt.getElementsByTagName("OptionPrice")[0];
+        const optVal = parseFloat(optPriceNode ? optPriceNode.getElementsByTagName("Value")[0]?.textContent : "0") || 0;
+        
+        if (optDesc && optDesc.toLowerCase().includes("grade")) {
+          extraPrices.push({
+            label: optDesc,
+            value: basePrice + optVal
+          });
+        }
+      }
+      // --------------------------------------------
+
       const xVal = product.getElementsByTagName("X")[0]?.textContent || "";
       const yVal = product.getElementsByTagName("Y")[0]?.textContent || "";
       const zVal = product.getElementsByTagName("Z")[0]?.textContent || "";
@@ -84,13 +104,14 @@ const PanelMenur = () => {
       const category = product.getElementsByTagName("ClassificationRef")[0]?.textContent || "General";
 
       let priority = "Normal";
-      if (priceValue > 1500) priority = "High";
-      if (priceValue < 300) priority = "Low";
+      if (basePrice > 1500) priority = "High";
+      if (basePrice < 300) priority = "Low";
 
       extracted.push({
         code,
         description,
-        price: priceValue,
+        price: basePrice,
+        extraPrices, // Guardamos la matriz de precios aquí
         dimensions,
         category,
         priority,
@@ -248,7 +269,6 @@ const PanelMenur = () => {
                 const catProducts = filteredProducts.filter(p => p.category === cat);
                 if (catProducts.length === 0) return null;
 
-                // LÓGICA DE PAGINACIÓN (10 items)
                 const itemsPerPage = 10;
                 const currentPage = getPage(cat);
                 const totalPages = Math.ceil(catProducts.length / itemsPerPage);
@@ -300,8 +320,21 @@ const PanelMenur = () => {
                                   {product.tag}
                                 </span>
                               </td>
-                              <td className="px-4 py-4 text-sm font-black text-right">
-                                {product.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                              <td className="px-4 py-4 text-right">
+                                {product.extraPrices.length > 0 ? (
+                                  <div className="flex flex-col gap-1">
+                                    {product.extraPrices.map((ep, i) => (
+                                      <div key={i} className="text-[10px] leading-tight flex justify-end gap-2">
+                                        <span className="text-gray-400 uppercase font-bold">{ep.label}:</span>
+                                        <span className="font-black">${ep.value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-sm font-black">
+                                    {product.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                  </span>
+                                )}
                               </td>
                               <td className="px-4 py-4 text-center">
                                   <button 
@@ -349,7 +382,7 @@ const PanelMenur = () => {
         </div>
       </main>
 
-      {/* MODAL DE EDICIÓN MULTI-CAMPO */}
+      {/* MODAL DE EDICIÓN */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 overflow-hidden animate-in fade-in zoom-in duration-150">
