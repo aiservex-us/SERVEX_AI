@@ -7,37 +7,34 @@ import {
 } from 'recharts';
 import { useCatalogData } from './useCatalogData';
 
-const COLORS = ['#2563EB', '#FB923C', '#4ADE80', '#1F2937', '#94A3B8', '#F1F5F9'];
+const COLORS = ['#6264A7', '#464775', '#8B8CC7', '#C4314B', '#237B4B', '#0078D4'];
 
-const DashboardVisuals = () => {
+const ProfessionalDashboard = () => {
   const { products, loading, catalogStats, metadata } = useCatalogData();
   const [activeTab, setActiveTab] = useState('Overview');
-
-  // LIMPIEZA DE TEXTOS LARGOS
-  const cleanLabel = (label) => {
-    if (!label) return "";
-    return label.length > 15 ? label.substring(0, 12) + "..." : label;
-  };
 
   const chartData = useMemo(() => {
     const categories = {};
     const priceBins = {};
 
     products.forEach(p => {
-      // Limpiamos el nombre de la categoría para evitar los textos largos que mencionas
-      const catName = p.category?.split(' ').pop() || 'General'; 
-      
-      if (!categories[catName]) {
-        categories[catName] = {
-          name: catName, count: 0, total: 0, avgX: 0, avgY: 0, avgZ: 0, totalFeatures: 0
+      if (!categories[p.category]) {
+        categories[p.category] = {
+          name: p.category,
+          count: 0,
+          total: 0,
+          avgX: 0,
+          avgY: 0,
+          avgZ: 0,
+          totalFeatures: 0
         };
       }
-      categories[catName].count++;
-      categories[catName].total += p.price;
-      categories[catName].avgX += p.x;
-      categories[catName].avgY += p.y;
-      categories[catName].avgZ += p.z;
-      categories[catName].totalFeatures += p.features;
+      categories[p.category].count++;
+      categories[p.category].total += p.price;
+      categories[p.category].avgX += p.x;
+      categories[p.category].avgY += p.y;
+      categories[p.category].avgZ += p.z;
+      categories[p.category].totalFeatures += p.features;
 
       const bin = Math.floor(p.price / 100) * 100;
       priceBins[bin] = (priceBins[bin] || 0) + 1;
@@ -61,105 +58,77 @@ const DashboardVisuals = () => {
     };
   }, [products]);
 
-  if (loading) return <div className="h-screen w-full flex items-center justify-center bg-[#F9FAFB]"><div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#F5F5F5]">
+        <div className="w-8 h-8 border-4 border-[#6264A7] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-  const tabs = ['Overview', 'Pricing Strategy', 'Dimensional Profiling', 'Technical Matrix'];
+  const tabs = ['Overview', 'Market Analysis', 'Dimensional Profile', 'Feature Matrix'];
 
   return (
-    <div className="h-screen w-full bg-[#F9FAFB] text-[#1F2937] flex flex-col overflow-hidden">
+    <div className="h-screen w-screen bg-[#F5F5F5] text-[#242424] overflow-hidden">
       
-      {/* HEADER COMPACTO */}
-      <header className="h-12 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0">
-        <div className="flex items-center gap-2 text-[11px] text-gray-400 font-bold uppercase tracking-tight">
-          <span className="text-black">Catalog</span> <span>/</span> <span>Analytics</span>
-        </div>
-        <div className="flex items-center gap-3 font-black text-[10px]">
-          <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded">LIVE DATA</span>
-          <button className="bg-black text-white px-3 py-1 rounded">REFRESH</button>
-        </div>
-      </header>
-
-      {/* TABS COMPACTOS */}
-      <div className="bg-white border-b border-gray-200 px-6 flex items-center gap-4 shrink-0">
-        {tabs.map(tab => (
-          <button 
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`text-[10px] font-black py-3 px-1 border-b-2 transition-all uppercase tracking-widest ${
-              activeTab === tab ? 'border-blue-600 text-black' : 'border-transparent text-gray-400'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* CONTENIDO PRINCIPAL ADAPTADO AL VIEWPORT */}
-      <main className="flex-1 p-4 flex flex-col gap-4 min-h-0">
-        
-        {/* KPI ROW MÁS PEQUEÑO */}
-        <div className="grid grid-cols-4 gap-4 shrink-0">
-          <StatCard title="Total Skus" value={products.length} />
-          <StatCard title="Nodes" value={metadata.rawNodes || 0} />
-          <StatCard title="Materials" value={metadata.materials} />
-          <StatCard title="Total Value" value={`$${catalogStats.totalValue}`} highlight />
-        </div>
-
-        {/* CONTENEDOR DE GRÁFICA AL 100% DEL ESPACIO RESTANTE */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden">
-          <div className="px-4 py-2 border-b border-gray-50 flex justify-between items-center shrink-0">
-            <h3 className="text-[11px] font-black uppercase text-gray-900">{activeTab}</h3>
+      {/* NAVBAR */}
+      <nav className="bg-white border-b border-gray-200 px-4 h-14">
+        <div className="h-full flex justify-between items-center max-w-7xl mx-auto">
+          <div className="flex items-center gap-6">
+            <h1 className="text-lg font-bold text-[#6264A7]">Catalog Intelligence</h1>
+            <div className="flex gap-1">
+              {tabs.map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-3 py-3 text-xs font-medium relative
+                    ${activeTab === tab ? 'text-[#6264A7]' : 'text-gray-500 hover:text-[#6264A7]'}`}
+                >
+                  {tab}
+                  {activeTab === tab && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6264A7]" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
+          <InfoBadge label="SCHEMA" value="OFDA 01.04" />
+        </div>
+      </nav>
 
-          <div className="flex-1 p-4">
-            <ResponsiveContainer width="100%" height="100%">
-              {activeTab === 'Overview' && (
-                <AreaChart data={chartData.areaPriceData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                  <XAxis dataKey="priceRange" fontSize={9} fontWeight="bold" axisLine={false} tickLine={false} />
-                  <YAxis fontSize={9} fontWeight="bold" axisLine={false} tickLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="count" stroke="#2563EB" strokeWidth={2} fill="#2563EB" fillOpacity={0.1} />
-                </AreaChart>
-              )}
+      {/* MAIN */}
+      <main className="h-[calc(100vh-56px)] max-w-7xl mx-auto p-4 flex flex-col gap-4">
 
-              {activeTab === 'Pricing Strategy' && (
-                <BarChart data={chartData.barDataValue}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                  <XAxis 
-                    dataKey="name" 
-                    fontSize={9} 
-                    fontWeight="bold" 
-                    axisLine={false} 
-                    tickFormatter={cleanLabel} // LIMPIA TEXTOS LARGOS
-                  />
-                  <YAxis fontSize={9} fontWeight="bold" axisLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="avgPrice" fill="#000000" radius={[2, 2, 0, 0]} name="PRICE" />
-                  <Bar dataKey="avgFeatures" fill="#2563EB" radius={[2, 2, 0, 0]} name="FEATURES" />
-                </BarChart>
-              )}
+        {/* KPIs */}
+        <div className="grid grid-cols-4 gap-3">
+          <StatCard title="Total Products" value={products.length} color="#6264A7" />
+          <StatCard title="Materials" value={metadata.materials} color="#237B4B" />
+          <StatCard title="Features" value={metadata.features} color="#C4314B" />
+          <StatCard title="Total Value" value={`$${catalogStats.totalValue}`} color="#0078D4" />
+        </div>
 
-              {activeTab === 'Dimensional Profiling' && (
-                <RadarChart data={chartData.radarData}>
-                  <PolarGrid stroke="#E2E8F0" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fontSize: 8, fontWeight: 'bold' }} />
-                  <Radar name="X" dataKey="X" stroke="#2563EB" fill="#2563EB" fillOpacity={0.5} />
-                  <Radar name="Y" dataKey="Y" stroke="#FB923C" fill="#FB923C" fillOpacity={0.5} />
-                  <Tooltip content={<CustomTooltip />} />
-                </RadarChart>
-              )}
+        {/* CONTENT */}
+        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4">
+          <header className="mb-3">
+            <h2 className="text-lg font-semibold">{activeTab}</h2>
+            <p className="text-xs text-gray-500 italic">Dataset analytics</p>
+          </header>
 
-              {activeTab === 'Technical Matrix' && (
-                <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis type="number" dataKey="features" fontSize={9} axisLine={false} />
-                  <YAxis type="number" dataKey="price" fontSize={9} axisLine={false} />
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                  <Scatter data={products} fill="#1F2937" fillOpacity={0.5} />
-                </ScatterChart>
-              )}
-            </ResponsiveContainer>
+          <div className="h-[calc(100%-48px)]">
+            {activeTab === 'Overview' && (
+              <div className="grid grid-cols-2 h-full gap-4">
+                <ChartBlock title="Category Volume">
+                  <PieChartBlock data={chartData.pieData} />
+                </ChartBlock>
+                <ChartBlock title="Price Distribution">
+                  <AreaChartBlock data={chartData.areaPriceData} />
+                </ChartBlock>
+              </div>
+            )}
+
+            {activeTab === 'Market Analysis' && <GroupedBarChartBlock data={chartData.barDataValue} />}
+            {activeTab === 'Dimensional Profile' && <RadarChartBlock data={chartData.radarData} />}
+            {activeTab === 'Feature Matrix' && <ScatterChartBlock data={products} />}
           </div>
         </div>
       </main>
@@ -167,25 +136,38 @@ const DashboardVisuals = () => {
   );
 };
 
-/* ---------------- COMPONENTES DE INTERFAZ ---------------- */
+/* ---------------- UI ---------------- */
 
-const StatCard = ({ title, value, highlight }) => (
-  <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
-    <p className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-0.5">{title}</p>
-    <p className={`text-lg font-black leading-tight ${highlight ? 'text-blue-600' : 'text-gray-900'}`}>{value}</p>
+const StatCard = ({ title, value, color }) => (
+  <div className="bg-white p-3 rounded-lg border border-gray-200">
+    <p className="text-[10px] font-bold text-gray-400 uppercase">{title}</p>
+    <h3 className="text-xl font-bold" style={{ color }}>{value}</h3>
   </div>
 );
 
+const InfoBadge = ({ label, value }) => (
+  <div className="px-3 py-1 rounded-md bg-[#6264A7]/10 border border-[#6264A7]/20">
+    <span className="text-[10px] font-bold text-[#6264A7] mr-1">{label}</span>
+    <span className="text-xs font-semibold text-[#464775]">{value}</span>
+  </div>
+);
+
+const ChartBlock = ({ title, children }) => (
+  <div className="flex flex-col h-full">
+    <span className="text-[11px] font-bold mb-1 uppercase text-gray-400">{title}</span>
+    <div className="flex-1">{children}</div>
+  </div>
+);
+
+/* ---------------- CHARTS (REDUCED SCALE) ---------------- */
+
 const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
+  if (active && payload?.length) {
     return (
-      <div className="bg-white p-2 border border-gray-200 shadow-xl rounded text-[10px] font-bold">
-        <p className="text-gray-400 uppercase mb-1 border-b pb-1">{label}</p>
-        {payload.map((entry, i) => (
-          <div key={i} className="flex justify-between gap-4 py-0.5">
-            <span style={{ color: entry.color }}>{entry.name}:</span>
-            <span className="text-black">{entry.value}</span>
-          </div>
+      <div className="bg-white p-2 border rounded text-xs">
+        <p className="font-bold">{label}</p>
+        {payload.map((e, i) => (
+          <p key={i} style={{ color: e.color }}>{e.name}: {e.value}</p>
         ))}
       </div>
     );
@@ -193,4 +175,62 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default DashboardVisuals;
+const AreaChartBlock = ({ data }) => (
+  <ResponsiveContainer>
+    <AreaChart data={data}>
+      <XAxis dataKey="priceRange" fontSize={10} />
+      <YAxis fontSize={10} />
+      <Tooltip content={<CustomTooltip />} />
+      <Area dataKey="count" stroke="#6264A7" strokeWidth={2} fill="#6264A7" fillOpacity={0.2} />
+    </AreaChart>
+  </ResponsiveContainer>
+);
+
+const PieChartBlock = ({ data }) => (
+  <ResponsiveContainer>
+    <PieChart>
+      <Pie data={data} dataKey="value" innerRadius={50} outerRadius={90}>
+        {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+      </Pie>
+      <Legend height={24} />
+    </PieChart>
+  </ResponsiveContainer>
+);
+
+const RadarChartBlock = ({ data }) => (
+  <ResponsiveContainer>
+    <RadarChart data={data} outerRadius="70%">
+      <PolarGrid />
+      <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
+      <Radar dataKey="X" stroke={COLORS[0]} fill={COLORS[0]} fillOpacity={0.4} />
+      <Radar dataKey="Y" stroke={COLORS[4]} fill={COLORS[4]} fillOpacity={0.4} />
+      <Tooltip content={<CustomTooltip />} />
+    </RadarChart>
+  </ResponsiveContainer>
+);
+
+const GroupedBarChartBlock = ({ data }) => (
+  <ResponsiveContainer>
+    <BarChart data={data}>
+      <XAxis dataKey="name" fontSize={10} />
+      <YAxis fontSize={10} />
+      <Tooltip content={<CustomTooltip />} />
+      <Bar dataKey="avgPrice" fill={COLORS[0]} />
+      <Bar dataKey="avgFeatures" fill={COLORS[2]} />
+    </BarChart>
+  </ResponsiveContainer>
+);
+
+const ScatterChartBlock = ({ data }) => (
+  <ResponsiveContainer>
+    <ScatterChart>
+      <XAxis type="number" dataKey="features" fontSize={10} />
+      <YAxis type="number" dataKey="price" fontSize={10} />
+      <ZAxis range={[60, 200]} />
+      <Tooltip />
+      <Scatter data={data} fill={COLORS[0]} />
+    </ScatterChart>
+  </ResponsiveContainer>
+);
+
+export default ProfessionalDashboard;
