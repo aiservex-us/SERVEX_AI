@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, Radar,
   AreaChart, Area, ScatterChart, Scatter, ZAxis, Legend
 } from 'recharts';
 import { useCatalogData } from './useCatalogData';
@@ -69,10 +69,10 @@ const ProfessionalDashboard = () => {
   const tabs = ['Overview', 'Market Analysis', 'Dimensional Profile', 'Feature Matrix'];
 
   return (
-    <div className="h-screen w-screen bg-[#fff] text-[#242424] overflow-hidden">
-      
+    <div className="h-screen w-screen bg-white overflow-hidden flex flex-col">
+
       {/* NAVBAR */}
-      <nav className="bg-white border-b border-gray-200 px-4 h-14">
+      <nav className="h-14 shrink-0 border-b border-gray-200 px-4">
         <div className="h-full flex justify-between items-center max-w-7xl mx-auto">
           <div className="flex items-center gap-6">
             <h1 className="text-lg font-bold text-[#6264A7]">Catalog Intelligence</h1>
@@ -97,10 +97,10 @@ const ProfessionalDashboard = () => {
       </nav>
 
       {/* MAIN */}
-      <main className="h-[calc(100vh-56px)] max-w-7xl mx-auto p-4 flex flex-col gap-4">
+      <main className="flex-1 max-w-7xl mx-auto w-full p-4 flex flex-col gap-4">
 
         {/* KPIs */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
           <StatCard title="Total Products" value={products.length} color="#6264A7" />
           <StatCard title="Materials" value={metadata.materials} color="#237B4B" />
           <StatCard title="Features" value={metadata.features} color="#C4314B" />
@@ -108,27 +108,41 @@ const ProfessionalDashboard = () => {
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4">
-          <header className="mb-3">
+        <div className="flex-1 bg-white rounded-xl border border-gray-200 p-4 flex flex-col overflow-hidden">
+          <header className="shrink-0 mb-2">
             <h2 className="text-lg font-semibold">{activeTab}</h2>
             <p className="text-xs text-gray-500 italic">Dataset analytics</p>
           </header>
 
-          <div className="h-[calc(100%-48px)]">
+          <div className="flex-1 overflow-hidden">
             {activeTab === 'Overview' && (
-              <div className="grid grid-cols-2 h-full gap-4">
-                <ChartBlock title="Category Volume">
-                  <PieChartBlock data={chartData.pieData} />
-                </ChartBlock>
+              <div className="grid grid-cols-1 lg:grid-cols-2 h-full gap-4">
                 <ChartBlock title="Price Distribution">
                   <AreaChartBlock data={chartData.areaPriceData} />
+                </ChartBlock>
+                <ChartBlock title="Category Split">
+                  <PieChartBlock data={chartData.pieData} />
                 </ChartBlock>
               </div>
             )}
 
-            {activeTab === 'Market Analysis' && <GroupedBarChartBlock data={chartData.barDataValue} />}
-            {activeTab === 'Dimensional Profile' && <RadarChartBlock data={chartData.radarData} />}
-            {activeTab === 'Feature Matrix' && <ScatterChartBlock data={products} />}
+            {activeTab === 'Market Analysis' && (
+              <div className="h-full">
+                <GroupedBarChartBlock data={chartData.barDataValue} />
+              </div>
+            )}
+
+            {activeTab === 'Dimensional Profile' && (
+              <div className="h-full">
+                <RadarChartBlock data={chartData.radarData} />
+              </div>
+            )}
+
+            {activeTab === 'Feature Matrix' && (
+              <div className="h-full">
+                <ScatterChartBlock data={products} />
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -155,11 +169,11 @@ const InfoBadge = ({ label, value }) => (
 const ChartBlock = ({ title, children }) => (
   <div className="flex flex-col h-full">
     <span className="text-[11px] font-bold mb-1 uppercase text-gray-400">{title}</span>
-    <div className="flex-1">{children}</div>
+    <div className="flex-1 w-full h-full">{children}</div>
   </div>
 );
 
-/* ---------------- CHARTS (REDUCED SCALE) ---------------- */
+/* ---------------- CHARTS ---------------- */
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload?.length) {
@@ -176,30 +190,30 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const AreaChartBlock = ({ data }) => (
-  <ResponsiveContainer>
+  <ResponsiveContainer width="100%" height="100%">
     <AreaChart data={data}>
       <XAxis dataKey="priceRange" fontSize={10} />
       <YAxis fontSize={10} />
       <Tooltip content={<CustomTooltip />} />
-      <Area dataKey="count" stroke="#6264A7" strokeWidth={2} fill="#6264A7" fillOpacity={0.2} />
+      <Area dataKey="count" stroke="#6264A7" fill="#6264A7" fillOpacity={0.2} />
     </AreaChart>
   </ResponsiveContainer>
 );
 
 const PieChartBlock = ({ data }) => (
-  <ResponsiveContainer>
+  <ResponsiveContainer width="100%" height="100%">
     <PieChart>
-      <Pie data={data} dataKey="value" innerRadius={50} outerRadius={90}>
+      <Pie data={data} dataKey="value" innerRadius="55%" outerRadius="80%">
         {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
       </Pie>
-      <Legend height={24} />
+      <Legend />
     </PieChart>
   </ResponsiveContainer>
 );
 
 const RadarChartBlock = ({ data }) => (
-  <ResponsiveContainer>
-    <RadarChart data={data} outerRadius="70%">
+  <ResponsiveContainer width="100%" height="100%">
+    <RadarChart data={data} outerRadius="75%">
       <PolarGrid />
       <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
       <Radar dataKey="X" stroke={COLORS[0]} fill={COLORS[0]} fillOpacity={0.4} />
@@ -210,7 +224,7 @@ const RadarChartBlock = ({ data }) => (
 );
 
 const GroupedBarChartBlock = ({ data }) => (
-  <ResponsiveContainer>
+  <ResponsiveContainer width="100%" height="100%">
     <BarChart data={data}>
       <XAxis dataKey="name" fontSize={10} />
       <YAxis fontSize={10} />
@@ -222,7 +236,7 @@ const GroupedBarChartBlock = ({ data }) => (
 );
 
 const ScatterChartBlock = ({ data }) => (
-  <ResponsiveContainer>
+  <ResponsiveContainer width="100%" height="100%">
     <ScatterChart>
       <XAxis type="number" dataKey="features" fontSize={10} />
       <YAxis type="number" dataKey="price" fontSize={10} />
