@@ -14,7 +14,7 @@ const PanelMenur = () => {
 
   // ESTADOS DE FILTRADO
   const [priceFilter, setPriceFilter] = useState("All");
-  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [dimensionFilter, setDimensionFilter] = useState("All"); // Cambiado de categoryFilter a dimensionFilter
   const [activeTab, setActiveTab] = useState("List");
 
   // ESTADOS PARA EL MODAL DE EDICIÓN
@@ -94,7 +94,6 @@ const PanelMenur = () => {
           });
         }
       }
-      // --------------------------------------------
 
       const xVal = product.getElementsByTagName("X")[0]?.textContent || "";
       const yVal = product.getElementsByTagName("Y")[0]?.textContent || "";
@@ -111,7 +110,7 @@ const PanelMenur = () => {
         code,
         description,
         price: basePrice,
-        extraPrices, // Guardamos la matriz de precios aquí
+        extraPrices,
         dimensions,
         category,
         priority,
@@ -125,21 +124,26 @@ const PanelMenur = () => {
     return [...new Set(products.map(p => p.category))];
   }, [products]);
 
-  // 3. LÓGICA DE FILTRADO
+  // 3. LÓGICA DE FILTRADO (MODIFICADA PARA DIMENSIONES)
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = 
         p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesCategory = categoryFilter === "All" || p.category === categoryFilter;
+      // Filtrado por dimensión
+      let matchesDim = true;
+      if (dimensionFilter === "with") matchesDim = p.dimensions !== "N/A";
+      if (dimensionFilter === "without") matchesDim = p.dimensions === "N/A";
+
       let matchesPrice = true;
       if (priceFilter === "low") matchesPrice = p.price < 500;
       if (priceFilter === "mid") matchesPrice = p.price >= 500 && p.price <= 1500;
       if (priceFilter === "high") matchesPrice = p.price > 1500;
-      return matchesSearch && matchesCategory && matchesPrice;
+
+      return matchesSearch && matchesDim && matchesPrice;
     });
-  }, [searchTerm, products, priceFilter, categoryFilter]);
+  }, [searchTerm, products, priceFilter, dimensionFilter]);
 
   // ABRIR MODAL CON DATOS
   const handleOpenEdit = (product) => {
@@ -204,7 +208,6 @@ const PanelMenur = () => {
     setIsExportOpen(false);
   };
 
-  // FUNCIONES DE PAGINACIÓN
   const getPage = (cat) => categoryPages[cat] || 0;
   const setPage = (cat, val) => setCategoryPages(prev => ({ ...prev, [cat]: val }));
 
@@ -248,12 +251,16 @@ const PanelMenur = () => {
             </button>
           ))}
           <div className="h-4 w-px bg-gray-200 mx-2" />
+          
+          {/* FILTRO DE DIMENSIONES (CAMBIO SOLICITADO) */}
           <select 
             className="text-xs font-bold text-gray-500 bg-transparent border-none focus:ring-0 cursor-pointer"
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            onChange={(e) => setDimensionFilter(e.target.value)}
+            value={dimensionFilter}
           >
-            <option value="All">All Categories</option>
-            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+            <option value="All">All Dimensions</option>
+            <option value="with">With Dimensions</option>
+            <option value="without">No Dimensions (N/A)</option>
           </select>
         </div>
 
@@ -263,9 +270,7 @@ const PanelMenur = () => {
             {loading ? (
                <div className="flex items-center justify-center h-64 text-gray-400 animate-pulse font-medium">Loading catalog data...</div>
             ) : (
-              categories
-              .filter(cat => categoryFilter === "All" || cat === categoryFilter)
-              .map((cat) => {
+              categories.map((cat) => {
                 const catProducts = filteredProducts.filter(p => p.category === cat);
                 if (catProducts.length === 0) return null;
 
@@ -349,7 +354,6 @@ const PanelMenur = () => {
                         </tbody>
                       </table>
                       
-                      {/* CONTROLES DE PAGINACIÓN */}
                       {totalPages > 1 && (
                         <div className="px-6 py-3 border-t border-gray-50 flex items-center justify-between bg-white">
                           <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
