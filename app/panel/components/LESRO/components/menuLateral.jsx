@@ -14,9 +14,6 @@ import {
   ChevronLeft
 } from 'lucide-react';
 
-import { useEffect, useState } from 'react';
-import { getCurrentUser } from '@/app/lib/supabaseClient';
-
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'search', label: 'Search', icon: Search },
@@ -34,18 +31,6 @@ export default function MenuLateral({
   collapsed,
   setCollapsed
 }) {
-
-  // 👤 USUARIO REAL (SOLO LECTURA)
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-    };
-    loadUser();
-  }, []);
-
   return (
     <aside
       className={`
@@ -63,30 +48,32 @@ export default function MenuLateral({
     >
       {/* HEADER */}
       <div className="h-16 flex items-center justify-between px-4 border-b shrink-0">
+        
+       {/* LOGO + TITLE */}
+<a
+  href="https://www.lesro.com/"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={`
+    flex items-center
+    ${collapsed ? 'justify-center w-full' : 'gap-3'}
+    overflow-hidden
+  `}
+>
+  {/* LOGO PNG */}
+  <img
+    src="/logosEmpresas/lesro.png"
+    alt="LESRO Logo"
+    className="w-18 h-18 object-contain "
+  />
 
-        {/* LOGO + TITLE */}
-        <a
-          href="https://www.lesro.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`
-            flex items-center
-            ${collapsed ? 'justify-center w-full' : 'gap-3'}
-            overflow-hidden
-          `}
-        >
-          <img
-            src="/logosEmpresas/lesro.png"
-            alt="LESRO Logo"
-            className="w-18 h-18 object-contain"
-          />
+  {!collapsed && (
+    <span className="font-semibold text-sm whitespace-nowrap text-gray-800 hover:text-[#6264A7] transition">
+      Data LESRO
+    </span>
+  )}
+</a>
 
-          {!collapsed && (
-            <span className="font-semibold text-sm whitespace-nowrap text-gray-800 hover:text-[#6264A7] transition">
-              Data LESRO
-            </span>
-          )}
-        </a>
 
         {/* TOGGLE */}
         <button
@@ -141,19 +128,13 @@ export default function MenuLateral({
           );
         })}
 
-        {/* USER (REAL - SUPABASE AUTH) */}
+        {/* USER */}
         <div className="flex items-center gap-3 px-3 py-3">
-          {/* Avatar solo visual (no inventado) */}
           <div className="w-8 h-8 rounded-full bg-gray-300 shrink-0" />
-
-          {!collapsed && user && (
-            <div className="text-xs overflow-hidden">
-              <p className="font-medium truncate">
-                {user.raw?.user_metadata?.name || ''}
-              </p>
-              <p className="text-gray-400 truncate">
-                {user.email}
-              </p>
+          {!collapsed && (
+            <div className="text-xs">
+              <p className="font-medium">Anna Taylor</p>
+              <p className="text-gray-400">anna.t@email.com</p>
             </div>
           )}
         </div>
