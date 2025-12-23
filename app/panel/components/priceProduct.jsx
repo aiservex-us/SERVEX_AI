@@ -9,6 +9,9 @@ const PanelMenur = () => {
   const [loading, setLoading] = useState(true);
   const [catalogInfo, setCatalogInfo] = useState({ date: '', currency: '' });
   
+  // ESTADO DE PAGINACIÓN POR CATEGORÍA
+  const [categoryPages, setCategoryPages] = useState({});
+
   // ESTADOS DE FILTRADO
   const [priceFilter, setPriceFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -141,19 +144,12 @@ const PanelMenur = () => {
       for (let i = 0; i < productNodes.length; i++) {
         const code = productNodes[i].getElementsByTagName("Code")[0]?.textContent;
         if (code === editingProduct.code) {
-          // Actualizar Descripción
           const descNode = productNodes[i].getElementsByTagName("Description")[0];
           if (descNode) descNode.textContent = editFormData.description;
-
-          // Actualizar Precio
           const priceValNode = productNodes[i].getElementsByTagName("Value")[0];
           if (priceValNode) priceValNode.textContent = editFormData.price;
-
-          // Actualizar Categoría
           const catNode = productNodes[i].getElementsByTagName("ClassificationRef")[0];
           if (catNode) catNode.textContent = editFormData.category;
-
-          // Actualizar Dimensiones (Parseando el string de vuelta a X, Y, Z)
           const dims = editFormData.dimensions.split('x');
           if (dims.length === 3) {
             if (productNodes[i].getElementsByTagName("X")[0]) productNodes[i].getElementsByTagName("X")[0].textContent = dims[0];
@@ -186,6 +182,10 @@ const PanelMenur = () => {
     URL.revokeObjectURL(url);
     setIsExportOpen(false);
   };
+
+  // FUNCIONES DE PAGINACIÓN
+  const getPage = (cat) => categoryPages[cat] || 0;
+  const setPage = (cat, val) => setCategoryPages(prev => ({ ...prev, [cat]: val }));
 
   return (
     <div className="flex h-[100%] w-full bg-[#F9FAFB] text-[#1F2937] font-sans overflow-hidden">
@@ -248,6 +248,12 @@ const PanelMenur = () => {
                 const catProducts = filteredProducts.filter(p => p.category === cat);
                 if (catProducts.length === 0) return null;
 
+                // LÓGICA DE PAGINACIÓN (10 items)
+                const itemsPerPage = 10;
+                const currentPage = getPage(cat);
+                const totalPages = Math.ceil(catProducts.length / itemsPerPage);
+                const paginatedItems = catProducts.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+
                 return (
                   <section key={cat} className="space-y-4">
                     <div className="flex items-center gap-3">
@@ -269,7 +275,7 @@ const PanelMenur = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                          {catProducts.map((product, idx) => (
+                          {paginatedItems.map((product, idx) => (
                             <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
                               <td className="px-6 py-4">
                                 <div className="flex flex-col">
@@ -309,6 +315,31 @@ const PanelMenur = () => {
                           ))}
                         </tbody>
                       </table>
+                      
+                      {/* CONTROLES DE PAGINACIÓN */}
+                      {totalPages > 1 && (
+                        <div className="px-6 py-3 border-t border-gray-50 flex items-center justify-between bg-white">
+                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                            Page {currentPage + 1} of {totalPages}
+                          </span>
+                          <div className="flex gap-2">
+                            <button 
+                              disabled={currentPage === 0}
+                              onClick={() => setPage(cat, currentPage - 1)}
+                              className="p-1.5 rounded-md border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button 
+                              disabled={currentPage >= totalPages - 1}
+                              onClick={() => setPage(cat, currentPage + 1)}
+                              className="p-1.5 rounded-md border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </section>
                 )
@@ -327,7 +358,6 @@ const PanelMenur = () => {
               <p className="text-xs text-gray-400 mb-6 font-mono">SKU: {editingProduct?.code}</p>
               
               <div className="grid grid-cols-1 gap-4">
-                {/* Campo Descripción */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Description</label>
                   <input 
@@ -339,7 +369,6 @@ const PanelMenur = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Campo Precio */}
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Price ({catalogInfo.currency})</label>
                     <input 
@@ -349,7 +378,6 @@ const PanelMenur = () => {
                       className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-bold"
                     />
                   </div>
-                  {/* Campo Categoría */}
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Category</label>
                     <input 
@@ -361,7 +389,6 @@ const PanelMenur = () => {
                   </div>
                 </div>
 
-                {/* Campo Dimensiones */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Dimensions (XxYxZ)</label>
                   <input 
