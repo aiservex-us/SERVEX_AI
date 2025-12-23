@@ -13,7 +13,7 @@ export default function ServiceDataSidebar({ isExpanded, setIsExpanded }) {
 
   return (
     /* Eliminamos el contenedor centrado y usamos la altura completa del padre */
-    <div className="h-[90%] mt-[50px]  flex items-center justify-center pl-4">
+    <div className="h-[90%]  flex items-center justify-center pl-4">
       <motion.div
         animate={{ 
           width: isExpanded ? 280 : 80,

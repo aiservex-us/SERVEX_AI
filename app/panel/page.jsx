@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 // COMPONENTES
 import IncertXML from './components/incertXML';
 import PanelHeader from './components/PanelHeader';
-import PanelMenur from './components/menuPrincipar';
+import PanelMenur from './components/LESRO/menuINICIAL';
 
 export default function PanelPage() {
   const router = useRouter();
@@ -37,7 +37,7 @@ export default function PanelPage() {
         <div className="relative group w-full h-full">
           
           {/* Glow decorativo */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+          <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
 
           {/* Contenedor del Menú:
               - h-full: Para que respete el 95vh del padre.
