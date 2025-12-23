@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, Radar,
+  RadarChart, PolarGrid, PolarAngleAxis, Radar,
   AreaChart, Area, ScatterChart, Scatter, ZAxis, Legend
 } from 'recharts';
 import { useCatalogData } from './useCatalogData';
@@ -41,7 +41,6 @@ const ProfessionalDashboard = () => {
     });
 
     return {
-      pieData: Object.values(categories).map(c => ({ name: c.name, value: c.count })),
       barDataValue: Object.values(categories).map(c => ({
         name: c.name,
         avgPrice: Math.round(c.total / c.count),
@@ -62,7 +61,6 @@ const ProfessionalDashboard = () => {
     };
   }, [products]);
 
-  /* LOADING */
   if (loading) {
     return (
       <div className="h-full w-full flex items-center justify-center">
@@ -90,7 +88,7 @@ const ProfessionalDashboard = () => {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-3 py-3 text-xs font-medium relative
-                  ${activeTab === tab
+                    ${activeTab === tab
                       ? 'text-[#6264A7]'
                       : 'text-gray-500 hover:text-[#6264A7]'}`}
                 >
@@ -127,12 +125,9 @@ const ProfessionalDashboard = () => {
 
           <div className="flex-1 min-h-0">
             {activeTab === 'Overview' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 h-full gap-4">
+              <div className="h-full">
                 <ChartBlock title="Price Distribution">
                   <AreaChartBlock data={chartData.areaPriceData} />
-                </ChartBlock>
-                <ChartBlock title="Category Split">
-                  <PieChartBlock data={chartData.pieData} />
                 </ChartBlock>
               </div>
             )}
@@ -192,19 +187,6 @@ const AreaChartBlock = ({ data }) => (
       <Tooltip />
       <Area dataKey="count" stroke="#6264A7" fill="#6264A7" fillOpacity={0.2} />
     </AreaChart>
-  </ResponsiveContainer>
-);
-
-const PieChartBlock = ({ data }) => (
-  <ResponsiveContainer width="100%" height="100%">
-    <PieChart>
-      <Pie data={data} dataKey="value" innerRadius="55%" outerRadius="80%">
-        {data.map((_, i) => (
-          <Cell key={i} fill={COLORS[i % COLORS.length]} />
-        ))}
-      </Pie>
-      <Legend />
-    </PieChart>
   </ResponsiveContainer>
 );
 
