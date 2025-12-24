@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import MenuLateral from './components/menuLateral';
 
@@ -6,7 +7,7 @@ import Dashboard from './components/dashboard';
 import PriceProduct from './components/priceProduct';
 
 export default function MenuInicial() {
-  // 👇 AHORA KANBAN ES LA VISTA INICIAL
+  // 👇 Vista inicial
   const [active, setActive] = useState('kanban');
   const [collapsed, setCollapsed] = useState(false);
 
@@ -28,7 +29,9 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="flex h-[100%] w-full overflow-hidden bg-gray-100">
+    <div className="flex h-full w-full overflow-hidden bg-gray-100">
+
+      {/* MENÚ LATERAL */}
       <MenuLateral
         active={active}
         setActive={setActive}
@@ -36,8 +39,18 @@ export default function MenuInicial() {
         setCollapsed={setCollapsed}
       />
 
-      <main className="flex-1 bg-[#F5F5F5] overflow-y-auto">
-        {renderContent()}
+      {/* CONTENIDO PRINCIPAL */}
+      <main className="flex-1 p-4 overflow-hidden">
+        
+        {/* CONTENEDOR ESTÁNDAR (como el ejemplo) */}
+        <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
+          
+          <div className="p-1 w-full h-full">
+            {renderContent()}
+          </div>
+
+        </div>
+
       </main>
     </div>
   );
