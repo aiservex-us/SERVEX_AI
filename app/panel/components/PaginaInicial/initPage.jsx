@@ -13,6 +13,7 @@ import DashboardRight from './components/main/Dashboard';
 import Calendar from './components/Calendar';
 import Products from './components/Products';
 import Settings from './components/Settings';
+import Footer from './components/main/footer'
 
 const InitPage = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -89,7 +90,7 @@ const InitPage = () => {
 
 
           </div>
-          <Header />
+          <Footer />
         </div>
         
       </main>

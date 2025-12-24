@@ -145,12 +145,12 @@ export default function DashboardRight() {
           ))}
         </div>
       </section>
-
-      {/* PROMO SECTION: REFINED MICRO-CARD */}
-      <section className="relative mt-24 mb-10 px-4 flex justify-center">
-        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/60 relative flex flex-col items-center text-center max-w-[400px]">
+{/* PROMO SECTION: REFINED MICRO-CARD */}
+<section className="relative mt-32 mb-10 px-4 flex justify-center">
+        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/60 relative flex flex-col items-center text-center max-w-[400px] w-full">
           
-          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[60%] z-20">
+          {/* IMAGE CONTAINER: Más grande en móvil (85%) y tamaño original en desktop (60%) */}
+          <div className="absolute -top-24 min-[800px]:-top-20 left-1/2 -translate-x-1/2 w-[85%] min-[800px]:w-[65%] z-20">
             <img 
               src="/macMain.png" 
               alt="Expert Support" 
@@ -158,7 +158,8 @@ export default function DashboardRight() {
             />
           </div>
 
-          <div className="h-20 w-full"></div>
+          {/* SPACER: Ajustado para compensar el tamaño de la imagen en móvil */}
+          <div className="h-24 min-[800px]:h-20 w-full"></div>
 
           <div className="relative z-10 mt-4">
             <h2 className="text-lg font-bold text-slate-800 mb-2 leading-snug">
