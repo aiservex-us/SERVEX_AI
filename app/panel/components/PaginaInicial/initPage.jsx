@@ -89,7 +89,9 @@ const InitPage = () => {
 
 
           </div>
+          <Header />
         </div>
+        
       </main>
     </div>
   );
