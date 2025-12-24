@@ -18,6 +18,8 @@ export default function PerfilUsuario() {
       const { data, error } = await supabase.auth.getUser();
 
       if (data?.user) {
+        // 🔍 DEBUG: Abre la consola del navegador (F12) para ver qué campos trae Azure
+        console.log("🔍 Estructura completa del usuario Azure:", data.user);
         setUser(data.user);
       }
 
@@ -42,33 +44,32 @@ export default function PerfilUsuario() {
 
   if (!user) return null;
 
-  // 🔐 IDENTIDAD REAL DE AZURE
-  const azureIdentity =
-    user.identities?.find(i => i.provider === 'azure')?.identity_data || {};
-
+  // 🔐 EXTRACCIÓN MEJORADA DE METADATA
   const metadata = user.user_metadata || {};
+  
+  // A veces Azure guarda la info en 'identities', buscamos ahí como respaldo
+  const identityData = user.identities?.[0]?.identity_data || {};
 
-  // 🧠 NOMBRE REAL (AZURE)
+  // 🧠 NOMBRE: Prioridad absoluta a los campos que llena Azure/Supabase
   const nombre =
-    metadata.full_name ||
-    metadata.name ||
-    azureIdentity.displayName ||
-    azureIdentity.name ||
-    azureIdentity.given_name ||
+    metadata.full_name ||            // Estándar de Supabase
+    metadata.name ||                 // Estándar de Azure
+    identityData.full_name ||        // Respaldo en identity
+    identityData.name ||
+    metadata.custom_claims?.name ||  // Casos corporativos específicos
     'Usuario Corporativo';
 
-  // 📧 CORREO REAL (AZURE)
+  // 📧 CORREO: Prioridad al email verificado
   const correo =
-    user.email ||
-    azureIdentity.email ||
-    azureIdentity.preferred_username ||
-    azureIdentity.upn ||
+    user.email || 
+    metadata.email || 
+    identityData.email ||
     'Sin correo';
 
-  // 🖼️ AVATAR (AZURE RARA VEZ ENVÍA)
+  // 🖼️ AVATAR: Si no hay, usaremos la inicial del nombre
   const avatarUrl =
     metadata.avatar_url ||
-    azureIdentity.avatar_url ||
+    identityData.avatar_url ||
     null;
 
   return (
@@ -141,7 +142,7 @@ export default function PerfilUsuario() {
         </div>
       </motion.div>
 
-      {/* Modal */}
+      {/* Modal Logout */}
       <AnimatePresence>
         {showLogoutModal && (
           <div className="fixed inset-0 backdrop-blur-md bg-black/20 flex items-center justify-center z-[1000] p-4">
