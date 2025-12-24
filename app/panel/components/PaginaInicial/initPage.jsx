@@ -62,6 +62,7 @@ const InitPage = () => {
             <Chart />
           </div>
         );
+        
     }
   };
 
@@ -79,11 +80,13 @@ const InitPage = () => {
 
             {/* COLUMNA IZQUIERDA (DINÁMICA) */}
             {renderMainContent()}
+{/* COLUMNA DERECHA (FIJA COMO SIDEBAR) */}
+<aside className="col-span-12   lg:col-span-4 relative">
+  <div className="sticky ">
+    <DashboardRight />
+  </div>
+</aside>
 
-            {/* COLUMNA DERECHA (FIJA) */}
-            <aside className="col-span-12 lg:col-span-4">
-              <DashboardRight />
-            </aside>
 
           </div>
         </div>
