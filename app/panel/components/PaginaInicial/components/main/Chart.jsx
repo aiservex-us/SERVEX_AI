@@ -8,35 +8,35 @@ const DATA = {
     value: '+6%',
     label: 'Foundation Phase',
     description:
-      'Centralización de herramientas y procesos. Base operativa unificada para habilitar automatización futura.'
+      'Centralization of tools and processes. Unified operational base to enable future automation workflows.'
   },
   automation: {
     path: 'M0,82 C60,80 120,72 160,68 C200,65 260,60 400,55',
     value: '+18%',
     label: 'Automation Phase',
     description:
-      'Automatización de tareas repetitivas mediante IA, reduciendo carga manual y tiempos operativos.'
+      'Automation of repetitive tasks using AI, significantly reducing manual workload and operational lead times.'
   },
   optimization: {
     path: 'M0,80 C60,75 120,65 160,58 C200,50 260,45 400,40',
     value: '+34%',
     label: 'Optimization Phase',
     description:
-      'Optimización de flujos críticos con IA, mejora continua del rendimiento y eficiencia operativa.'
+      'Optimization of critical flows through AI, focusing on continuous performance improvement and operational efficiency.'
   },
   scaling: {
     path: 'M0,78 C60,70 120,58 160,48 C200,38 260,32 400,26',
     value: '+64%',
     label: 'Scaling Phase',
     description:
-      'Escalamiento de automatizaciones a múltiples áreas y procesos, habilitando crecimiento sostenido.'
+      'Scaling automations across multiple departments and processes, enabling sustained business growth.'
   },
   intelligence: {
     path: 'M0,75 C60,60 120,45 160,35 C200,28 260,22 400,18',
     value: '+112%',
     label: 'Intelligent Platform Phase',
     description:
-      'Plataforma de IA madura con capacidades predictivas, decisiones autónomas y máxima eficiencia operativa.'
+      'Mature AI platform with predictive capabilities, autonomous decision-making, and maximum operational efficiency.'
   }
 };
 
@@ -63,13 +63,12 @@ export default function Chart() {
             SERVEX · AI Automation Growth Model
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-slate-500">
-            Evolución progresiva del crecimiento de SERVEX mediante automatización
-            con IA, desde la centralización inicial hasta una plataforma inteligente
-            y autónoma.
+            Progressive evolution of SERVEX growth through AI automation, 
+            from initial centralization to a fully intelligent and autonomous platform.
           </p>
         </div>
 
-        {/* CONTROLES DE FASE */}
+        {/* PHASE CONTROLS */}
         <div className="flex flex-wrap gap-2">
           {PHASES.map(phase => (
             <button
@@ -87,7 +86,7 @@ export default function Chart() {
         </div>
       </div>
 
-      {/* INFO DE FASE */}
+      {/* PHASE INFO */}
       <div className="mb-4">
         <p className="text-xs font-semibold text-[#6264A7] uppercase tracking-wide">
           {current.label}
@@ -114,7 +113,7 @@ export default function Chart() {
             }}
           />
 
-          {/* Punto final */}
+          {/* End Point */}
           <circle
             cx="400"
             cy={current.path.includes('18') ? '18' : '40'}
@@ -126,15 +125,15 @@ export default function Chart() {
 
           {/* Badge */}
           <rect
-            x="330"
+            x="320"
             y="4"
-            width="62"
+            width="72"
             height="22"
             rx="7"
             fill="#0f172a"
           />
           <text
-            x="346"
+            x="336"
             y="19"
             fill="white"
             fontSize="9"
@@ -147,8 +146,8 @@ export default function Chart() {
 
       {/* FOOTER */}
       <div className="mt-4 text-[11px] text-slate-400">
-        Modelo de madurez de automatización con IA aplicado a SERVEX para maximizar
-        eficiencia, escalabilidad y toma de decisiones inteligentes.
+        AI automation maturity model applied to SERVEX to maximize efficiency, 
+        scalability, and intelligent decision-making.
       </div>
 
       <style jsx>{`

@@ -34,7 +34,7 @@ const StatItem = ({ icon, label, value, description, isOpen, onClick }) => (
       />
     </div>
 
-    {/* CONTENIDO EXPANDIDO */}
+    {/* EXPANDED CONTENT */}
     <div
       className={`overflow-hidden transition-all duration-300
         ${isOpen ? 'max-h-40 mt-3 opacity-100' : 'max-h-0 opacity-0'}
@@ -85,13 +85,13 @@ export default function DashboardRight() {
   return (
     <div className="space-y-6">
 
-      {/* STATS — INTERACTIVOS */}
+      {/* INTERACTIVE STATS */}
       <div className="space-y-2">
         <StatItem
           icon={<Boxes size={16} />}
           label="Catalog Automation"
           value="CET · BIM · 20/20"
-          description="SVX Copilot automatiza la creación, estructuración y mantenimiento de catálogos electrónicos para plataformas de especificación utilizadas por fabricantes, dealers y diseñadores."
+          description="SVX Copilot automates the creation, structuring, and maintenance of electronic catalogs for specification platforms used by manufacturers, dealers, and designers."
           isOpen={openIndex === 0}
           onClick={() => toggleItem(0)}
         />
@@ -100,7 +100,7 @@ export default function DashboardRight() {
           icon={<Cpu size={16} />}
           label="AI Specification Engine"
           value="Rules · Variants · Data"
-          description="Motor de IA que interpreta reglas de producto, variantes, pricing y lógica de configuración para reducir errores humanos y acelerar el proceso de especificación técnica."
+          description="AI-driven engine that interprets product rules, variants, pricing, and configuration logic to reduce human error and accelerate the technical specification process."
           isOpen={openIndex === 1}
           onClick={() => toggleItem(1)}
         />
@@ -109,13 +109,13 @@ export default function DashboardRight() {
           icon={<Layers size={16} />}
           label="Product Lifecycle"
           value="Create · Update · Convert"
-          description="Gestión completa del ciclo de vida del producto: creación inicial, actualizaciones continuas y conversión entre formatos como CET, Revit, 20/20 y SketchUp."
+          description="End-to-end management of the product lifecycle: initial creation, continuous updates, and conversion across formats such as CET, Revit, 20/20, and SketchUp."
           isOpen={openIndex === 2}
           onClick={() => toggleItem(2)}
         />
       </div>
 
-      {/* CARRUSEL */}
+      {/* CAROUSEL */}
       <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200/60">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">
@@ -146,55 +146,53 @@ export default function DashboardRight() {
         </div>
       </section>
 
-      {/* CTA PRINCIPAL */}
-      <section className="bg-[#fff]/5 border border-[#6264A7]/20 rounded-xl p-6 text-center">
-        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm mx-auto mb-4">
-          🚀
+      {/* PROMO SECTION: REFINED MICRO-CARD */}
+      <section className="relative mt-24 mb-10 px-4 flex justify-center">
+        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/60 relative flex flex-col items-center text-center max-w-[400px]">
+          
+          <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[60%] z-20">
+            <img 
+              src="/macMain.png" 
+              alt="Expert Support" 
+              className="w-full h-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.25)] transition-transform duration-500 hover:scale-105"
+            />
+          </div>
+
+          <div className="h-20 w-full"></div>
+
+          <div className="relative z-10 mt-4">
+            <h2 className="text-lg font-bold text-slate-800 mb-2 leading-snug">
+              Ready to optimize your profile?
+            </h2>
+            
+            <p className="text-slate-500 text-[13px] leading-relaxed mb-6 px-2">
+              Get personalized technical assistance to ensure your digital practice looks impeccable and professional.
+            </p>
+
+            <button className="bg-[#6264A7] text-white px-6 py-2.5 rounded-xl font-bold text-[12px] hover:bg-[#4b4d8a] transition-all flex items-center justify-center gap-2 group mx-auto">
+              Contact Support
+              <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
         </div>
+      </section>
+
+      {/* MAIN CTA */}
+      <section className="bg-[#fff]/5 border border-[#6264A7]/20 rounded-xl p-6 text-center">
+ 
         <h3 className="text-slate-800 font-bold text-sm mb-1 uppercase tracking-tight">
           Svx Copilot Pro
         </h3>
-        <p className="text-slate-500 mb-5 text-[11px] leading-tight">
-          AI copilot para automatizar y escalar la creación,
-          mantenimiento y conversión de catálogos electrónicos
-          dentro del ecosistema Servex.
+        <p className="text-slate-500 mb-5 text-[11px] leading-tight px-2">
+          AI copilot designed to automate and scale the creation, 
+          maintenance, and conversion of electronic catalogs 
+          within the Servex ecosystem.
         </p>
         <button className="bg-white text-slate-800 border border-slate-200 w-full py-2.5 rounded-lg font-bold text-xs hover:bg-slate-50 transition-colors shadow-sm">
           Upgrade Now
         </button>
       </section>
 
-     {/* SECCIÓN PROMO: MICRO-CARD REFINADA */}
-<section className="relative mt-32 mb-10 px-4 flex justify-center">
-  {/* Card más estrecha y compacta */}
-  <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/60 relative flex flex-col items-center text-center max-w-[400px]">
-    
-    {/* Imagen: 80% del ancho de esta card pequeña, sobresaliendo */}
-    <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[65%] z-20">
-      <img 
-        src="/macMain.png" 
-        alt="Expert Support" 
-        className="w-full h-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.25)] transition-transform duration-500 hover:scale-105"
-      />
-    </div>
-
-    {/* Espaciador ajustado a la nueva escala */}
-    <div className="h-24 w-full"></div>
-
-    {/* Contenido: Texto y Título más pequeños y profesionales */}
-    <div className="relative z-10 mt-4">
-      <h2 className="text-lg font-bold text-slate-800 mb-2 leading-snug">
-        ¿Listo para optimizar tu perfil?
-      </h2>
-      
-      <p className="text-slate-500 text-[13px] leading-relaxed mb-6 px-2">
-        Obtén asistencia técnica personalizada para que tu consultorio digital luzca impecable y profesional.
-      </p>
-      
-  
-    </div>
-  </div>
-</section>
 
     </div>
   );
