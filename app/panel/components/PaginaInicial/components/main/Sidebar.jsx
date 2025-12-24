@@ -91,52 +91,67 @@ export default function Sidebar({ activeView, setActiveView }) {
         </div>
       </aside>
 
-      {/* 🔐 MODAL CONFIRMACIÓN LOGOUT */}
-      <AnimatePresence>
-        {showLogoutModal && (
-          <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-[1000]">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-3xl shadow-xl max-w-md w-full mx-4 p-6 relative"
-            >
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
-              >
-                <FaTimes size={20} />
-              </button>
+     {/* 🔐 LOGOUT CONFIRMATION MODAL (SVX Copilot - English Version) */}
+<AnimatePresence>
+  {showLogoutModal && (
+    /* CAMBIO AQUÍ: Se agregó 'backdrop-blur-sm' y se ajustó el color de fondo a 'bg-black/20' */
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[1000]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.1 }}
+        className="bg-white rounded-lg shadow-2xl max-w-[512px] w-full mx-4 p-8 text-[#242424] border border-gray-200"
+      >
+        {/* Title */}
+        <h2 className="text-[24px] font-semibold mb-5 leading-tight">
+          Sign out of SVX Copilot
+        </h2>
 
-              <h2 className="text-xl font-bold mb-4 text-gray-800">
-                ¿Cerrar sesión?
-              </h2>
+        {/* Main Body */}
+        <p className="text-[15px] mb-6 leading-relaxed">
+          We'll sign you out and remove any temporary offline data, including unsent query drafts. {' '}
+          <a 
+            href="#" 
+            className="text-[#464eb8] hover:underline"
+          >
+            Learn more
+          </a>
+        </p>
 
-              <p className="text-gray-700 text-sm mb-6">
-                Estás a punto de cerrar tu sesión. ¿Deseas continuar?
-              </p>
+        {/* Tip Section */}
+        <div className="mb-10 text-[15px]">
+          <span className="font-bold">Tip: </span>
+          SVX Copilot now supports multiple workspaces, which means you won't have to sign out to move between Servex projects.
+        </div>
 
-              <div className="flex justify-end gap-4">
-                <button
-                  onClick={() => setShowLogoutModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-                >
-                  Cancelar
-                </button>
+        {/* Button Actions */}
+        <div className="flex justify-end gap-[8px]">
+          <button
+            onClick={() => setShowLogoutModal(false)}
+            className="px-5 py-[6px] border border-[#d1d1d1] bg-white text-[#242424] rounded-[4px] text-[14px] font-semibold hover:bg-gray-50 transition-colors min-w-[120px]"
+          >
+            Add another account
+          </button>
+          
+          <button
+            onClick={() => setShowLogoutModal(false)}
+            className="px-5 py-[6px] border border-[#d1d1d1] bg-white text-[#242424] rounded-[4px] text-[14px] font-semibold hover:bg-gray-50 transition-colors min-w-[96px]"
+          >
+            Cancel
+          </button>
 
-                <button
-                  onClick={handleLogout}
-                  className="relative inline-block px-4 py-2 text-sm font-semibold bg-black text-white rounded-md shadow-sm overflow-hidden group transition-all duration-300"
-                >
-                  <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-                  <span className="relative z-10">Cerrar sesión</span>
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+          <button
+            onClick={handleLogout}
+            className="px-5 py-[6px] bg-[#464eb8] text-white rounded-[4px] text-[14px] font-semibold hover:bg-[#3b42a0] transition-colors min-w-[96px]"
+          >
+            Sign out
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )}
+</AnimatePresence>
     </>
   );
 }
