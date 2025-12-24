@@ -164,33 +164,37 @@ export default function DashboardRight() {
         </button>
       </section>
 
-      {/* NUEVA SECCIÓN: PROMO CARD CON EFECTO POP-OUT */}
-      <section className="relative mt-16 pt-12">
-        <div className="bg-white border border-[#6264A7]/20 rounded-2xl p-6 shadow-sm relative overflow-visible">
-          {/* Imagen que sobresale */}
-          <div className="absolute -top-14 right-4 w-32 h-40 pointer-events-none">
-            <img 
-              src="/path-to-your-image.png" // Reemplaza con tu imagen PNG sin fondo
-              alt="Expert Support" 
-              className="w-full h-full object-contain drop-shadow-xl"
-            />
-          </div>
+     {/* SECCIÓN PROMO: MICRO-CARD REFINADA */}
+<section className="relative mt-32 mb-10 px-4 flex justify-center">
+  {/* Card más estrecha y compacta */}
+  <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/60 relative flex flex-col items-center text-center max-w-[400px]">
+    
+    {/* Imagen: 80% del ancho de esta card pequeña, sobresaliendo */}
+    <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[65%] z-20">
+      <img 
+        src="/macMain.png" 
+        alt="Expert Support" 
+        className="w-full h-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.25)] transition-transform duration-500 hover:scale-105"
+      />
+    </div>
 
-          {/* Contenido de texto en la parte baja */}
-          <div className="relative z-10 pt-4">
-            <h4 className="text-[#6264A7] font-bold text-sm mb-1">
-              ¿Necesitas ayuda experta?
-            </h4>
-            <p className="text-slate-500 text-[11px] leading-snug max-w-[160px]">
-              Nuestro equipo técnico está listo para ayudarte con tu integración.
-            </p>
-            
-            <button className="mt-4 flex items-center gap-2 text-[#6264A7] font-bold text-xs hover:underline">
-              Hablar con soporte <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
-      </section>
+    {/* Espaciador ajustado a la nueva escala */}
+    <div className="h-24 w-full"></div>
+
+    {/* Contenido: Texto y Título más pequeños y profesionales */}
+    <div className="relative z-10 mt-4">
+      <h2 className="text-lg font-bold text-slate-800 mb-2 leading-snug">
+        ¿Listo para optimizar tu perfil?
+      </h2>
+      
+      <p className="text-slate-500 text-[13px] leading-relaxed mb-6 px-2">
+        Obtén asistencia técnica personalizada para que tu consultorio digital luzca impecable y profesional.
+      </p>
+      
+  
+    </div>
+  </div>
+</section>
 
     </div>
   );
