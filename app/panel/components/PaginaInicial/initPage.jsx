@@ -1,26 +1,95 @@
-import React from 'react';
-// Asumiendo que guardaste el componente anterior en components/DoctorProfile.jsx
-import DoctorProfile from '../PaginaInicial/components/main';
+'use client';
 
-export const metadata = {
-  title: 'Dr. Nick Willford | Professional Profile',
-  description: 'View qualifications, publications, and book a consultation with Dr. Nick Willford.',
-};
+import React, { useState } from 'react';
+import Sidebar from './components/main/Sidebar';
+import Header from './components/main/Header';
 
-export default function ProfilePage() {
+// VISTAS / COMPONENTES
+import Content from './components/main/Content';
+import Chart from './components/main/Chart';
+import DashboardRight from './components/main/Dashboard';
+
+// (Ejemplos de vistas adicionales)
+import Calendar from './components/Calendar';
+import Products from './components/Products';
+import Settings from './components/Settings';
+
+const InitPage = () => {
+  const [activeView, setActiveView] = useState('dashboard');
+
+  const renderMainContent = () => {
+    switch (activeView) {
+      case 'home':
+        return (
+          <div className="col-span-12 lg:col-span-8 space-y-6">
+            <Content />
+          </div>
+        );
+
+      case 'dashboard':
+        return (
+          <div className="col-span-12 lg:col-span-8 space-y-6">
+            <Content />
+            <Chart />
+          </div>
+        );
+
+      case 'calendar':
+        return (
+          <div className="col-span-12 lg:col-span-8 space-y-6">
+            <Calendar />
+          </div>
+        );
+
+      case 'products':
+        return (
+          <div className="col-span-12 lg:col-span-8 space-y-6">
+            <Products />
+          </div>
+        );
+
+      case 'settings':
+        return (
+          <div className="col-span-12 lg:col-span-8 space-y-6">
+            <Settings />
+          </div>
+        );
+
+      default:
+        return (
+          <div className="col-span-12 lg:col-span-8 space-y-6">
+            <Content />
+            <Chart />
+          </div>
+        );
+    }
+  };
+
   return (
-    /** * El contenedor principal usa un min-h-screen para asegurar que 
-     * el fondo grisáceo profesional cubra toda la pantalla.
-     */
-    <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Si tuvieras un Sidebar global (tipo Teams), iría aquí.
-          Por ahora, renderizamos el perfil completo. 
-      */}
-      <main className="animate-in fade-in duration-700">
-        <DoctorProfile />
+    <div className="flex h-[90vh] bg-[#FFF] font-sans overflow-hidden text-slate-700">
+      {/* SIDEBAR */}
+      <Sidebar activeView={activeView} setActiveView={setActiveView} />
+
+      <main className="flex-1 h-full flex flex-col overflow-hidden">
+        <Header />
+
+        {/* CONTENIDO SCROLLABLE */}
+        <div className="flex-1 overflow-y-auto p-8 bg-[#FFF]">
+          <div className="grid grid-cols-12 gap-6 max-w-[1600px] mx-auto">
+
+            {/* COLUMNA IZQUIERDA (DINÁMICA) */}
+            {renderMainContent()}
+
+            {/* COLUMNA DERECHA (FIJA) */}
+            <aside className="col-span-12 lg:col-span-4">
+              <DashboardRight />
+            </aside>
+
+          </div>
+        </div>
       </main>
-
-
     </div>
   );
-}
+};
+
+export default InitPage;
