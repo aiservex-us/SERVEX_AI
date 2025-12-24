@@ -47,21 +47,21 @@ export default function Content() {
       title: "SVX · Smart Automation",
       val: "2.4k",
       icon: Zap,
-      description: "Optimización de flujos operativos mediante agentes autónomos de SERVEX, reduciendo tiempos de respuesta en un 40%."
+      description: "Operational workflow optimization via SERVEX autonomous agents, reducing response times by 40%."
     },
     {
       id: 'triaging',
       title: "Intelligent Triaging",
       val: "1.2k",
       icon: Target,
-      description: "Clasificación predictiva de requerimientos técnicos con una precisión del 98% aplicada a la arquitectura de CoPilot."
+      description: "Predictive classification of technical requirements with 98% accuracy applied to the CoPilot architecture."
     },
     {
       id: 'analytics',
       title: "Predictive Analytics",
       val: "3.1k",
       icon: BarChart3,
-      description: "Detección temprana de cuellos de botella y análisis de tendencias de productividad en tiempo real para la toma de decisiones."
+      description: "Early detection of bottlenecks and real-time productivity trend analysis for strategic decision-making."
     }
   ];
 
