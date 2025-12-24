@@ -29,28 +29,36 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-gray-100">
+    /* Contenedor padre — sin scroll global */
+    <div className="h-screen w-full bg-[#f8fafc] font-sans overflow-hidden flex items-center justify-center">
 
-      {/* MENÚ LATERAL */}
-      <MenuLateral
-        active={active}
-        setActive={setActive}
-        collapsed={collapsed}
-        setCollapsed={setCollapsed}
-      />
+      {/* MAIN ocupa el 95% de la altura */}
+      <main className="w-full h-[95vh] p-0 flex">
 
-      {/* CONTENIDO PRINCIPAL */}
-      <main className="flex-1 p-4 overflow-hidden">
-        
-        {/* CONTENEDOR ESTÁNDAR (como el ejemplo) */}
-        <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
-          
-          <div className="p-1 w-full h-full">
-            {renderContent()}
+        {/* MENÚ LATERAL (no scrollea) */}
+        <MenuLateral
+          active={active}
+          setActive={setActive}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+        />
+
+        {/* CONTENEDOR DEL CONTENIDO */}
+        <div className="relative group flex-1 h-full">
+
+          {/* Glow decorativo (igual que PanelPage) */}
+          <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+
+          {/* PANEL BLANCO — AQUÍ vive el scroll */}
+          <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
+
+            {/* Padding interno */}
+            <div className="p-1 w-full h-full">
+              {renderContent()}
+            </div>
+
           </div>
-
         </div>
-
       </main>
     </div>
   );
