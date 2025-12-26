@@ -11,7 +11,7 @@ import DashboardRight from './components/main/Dashboard';
 
 // (Ejemplos de vistas adicionales)
 import Calendar from './components/Calendar';
-import Products from './components/Products';
+import Products from './components/main/AccesAgent';
 import Settings from './components/Settings';
 import Footer from './components/main/footer'
 

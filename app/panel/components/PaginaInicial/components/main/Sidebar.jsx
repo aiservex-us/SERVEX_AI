@@ -51,7 +51,7 @@ export default function Sidebar({ activeView, setActiveView }) {
           
           {/* LOGO RESPONSIVO */}
           <div className="w-8 h-8 min-[800px]:w-10 min-[800px]:h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-slate-200">
-            <span className="font-black text-[#6264A7] text-base min-[800px]:text-lg">Δ</span>
+            <span className="font-black text-[#6264A7] text-[14px] min-[800px]:text-lg">SX</span>
           </div>
 
           <nav className="flex flex-col gap-1.5 min-[800px]:gap-2 w-full px-2">

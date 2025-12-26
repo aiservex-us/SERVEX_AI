@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { MousePointer2, Zap, Target, BarChart3 } from 'lucide-react';
+import { useRouter } from 'next/navigation'; // Importación necesaria para la navegación
 
 // Componente BlogCard mejorado con estados interactivos y contenido de SVX
 const BlogCard = ({ title, description, val, isActive, onClick, icon: Icon }) => (
@@ -40,6 +41,7 @@ const BlogCard = ({ title, description, val, isActive, onClick, icon: Icon }) =>
 
 export default function Content() {
   const [activeCard, setActiveCard] = useState('automation');
+  const router = useRouter(); // Inicialización del router
 
   const insights = [
     {
@@ -81,9 +83,12 @@ export default function Content() {
             across your entire organization.
           </p>
           
-          {/* BOTONES RESPONSIVOS: Se apilan en móvil, se alinean en desktop */}
+          {/* BOTONES RESPONSIVOS */}
           <div className="flex flex-col sm:flex-row gap-3 w-full">
-            <button className="bg-[#6264A7] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#4d4f8a] transition-all shadow-sm hover:shadow-md w-full sm:w-auto text-center">
+            <button 
+              onClick={() => router.push('/modelContext')} // Redirección añadida aquí
+              className="bg-[#6264A7] text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#4d4f8a] transition-all shadow-sm hover:shadow-md w-full sm:w-auto text-center"
+            >
               Start AI Context
             </button>
             <a 
@@ -97,7 +102,7 @@ export default function Content() {
           </div>
         </div>
         
-        {/* Decoración abstracta sutil (Oculta en móviles para evitar overflow) */}
+        {/* Decoración abstracta sutil */}
         <div className="hidden md:block relative w-40 h-40 opacity-20">
           <div className="absolute inset-0 bg-[#6264A7] rounded-3xl rotate-12"></div>
           <div className="absolute inset-0 bg-slate-200 rounded-3xl -rotate-6 flex flex-col items-center justify-center">
