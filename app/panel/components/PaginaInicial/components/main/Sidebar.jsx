@@ -62,13 +62,13 @@ export default function Sidebar({ activeView, setActiveView }) {
             />
 
             <SidebarIcon
-              icon={<Grid />}
+              icon={<Calendar />}
               active={activeView === 'dashboard'}
               onClick={() => setActiveView('dashboard')}
             />
 
             <SidebarIcon
-              icon={<Calendar />}
+              icon={<Grid />}
               active={activeView === 'calendar'}
               onClick={() => setActiveView('calendar')}
             />
