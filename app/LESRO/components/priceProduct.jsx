@@ -212,49 +212,48 @@ const PanelMenur = () => {
   const setPage = (cat, val) => setCategoryPages(prev => ({ ...prev, [cat]: val }));
 
   return (
-    <div className="flex h-[100%] w-full bg-[#F9FAFB] text-[#1F2937] font-sans overflow-hidden">
+    <div className="flex h-[100%] w-full bg-[#F5F5F5] text-[#242424] font-sans overflow-hidden">
       <main className="flex-1 flex flex-col overflow-hidden">
         
-        {/* TOP NAV */}
-        <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-8 shrink-0">
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span>Tasks</span> <span className="text-gray-300">/</span> 
-            <span>Catalog</span> <span className="text-gray-300">/</span> 
-            <span className="text-black font-medium">Product Sprints</span>
+        {/* TOP NAV - Teams Style (Light) */}
+        <header className="h-12 border-b border-[#EDEBE9] bg-white flex items-center justify-between px-6 shrink-0 shadow-sm">
+          <div className="flex items-center gap-2 text-xs text-[#605E5C]">
+            <span>Tasks</span> <span className="text-[#BEBBB8]">/</span> 
+            <span>Catalog</span> <span className="text-[#BEBBB8]">/</span> 
+            <span className="text-[#242424] font-semibold">Product Sprints</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="relative">
                 <input 
                   type="text" 
-                  placeholder="Search SKU..." 
-                  className="pl-8 pr-4 py-1.5 bg-gray-100 border-none rounded-md text-xs focus:ring-2 focus:ring-blue-500 w-64"
+                  placeholder="Search" 
+                  className="pl-9 pr-4 py-1 bg-[#F3F2F1] border border-transparent rounded-[4px] text-xs focus:bg-white focus:border-[#6264A7] focus:ring-0 w-64 transition-all"
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <svg className="w-3.5 h-3.5 absolute left-2.5 top-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <svg className="w-4 h-4 absolute left-3 top-1.5 text-[#605E5C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-            <button onClick={() => setIsExportOpen(!isExportOpen)} className="px-3 py-1.5 text-xs font-bold border border-gray-200 rounded-md hover:bg-gray-50">Export</button>
-            <button className="px-3 py-1.5 text-xs font-bold bg-black text-white rounded-md flex items-center gap-2">
+            <button onClick={() => setIsExportOpen(!isExportOpen)} className="px-3 py-1 text-xs font-semibold border border-[#E1DFDD] bg-white rounded-[4px] hover:bg-[#F3F2F1] text-[#242424]">Export</button>
+            <button className="px-3 py-1 text-xs font-semibold bg-[#6264A7] text-white rounded-[4px] hover:bg-[#4B53BC] flex items-center gap-2 transition-colors">
               <span className="text-lg leading-none">+</span> Issue
             </button>
           </div>
         </header>
-
-        {/* SUB-HEADER FILTERS */}
-        <div className="bg-white border-b border-gray-200 px-8 py-2 flex items-center gap-6 overflow-x-auto shrink-0">
+  
+        {/* SUB-HEADER FILTERS - Teams Tabs */}
+        <div className="bg-white border-b border-[#EDEBE9] px-6 flex items-center gap-4 shrink-0">
           {['List', 'Kanban', 'Gantt', 'Calendar', 'Dashboard'].map(view => (
             <button 
               key={view}
               onClick={() => setActiveTab(view)}
-              className={`text-xs font-bold py-3 px-1 border-b-2 transition-colors ${activeTab === view ? 'border-blue-600 text-black' : 'border-transparent text-gray-400'}`}
+              className={`text-xs font-semibold py-3 px-2 border-b-[3px] transition-all ${activeTab === view ? 'border-[#6264A7] text-[#6264A7]' : 'border-transparent text-[#605E5C] hover:text-[#242424]'}`}
             >
               {view}
             </button>
           ))}
-          <div className="h-4 w-px bg-gray-200 mx-2" />
+          <div className="h-4 w-px bg-[#EDEBE9] mx-2" />
           
-          {/* FILTRO DE DIMENSIONES (CAMBIO SOLICITADO) */}
           <select 
-            className="text-xs font-bold text-gray-500 bg-transparent border-none focus:ring-0 cursor-pointer"
+            className="text-xs font-semibold text-[#605E5C] bg-transparent border-none focus:ring-0 cursor-pointer hover:text-[#242424]"
             onChange={(e) => setDimensionFilter(e.target.value)}
             value={dimensionFilter}
           >
@@ -263,90 +262,90 @@ const PanelMenur = () => {
             <option value="without">No Dimensions (N/A)</option>
           </select>
         </div>
-
+  
         {/* TABLE CONTENT */}
-        <div className="flex-1 overflow-auto p-8">
-          <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex-1 overflow-auto p-6">
+          <div className="max-w-full mx-auto space-y-6">
             {loading ? (
-               <div className="flex items-center justify-center h-64 text-gray-400 animate-pulse font-medium">Loading catalog data...</div>
+               <div className="flex items-center justify-center h-64 text-[#605E5C] animate-pulse font-semibold text-sm italic">Loading catalog data...</div>
             ) : (
               categories.map((cat) => {
                 const catProducts = filteredProducts.filter(p => p.category === cat);
                 if (catProducts.length === 0) return null;
-
+  
                 const itemsPerPage = 10;
                 const currentPage = getPage(cat);
                 const totalPages = Math.ceil(catProducts.length / itemsPerPage);
                 const paginatedItems = catProducts.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
-
+  
                 return (
-                  <section key={cat} className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${cat === 'UXR' ? 'bg-orange-400' : 'bg-green-400'}`} />
-                      <h3 className="text-sm font-bold text-gray-900">{cat}</h3>
-                      <span className="text-[10px] font-black bg-gray-100 px-2 py-0.5 rounded text-gray-400">{catProducts.length}</span>
+                  <section key={cat} className="space-y-2">
+                    <div className="flex items-center gap-2 group cursor-pointer">
+                      <svg className="w-3 h-3 text-[#605E5C]" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+                      <h3 className="text-xs font-bold text-[#242424] uppercase tracking-wider">{cat}</h3>
+                      <span className="text-[10px] font-semibold text-[#605E5C] bg-[#EDEBE9] px-1.5 py-0.5 rounded-sm">{catProducts.length}</span>
                     </div>
-
-                    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+  
+                    <div className="bg-white border border-[#EDEBE9] rounded-sm overflow-hidden">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-400 font-black">
-                            <th className="px-6 py-3 font-bold">Name / Code</th>
-                            <th className="px-4 py-3 font-bold">Priority</th>
-                            <th className="px-4 py-3 font-bold">Dimensions</th>
-                            <th className="px-4 py-3 font-bold">Tag</th>
-                            <th className="px-4 py-3 font-bold text-right">Price ({catalogInfo.currency})</th>
-                            <th className="px-4 py-3 font-bold text-center">Actions</th>
+                          <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9] text-[11px] text-[#605E5C] font-semibold">
+                            <th className="px-4 py-2.5 font-semibold">Name / Code</th>
+                            <th className="px-4 py-2.5 font-semibold">Priority</th>
+                            <th className="px-4 py-2.5 font-semibold">Dimensions</th>
+                            <th className="px-4 py-2.5 font-semibold">Tag</th>
+                            <th className="px-4 py-2.5 font-semibold text-right">Price ({catalogInfo.currency})</th>
+                            <th className="px-4 py-2.5 font-semibold text-center">Actions</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-[#EDEBE9]">
                           {paginatedItems.map((product, idx) => (
-                            <tr key={idx} className="group hover:bg-gray-50/50 transition-colors">
-                              <td className="px-6 py-4">
+                            <tr key={idx} className="group hover:bg-[#F3F2F1] transition-colors">
+                              <td className="px-4 py-3">
                                 <div className="flex flex-col">
-                                  <span className="text-[11px] font-mono text-gray-400 mb-0.5">{product.code}</span>
-                                  <span className="text-sm font-bold text-gray-800">{product.description}</span>
+                                  <span className="text-[10px] font-semibold text-[#6264A7] mb-0.5">{product.code}</span>
+                                  <span className="text-[13px] font-semibold text-[#242424]">{product.description}</span>
                                 </div>
                               </td>
-                              <td className="px-4 py-4">
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${
-                                  product.priority === 'High' ? 'bg-red-50 text-red-600' : 
-                                  product.priority === 'Normal' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'
+                              <td className="px-4 py-3">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-[2px] ${
+                                  product.priority === 'High' ? 'bg-[#FDE7E9] text-[#A4262C]' : 
+                                  product.priority === 'Normal' ? 'bg-[#E1DFDD] text-[#323130]' : 'bg-[#F3F2F1] text-[#605E5C]'
                                 }`}>
                                   {product.priority}
                                 </span>
                               </td>
-                              <td className="px-4 py-4 text-xs text-gray-500 font-medium">
+                              <td className="px-4 py-3 text-xs text-[#605E5C]">
                                 {product.dimensions}
                               </td>
-                              <td className="px-4 py-4">
-                                <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              <td className="px-4 py-3">
+                                <span className="text-[11px] text-[#605E5C] flex items-center gap-1.5">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                   {product.tag}
                                 </span>
                               </td>
-                              <td className="px-4 py-4 text-right">
+                              <td className="px-4 py-3 text-right">
                                 {product.extraPrices.length > 0 ? (
-                                  <div className="flex flex-col gap-1">
+                                  <div className="flex flex-col gap-0.5">
                                     {product.extraPrices.map((ep, i) => (
-                                      <div key={i} className="text-[10px] leading-tight flex justify-end gap-2">
-                                        <span className="text-gray-400 uppercase font-bold">{ep.label}:</span>
-                                        <span className="font-black">${ep.value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                      <div key={i} className="text-[10px] flex justify-end gap-2">
+                                        <span className="text-[#605E5C] font-semibold uppercase">{ep.label}:</span>
+                                        <span className="font-bold text-[#242424]">${ep.value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                                       </div>
                                     ))}
                                   </div>
                                 ) : (
-                                  <span className="text-sm font-black">
+                                  <span className="text-[13px] font-bold text-[#242424]">
                                     {product.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                   </span>
                                 )}
                               </td>
-                              <td className="px-4 py-4 text-center">
+                              <td className="px-4 py-3 text-center">
                                   <button 
                                     onClick={() => handleOpenEdit(product)}
-                                    className="p-1.5 hover:bg-gray-200 rounded-md transition-all"
+                                    className="p-1.5 hover:bg-[#EDEBE9] text-[#605E5C] hover:text-[#6264A7] rounded-sm transition-all"
                                   >
-                                    <svg className="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                                   </button>
                               </td>
                             </tr>
@@ -355,24 +354,24 @@ const PanelMenur = () => {
                       </table>
                       
                       {totalPages > 1 && (
-                        <div className="px-6 py-3 border-t border-gray-50 flex items-center justify-between bg-white">
-                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                        <div className="px-4 py-2 border-t border-[#EDEBE9] flex items-center justify-between bg-[#FAF9F8]">
+                          <span className="text-[10px] text-[#605E5C] font-semibold uppercase">
                             Page {currentPage + 1} of {totalPages}
                           </span>
-                          <div className="flex gap-2">
+                          <div className="flex gap-1">
                             <button 
                               disabled={currentPage === 0}
                               onClick={() => setPage(cat, currentPage - 1)}
-                              className="p-1.5 rounded-md border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                              className="p-1 rounded-sm border border-[#E1DFDD] bg-white hover:bg-[#F3F2F1] disabled:opacity-30 transition-all"
                             >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
                             </button>
                             <button 
                               disabled={currentPage >= totalPages - 1}
                               onClick={() => setPage(cat, currentPage + 1)}
-                              className="p-1.5 rounded-md border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                              className="p-1 rounded-sm border border-[#E1DFDD] bg-white hover:bg-[#F3F2F1] disabled:opacity-30 transition-all"
                             >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
                           </div>
                         </div>
@@ -385,65 +384,65 @@ const PanelMenur = () => {
           </div>
         </div>
       </main>
-
-      {/* MODAL DE EDICIÓN */}
+  
+      {/* MODAL - Teams Fluent Dialog */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 overflow-hidden animate-in fade-in zoom-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-md shadow-[0_20px_40px_rgba(0,0,0,0.2)] w-full max-w-md border border-[#EDEBE9] overflow-hidden">
             <div className="p-6">
-              <h2 className="text-lg font-bold mb-1">Edit Product Information</h2>
-              <p className="text-xs text-gray-400 mb-6 font-mono">SKU: {editingProduct?.code}</p>
+              <h2 className="text-lg font-bold text-[#242424] mb-1">Edit Product</h2>
+              <p className="text-[11px] text-[#6264A7] mb-6 font-semibold uppercase tracking-wider">SKU: {editingProduct?.code}</p>
               
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Description</label>
+              <div className="grid grid-cols-1 gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-[#605E5C]">Description</label>
                   <input 
                     type="text" 
                     value={editFormData.description}
                     onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium"
+                    className="w-full px-3 py-1.5 bg-[#FAF9F8] border-b-2 border-[#E1DFDD] focus:border-[#6264A7] outline-none text-[13px] font-semibold transition-all"
                   />
                 </div>
-
+  
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Price ({catalogInfo.currency})</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-semibold text-[#605E5C]">Price ({catalogInfo.currency})</label>
                     <input 
                       type="number" 
                       value={editFormData.price}
                       onChange={(e) => setEditFormData({...editFormData, price: e.target.value})}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-bold"
+                      className="w-full px-3 py-1.5 bg-[#FAF9F8] border-b-2 border-[#E1DFDD] focus:border-[#6264A7] outline-none text-[13px] font-bold"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Category</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-semibold text-[#605E5C]">Category</label>
                     <input 
                       type="text" 
                       value={editFormData.category}
                       onChange={(e) => setEditFormData({...editFormData, category: e.target.value})}
-                      className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium"
+                      className="w-full px-3 py-1.5 bg-[#FAF9F8] border-b-2 border-[#E1DFDD] focus:border-[#6264A7] outline-none text-[13px] font-semibold"
                     />
                   </div>
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Dimensions (XxYxZ)</label>
+  
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-semibold text-[#605E5C]">Dimensions (XxYxZ)</label>
                   <input 
                     type="text" 
                     placeholder="0x0x0"
                     value={editFormData.dimensions}
                     onChange={(e) => setEditFormData({...editFormData, dimensions: e.target.value})}
-                    className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-mono"
+                    className="w-full px-3 py-1.5 bg-[#FAF9F8] border-b-2 border-[#E1DFDD] focus:border-[#6264A7] outline-none text-[13px] font-mono"
                   />
                 </div>
               </div>
-
+  
               <div className="flex items-center gap-2 mt-8">
-                <button onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50 rounded-lg transition-all">Cancel</button>
+                <button onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 text-xs font-semibold text-[#242424] border border-[#E1DFDD] hover:bg-[#F3F2F1] rounded-[4px] transition-all">Cancel</button>
                 <button 
                   onClick={handleUpdateXML}
                   disabled={isUpdating}
-                  className="flex-1 px-4 py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-gray-800 disabled:bg-gray-300 transition-all"
+                  className="flex-1 px-4 py-2 bg-[#6264A7] text-white text-xs font-semibold rounded-[4px] hover:bg-[#4B53BC] disabled:bg-[#C8C6C4] transition-all shadow-md"
                 >
                   {isUpdating ? "Saving..." : "Save Changes"}
                 </button>
@@ -452,20 +451,20 @@ const PanelMenur = () => {
           </div>
         </div>
       )}
-
-      {/* DROPDOWN EXPORT */}
+  
+      {/* DROPDOWN EXPORT - Teams Style */}
       {isExportOpen && (
-        <div className="absolute top-16 right-20 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
-          <button onClick={() => downloadFile(xmlString, 'catalog.xml', 'application/xml')} className="w-full px-4 py-2.5 text-left text-xs font-bold hover:bg-gray-50 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Download XML
+        <div className="absolute top-12 right-24 mt-1 w-48 bg-white border border-[#EDEBE9] rounded-sm shadow-xl z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-100">
+          <button onClick={() => downloadFile(xmlString, 'catalog.xml', 'application/xml')} className="w-full px-4 py-2 text-left text-xs font-semibold hover:bg-[#F3F2F1] flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-[#0078D4]" /> Download XML
           </button>
-          <button onClick={() => downloadFile(JSON.stringify(products), 'catalog.json', 'application/json')} className="w-full px-4 py-2.5 text-left text-xs font-bold hover:bg-gray-50 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Download JSON
+          <button onClick={() => downloadFile(JSON.stringify(products), 'catalog.json', 'application/json')} className="w-full px-4 py-2 text-left text-xs font-semibold hover:bg-[#F3F2F1] flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-[#D83B01]" /> Download JSON
           </button>
         </div>
       )}
     </div>
   );
-};
+      }
 
 export default PanelMenur;
