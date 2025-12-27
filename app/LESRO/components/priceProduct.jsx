@@ -212,7 +212,7 @@ const PanelMenur = () => {
   const setPage = (cat, val) => setCategoryPages(prev => ({ ...prev, [cat]: val }));
 
   return (
-    <div className="flex h-[100%] w-full bg-[#F5F5F5] text-[#242424] font-sans overflow-hidden">
+    <div className="flex h-[100%] w-full bg-[#FFF] text-[#242424] font-sans overflow-hidden">
       <main className="flex-1 flex flex-col overflow-hidden">
         
         {/* TOP NAV - Teams Style (Light) */}
