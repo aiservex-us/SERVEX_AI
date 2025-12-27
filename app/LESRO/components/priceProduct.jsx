@@ -267,7 +267,13 @@ const PanelMenur = () => {
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-full mx-auto space-y-6">
             {loading ? (
-               <div className="flex items-center justify-center h-64 text-[#605E5C] animate-pulse font-semibold text-sm italic">Loading catalog data...</div>
+               <div className="flex flex-col items-center justify-center h-96 bg-white animate-in fade-in duration-500">
+                  <img src="/logo2.png" alt="LESRO" className="h-14 w-auto mb-4 object-contain opacity-90" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-[#6264A7]/20 border-t-[#6264A7] rounded-full animate-spin"></div>
+                    <span className="text-sm font-semibold text-[#242424]">Cargando datos de <span className="text-[#6264A7]">LESRO</span> desde la base de datos...</span>
+                  </div>
+               </div>
             ) : (
               categories.map((cat) => {
                 const catProducts = filteredProducts.filter(p => p.category === cat);
