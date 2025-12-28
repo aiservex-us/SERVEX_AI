@@ -3,112 +3,215 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import Header from './components/header'
 import {
   Home,
   MessageSquare,
   LayoutDashboard,
   Settings,
   LogOut,
-  MoreHorizontal
-} from "lucide-react";
+  ChevronLeft
+} from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-import TeamsAgentChat from './components/TeamsAgentChat'; 
+import TeamsAgentChat from './components/TeamsAgentChat';
+
+/* -----------------------------------------
+   ITEM DEL MENÚ
+------------------------------------------ */
+const MenuItem = ({ icon: Icon, label, active, collapsed, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`
+      group relative w-full flex items-center rounded-lg transition-all duration-300
+      ${collapsed ? 'justify-center h-11' : 'px-3 py-2'}
+      ${active
+        ? 'bg-[#6264A7]/5 text-[#6264A7]'
+        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
+    `}
+  >
+    <div
+      className={`
+        absolute left-0 w-[2.5px] bg-[#6264A7] rounded-r-full transition-all duration-300
+        ${active ? 'h-5 opacity-100' : 'h-0 opacity-0'}
+      `}
+    />
+
+    <Icon className="w-[18px] h-[18px] shrink-0" />
+
+    <div
+      className={`
+        overflow-hidden transition-all duration-[400ms]
+        ${collapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
+      `}
+    >
+      <span className="text-[12px] font-medium whitespace-nowrap">
+        {label}
+      </span>
+    </div>
+  </button>
+);
 
 export default function PanelPage() {
   const router = useRouter();
-  const [showMenu, setShowMenu] = useState(false);
+
+  const [activeView, setActiveView] = useState('chat');
+  const [collapsed, setCollapsed] = useState(true);
   const [showLogout, setShowLogout] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {});
-  }, [router]);
+    supabase.auth.getUser();
+  }, []);
 
   return (
-    <div className="h-screen w-full bg-[#FFF] font-sans overflow-hidden flex flex-col">
+    <div className="h-screen w-full bg-white overflow-hidden flex">
 
+      {/* SIDEBAR */}
+      <aside
+        className={`
+          h-full shrink-0 bg-white border-r border-slate-100/80
+          flex flex-col transition-all duration-[500ms]
+          ${collapsed ? 'w-[68px]' : 'w-[240px]'}
+        `}
+      >
+        {/* HEADER */}
+        <div className="h-16 flex items-center px-4 relative">
+          <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
+            <div className="w-9 h-9 rounded-xl bg-white border border-slate-100 shadow-sm flex items-center justify-center">
+              <span className="font-black text-[#6264A7] text-sm">SX</span>
+            </div>
 
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* BARRA LATERAL */}
-        <nav className="w-16 bg-[#FFF] flex flex-col items-center py-4 gap-6 shrink-0 border-r border-gray-300">
-
-          <div className="flex flex-col items-center gap-1 cursor-pointer text-[#5B5FC7]">
-            <Home size={22} />
-            <span className="text-[10px]">Home</span>
+            <div
+              className={`
+                overflow-hidden transition-all duration-300
+                ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
+              `}
+            >
+              <span className="font-bold text-[13px] text-slate-800 whitespace-nowrap">
+                Servex Copilot
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-col items-center gap-1 cursor-pointer text-[#5B5FC7] border-l-2 border-[#5B5FC7] w-full">
-            <MessageSquare size={22} />
-            <span className="text-[10px] font-semibold">New Chat</span>
-          </div>
+          {/* TOGGLE */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-100 rounded-full
+              flex items-center justify-center shadow-sm hover:text-[#6264A7]"
+          >
+            <ChevronLeft
+              className={`w-3 h-3 transition-transform duration-500 ${collapsed ? 'rotate-180' : ''}`}
+            />
+          </button>
+        </div>
 
-          <div className="flex flex-col items-center gap-1 cursor-pointer text-gray-500 hover:text-[#5B5FC7]">
-            <LayoutDashboard size={22} />
-            <span className="text-[10px]">Dashboard</span>
-          </div>
+        {/* MENU */}
+        <nav className="flex-1 px-3 space-y-1">
+          <MenuItem
+            icon={Home}
+            label="Home"
+            active={activeView === 'home'}
+            collapsed={collapsed}
+            onClick={() => setActiveView('home')}
+          />
 
-          <div className="mt-auto flex flex-col gap-6 mb-4 text-gray-500 relative">
-            <MoreHorizontal size={22} className="cursor-pointer" onClick={() => setShowMenu(!showMenu)} />
+          <MenuItem
+            icon={MessageSquare}
+            label="New Chat"
+            active={activeView === 'chat'}
+            collapsed={collapsed}
+            onClick={() => setActiveView('chat')}
+          />
 
-            {/* MENÚ DESPLEGABLE */}
-            <AnimatePresence>
-              {showMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  className="absolute bottom-10 left-14 bg-white border rounded-lg shadow-xl w-40 overflow-hidden z-50"
-                >
-                  <button
-                    onClick={() => setShowLogout(true)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full"
-                  >
-                    <LogOut size={16} /> Cerrar sesión
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <MenuItem
+            icon={LayoutDashboard}
+            label="Dashboard"
+            active={activeView === 'dashboard'}
+            collapsed={collapsed}
+            onClick={() => setActiveView('dashboard')}
+          />
 
-            <Settings size={22} className="cursor-pointer" />
-          </div>
+          <div className="h-px bg-slate-200 my-3" />
+
+          <MenuItem
+            icon={Settings}
+            label="Settings"
+            active={activeView === 'settings'}
+            collapsed={collapsed}
+            onClick={() => setActiveView('settings')}
+          />
         </nav>
 
-        {/* CHAT */}
-        <main className="flex-1 bg-white flex flex-col overflow-hidden">
-          <div className="flex-1 shadow-sm overflow-hidden flex flex-col">
-            <TeamsAgentChat />
-          </div>
-        </main>
+        {/* FOOTER */}
+        <div className="p-3 border-t border-slate-100">
+          <button
+            onClick={() => setShowLogout(true)}
+            className={`
+              w-full flex items-center rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all
+              ${collapsed ? 'justify-center h-11' : 'px-3 py-2'}
+            `}
+          >
+            <LogOut className="w-[18px] h-[18px]" />
+            <div
+              className={`
+                overflow-hidden transition-all duration-300
+                ${collapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
+              `}
+            >
+              <span className="text-[12px] font-medium">Cerrar sesión</span>
+            </div>
+          </button>
+        </div>
+      </aside>
 
-        {/* MODAL LOGOUT */}
-        <AnimatePresence>
-          {showLogout && (
-            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[999]">
-              <motion.div
-                initial={{ scale: .95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: .95, opacity: 0 }}
-                className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm"
-              >
-                <h2 className="text-lg font-semibold mb-4">Cerrar sesión</h2>
-                <p className="text-sm mb-6">¿Deseas cerrar tu sesión en Servex Copilot?</p>
-                <div className="flex justify-end gap-2">
-                  <button onClick={() => setShowLogout(false)} className="px-4 py-1 border rounded">Cancelar</button>
-                  <button
-                    onClick={async () => { await supabase.auth.signOut(); router.push('/'); }}
-                    className="px-4 py-1 bg-[#464eb8] text-white rounded"
-                  >
-                    Salir
-                  </button>
-                </div>
-              </motion.div>
+      {/* MAIN */}
+      <main className="flex-1 flex flex-col overflow-hidden bg-white">
+        <div className="flex-1 overflow-hidden">
+          {activeView === 'chat' && <TeamsAgentChat />}
+
+          {activeView !== 'chat' && (
+            <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+              Vista "{activeView}"
             </div>
           )}
-        </AnimatePresence>
+        </div>
+      </main>
 
-      </div>
+      {/* MODAL LOGOUT */}
+      <AnimatePresence>
+        {showLogout && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-[999]">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm"
+            >
+              <h2 className="text-lg font-semibold mb-4">Cerrar sesión</h2>
+              <p className="text-sm mb-6">
+                ¿Deseas cerrar tu sesión en Servex Copilot?
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowLogout(false)}
+                  className="px-4 py-1 border rounded"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    router.push('/');
+                  }}
+                  className="px-4 py-1 bg-[#464eb8] text-white rounded"
+                >
+                  Salir
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
