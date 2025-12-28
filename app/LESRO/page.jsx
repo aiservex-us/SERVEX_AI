@@ -5,7 +5,7 @@ import MenuLateral from './components/menuLateral';
 
 import Dashboard from './components/dashboard';
 import PriceProduct from './components/priceProduct';
-
+import CatalogParser from './components/CatalogParser';
 export default function MenuInicial() {
   // 👇 Vista inicial
   const [active, setActive] = useState('kanban');
@@ -19,6 +19,8 @@ export default function MenuInicial() {
       case 'kanban':
         return <PriceProduct />;
 
+      case 'Tasks': // 👈 CHANGE TRACKER
+        return <CatalogParser />;
       default:
         return (
           <div className="p-6 text-gray-500">

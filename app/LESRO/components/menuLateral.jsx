@@ -17,14 +17,15 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
+  { id: 'kanban', label: 'Kanban', icon: KanbanSquare },
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'search', label: 'Search', icon: Search },
+  { id: 'Tasks', label: 'Change Tracker', icon: ListChecks },
   { id: 'reporting', label: 'Reporting', icon: BarChart3 },
+  { id: 'search', label: 'Search', icon: Search },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'mail', label: 'Mail', icon: Mail },
   { id: 'inbox', label: 'Inbox', icon: Inbox },
-  { id: 'kanban', label: 'Kanban', icon: KanbanSquare },
-  { id: 'tasks', label: 'Tasks', icon: ListChecks },
+
 ];
 
 export default function MenuLateral({
