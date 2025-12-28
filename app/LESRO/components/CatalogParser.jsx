@@ -13,11 +13,11 @@ export default function CatalogParser({ companyName = 'LESRO' }) {
   // PDF → JSON (CLIENT ONLY)
   // ============================
   const extractPdfToJson = async (file) => {
-    // 👇 Import dinámico (solo navegador)
+    // ⛔ pdf.js SOLO en cliente, build legacy
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
 
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    // ✅ Worker local servido por Next.js
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
     const buffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
@@ -35,7 +35,11 @@ export default function CatalogParser({ companyName = 'LESRO' }) {
         .replace(/\s+/g, ' ')
         .trim();
 
-      pages.push({ page: i, content: text });
+      pages.push({
+        page: i,
+        content: text
+      });
+
       fullText += text + ' ';
     }
 
@@ -58,18 +62,19 @@ export default function CatalogParser({ companyName = 'LESRO' }) {
     setDragActive(false);
     setMessage(null);
 
-    const file = e.dataTransfer.files[0];
+    const file = e.dataTransfer.files?.[0];
     if (!file || file.type !== 'application/pdf') {
       setMessage('❌ Please drop a valid PDF');
       return;
     }
 
     setLoading(true);
+
     try {
       const json = await extractPdfToJson(file);
       setPdfJson(json);
     } catch (err) {
-      console.error(err);
+      console.error('PDF parse error:', err);
       setMessage('❌ Error processing PDF');
     } finally {
       setLoading(false);
@@ -102,7 +107,7 @@ export default function CatalogParser({ companyName = 'LESRO' }) {
 
       setMessage('✅ PDF content saved successfully');
     } catch (err) {
-      console.error(err);
+      console.error('Supabase save error:', err);
       setMessage('❌ Error saving PDF data');
     } finally {
       setLoading(false);
@@ -112,6 +117,7 @@ export default function CatalogParser({ companyName = 'LESRO' }) {
   return (
     <section className="w-full bg-white p-6 rounded-xl border border-[#EDEBE9] space-y-4">
 
+      {/* HEADER */}
       <div>
         <h3 className="text-sm font-semibold text-[#242424]">
           PDF Catalog Intake
@@ -121,15 +127,23 @@ export default function CatalogParser({ companyName = 'LESRO' }) {
         </p>
       </div>
 
+      {/* DROP ZONE */}
       <div
-        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragActive(true);
+        }}
         onDragLeave={() => setDragActive(false)}
         onDrop={handleDrop}
         className={`w-full h-40 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-xs transition-all
-          ${dragActive ? 'border-[#6264A7] bg-[#F3F2F1]' : 'border-[#E1DFDD] bg-[#FAF9F8]'}`}
+          ${dragActive
+            ? 'border-[#6264A7] bg-[#F3F2F1]'
+            : 'border-[#E1DFDD] bg-[#FAF9F8]'}`}
       >
         {loading ? (
-          <span className="font-semibold text-[#6264A7]">Processing PDF…</span>
+          <span className="font-semibold text-[#6264A7]">
+            Processing PDF…
+          </span>
         ) : (
           <>
             <span className="font-semibold text-[#242424]">
@@ -142,22 +156,26 @@ export default function CatalogParser({ companyName = 'LESRO' }) {
         )}
       </div>
 
+      {/* PREVIEW */}
       {pdfJson && (
-        <pre className="max-h-56 overflow-auto text-[10px] bg-[#FAF9F8] border p-3 rounded-md">
+        <pre className="max-h-56 overflow-auto text-[10px] bg-[#FAF9F8] border border-[#EDEBE9] p-3 rounded-md">
           {JSON.stringify(pdfJson, null, 2)}
         </pre>
       )}
 
+      {/* ACTIONS */}
       <button
         onClick={handleSave}
         disabled={!pdfJson || loading}
-        className="px-4 py-2 text-xs font-semibold rounded-md bg-[#6264A7] text-white disabled:opacity-40"
+        className="px-4 py-2 text-xs font-semibold rounded-md bg-[#6264A7] text-white hover:bg-[#4B53BC] disabled:opacity-40"
       >
         Save PDF Content
       </button>
 
       {message && (
-        <p className="text-xs text-[#605E5C]">{message}</p>
+        <p className="text-xs text-[#605E5C]">
+          {message}
+        </p>
       )}
     </section>
   );
