@@ -1,227 +1,200 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
-import { FileText, Cpu, Database } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
 
-export default function CatalogParser({ companyName = 'LESRO' }) {
-  const [pdfJson, setPdfJson] = useState(null);
+const LesroPricingFix = () => {
   const [loading, setLoading] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-  const [message, setMessage] = useState(null);
+  const [results, setResults] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
-  // ==========================================
-  // LÓGICA DE EXTRACCIÓN (PATRONES GLYNNE IA)
-  // ==========================================
-  
-  // SKU: 2-4 letras seguidas de 3-5 números (Ej: BL1101)
-  const SKU_PATTERN = /\b[A-Z]{2,4}\d{3,5}\b/g;
-  
-  // TOC: Título ........ Página (Ej: Ashford Seating ........ 23)
-  const TOC_LINE_PATTERN = /^(.*?)\.{3,}\s*(\d+)$/;
+  useEffect(() => {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+  }, []);
 
-  const processPdfData = (pagesText, fileName) => {
-    // 1. Extraer Tabla de Contenidos (TOC) de las primeras 10 páginas
-    let toc = [];
-    pagesText.slice(0, 10).forEach(p => {
-      const lines = p.content.split('\n');
-      lines.forEach(line => {
-        const match = line.trim().match(TOC_LINE_PATTERN);
-        if (match) {
-          toc.push({
-            title: match[1].trim(),
-            page: parseInt(match[2], 10)
+  const processPDF = async (file) => {
+    setLoading(true);
+    setCurrentPage(1);
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      try {
+        const typedarray = new Uint8Array(e.target.result);
+        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+        let finalData = [];
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          
+          const items = textContent.items.sort((a, b) => {
+            if (Math.abs(b.transform[5] - a.transform[5]) > 2) return b.transform[5] - a.transform[5];
+            return a.transform[4] - b.transform[4];
           });
-        }
-      });
-    });
 
-    // Eliminar duplicados de TOC por número de página
-    const uniqueToc = Array.from(new Map(toc.map(item => [item.page, item])).values())
-                           .sort((a, b) => a.page - b.page);
+          const pageText = items.map(item => item.str).join(" ");
 
-    // 2. Construir Estructura por Secciones
-    const sections = uniqueToc.map((entry, idx) => {
-      const startPage = entry.page;
-      const endPage = uniqueToc[idx + 1] 
-        ? uniqueToc[idx + 1].page - 1 
-        : pagesText[pagesText.length - 1].page;
+          const skus = [...pageText.matchAll(/\b[A-Z]{2}\d{4}\b/g)].map(m => m[0]);
+          const dimRegex = /(\d{1,3}(?:\.\d+)?\s*(?:x|dia)\s*\d{1,3}(?:\.\d+)?(?:\s*x\s*\d{1,3}(?:\.\d+)?)?)/gi;
+          const dims = [...pageText.matchAll(dimRegex)].map(m => m[0]);
+          const priceRegex = /\$\s*([\d,]{2,7})/g;
+          const prices = [...pageText.matchAll(priceRegex)].map(m => m[1]);
 
-      const sectionProducts = [];
+          if (skus.length > 0) {
+            const isFixedPricing = prices.length < (skus.length * 5); 
 
-      // Buscar SKUs en el rango de páginas de esta sección
-      pagesText.forEach(p => {
-        if (p.page >= startPage && p.page <= endPage) {
-          const skusFound = p.content.match(SKU_PATTERN);
-          if (skusFound) {
-            sectionProducts.push({
-              page: p.page,
-              skus: [...new Set(skusFound)] // únicos por página
+            skus.forEach((sku, index) => {
+              let p = [];
+              if (isFixedPricing) {
+                p = [prices[index] || "---", "---", "---", "---", "---", "---", "---", "---", "---", "---", "---", "---"];
+              } else {
+                const startIdx = index * 12;
+                p = prices.slice(startIdx, startIdx + 12);
+              }
+
+              finalData.push({
+                page: i,
+                sku: sku,
+                dims: dims[index] || "Ver PDF",
+                g2: p[0] || "---",
+                g3: p[1] || "---",
+                g4: p[2] || "---",
+                g5: p[3] || "---",
+                g6: p[4] || "---",
+                g7: p[5] || "---",
+                g8: p[6] || "---",
+                g9: p[7] || "---",
+                g10: p[8] || "---",
+                g11: p[9] || "---",
+                g12: p[10] || "---",
+                g13: p[11] || "---"
+              });
             });
           }
         }
-      });
-
-      return {
-        title: entry.title,
-        start_page: start_page,
-        end_page: end_page,
-        products: sectionProducts
-      };
-    });
-
-    return {
-      document: fileName,
-      total_pages: pagesText.length,
-      toc_detected: uniqueToc.length,
-      extracted_at: new Date().toISOString(),
-      sections: sections
+        setResults(finalData);
+        exportToCSV(finalData);
+      } catch (err) {
+        console.error("Error procesando PDF:", err);
+      } finally {
+        setLoading(false);
+      }
     };
+    reader.readAsArrayBuffer(file);
   };
 
-  const extractPdfToJson = async (file) => {
-    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
-    const buffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-
-    const pagesText = [];
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      
-      // Mantenemos saltos de línea para que el Regex de TOC funcione
-      const text = content.items
-        .map(item => item.str)
-        .join(' ');
-
-      pagesText.push({
-        page: i,
-        content: text
-      });
-    }
-
-    // Aplicar la lógica de estructuración minuciosa
-    return processPdfData(pagesText, file.name);
+  const exportToCSV = (data) => {
+    const headers = "Página,Modelo,Dimensiones,Grade 2/Base,Grade 3/COM,Grade 4,Grade 5,Grade 6,Grade 7,Grade 8,Grade 9,Grade 10,Grade 11,Grade 12,Grade 13\n";
+    const rows = data.map(d => 
+      `${d.page},${d.sku},"${d.dims}",${d.g2},${d.g3},${d.g4},${d.g5},${d.g6},${d.g7},${d.g8},${d.g9},${d.g10},${d.g11},${d.g12},${d.g13}`
+    ).join("\n");
+    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "LESRO_PRICING_MASTER_2026.csv";
+    a.click();
   };
 
-  // ============================
-  // Handlers & Supabase
-  // ============================
-
-  const handleDrop = useCallback(async (e) => {
-    e.preventDefault();
-    setDragActive(false);
-    setMessage(null);
-
-    const file = e.dataTransfer.files?.[0];
-    if (!file || file.type !== 'application/pdf') {
-      setMessage('❌ Please drop a valid PDF');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const structuredJson = await extractPdfToJson(file);
-      setPdfJson(structuredJson);
-      setMessage('✨ PDF structured successfully');
-    } catch (err) {
-      console.error('Extraction Error:', err);
-      setMessage('❌ Error parsing PDF structure');
-    } finally {
-      setLoading(false);
-    }
-  }, [companyName]);
-
-  const handleSave = async () => {
-    if (!pdfJson) return;
-    setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Unauthorized');
-
-      const { error } = await supabase
-        .from('ClientsSERVEX')
-        .update({ pdf_raw: pdfJson })
-        .eq('company_name', companyName);
-
-      if (error) throw error;
-      setMessage('🚀 Data synchronized with SVX Cloud');
-    } catch (err) {
-      setMessage('❌ Sync error: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Lógica de Paginación
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentResults = results.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(results.length / itemsPerPage);
 
   return (
-    <section className="w-full bg-white p-6 rounded-2xl border border-[#EDEBE9] shadow-sm space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#F3F2F1] rounded-lg">
-            <Cpu size={20} className="text-[#6264A7]" />
+    <div className="min-h-screen bg-[#F5F5F5] font-sans text-[11px] text-[#242424]">
+      {/* Header Teams */}
+      <div className="bg-[#6264A7] p-3 shadow-md mb-4 flex items-center justify-between sticky top-0 z-50">
+        <h2 className="text-white font-semibold text-[14px]">Lesro Master — Paginación Teams</h2>
+        {loading && (
+          <div className="flex items-center space-x-2 text-white bg-[#4f508a] px-3 py-1 rounded">
+            <span className="animate-spin text-[12px]">↻</span>
+            <span className="text-[9px]">PROCESANDO...</span>
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-[#242424]">SVX Intelligent Intake</h3>
-            <p className="text-[11px] text-[#605E5C]">Powered by GLYNNE S.A.S. Architecture</p>
-          </div>
-        </div>
-        <div className="text-right">
-          <span className="text-[10px] uppercase tracking-wider font-bold text-[#A19F9D]">Target Company</span>
-          <p className="text-xs font-black text-[#6264A7]">{companyName}</p>
-        </div>
-      </div>
-
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-        onDragLeave={() => setDragActive(false)}
-        onDrop={handleDrop}
-        className={`w-full h-44 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer
-          ${dragActive ? 'border-[#6264A7] bg-[#F3F2F1]' : 'border-[#E1DFDD] bg-[#FAF9F8] hover:border-[#C8C6C4]'}`}
-      >
-        {loading ? (
-          <div className="flex flex-col items-center gap-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#6264A7]"></div>
-            <span className="text-xs font-medium text-[#6264A7]">Analyzing SKUs & TOC...</span>
-          </div>
-        ) : (
-          <>
-            <FileText size={28} className="text-[#A19F9D] mb-2" />
-            <span className="text-xs font-bold text-[#242424]">Drop Catalog PDF</span>
-            <span className="text-[10px] text-[#605E5C]">Automated Extraction & Vectorization</span>
-          </>
         )}
       </div>
 
-      {pdfJson && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[10px] font-bold text-[#605E5C] flex items-center gap-1">
-              <Database size={12} /> STRUCTURE PREVIEW
-            </span>
-            <span className="text-[10px] text-[#6264A7]">{pdfJson.sections.length} Sections Found</span>
+      <div className="max-w-[1500px] mx-auto p-4">
+        {/* Upload Section */}
+        {!results.length && (
+          <div className="mb-6 p-12 border-2 border-dashed border-[#D1D1D1] rounded bg-white shadow-sm flex flex-col items-center justify-center space-y-4">
+            <div className="text-center">
+              <p className="font-semibold text-[14px] mb-2 text-[#6264A7]">Cargar Catálogo PDF</p>
+              <input 
+                type="file" 
+                accept=".pdf"
+                onChange={(e) => { if (e.target.files[0]) processPDF(e.target.files[0]); }} 
+                className="text-[11px] file:bg-[#6264A7] file:text-white file:border-0 file:py-2 file:px-4 file:rounded file:font-bold hover:file:bg-[#4f508a] cursor-pointer"
+              />
+            </div>
           </div>
-          <pre className="max-h-48 overflow-auto text-[10px] bg-[#242424] text-[#D1D1D1] p-4 rounded-xl font-mono leading-relaxed">
-            {JSON.stringify(pdfJson, null, 2)}
-          </pre>
-        </div>
-      )}
+        )}
 
-      <button
-        onClick={handleSave}
-        disabled={!pdfJson || loading}
-        className="w-full py-3 text-xs font-bold rounded-xl bg-[#6264A7] text-white hover:bg-[#4B53BC] transition-all disabled:opacity-30 shadow-lg shadow-[#6264A7]/20 flex items-center justify-center gap-2"
-      >
-        {loading ? 'Processing...' : 'Sync with SVX Copilot'}
-      </button>
-
-      {message && (
-        <p className={`text-center text-[10px] font-bold ${message.includes('❌') ? 'text-red-500' : 'text-green-600'}`}>
-          {message}
-        </p>
-      )}
-    </section>
+        {results.length > 0 && (
+          <div className="bg-white rounded shadow-sm border border-gray-200 overflow-hidden">
+            {/* Toolbar de Paginación */}
+            <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-[#FDFDFD]">
+              <div className="flex items-center space-x-4">
+                <span className="font-bold text-[#6264A7]">Mostrando {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, results.length)} de {results.length}</span>
+                <button onClick={() => exportToCSV(results)} className="border border-[#D1D1D1] px-3 py-1 rounded hover:bg-[#F0F0F0] font-semibold text-[10px]">Exportar Todo</button>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => prev - 1)}
+                  className="px-3 py-1 border rounded disabled:opacity-30 hover:bg-gray-50 font-bold"
+                >
+                  &lt;
+                </button>
+                <span className="px-2">Página <b>{currentPage}</b> de {totalPages}</span>
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  className="px-3 py-1 border rounded disabled:opacity-30 hover:bg-gray-50 font-bold"
+                >
+                  &gt;
+                </button>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-[#F0F0F0]">
+                  <tr>
+                    <th className="p-2 text-left w-20 border-r">SKU</th>
+                    <th className="p-2 text-left w-32 border-r">DIMS</th>
+                    <th className="p-2 text-center bg-[#EBEBEB] text-[#6264A7] font-bold border-r">BASE</th>
+                    {['G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13'].map(g => (
+                        <th key={g} className="p-2 text-center border-r font-semibold">{g}</th>
+                    ))}
+                    <th className="p-2 text-center w-12 italic">Pág</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {currentResults.map((r, i) => (
+                    <tr key={i} className="hover:bg-[#F3F2F1] transition-colors">
+                      <td className="p-2 font-bold text-[#6264A7] border-r">{r.sku}</td>
+                      <td className="p-2 text-[#616161] border-r whitespace-nowrap">{r.dims}</td>
+                      <td className="p-2 text-center font-bold bg-[#F9F9FB] border-r">${r.g2}</td>
+                      {[r.g3, r.g4, r.g5, r.g6, r.g7, r.g8, r.g9, r.g10, r.g11, r.g12, r.g13].map((val, idx) => (
+                        <td key={idx} className="p-2 text-center border-r">
+                          {val !== '---' ? `$${val}` : '—'}
+                        </td>
+                      ))}
+                      <td className="p-2 text-center text-gray-400">{r.page}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
-}
+};
+
+export default LesroPricingFix;
