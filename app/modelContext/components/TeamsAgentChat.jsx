@@ -9,15 +9,11 @@ import {
   Settings, HelpCircle, Shield, Layout, Zap
 } from 'lucide-react';
 
-import { getCurrentUser } from "@/app/lib/supabaseClient";
-
 export default function TeamsAgentChat() {
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  const [currentUser, setCurrentUser] = useState(null);
   
   // States del diseño de Teams
   const [mode, setMode] = useState('platform');
@@ -29,14 +25,6 @@ export default function TeamsAgentChat() {
 
   useEffect(() => {
     setSelectedAgent({ agent_name: "SVX Copilot", role: "AI Assistant" });
-  }, []);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const user = await getCurrentUser();
-      setCurrentUser(user);
-    };
-    fetchUser();
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -101,19 +89,15 @@ export default function TeamsAgentChat() {
         <div className="max-w-4xl mx-auto px-6 py-8">
           
           {messages.length === 0 ? (
+            /* --- VISTA INICIAL (CENTRADA Y ORDENADA) --- */
             <div className="flex flex-col">
+              {/* Header */}
               <div className="mb-8 border-b border-gray-200 pb-6">
                 <div className="flex items-center gap-2 text-[#5B5FC7] mb-2">
                   <Sparkles size={18} fill="#5B5FC7" fillOpacity={0.2} />
                   <span className="text-xs font-bold uppercase tracking-wider">Contextual Assistance Center</span>
                 </div>
-
-                <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                  {currentUser
-                    ? `Welcome ${currentUser.email.split('@')[0]}`
-                    : 'Welcome to Servex Copilot'}
-                </h1>
-
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome to Servex Copilot</h1>
                 <p className="text-sm text-gray-500 max-w-2xl">
                   Learn processes, resolve platform questions, or analyze critical data. 2025 Docs Synchronized.
                 </p>
@@ -147,7 +131,7 @@ export default function TeamsAgentChat() {
                 ))}
               </div>
 
-              {/* INPUT BOX INTEGRADO */}
+              {/* INPUT BOX INTEGRADO (NO SE MONTA) */}
               <div className="bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden focus-within:border-[#5B5FC7] focus-within:ring-1 focus-within:ring-[#5B5FC7]">
                 <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-200 relative">
                   <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 text-[11px] font-bold text-gray-600 bg-white border border-gray-300 px-2 py-1 rounded">
@@ -163,9 +147,7 @@ export default function TeamsAgentChat() {
                     </div>
                   )}
                   <div className="h-4 w-[1px] bg-gray-300 mx-1" />
-                  <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
-                    <Zap size={10} className="text-yellow-500 fill-yellow-500" /> ENGINE v4.10 READY
-                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium"><Zap size={10} className="text-yellow-500 fill-yellow-500" /> ENGINE v4.10 READY</div>
                 </div>
                 <div className="p-4">
                   <textarea 
@@ -178,9 +160,7 @@ export default function TeamsAgentChat() {
                 </div>
                 <div className="flex justify-between items-center px-4 py-2 border-t border-gray-100 bg-white">
                   <div className="flex items-center gap-3 text-gray-400">
-                    <Plus size={18} className="cursor-pointer hover:text-[#5B5FC7]" />
-                    <Mic size={18} className="cursor-pointer hover:text-[#5B5FC7]" />
-                    <HelpCircle size={18} className="cursor-pointer hover:text-[#5B5FC7]" />
+                    <Plus size={18} className="cursor-pointer hover:text-[#5B5FC7]" /><Mic size={18} className="cursor-pointer hover:text-[#5B5FC7]" /><HelpCircle size={18} className="cursor-pointer hover:text-[#5B5FC7]" />
                   </div>
                   <button onClick={sendMessage} disabled={!input.trim() || isLoading} className={`flex items-center gap-2 px-6 py-2 rounded-md font-bold text-xs transition-all ${input.trim() ? 'bg-[#5B5FC7] text-white hover:bg-[#4E52B1]' : 'bg-gray-100 text-gray-400 border border-gray-200'}`}>
                     <span>Send Query</span> <ArrowRight size={14} />
@@ -197,7 +177,7 @@ export default function TeamsAgentChat() {
               </div>
             </div>
           ) : (
-            /* --- FLUJO DE CHAT --- */
+            /* --- FLUJO DE CHAT (MENSAJES) --- */
             <div className="space-y-8">
               {messages.map((msg, idx) => {
                 const isUser = msg.from === 'user';
@@ -234,7 +214,7 @@ export default function TeamsAgentChat() {
         </div>
       </main>
 
-      {/* --- FOOTER --- */}
+      {/* --- FOOTER DE RESPUESTA (SOLO EN CHAT ACTIVO) --- */}
       {messages.length > 0 && (
         <div className="p-4 bg-white border-t border-gray-100 shrink-0">
           <div className="max-w-4xl mx-auto flex items-center gap-2 bg-gray-50 rounded-xl p-2 border border-gray-200 focus-within:border-[#5B5FC7]">
