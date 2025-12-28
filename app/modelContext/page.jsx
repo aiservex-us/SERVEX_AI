@@ -27,7 +27,7 @@ export default function PanelPage() {
 
   return (
     <div className="h-screen w-full bg-[#FFF] font-sans overflow-hidden flex flex-col">
-      <Header />
+
 
       <div className="flex flex-1 overflow-hidden">
 
