@@ -1,21 +1,30 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
+
+// IMPORTANTE: No importamos pdfjsLib aquí arriba de forma directa 
+// para evitar que el servidor de Next intente leerlo.
 
 const LesroPricingFix = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pdfLib, setPdfLib] = useState(null); // Estado para la librería
   const itemsPerPage = 50;
 
   useEffect(() => {
-    // Configuración del worker compatible con Next.js
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+    // Cargamos la librería dinámicamente solo en el cliente
+    const loadLib = async () => {
+      const pdfjs = await import('pdfjs-dist');
+      // Configuración del worker
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+      setPdfLib(pdfjs);
+    };
+    loadLib();
   }, []);
 
   const processPDF = async (file) => {
-    if (!file) return;
+    if (!file || !pdfLib) return;
     setLoading(true);
     setCurrentPage(1);
     const reader = new FileReader();
@@ -23,7 +32,7 @@ const LesroPricingFix = () => {
     reader.onload = async (e) => {
       try {
         const typedarray = new Uint8Array(e.target.result);
-        const loadingTask = pdfjsLib.getDocument({ data: typedarray });
+        const loadingTask = pdfLib.getDocument({ data: typedarray });
         const pdf = await loadingTask.promise;
         let finalData = [];
 
@@ -71,7 +80,6 @@ const LesroPricingFix = () => {
         exportToCSV(finalData);
       } catch (err) {
         console.error("Error procesando PDF:", err);
-        alert("Error al leer el PDF. Verifica que el archivo no esté protegido.");
       } finally {
         setLoading(false);
       }
@@ -92,89 +100,70 @@ const LesroPricingFix = () => {
     a.click();
   };
 
-  // Paginación
   const totalPages = Math.ceil(results.length / itemsPerPage);
   const currentResults = results.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // Mientras la librería carga en el cliente, mostramos un estado inicial simple
+  if (!pdfLib) return <div className="p-10 text-[#6264A7] font-sans">Cargando motor de sincronización...</div>;
+
   return (
     <div className="min-h-screen bg-[#F5F5F5] font-sans text-[11px] text-[#242424]">
-      {/* Navbar Teams */}
+      {/* Header Teams */}
       <div className="bg-[#6264A7] p-3 shadow-md mb-4 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center space-x-3">
-            <span className="text-white text-lg"></span>
-            <h2 className="text-white font-semibold text-[14px]">Lesro Price Sync</h2>
-        </div>
-        {loading && (
-          <div className="bg-[#4f508a] px-3 py-1 rounded text-white flex items-center space-x-2 animate-pulse">
-            <span className="text-[10px]">PROCESANDO ARCHIVO...</span>
-          </div>
-        )}
+        <h2 className="text-white font-semibold text-[14px]">Lesro Master Sync</h2>
+        {loading && <div className="text-white text-[9px] bg-[#4f508a] px-2 py-1 rounded">PROCESANDO PDF...</div>}
       </div>
 
       <div className="max-w-[1600px] mx-auto p-4">
-        {/* Dropzone */}
-        <div className="mb-6 bg-white border border-[#E1E1E1] rounded p-6 shadow-sm flex flex-col items-center">
+        <div className="mb-6 bg-white border rounded p-6 shadow-sm flex flex-col items-center">
           <input 
             type="file" 
             accept=".pdf"
             onChange={(e) => processPDF(e.target.files[0])} 
-            className="block w-full max-w-xs text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-[#6264A7] file:text-white hover:file:bg-[#4f508a] cursor-pointer"
+            className="text-[11px] file:bg-[#6264A7] file:text-white file:border-0 file:py-2 file:px-4 file:rounded file:font-bold cursor-pointer"
           />
-          <p className="mt-2 text-gray-400 text-[10px]">Carga el PDF del catálogo Lesro 2026 para sincronizar precios.</p>
         </div>
 
         {results.length > 0 && (
           <div className="bg-white rounded shadow-sm border border-[#E1E1E1] overflow-hidden">
-            {/* Pagination Controls */}
             <div className="p-3 bg-[#FDFDFD] border-b flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <span className="font-bold text-[#6264A7]">Total: {results.length} ítems</span>
-                <button onClick={() => exportToCSV(results)} className="border border-[#D1D1D1] px-3 py-1 rounded hover:bg-[#F0F0F0] font-bold text-[#444]">DESCARGAR CSV COMPLETO</button>
-              </div>
-
-              <div className="flex items-center space-x-1">
+              <span className="font-bold text-[#6264A7]">Total: {results.length} productos</span>
+              <div className="flex items-center space-x-2">
                 <button 
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => prev - 1)}
-                  className="w-8 h-8 flex items-center justify-center border rounded disabled:opacity-20 hover:bg-gray-100 font-bold"
-                >
-                  &larr;
-                </button>
-                <div className="px-4 py-1 bg-[#F3F2F1] rounded font-semibold text-[#6264A7]">
-                  Página {currentPage} de {totalPages}
-                </div>
+                  className="px-2 py-1 border rounded disabled:opacity-20"
+                > Anterior </button>
+                <span className="px-2">Página {currentPage} de {totalPages}</span>
                 <button 
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
-                  className="w-8 h-8 flex items-center justify-center border rounded disabled:opacity-20 hover:bg-gray-100 font-bold"
-                >
-                  &rarr;
-                </button>
+                  className="px-2 py-1 border rounded disabled:opacity-20"
+                > Siguiente </button>
               </div>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-[#F0F0F0]">
-                  <tr className="text-[#444] uppercase tracking-tighter">
+                  <tr>
                     <th className="p-2 text-left border-r w-24">SKU</th>
-                    <th className="p-2 text-left border-r w-40">Dimensiones</th>
-                    <th className="p-2 text-center border-r bg-[#E8E8FF] text-[#6264A7] font-black">Base/G2</th>
+                    <th className="p-2 text-left border-r w-40">DIMS</th>
+                    <th className="p-2 text-center border-r bg-[#E8E8FF] text-[#6264A7] font-bold">G2/BASE</th>
                     {['G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13'].map(g => (
-                      <th key={g} className="p-2 text-center border-r font-bold">{g}</th>
+                      <th key={g} className="p-2 text-center border-r font-semibold">{g}</th>
                     ))}
-                    <th className="p-2 text-center w-12 text-gray-400">Pág</th>
+                    <th className="p-2 text-center w-10 text-gray-400">Pág</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 bg-white">
                   {currentResults.map((r, i) => (
-                    <tr key={i} className="hover:bg-[#F3F2F1] group transition-colors">
-                      <td className="p-2 font-black text-[#6264A7] border-r">{r.sku}</td>
-                      <td className="p-2 text-gray-500 border-r italic text-[10px]">{r.dims}</td>
+                    <tr key={i} className="hover:bg-[#F3F2F1]">
+                      <td className="p-2 font-bold text-[#6264A7] border-r">{r.sku}</td>
+                      <td className="p-2 text-gray-500 border-r">{r.dims}</td>
                       <td className="p-2 text-center border-r font-bold bg-[#F9F9FB] text-blue-800">${r.g2}</td>
                       {[r.g3, r.g4, r.g5, r.g6, r.g7, r.g8, r.g9, r.g10, r.g11, r.g12, r.g13].map((v, idx) => (
-                        <td key={idx} className={`p-2 text-center border-r ${v === '---' ? 'text-gray-200' : 'text-[#242424]'}`}>
+                        <td key={idx} className="p-2 text-center border-r">
                           {v !== '---' ? `$${v}` : '—'}
                         </td>
                       ))}
