@@ -13,17 +13,21 @@ import {
   MoreHorizontal,
   Settings2,
   HelpCircle,
-  Maximize2
+  Maximize2,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export default function UploadClientXML() {
   const [companyName, setCompanyName] = useState('');
   const [xmlContent, setXmlContent] = useState('');
+  const [csvContent, setCsvContent] = useState(''); // Nuevo estado CSV
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
   const [dragActive, setDragActive] = useState(false);
+  const [dragActiveCSV, setDragActiveCSV] = useState(false); // Nuevo estado drag CSV
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const csvInputRef = useRef<HTMLInputElement | null>(null); // Ref para CSV
 
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
@@ -40,6 +44,21 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
+  const readCSVFile = (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setMessage({ text: 'Solo se permiten archivos CSV', type: 'error' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setCsvContent(content);
+      setMessage({ text: 'Archivo CSV cargado correctamente', type: 'success' });
+    };
+    reader.readAsText(file);
+  };
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault(); e.stopPropagation();
     setDragActive(false);
@@ -47,10 +66,17 @@ export default function UploadClientXML() {
     if (file) readXMLFile(file);
   };
 
+  const handleDropCSV = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActiveCSV(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) readCSVFile(file);
+  };
+
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!companyName.trim() || !xmlContent.trim()) {
-      setMessage({ text: 'Todos los campos son obligatorios', type: 'error' });
+      setMessage({ text: 'Nombre y XML son obligatorios', type: 'error' });
       return;
     }
     setLoading(true);
@@ -58,12 +84,15 @@ export default function UploadClientXML() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setMessage({ text: 'Usuario no autorizado', type: 'error' }); return; }
       const { error } = await supabase.from('ClientsSERVEX').insert({
-        company_name: companyName, xml_raw: xmlContent, user_id: user.id,
+        company_name: companyName, 
+        xml_raw: xmlContent, 
+        csv_raw: csvContent, // Se guarda en la nueva columna
+        user_id: user.id,
       });
-      if (error) setMessage({ text: 'Error al guardar el XML', type: 'error' });
+      if (error) setMessage({ text: 'Error al guardar los datos', type: 'error' });
       else {
-        setMessage({ text: 'Catálogo guardado exitosamente', type: 'success' });
-        setCompanyName(''); setXmlContent('');
+        setMessage({ text: 'Datos guardados exitosamente', type: 'success' });
+        setCompanyName(''); setXmlContent(''); setCsvContent('');
       }
     } finally { setLoading(false); }
   };
@@ -122,8 +151,8 @@ export default function UploadClientXML() {
                   <span className="text-xs font-medium">Validación de XML</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-gray-100 text-gray-400`}>3</div>
-                  <span className="text-xs font-medium">Persistencia Cloud</span>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>3</div>
+                  <span className="text-xs font-medium">Carga de CSV</span>
                 </div>
               </div>
             </div>
@@ -158,32 +187,60 @@ export default function UploadClientXML() {
                   </div>
                 </div>
 
-                {/* Field: Drag & Drop */}
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-                  onDragLeave={() => setDragActive(false)}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-md p-10 text-center transition-all cursor-pointer
-                    ${dragActive ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
-                >
-                  <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={28} />
-                  <p className="text-xs font-bold text-[#242424]">Cargar archivo XML</p>
-                  <p className="text-[10px] text-[#616161] mt-1 italic">Arrastra el archivo o haz clic para buscar</p>
-                  <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => {
-                    const file = e.target.files?.[0]; if (file) readXMLFile(file);
-                  }} />
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Field: Drag & Drop XML */}
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                    onDragLeave={() => setDragActive(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-md p-6 text-center transition-all cursor-pointer
+                      ${dragActive ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                  >
+                    <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={24} />
+                    <p className="text-[11px] font-bold text-[#242424]">Cargar XML</p>
+                    <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0]; if (file) readXMLFile(file);
+                    }} />
+                  </div>
+
+                  {/* Field: Drag & Drop CSV */}
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragActiveCSV(true); }}
+                    onDragLeave={() => setDragActiveCSV(false)}
+                    onDrop={handleDropCSV}
+                    onClick={() => csvInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-md p-6 text-center transition-all cursor-pointer
+                      ${dragActiveCSV ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                  >
+                    <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={24} />
+                    <p className="text-[11px] font-bold text-[#242424]">Cargar CSV</p>
+                    <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0]; if (file) readCSVFile(file);
+                    }} />
+                  </div>
                 </div>
 
-                {/* Field: Content */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-[#242424]">Vista previa del contenido</label>
-                  <textarea
-                    className="w-full text-[11px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-4 py-3 h-48 resize-none outline-none focus:border-[#5B5FC7] transition-all"
-                    placeholder="XML Content..."
-                    value={xmlContent}
-                    onChange={(e) => setXmlContent(e.target.value)}
-                  />
+                {/* Field: Content Previews */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-[#242424]">Vista previa XML</label>
+                    <textarea
+                      className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
+                      placeholder="XML Content..."
+                      value={xmlContent}
+                      onChange={(e) => setXmlContent(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-[#242424]">Vista previa CSV</label>
+                    <textarea
+                      className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
+                      placeholder="CSV Content..."
+                      value={csvContent}
+                      onChange={(e) => setCsvContent(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 {/* Message Alert */}
