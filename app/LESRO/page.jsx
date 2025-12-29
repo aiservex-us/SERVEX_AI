@@ -5,7 +5,7 @@ import MenuLateral from './components/menuLateral';
 
 import Dashboard from './components/dashboard';
 import PriceProduct from './components/priceProduct';
-import CatalogParser from './components/CatalogParser';
+import CatalogParser from './components/PDFsection';
 export default function MenuInicial() {
   // 👇 Vista inicial
   const [active, setActive] = useState('kanban');

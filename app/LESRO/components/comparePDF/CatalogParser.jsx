@@ -107,7 +107,7 @@ const LesroPricingFix = () => {
   if (!pdfLib) return <div className="p-10 text-[#6264A7] font-sans">Cargando motor de sincronización...</div>;
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] font-sans text-[11px] text-[#242424]">
+    <div className="min-h-screen bg-[#FFF] font-sans text-[11px] text-[#242424]">
       {/* Header Teams */}
       <div className="bg-[#6264A7] p-3 shadow-md mb-4 flex items-center justify-between sticky top-0 z-50">
         <h2 className="text-white font-semibold text-[14px]">Lesro Master Sync</h2>

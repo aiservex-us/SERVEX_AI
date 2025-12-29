@@ -7,10 +7,28 @@ import {
   BookOpen, FileUp
 } from 'lucide-react';
 
+// ✅ IMPORT DEL COMPONENTE
+import CatalogParser from './comparePDF/CatalogParser';
+
 // --- VIEW COMPONENTS ---
-const LastCatalogContent = () => <div className="p-8 text-[#242424] font-sans">Last Uploaded Catalog View</div>;
-const CatalogUpdateContent = () => <div className="p-8 text-[#242424] font-sans">Catalog Update Editor</div>;
-const ChangedProductsContent = () => <div className="p-8 text-[#242424] font-sans">Changed Products List / Diffs</div>;
+const LastCatalogContent = () => (
+  <div className="p-8 text-[#242424] font-sans">
+    Last Uploaded Catalog View
+  </div>
+);
+
+const CatalogUpdateContent = () => (
+  <div className="p-8 text-[#242424] font-sans">
+    Catalog Update Editor
+  </div>
+);
+
+// ✅ CHANGED PRODUCTS AHORA MUESTRA EL COMPONENTE
+const ChangedProductsContent = () => (
+  <div className="flex-1 overflow-y-auto custom-scrollbar">
+    <CatalogParser />
+  </div>
+);
 
 const LesroSyncCopilot = () => {
   const router = useRouter();
@@ -35,9 +53,27 @@ const LesroSyncCopilot = () => {
 
   const renderMainContent = () => {
     switch (activeTab) {
-      case 'LAST_CATALOG': return <div className="flex-1 overflow-y-auto custom-scrollbar"><LastCatalogContent /></div>;
-      case 'UPDATE': return <div className="flex-1 overflow-y-auto custom-scrollbar"><CatalogUpdateContent /></div>;
-      case 'CHANGED': return <div className="flex-1 overflow-y-auto custom-scrollbar"><ChangedProductsContent /></div>;
+      case 'LAST_CATALOG':
+        return (
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <LastCatalogContent />
+          </div>
+        );
+
+      case 'UPDATE':
+        return (
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <CatalogUpdateContent />
+          </div>
+        );
+
+      case 'CHANGED':
+        return (
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <ChangedProductsContent />
+          </div>
+        );
+
       case 'SYNC':
       default:
         return (
@@ -48,13 +84,19 @@ const LesroSyncCopilot = () => {
                 <div>
                   <div className="flex items-center gap-2 text-[#6264A7] mb-1">
                     <Sparkles size={14} fill="#6264A7" fillOpacity={0.2} />
-                    <span className="text-[11px] font-semibold uppercase tracking-tight">Servex US Sync Center</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-tight">
+                      Servex US Sync Center
+                    </span>
                   </div>
-                  <h1 className="text-xl font-semibold text-[#242424] tracking-tight">LESRO Portfolio Adaptation</h1>
+                  <h1 className="text-xl font-semibold text-[#242424] tracking-tight">
+                    LESRO Portfolio Adaptation
+                  </h1>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full bg-[#107C10]"></div>
-                  <span className="text-[11px] text-[#605E5C] font-medium">Connected</span>
+                  <span className="text-[11px] text-[#605E5C] font-medium">
+                    Connected
+                  </span>
                 </div>
               </div>
             </div>
@@ -82,29 +124,40 @@ const LesroSyncCopilot = () => {
                     iconColor: "#D83B01" 
                   }
                 ].map((step, idx) => (
-                  <div key={idx} className="bg-white p-5 rounded-md border border-[#EDEBE9] shadow-sm flex flex-col items-start transition-all hover:border-[#C8C8E5] hover:shadow-md">
+                  <div
+                    key={idx}
+                    className="bg-white p-5 rounded-md border border-[#EDEBE9] shadow-sm flex flex-col items-start transition-all hover:border-[#C8C8E5] hover:shadow-md"
+                  >
                     <div className="mb-4">
-                       <step.icon size={22} color={step.iconColor} strokeWidth={2.5} />
+                      <step.icon size={22} color={step.iconColor} strokeWidth={2.5} />
                     </div>
-                    <h3 className="text-[14px] font-semibold text-[#242424] mb-2">{step.title}</h3>
-                    <p className="text-[12px] leading-relaxed text-[#605E5C]">{step.desc}</p>
+                    <h3 className="text-[14px] font-semibold text-[#242424] mb-2">
+                      {step.title}
+                    </h3>
+                    <p className="text-[12px] leading-relaxed text-[#605E5C]">
+                      {step.desc}
+                    </p>
                   </div>
                 ))}
               </div>
 
               {/* Main Action Area */}
               <div className="bg-[#FFF] border border-[#EDEBE9] rounded-lg p-12 flex flex-col items-center text-center shadow-inner mb-4">
-                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-6 transition-all
-                  ${isSyncing ? 'bg-white shadow-md' : 'bg-[#EAEAF2]'}`}>
+                <div
+                  className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-6 transition-all
+                    ${isSyncing ? 'bg-white shadow-md' : 'bg-[#EAEAF2]'}`}
+                >
                   <RefreshCw 
                     size={32} 
                     className={isSyncing ? 'animate-spin text-[#6264A7]' : 'text-[#6264A7]'} 
                     strokeWidth={2.5}
                   />
                 </div>
+
                 <h2 className="text-xl font-semibold text-[#242424] mb-2">
                   {isSyncing ? 'Synchronizing Servex US Data...' : 'Start Global Catalog Adaptation'}
                 </h2>
+
                 <p className="text-[13px] text-[#605E5C] mb-8 max-w-md">
                   This action will trigger a full comparison and update cycle for the LESRO 2025 portfolio. Review your changes before proceeding.
                 </p>
@@ -119,7 +172,6 @@ const LesroSyncCopilot = () => {
                 </button>
               </div>
 
-              {/* Extra spacing to demonstrate scrolling */}
               <div className="h-20"></div> 
             </div>
           </>
@@ -128,25 +180,28 @@ const LesroSyncCopilot = () => {
   };
 
   return (
-    <div className="h-[93vh] bg-[#F3F2F1] flex flex-col font-sans text-[#242424] overflow-hidden">
+    <div className="h-[93vh] bg-[#FFF] flex flex-col font-sans text-[#242424] overflow-hidden">
       
-      {/* Top Bar - Fixed */}
+      {/* Top Bar */}
       <div className="h-12 bg-[#464775] w-full flex items-center justify-between px-4 text-white shrink-0 shadow-md z-30">
         <div className="flex items-center gap-4 h-full">
           <div className="flex items-center gap-2 border-r border-[#ffffff33] pr-4 h-6">
             <div className="bg-white rounded-sm p-0.5">
               <img src="/logo2.png" alt="SVX" className="h-3.5 w-auto" />
             </div>
-            <span className="text-[12px] font-bold tracking-tight">SVX Copilot</span>
+            <span className="text-[12px] font-bold tracking-tight">
+              SVX Copilot
+            </span>
           </div>
+
           <nav className="flex items-center h-full">
-            {menuOptions.map((option) => (
+            {menuOptions.map(option => (
               <button
                 key={option.id}
                 onClick={() => setActiveTab(option.id)}
                 className={`flex items-center gap-2 px-4 h-12 text-[12px] font-medium transition-all relative
                   ${activeTab === option.id 
-                    ? 'bg-[#3b3c63] text-white after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#C8C8E5]' 
+                    ? 'bg-[#3b3c63] text-white after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#C8C8E5]' 
                     : 'text-[#D1D1E0] hover:bg-[#505181] hover:text-white'
                   }`}
               >
@@ -156,34 +211,15 @@ const LesroSyncCopilot = () => {
             ))}
           </nav>
         </div>
+
         <Settings size={18} className="text-white opacity-90 cursor-pointer" />
       </div>
 
-      {/* Main Container Wrapper */}
       <main className="flex-1 p-6 overflow-hidden flex flex-col items-center">
-        {/* The White Card - This card is now flex and constrained to screen height */}
-        <div className="w-full max-w-7xl bg-white rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.1)] border border-[#EDEBE9] flex flex-col max-h-full overflow-hidden">
-          
+        <div className="w-full max-w-7xl bg-white rounded-md shadow border border-[#EDEBE9] flex flex-col max-h-full overflow-hidden">
           {renderMainContent()}
-
         </div>
       </main>
-
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #D2D0CE;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #A19F9D;
-        }
-      `}</style>
     </div>
   );
 };
