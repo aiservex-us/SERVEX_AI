@@ -18,9 +18,9 @@ import {
 
 const menuItems = [
   { id: 'kanban', label: 'Kanban', icon: KanbanSquare },
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'dashboard', label: 'Dashboard', icon:  BarChart3 },
   { id: 'Tasks', label: 'Change Tracker', icon: ListChecks },
-  { id: 'reporting', label: 'Reporting', icon: BarChart3 },
+  { id: 'reporting', label: 'Reporting', icon: LayoutDashboard },
   { id: 'search', label: 'Search', icon: Search },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'mail', label: 'Mail', icon: Mail },

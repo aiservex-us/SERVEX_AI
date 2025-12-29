@@ -1,183 +1,191 @@
 "use client";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { 
+  Database, Sparkles, Settings, Zap, RefreshCw, 
+  FileText, GitCompare, ArrowUpRight, Info,
+  BookOpen, FileUp
+} from 'lucide-react';
 
-import React, { useState, useEffect } from 'react';
+// --- VIEW COMPONENTS ---
+const LastCatalogContent = () => <div className="p-8 text-[#242424] font-sans">Last Uploaded Catalog View</div>;
+const CatalogUpdateContent = () => <div className="p-8 text-[#242424] font-sans">Catalog Update Editor</div>;
+const ChangedProductsContent = () => <div className="p-8 text-[#242424] font-sans">Changed Products List / Diffs</div>;
 
-// IMPORTANTE: No importamos pdfjsLib aquí arriba de forma directa 
-// para evitar que el servidor de Next intente leerlo.
+const LesroSyncCopilot = () => {
+  const router = useRouter();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [context, setContext] = useState('LESRO Enterprise');
+  const [activeTab, setActiveTab] = useState('SYNC'); 
 
-const LesroPricingFix = () => {
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pdfLib, setPdfLib] = useState(null); // Estado para la librería
-  const itemsPerPage = 50;
-
-  useEffect(() => {
-    // Cargamos la librería dinámicamente solo en el cliente
-    const loadLib = async () => {
-      const pdfjs = await import('pdfjs-dist');
-      // Configuración del worker
-      pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-      setPdfLib(pdfjs);
-    };
-    loadLib();
-  }, []);
-
-  const processPDF = async (file) => {
-    if (!file || !pdfLib) return;
-    setLoading(true);
-    setCurrentPage(1);
-    const reader = new FileReader();
-
-    reader.onload = async (e) => {
-      try {
-        const typedarray = new Uint8Array(e.target.result);
-        const loadingTask = pdfLib.getDocument({ data: typedarray });
-        const pdf = await loadingTask.promise;
-        let finalData = [];
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          
-          const items = textContent.items.sort((a, b) => {
-            if (Math.abs(b.transform[5] - a.transform[5]) > 2) return b.transform[5] - a.transform[5];
-            return a.transform[4] - b.transform[4];
-          });
-
-          const pageText = items.map(item => item.str).join(" ");
-
-          const skus = [...pageText.matchAll(/\b[A-Z]{2}\d{4}\b/g)].map(m => m[0]);
-          const dimRegex = /(\d{1,3}(?:\.\d+)?\s*(?:x|dia)\s*\d{1,3}(?:\.\d+)?(?:\s*x\s*\d{1,3}(?:\.\d+)?)?)/gi;
-          const dims = [...pageText.matchAll(dimRegex)].map(m => m[0]);
-          const priceRegex = /\$\s*([\d,]{2,7})/g;
-          const prices = [...pageText.matchAll(priceRegex)].map(m => m[1]);
-
-          if (skus.length > 0) {
-            const isFixedPricing = prices.length < (skus.length * 5); 
-
-            skus.forEach((sku, index) => {
-              let p = [];
-              if (isFixedPricing) {
-                p = [prices[index] || "---", "---", "---", "---", "---", "---", "---", "---", "---", "---", "---", "---"];
-              } else {
-                const startIdx = index * 12;
-                p = prices.slice(startIdx, startIdx + 12);
-              }
-
-              finalData.push({
-                page: i,
-                sku: sku,
-                dims: dims[index] || "Ver PDF",
-                g2: p[0] || "---", g3: p[1] || "---", g4: p[2] || "---", g5: p[3] || "---",
-                g6: p[4] || "---", g7: p[5] || "---", g8: p[6] || "---", g9: p[7] || "---",
-                g10: p[8] || "---", g11: p[9] || "---", g12: p[10] || "---", g13: p[11] || "---"
-              });
-            });
-          }
-        }
-        setResults(finalData);
-        exportToCSV(finalData);
-      } catch (err) {
-        console.error("Error procesando PDF:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    reader.readAsArrayBuffer(file);
+  const handleStartSync = () => {
+    setIsSyncing(true);
+    setTimeout(() => {
+      setActiveTab('CHANGED'); 
+      setIsSyncing(false);
+    }, 1500);
   };
 
-  const exportToCSV = (data) => {
-    const headers = "Página,Modelo,Dimensiones,G2,G3,G4,G5,G6,G7,G8,G9,G10,G11,G12,G13\n";
-    const rows = data.map(d => 
-      `${d.page},${d.sku},"${d.dims}",${d.g2},${d.g3},${d.g4},${d.g5},${d.g6},${d.g7},${d.g8},${d.g9},${d.g10},${d.g11},${d.g12},${d.g13}`
-    ).join("\n");
-    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = "LESRO_PRICING_2026.csv";
-    a.click();
-  };
+  const menuOptions = [
+    { id: 'SYNC', label: 'Synchronization', icon: RefreshCw },
+    { id: 'LAST_CATALOG', label: 'Last Catalog', icon: BookOpen },
+    { id: 'UPDATE', label: 'Catalog Update', icon: FileUp },
+    { id: 'CHANGED', label: 'Changed Products', icon: GitCompare },
+  ];
 
-  const totalPages = Math.ceil(results.length / itemsPerPage);
-  const currentResults = results.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  // Mientras la librería carga en el cliente, mostramos un estado inicial simple
-  if (!pdfLib) return <div className="p-10 text-[#6264A7] font-sans">Cargando motor de sincronización...</div>;
-
-  return (
-    <div className="min-h-screen bg-[#F5F5F5] font-sans text-[11px] text-[#242424]">
-      {/* Header Teams */}
-      <div className="bg-[#6264A7] p-3 shadow-md mb-4 flex items-center justify-between sticky top-0 z-50">
-        <h2 className="text-white font-semibold text-[14px]">Lesro Master Sync</h2>
-        {loading && <div className="text-white text-[9px] bg-[#4f508a] px-2 py-1 rounded">PROCESANDO PDF...</div>}
-      </div>
-
-      <div className="max-w-[1600px] mx-auto p-4">
-        <div className="mb-6 bg-white border rounded p-6 shadow-sm flex flex-col items-center">
-          <input 
-            type="file" 
-            accept=".pdf"
-            onChange={(e) => processPDF(e.target.files[0])} 
-            className="text-[11px] file:bg-[#6264A7] file:text-white file:border-0 file:py-2 file:px-4 file:rounded file:font-bold cursor-pointer"
-          />
-        </div>
-
-        {results.length > 0 && (
-          <div className="bg-white rounded shadow-sm border border-[#E1E1E1] overflow-hidden">
-            <div className="p-3 bg-[#FDFDFD] border-b flex justify-between items-center">
-              <span className="font-bold text-[#6264A7]">Total: {results.length} productos</span>
-              <div className="flex items-center space-x-2">
-                <button 
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(prev => prev - 1)}
-                  className="px-2 py-1 border rounded disabled:opacity-20"
-                > Anterior </button>
-                <span className="px-2">Página {currentPage} de {totalPages}</span>
-                <button 
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                  className="px-2 py-1 border rounded disabled:opacity-20"
-                > Siguiente </button>
+  const renderMainContent = () => {
+    switch (activeTab) {
+      case 'LAST_CATALOG': return <div className="flex-1 overflow-y-auto custom-scrollbar"><LastCatalogContent /></div>;
+      case 'UPDATE': return <div className="flex-1 overflow-y-auto custom-scrollbar"><CatalogUpdateContent /></div>;
+      case 'CHANGED': return <div className="flex-1 overflow-y-auto custom-scrollbar"><ChangedProductsContent /></div>;
+      case 'SYNC':
+      default:
+        return (
+          <>
+            {/* STICKY INTERNAL HEADER */}
+            <div className="p-6 border-b border-[#EDEBE9] bg-white sticky top-0 z-20">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2 text-[#6264A7] mb-1">
+                    <Sparkles size={14} fill="#6264A7" fillOpacity={0.2} />
+                    <span className="text-[11px] font-semibold uppercase tracking-tight">Servex US Sync Center</span>
+                  </div>
+                  <h1 className="text-xl font-semibold text-[#242424] tracking-tight">LESRO Portfolio Adaptation</h1>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-[#107C10]"></div>
+                  <span className="text-[11px] text-[#605E5C] font-medium">Connected</span>
+                </div>
               </div>
             </div>
+            
+            {/* SCROLLABLE BODY */}
+            <div className="p-8 bg-[#FFF] flex-1 overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-3 gap-6 mb-10">
+                {[
+                  { 
+                    icon: FileText, 
+                    title: "View & Edit Catalogs", 
+                    desc: "Access the central Servex US database to view and edit current portfolio details, ensuring all product information is accurate before processing.", 
+                    iconColor: "#0078D4" 
+                  },
+                  { 
+                    icon: GitCompare, 
+                    title: "Compare & Detect", 
+                    desc: "Compare new price files against existing Servex US catalogs. Detect changes in SKUs, descriptions, and pricing tiers automatically.", 
+                    iconColor: "#6264A7" 
+                  },
+                  { 
+                    icon: Zap, 
+                    title: "Sync & Update", 
+                    desc: "Execute the final synchronization to update client catalogs. This process reconciles all differences and pushes the latest data live.", 
+                    iconColor: "#D83B01" 
+                  }
+                ].map((step, idx) => (
+                  <div key={idx} className="bg-white p-5 rounded-md border border-[#EDEBE9] shadow-sm flex flex-col items-start transition-all hover:border-[#C8C8E5] hover:shadow-md">
+                    <div className="mb-4">
+                       <step.icon size={22} color={step.iconColor} strokeWidth={2.5} />
+                    </div>
+                    <h3 className="text-[14px] font-semibold text-[#242424] mb-2">{step.title}</h3>
+                    <p className="text-[12px] leading-relaxed text-[#605E5C]">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-[#F0F0F0]">
-                  <tr>
-                    <th className="p-2 text-left border-r w-24">SKU</th>
-                    <th className="p-2 text-left border-r w-40">DIMS</th>
-                    <th className="p-2 text-center border-r bg-[#E8E8FF] text-[#6264A7] font-bold">G2/BASE</th>
-                    {['G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13'].map(g => (
-                      <th key={g} className="p-2 text-center border-r font-semibold">{g}</th>
-                    ))}
-                    <th className="p-2 text-center w-10 text-gray-400">Pág</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {currentResults.map((r, i) => (
-                    <tr key={i} className="hover:bg-[#F3F2F1]">
-                      <td className="p-2 font-bold text-[#6264A7] border-r">{r.sku}</td>
-                      <td className="p-2 text-gray-500 border-r">{r.dims}</td>
-                      <td className="p-2 text-center border-r font-bold bg-[#F9F9FB] text-blue-800">${r.g2}</td>
-                      {[r.g3, r.g4, r.g5, r.g6, r.g7, r.g8, r.g9, r.g10, r.g11, r.g12, r.g13].map((v, idx) => (
-                        <td key={idx} className="p-2 text-center border-r">
-                          {v !== '---' ? `$${v}` : '—'}
-                        </td>
-                      ))}
-                      <td className="p-2 text-center text-gray-300">{r.page}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {/* Main Action Area */}
+              <div className="bg-[#FFF] border border-[#EDEBE9] rounded-lg p-12 flex flex-col items-center text-center shadow-inner mb-4">
+                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-6 transition-all
+                  ${isSyncing ? 'bg-white shadow-md' : 'bg-[#EAEAF2]'}`}>
+                  <RefreshCw 
+                    size={32} 
+                    className={isSyncing ? 'animate-spin text-[#6264A7]' : 'text-[#6264A7]'} 
+                    strokeWidth={2.5}
+                  />
+                </div>
+                <h2 className="text-xl font-semibold text-[#242424] mb-2">
+                  {isSyncing ? 'Synchronizing Servex US Data...' : 'Start Global Catalog Adaptation'}
+                </h2>
+                <p className="text-[13px] text-[#605E5C] mb-8 max-w-md">
+                  This action will trigger a full comparison and update cycle for the LESRO 2025 portfolio. Review your changes before proceeding.
+                </p>
+                
+                <button 
+                  onClick={handleStartSync} 
+                  disabled={isSyncing}
+                  className="h-10 px-10 bg-[#6264A7] hover:bg-[#4E52B1] active:bg-[#3B3C63] text-white text-[14px] font-semibold rounded shadow-sm flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSyncing ? 'Processing Update...' : 'Start Synchronization'}
+                  {!isSyncing && <ArrowUpRight size={18} />}
+                </button>
+              </div>
+
+              {/* Extra spacing to demonstrate scrolling */}
+              <div className="h-20"></div> 
             </div>
+          </>
+        );
+    }
+  };
+
+  return (
+    <div className="h-[93vh] bg-[#F3F2F1] flex flex-col font-sans text-[#242424] overflow-hidden">
+      
+      {/* Top Bar - Fixed */}
+      <div className="h-12 bg-[#464775] w-full flex items-center justify-between px-4 text-white shrink-0 shadow-md z-30">
+        <div className="flex items-center gap-4 h-full">
+          <div className="flex items-center gap-2 border-r border-[#ffffff33] pr-4 h-6">
+            <div className="bg-white rounded-sm p-0.5">
+              <img src="/logo2.png" alt="SVX" className="h-3.5 w-auto" />
+            </div>
+            <span className="text-[12px] font-bold tracking-tight">SVX Copilot</span>
           </div>
-        )}
+          <nav className="flex items-center h-full">
+            {menuOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => setActiveTab(option.id)}
+                className={`flex items-center gap-2 px-4 h-12 text-[12px] font-medium transition-all relative
+                  ${activeTab === option.id 
+                    ? 'bg-[#3b3c63] text-white after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#C8C8E5]' 
+                    : 'text-[#D1D1E0] hover:bg-[#505181] hover:text-white'
+                  }`}
+              >
+                <option.icon size={15} strokeWidth={activeTab === option.id ? 2.5 : 2} />
+                {option.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+        <Settings size={18} className="text-white opacity-90 cursor-pointer" />
       </div>
+
+      {/* Main Container Wrapper */}
+      <main className="flex-1 p-6 overflow-hidden flex flex-col items-center">
+        {/* The White Card - This card is now flex and constrained to screen height */}
+        <div className="w-full max-w-7xl bg-white rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.1)] border border-[#EDEBE9] flex flex-col max-h-full overflow-hidden">
+          
+          {renderMainContent()}
+
+        </div>
+      </main>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #D2D0CE;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #A19F9D;
+        }
+      `}</style>
     </div>
   );
 };
 
-export default LesroPricingFix;
+export default LesroSyncCopilot;
