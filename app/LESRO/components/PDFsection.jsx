@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 // ✅ IMPORT DEL COMPONENTE
-import CatalogParser from './comparePDF/clientS';
+import CatalogParser from './comparePDF/CatalogParser';
 
 // --- VIEW COMPONENTS ---
 const LastCatalogContent = () => (
