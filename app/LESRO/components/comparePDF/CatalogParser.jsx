@@ -5,14 +5,12 @@ import { supabase } from '@/app/lib/supabaseClient';
 import { FileText, Cpu, Database, X, UploadCloud } from 'lucide-react';
 
 const LesroPricingFix = ({ companyName = 'LESRO' }) => {
-  // --- ESTADOS ORIGINALES DE LA MATRIZ ---
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfLib, setPdfLib] = useState(null);
   const itemsPerPage = 50;
 
-  // --- NUEVOS ESTADOS PARA EL MODAL DE INTAKE ---
   const [isIntakeOpen, setIsIntakeOpen] = useState(false);
   const [pdfJson, setPdfJson] = useState(null);
   const [dragActive, setDragActive] = useState(false);
@@ -27,41 +25,41 @@ const LesroPricingFix = ({ companyName = 'LESRO' }) => {
     loadLib();
   }, []);
 
-  // ==========================================
-  // LÓGICA DE EXTRACCIÓN INTELIGENTE (JSON)
-  // ==========================================
   const SKU_PATTERN = /\b[A-Z]{2,4}\d{3,5}\b/g;
   const TOC_LINE_PATTERN = /^(.*?)\.{3,}\s*(\d+)$/;
 
   const processStructuredData = (pagesText, fileName) => {
     let toc = [];
+
     pagesText.slice(0, 10).forEach(p => {
       const lines = p.content.split('\n');
       lines.forEach(line => {
         const match = line.trim().match(TOC_LINE_PATTERN);
-        if (match) {
-          toc.push({ title: match[1].trim(), page: parseInt(match[2], 10) });
-        }
+        if (match) toc.push({ title: match[1].trim(), page: parseInt(match[2], 10) });
       });
     });
 
-    const uniqueToc = Array.from(new Map(toc.map(item => [item.page, item])).values())
-                           .sort((a, b) => a.page - b.page);
+    const uniqueToc = Array.from(new Map(toc.map(i => [i.page, i])).values())
+      .sort((a, b) => a.page - b.page);
 
     const sections = uniqueToc.map((entry, idx) => {
       const startPage = entry.page;
-      const endPage = uniqueToc[idx + 1] ? uniqueToc[idx + 1].page - 1 : pagesText[pagesText.length - 1].page;
-      const sectionProducts = [];
+      const endPage = uniqueToc[idx + 1]
+        ? uniqueToc[idx + 1].page - 1
+        : pagesText[pagesText.length - 1].page;
+
+      const products = [];
 
       pagesText.forEach(p => {
         if (p.page >= startPage && p.page <= endPage) {
           const skusFound = p.content.match(SKU_PATTERN);
           if (skusFound) {
-            sectionProducts.push({ page: p.page, skus: [...new Set(skusFound)] });
+            products.push({ page: p.page, skus: [...new Set(skusFound)] });
           }
         }
       });
-      return { title: entry.title, start_page: start_page, end_page: end_page, products: sectionProducts };
+
+      return { title: entry.title, start_page: startPage, end_page: endPage, products };
     });
 
     return {
@@ -69,13 +67,10 @@ const LesroPricingFix = ({ companyName = 'LESRO' }) => {
       total_pages: pagesText.length,
       toc_detected: uniqueToc.length,
       extracted_at: new Date().toISOString(),
-      sections: sections
+      sections
     };
   };
 
-  // ==========================================
-  // LÓGICA ORIGINAL DE PROCESAMIENTO (MATRIZ)
-  // ==========================================
   const processPDF = async (file) => {
     if (!file || !pdfLib) return;
     setLoading(true);
@@ -85,15 +80,15 @@ const LesroPricingFix = ({ companyName = 'LESRO' }) => {
     reader.onload = async (e) => {
       try {
         const typedarray = new Uint8Array(e.target.result);
-        const loadingTask = pdfLib.getDocument({ data: typedarray });
-        const pdf = await loadingTask.promise;
+        const pdf = await pdfLib.getDocument({ data: typedarray }).promise;
+
         let finalData = [];
-        let pagesTextForIntake = []; // Para alimentar el parser JSON también
+        let pagesTextForIntake = [];
 
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const textContent = await page.getTextContent();
-          
+
           const items = textContent.items.sort((a, b) => {
             if (Math.abs(b.transform[5] - a.transform[5]) > 2) return b.transform[5] - a.transform[5];
             return a.transform[4] - b.transform[4];
@@ -103,38 +98,38 @@ const LesroPricingFix = ({ companyName = 'LESRO' }) => {
           pagesTextForIntake.push({ page: i, content: pageText });
 
           const skus = [...pageText.matchAll(/\b[A-Z]{2}\d{4}\b/g)].map(m => m[0]);
-          const dimRegex = /(\d{1,3}(?:\.\d+)?\s*(?:x|dia)\s*\d{1,3}(?:\.\d+)?(?:\s*x\s*\d{1,3}(?:\.\d+)?)?)/gi;
-          const dims = [...pageText.matchAll(dimRegex)].map(m => m[0]);
-          const priceRegex = /\$\s*([\d,]{2,7})/g;
-          const prices = [...pageText.matchAll(priceRegex)].map(m => m[1]);
+          const dims = [...pageText.matchAll(/(\d{1,3}(?:\.\d+)?\s*(?:x|dia)\s*\d{1,3}(?:\.\d+)?)/gi)].map(m => m[0]);
+          const prices = [...pageText.matchAll(/\$\s*([\d,]{2,7})/g)].map(m => m[1]);
 
-          if (skus.length > 0) {
-            const isFixedPricing = prices.length < (skus.length * 5); 
+          if (skus.length) {
+            const isFixedPricing = prices.length < skus.length * 5;
             skus.forEach((sku, index) => {
-              let p = isFixedPricing 
-                ? [prices[index] || "---", "---", "---", "---", "---", "---", "---", "---", "---", "---", "---", "---"]
-                : prices.slice(index * 12, (index * 12) + 12);
+              const p = isFixedPricing
+                ? [prices[index] || "---", ...Array(11).fill("---")]
+                : prices.slice(index * 12, index * 12 + 12);
 
               finalData.push({
-                page: i, sku: sku, dims: dims[index] || "Ver PDF",
-                g2: p[0] || "---", g3: p[1] || "---", g4: p[2] || "---", g5: p[3] || "---",
-                g6: p[4] || "---", g7: p[5] || "---", g8: p[6] || "---", g9: p[7] || "---",
-                g10: p[8] || "---", g11: p[9] || "---", g12: p[10] || "---", g13: p[11] || "---"
+                page: i,
+                sku,
+                dims: dims[index] || "Ver PDF",
+                g2: p[0] || "---", g3: p[1] || "---", g4: p[2] || "---",
+                g5: p[3] || "---", g6: p[4] || "---", g7: p[5] || "---",
+                g8: p[6] || "---", g9: p[7] || "---", g10: p[8] || "---",
+                g11: p[9] || "---", g12: p[10] || "---", g13: p[11] || "---"
               });
             });
           }
         }
+
         setResults(finalData);
-        // Generar JSON estructurado automáticamente
-        const structured = processStructuredData(pagesTextForIntake, file.name);
-        setPdfJson(structured);
-        exportToCSV(finalData);
+        setPdfJson(processStructuredData(pagesTextForIntake, file.name));
       } catch (err) {
-        console.error("Error procesando PDF:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
+
     reader.readAsArrayBuffer(file);
   };
 
@@ -144,7 +139,12 @@ const LesroPricingFix = ({ companyName = 'LESRO' }) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Unauthorized');
-      const { error } = await supabase.from('ClientsSERVEX').update({ pdf_raw: pdfJson }).eq('company_name', companyName);
+
+      const { error } = await supabase
+        .from('ClientsSERVEX')
+        .update({ pdf_raw: pdfJson })
+        .eq('company_name', companyName);
+
       if (error) throw error;
       setMessage('✅ Data synchronized with SVX Cloud');
     } catch (err) {
@@ -154,20 +154,10 @@ const LesroPricingFix = ({ companyName = 'LESRO' }) => {
     }
   };
 
-  const exportToCSV = (data) => {
-    const headers = "Página,Modelo,Dimensiones,G2,G3,G4,G5,G6,G7,G8,G9,G10,G11,G12,G13\n";
-    const rows = data.map(d => `${d.page},${d.sku},"${d.dims}",${d.g2},${d.g3},${d.g4},${d.g5},${d.g6},${d.g7},${d.g8},${d.g9},${d.g10},${d.g11},${d.g12},${d.g13}`).join("\n");
-    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `LESRO_PRICING_${new Date().getFullYear()}.csv`;
-    a.click();
-  };
-
   const totalPages = Math.ceil(results.length / itemsPerPage);
   const currentResults = results.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  if (!pdfLib) return <div className="p-10 text-[#6264A7] font-sans">Cargando motor de sincronización...</div>;
+  if (!pdfLib) return <div className="p-10 text-[#6264A7]">Cargando motor de sincronización...</div>;
 
   return (
     <div className="min-h-screen bg-[#FFF] font-sans text-[11px] text-[#242424]">
