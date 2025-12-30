@@ -116,7 +116,7 @@ const LesroPricingFix = () => {
   return (
     <div className="min-h-screen bg-[#FAF9F8] font-sans text-[11px] text-[#242424]">
       {/* Header Teams */}
-      <div className="bg-[#6264A7] p-3 shadow-md flex items-center justify-between sticky top-0 z-50">
+      <div className="bg-[#FFF] p-3 shadow-md flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <div className="bg-white p-1 rounded shadow-sm">
             <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
