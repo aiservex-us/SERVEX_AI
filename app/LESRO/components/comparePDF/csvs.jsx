@@ -43,31 +43,19 @@ export default function DataViewer() {
     }
   };
 
-  /**
-   * Procesa el CSV basado en la estructura de la pestaña activa.
-   * La pestaña Manual (csv_raw) ahora soporta la estructura del archivo proporcionado:
-   * - Delimitador: ";"
-   * - Salta las primeras 2 líneas de metadatos.
-   * - Los encabezados reales están en la línea 3.
-   */
   const parseCSV = (csvString, type) => {
     if (!csvString || csvString === '---') return [];
     
-    // --- Lógica específica para la estructura del archivo LESROEXEL (Pestaña Manual) ---
     if (type === 'csv_raw') {
       const allLines = csvString.trim().split('\n');
-      // Validamos que tenga al menos la línea de encabezados (índice 2) y datos
       if (allLines.length <= 2) return [];
       
-      // La línea 2 (index 2) contiene los nombres de las columnas
       const headers = allLines[2].split(';').map(h => h.replace(/"/g, '').trim());
-      // A partir de la línea 3 empiezan los datos reales
       const dataLines = allLines.slice(3);
       
       return dataLines.map(line => {
         const values = line.split(';').map(v => v.replace(/"/g, '').trim());
         return headers.reduce((obj, header, i) => {
-          // Asignamos valor o string vacío si no existe el campo
           const key = header || `Col_${i}`;
           obj[key] = values[i] || '';
           return obj;
@@ -75,7 +63,6 @@ export default function DataViewer() {
       });
     }
 
-    // --- Lógica original para PDF Sync (SIN CAMBIOS) ---
     const lines = csvString.trim().split('\n');
     const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
     
@@ -185,11 +172,12 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* ÁREA DE TABLA */}
+      {/* ÁREA DE TABLA - SCROLL X GARANTIZADO */}
       <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
         {filteredData.length > 0 ? (
           <div className="flex-1 overflow-auto custom-scrollbar">
-            <table className="w-full border-collapse text-[10px] min-w-full">
+            {/* El contenedor table tiene min-w-full para forzar el scroll si hay muchas columnas */}
+            <table className="w-full border-collapse text-[10px] min-w-max">
               <thead>
                 <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
                   {Object.keys(currentCsvData[0]).map((header) => (
@@ -240,9 +228,11 @@ export default function DataViewer() {
       </div>
 
       <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 1px solid #FFF; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
+        /* Asegura que la tabla no se colapse y permita el scroll lateral */
+        table { table-layout: auto; }
       `}</style>
     </div>
   );
