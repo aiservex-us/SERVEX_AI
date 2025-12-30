@@ -39,7 +39,7 @@ export default function MenuInicial() {
 
   return (
     /* Contenedor padre — sin scroll global */
-    <div className="h-screen w-full bg-[#fff] font-sans overflow-hidden flex items-center justify-center">
+    <div className="h-screen w-full bg-[#fff] font-sans  flex items-center justify-center">
 
       {/* MAIN ocupa el 95% de la altura */}
       <main className="w-full h-[95vh] p-0 flex">
@@ -71,4 +71,4 @@ export default function MenuInicial() {
       </main>
     </div>
   );
-}
+}  
