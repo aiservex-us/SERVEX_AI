@@ -9,11 +9,12 @@ import Content from './components/main/Content';
 import Chart from './components/main/Chart';
 import DashboardRight from './components/main/Dashboard';
 
-// (Ejemplos de vistas adicionales)
+// VISTAS ADICIONALES
 import Calendar from './components/Calendar';
 import Products from './components/main/AccesAgent';
 import Settings from './components/Settings';
-import Footer from './components/main/footer'
+import ClientS from './components/main/clientS'; // ✅ NUEVO
+import Footer from './components/main/footer';
 
 const InitPage = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -42,6 +43,13 @@ const InitPage = () => {
           </div>
         );
 
+      case 'clients': // ✅ ESTE ES EL FIX
+        return (
+          <div className="col-span-12 lg:col-span-8 space-y-6">
+            <ClientS />
+          </div>
+        );
+
       case 'products':
         return (
           <div className="col-span-12 lg:col-span-8 space-y-6">
@@ -63,7 +71,6 @@ const InitPage = () => {
             <Chart />
           </div>
         );
-        
     }
   };
 
@@ -81,18 +88,17 @@ const InitPage = () => {
 
             {/* COLUMNA IZQUIERDA (DINÁMICA) */}
             {renderMainContent()}
-{/* COLUMNA DERECHA (FIJA COMO SIDEBAR) */}
-<aside className="col-span-12   lg:col-span-4 relative">
-  <div className="sticky ">
-    <DashboardRight />
-  </div>
-</aside>
 
+            {/* COLUMNA DERECHA (FIJA) */}
+            <aside className="col-span-12 lg:col-span-4 relative">
+              <div className="sticky top-0">
+                <DashboardRight />
+              </div>
+            </aside>
 
           </div>
           <Footer />
         </div>
-        
       </main>
     </div>
   );

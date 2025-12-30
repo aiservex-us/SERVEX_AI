@@ -1,18 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Home, Grid, Calendar, Box, Settings, LogOut } from 'lucide-react';
+import { Home, Grid, Calendar, Box, Settings, LogOut, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes } from 'react-icons/fa';
 
 // Componente SidebarIcon con tamaños responsivos
 const SidebarIcon = ({ icon, active, onClick }) => (
   <div
     onClick={onClick}
     className={`
-      /* Tamaño dinámico: 40px en móvil, 48px en desktop (>800px) */
       w-10 h-10 min-[800px]:w-12 min-[800px]:h-12 
       flex items-center justify-center rounded-xl cursor-pointer transition-all relative group
       ${active
@@ -23,7 +21,6 @@ const SidebarIcon = ({ icon, active, onClick }) => (
     {active && (
       <div className="absolute left-[-8px] w-1 h-5 min-[800px]:h-6 bg-[#6264A7] rounded-r-full" />
     )}
-    {/* Clonamos el icono para inyectar clases de tamaño responsivas */}
     {React.cloneElement(icon, { 
       className: "w-[18px] h-[18px] min-[800px]:w-5 min-[800px]:h-5" 
     })}
@@ -45,11 +42,9 @@ export default function Sidebar({ activeView, setActiveView }) {
 
   return (
     <>
-      {/* ASIDE RESPONSIVO: Pasa de 56px a 72px a los 800px */}
       <aside className="w-14 min-[800px]:w-[72px] h-full bg-[#FFF] border-r border-slate-200 flex flex-col items-center py-4 min-[800px]:py-6 justify-between flex-shrink-0 transition-all duration-300">
         <div className="flex flex-col gap-4 min-[800px]:gap-6 items-center w-full">
           
-          {/* LOGO RESPONSIVO */}
           <div className="w-8 h-8 min-[800px]:w-10 min-[800px]:h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-slate-200">
             <span className="font-black text-[#6264A7] text-[14px] min-[800px]:text-lg">SX</span>
           </div>
@@ -73,6 +68,13 @@ export default function Sidebar({ activeView, setActiveView }) {
               onClick={() => setActiveView('calendar')}
             />
 
+            {/* SECCIÓN CLIENTES (ID: clients) - Justo debajo de Grid */}
+            <SidebarIcon
+              icon={<Users />}
+              active={activeView === 'clients'}
+              onClick={() => setActiveView('clients')}
+            />
+
             <SidebarIcon
               icon={<Box />}
               active={activeView === 'products'}
@@ -89,7 +91,6 @@ export default function Sidebar({ activeView, setActiveView }) {
           </nav>
         </div>
 
-        {/* BOTÓN CERRAR SESIÓN */}
         <div className="mb-4">
           <SidebarIcon
             icon={<LogOut />}
@@ -99,7 +100,6 @@ export default function Sidebar({ activeView, setActiveView }) {
         </div>
       </aside>
 
-      {/* 🔐 LOGOUT CONFIRMATION MODAL */}
       <AnimatePresence>
         {showLogoutModal && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
@@ -113,39 +113,12 @@ export default function Sidebar({ activeView, setActiveView }) {
               <h2 className="text-[20px] min-[800px]:text-[24px] font-semibold mb-4 min-[800px]:mb-5 leading-tight">
                 Sign out of SVX Copilot
               </h2>
-
               <p className="text-[14px] min-[800px]:text-[15px] mb-6 leading-relaxed">
-                We'll sign you out and remove any temporary offline data, including unsent query drafts. {' '}
-                <a href="#" className="text-[#464eb8] hover:underline">Learn more</a>
+                We'll sign you out and remove any temporary offline data.
               </p>
-
-              <div className="mb-8 min-[800px]:mb-10 text-[14px] min-[800px]:text-[15px]">
-                <span className="font-bold">Tip: </span>
-                SVX Copilot now supports multiple workspaces, which means you won't have to sign out to move between Servex projects.
-              </div>
-
-              {/* Acciones responsivas: se apilan en pantallas muy pequeñas */}
               <div className="flex flex-wrap justify-end gap-2">
-                <button
-                  onClick={() => setShowLogoutModal(false)}
-                  className="px-4 min-[800px]:px-5 py-[6px] border border-[#d1d1d1] bg-white text-[#242424] rounded-[4px] text-[13px] min-[800px]:text-[14px] font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  Add another account
-                </button>
-                
-                <button
-                  onClick={() => setShowLogoutModal(false)}
-                  className="px-4 min-[800px]:px-5 py-[6px] border border-[#d1d1d1] bg-white text-[#242424] rounded-[4px] text-[13px] min-[800px]:text-[14px] font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  onClick={handleLogout}
-                  className="px-4 min-[800px]:px-5 py-[6px] bg-[#464eb8] text-white rounded-[4px] text-[13px] min-[800px]:text-[14px] font-semibold hover:bg-[#3b42a0] transition-colors"
-                >
-                  Sign out
-                </button>
+                <button onClick={() => setShowLogoutModal(false)} className="px-4 py-[6px] border border-[#d1d1d1] rounded-[4px] text-[14px] font-semibold">Cancel</button>
+                <button onClick={handleLogout} className="px-4 py-[6px] bg-[#464eb8] text-white rounded-[4px] text-[14px] font-semibold">Sign out</button>
               </div>
             </motion.div>
           </div>
