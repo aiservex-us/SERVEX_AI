@@ -1,47 +1,45 @@
 "use client";
 
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import { useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Copy,
-  ChevronDown,
-  ChevronUp,
   Database,
   KeyRound,
   Cpu,
   Layers,
   FileText,
+  ExternalLink,
+  Info,
+  ArrowLeft
 } from "lucide-react";
 
 import Head from "next/head";
-import Header from "./components/header";
+import Link from "next/link";
 
 export default function GLYNNEOverviewComponent() {
-  const [openSection, setOpenSection] = useState(null);
+  const [activeTab, setActiveTab] = useState("svx-1");
   const contentRef = useRef(null);
 
- 
   const sections = [
     {
       id: "svx-1",
       title: "Perimeter Infrastructure Concept",
-      icon: FileText,
+      icon: Layers,
       content:
         "SVX COPILOT is a software architecture designed to act as an efficiency wall surrounding Servex US's core business model. Its purpose is to shield the CET Designer workflow by absorbing and automating all peripheral management tasks that consume operational time."
     },
     {
       id: "svx-2",
       title: "Elimination of the Human Gap",
-      icon: FileText,
+      icon: Cpu,
       content:
         "The primary technical objective is the systematic reduction of manual intervention in repetitive activities. Through AI microservices, the platform manages data preparation and catalog cleaning, allowing personnel to focus exclusively on core value within CET."
     },
     {
       id: "svx-3",
       title: "Centralization of Isolated Tools",
-      icon: FileText,
+      icon: Database,
       content:
         "The platform unifies processes that are traditionally scattered across disconnected tools. SVX COPILOT integrates analysis, validation, and data management into a single control panel, enabling previously isolated tools to operate under a unified artificial intelligence logic."
     },
@@ -69,14 +67,14 @@ export default function GLYNNEOverviewComponent() {
     {
       id: "svx-7",
       title: "Adaptable Data Infrastructure",
-      icon: FileText,
+      icon: Database,
       content:
         "The architecture supports massive loads of information from multiple international manufacturers. It is an elastic infrastructure that can expand to absorb new data types without compromising the stability of the central system or the primary design flow."
     },
     {
       id: "svx-8",
       title: "Pre-established AI Tools",
-      icon: FileText,
+      icon: Cpu,
       content:
         "Users access a repository of ready-to-use AI solutions, trained with Servex's specific know-how. Functions such as model filtering or technical documentation generation become one-click processes, eliminating the need for creation from scratch."
     },
@@ -90,21 +88,21 @@ export default function GLYNNEOverviewComponent() {
     {
       id: "svx-10",
       title: "The Technological Efficiency Wall",
-      icon: FileText,
+      icon: Layers,
       content:
         "SVX COPILOT functions as an intelligent membrane: all incoming data is cleaned, categorized, and prepared by AI. Likewise, every deliverable is validated by the platform, ensuring consistent quality and maintaining the human focus on technical expertise."
     },
     {
       id: "svx-11",
       title: "Real-Time Analysis and Adjustment",
-      icon: FileText,
+      icon: Cpu,
       content:
         "The platform analyzes the workflow dynamically. If it detects anomalies in a data pipeline or a recurring automation opportunity, the system automatically implements adjustments, learning from every cataloging cycle performed."
     },
     {
       id: "svx-12",
       title: "Exponential Scalability",
-      icon: FileText,
+      icon: Database,
       content:
         "Thanks to AI-guided infrastructure, Servex's growth does not rely on linear hiring for administrative tasks. SVX COPILOT enables production scaling while maintaining operational agility through automated processing power."
     },
@@ -118,14 +116,14 @@ export default function GLYNNEOverviewComponent() {
     {
       id: "svx-14",
       title: "Infrastructure Control Dashboard",
-      icon: FileText,
+      icon: Layers,
       content:
         "Provides total visibility over active automation processes and calculated human time savings. The modern interface allows management to monitor the health of data pipelines and the overall efficiency of the AI wall."
     },
     {
       id: "svx-15",
       title: "Transition to an AI-First Company",
-      icon: FileText,
+      icon: Cpu,
       content:
         "SVX COPILOT redefines Servex's operational identity, positioning it as a technological powerhouse. The infrastructure ensures that technology handles the heavy lifting, while the human team contributes exclusively with expert and creative judgment."
     },
@@ -146,255 +144,173 @@ export default function GLYNNEOverviewComponent() {
     {
       id: "svx-18",
       title: "Architecture and Development by GLYNNE S.A.S.",
-      icon: FileText,
+      icon: KeyRound,
       content:
         "It is essential to highlight that this entire perimeter infrastructure, the surrounding AI logic, and the automation systems have been developed and created in their entirety by GLYNNE S.A.S., acting as the technological brain behind the ecosystem."
     },
     {
       id: "svx-19",
       title: "Software Engineering Innovation",
-      icon: FileText,
+      icon: Cpu,
       content:
         "Every module of SVX COPILOT has been designed by GLYNNE S.A.S. with a vision of extreme adaptability. This engineering ensures that Servex US possesses a technological competitive advantage that closes the efficiency gap through world-class software."
     },
     {
       id: "svx-20",
       title: "Conclusion of the Technological Alliance",
-      icon: FileText,
+      icon: Layers,
       content:
         "SVX COPILOT is the engine of Servex US for the future. Under the technical orchestration of GLYNNE S.A.S., the company consolidates a robust ecosystem where artificial intelligence protects, manages, and empowers every aspect of the business model."
     }
   ];
 
-  const toggle = (id) => {
-    setOpenSection(openSection === id ? null : id);
-  };
-
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-      alert("Copiado al portapapeles");
     } catch (e) {
-      alert("No se pudo copiar");
+      console.error("Error al copiar");
     }
   };
 
-  const generarPDF = async () => {
-    if (!contentRef.current) return;
-
-    const canvas = await html2canvas(contentRef.current);
-    const img = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-
-    pdf.addImage(img, "PNG", 0, 0, width, height);
-    pdf.save("GLYNNE_documentacion.pdf");
-  };
-
   return (
-    <div ref={contentRef} className="max-w-6xl mt-10 mx-auto p-6">
-  
-      {/* ================================ */}
-      {/* 🔥 SEO */}
-      {/* ================================ */}
+    <div className="min-h-screen bg-[#FFF] font-sans text-[#242424]">
       <Head>
-        <title>GLYNNE – Documentación Legal y Arquitectura de Plataforma IA</title>
-  
-        <meta
-          name="description"
-          content="GLYNNE ofrece agentes de inteligencia artificial, automatización avanzada y arquitecturas escalables para empresas B2B. Consulta documentación legal, alcances del servicio y lineamientos técnicos."
-        />
-  
-        <meta
-          name="keywords"
-          content="GLYNNE, documentación legal, agentes IA, inteligencia artificial empresarial, automatización B2B, arquitectura de software, LangChain, integración de APIs, Next.js, automatización corporativa"
-        />
-  
-        <meta name="author" content="GLYNNE Tech" />
-        <meta name="robots" content="index, follow" />
-  
-        {/* Open Graph */}
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content="GLYNNE – Documentación y Alcances de Servicio" />
-        <meta
-          property="og:description"
-          content="Accede a la documentación oficial de GLYNNE, una plataforma empresarial para agentes IA, automatización profunda y arquitectura integrable."
-        />
-        <meta property="og:image" content="https://glynneai.com/meta-banner.jpg" />
-        <meta property="og:url" content="https://glynneai.com/politicas" />
-        <meta property="og:site_name" content="GLYNNE" />
-  
-        <link rel="canonical" href="https://glynneai.com/politicas" />
-  
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebPage",
-              "name": "Documentación y Políticas · GLYNNE",
-              "url": "https://glynneai.com/politicas",
-              "description":
-                "Documentación oficial del servicio, alcances legales, lineamientos técnicos y aclaraciones sobre el funcionamiento de agentes IA en GLYNNE.",
-              "publisher": {
-                "@type": "Organization",
-                "name": "GLYNNE",
-                "url": "https://glynneai.com",
-                "logo": "https://glynneai.com/favicon.ico",
-              },
-            }),
-          }}
-        />
+        <title>SVX Copilot– Documentación Técnica</title>
       </Head>
-  
-      <Header />
-  
-      <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
-  
-        {/* SIDEBAR */}
-        <aside
-          className="
-            hidden md:block
-            md:col-span-1
-            space-y-4
-            w-[350px]
-            fixed
-            top-24
-            left-0
-            h-[calc(100vh-6rem)]
-            overflow-y-auto
-            pr-4
-          "
-        >
-          <div className="p-4 rounded-2xl shadow-sm bg-white/60 backdrop-blur">
-            <h3 className="font-semibold">Secciones</h3>
-  
-            <ul className="mt-3 space-y-2 text-sm">
-              {sections.map((s) => (
-                <li key={s.id}>
-                  <button
-                    onClick={() => {
-                      const element = document.getElementById(`section-${s.id}`);
-                      if (element) {
-                        element.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-                      }
-                    }}
-                    className="w-full flex items-start justify-start p-2 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    <div className="flex items-start gap-3">
-                      <s.icon className="w-4 h-4" />
-                      <span>{s.title}</span>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-  
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => copyToClipboard("https://glynneai.com")}
-                className="flex-1 py-2 px-3 rounded-lg border text-sm hover:bg-gray-50"
-              >
-                <Copy className="w-4 h-4 inline-block mr-2" /> Copiar URL
-              </button>
+
+      {/* HEADER ESTILO TEAMS / LOGO */}
+      <header className="h-[48px] bg-[#464775] flex items-center px-4 justify-between sticky top-0 z-50">
+        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition">
+          <img src="/logo2.png" alt="Logo" className="h-6 w-auto" />
+          <div className="h-4 w-[1px] bg-white/30 hidden md:block" />
+          <span className="text-white text-xs font-semibold hidden md:block tracking-tight">Technical Overview</span>
+        </Link>
+        <div className="flex items-center gap-4 text-white/90 text-xs">
+          <span className="cursor-pointer hover:text-white transition">Docs</span>
+          <span className="cursor-pointer hover:text-white transition">Support</span>
+        </div>
+      </header>
+
+      <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row gap-0 md:h-[calc(100vh-48px)] overflow-hidden">
+        
+        {/* SIDEBAR ESTILO TEAMS */}
+        <aside className="w-full md:w-[280px] bg-[#FFF] border-r border-[#D1D1D1] flex flex-col shrink-0">
+          <div className="p-3 border-b border-[#D1D1D1] bg-[#F0F0F0]">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#616161] mb-2">Contenido</h3>
+            <div className="flex items-center justify-between bg-white rounded border border-[#D1D1D1] px-2 py-1.5 shadow-sm">
+              <span className="text-xs text-[#242424] font-semibold">SVX Architecture</span>
+              <Info className="w-3.5 h-3.5 text-[#5b5fc7]" />
             </div>
           </div>
-  
-          <div className="p-4 rounded-2xl bg-white/60 backdrop-blur shadow-sm">
-            <h4 className="text-xs uppercase text-gray-500">Estado</h4>
-            <div className="mt-2 text-sm">
-              Presets: Ventas, Finanzas, Operaciones
-            </div>
-            <div className="mt-3 text-xs text-gray-400">
-              Entornos: dev • staging • prod
-            </div>
+
+          <nav className="flex-1 overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar bg-[#FFF]">
+            {sections.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => {
+                  setActiveTab(s.id);
+                  document.getElementById(`section-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded text-left transition-all duration-150 group ${
+                  activeTab === s.id 
+                  ? "bg-white text-[#5b5fc7] shadow-sm" 
+                  : "text-[#424242] hover:bg-[#E0E0E0]"
+                }`}
+              >
+                <s.icon className={`w-3.5 h-3.5 shrink-0 ${activeTab === s.id ? "text-[#5b5fc7]" : "text-[#616161]"}`} />
+                <span className={`text-[12px] truncate leading-tight ${activeTab === s.id ? "font-bold" : "font-medium"}`}>
+                  {s.title}
+                </span>
+              </button>
+            ))}
+          </nav>
+
+          <div className="p-3 border-t border-[#D1D1D1] bg-[#F0F0F0]">
+             <button 
+              onClick={() => copyToClipboard("https://glynneai.com")}
+              className="w-full flex items-center justify-center gap-2 py-1.5 px-3 text-[11px] font-bold text-[#5b5fc7] bg-white border border-[#D1D1D1] rounded hover:bg-[#F5F5F5] transition shadow-sm"
+            >
+              <Copy className="w-3 h-3" /> Copiar Enlace
+            </button>
           </div>
         </aside>
-  
-        {/* MAIN */}
-        <main
-          className="
-            md:col-span-2
-            md:ml-[280px]
-            w-full
-            max-w-none
-          "
-        >
-          {sections.map((s) => (
-            <section
-              key={s.id}
-              id={`section-${s.id}`}
-              className="mb-16 scroll-mt-24"
-            >
-              <h2
-                className="
-                  text-3xl md:text-4xl
-                  font-medium
-                  tracking-tight
-                  mb-4
-                "
-              >
-                {s.title}
-              </h2>
-  
-              <p
-                className="
-                  text-sm md:text-base
-                  text-black/60
-                  leading-normal
-                  max-w-3xl
-                  whitespace-pre-line
-                "
-              >
-                {s.content}
-              </p>
-  
-              <hr className="my-12 border-black/10" />
-            </section>
-          ))}
-  
-          {/* DOCUMENTACIÓN EXTENDIDA */}
-          <section className="mt-16">
-            <h3
-              className="
-                text-2xl md:text-3xl
-                font-medium
-                tracking-tight
-                mb-3
-              "
-            >
-              Documentación extendida
-            </h3>
-  
-            <p className="text-sm md:text-base text-black/60 max-w-3xl leading-normal">
-              Aquí puedes pegar artículos largos, contenido técnico o guías completas.
-            </p>
-  
-            <div className="mt-6 flex gap-2">
-              <button
-                className="py-2 px-4 rounded-full border text-sm hover:bg-gray-50 transition"
-                onClick={generarPDF}
-              >
-                Exportar PDF
-              </button>
-  
-              <button className="py-2 px-4 rounded-full border text-sm hover:bg-gray-50 transition">
-                Abrir Editor
-              </button>
+
+        {/* CONTENIDO PRINCIPAL */}
+        <main className="flex-1 bg-white overflow-y-auto relative custom-scrollbar scroll-smooth" ref={contentRef}>
+          {/* BARRA DE TÍTULO INTERNA */}
+          <div className="sticky top-0 z-10 bg-white border-b border-[#EDEBE9] px-6 py-3 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+               <div className="md:hidden p-1 hover:bg-gray-100 rounded">
+                  <ArrowLeft className="w-4 h-4" />
+               </div>
+               <h1 className="text-sm font-bold text-[#242424] flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-green-500" /> Visión Técnica SVX
+               </h1>
             </div>
-          </section>
+          </div>
+
+          <div className="max-w-3xl mx-auto px-6 py-10">
+            {sections.map((s) => (
+              <section
+                key={s.id}
+                id={`section-${s.id}`}
+                className="mb-10 last:mb-20 scroll-mt-20"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                   <s.icon className="w-4 h-4 text-[#5b5fc7]" />
+                   <h2 className="text-sm font-bold text-[#242424] uppercase tracking-wide">
+                    {s.title}
+                  </h2>
+                </div>
+
+                <div className="bg-white border border-[#EDEBE9] p-5 rounded-md shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+                  <p className="text-[#323130] leading-relaxed text-[13px] whitespace-pre-line font-medium">
+                    {s.content}
+                  </p>
+                </div>
+              </section>
+            ))}
+
+            {/* SECCIÓN FINAL REFINADA */}
+            <section className="mt-16 p-6 bg-[#FAF9F8] rounded border border-[#EDEBE9]">
+              <h3 className="text-xs font-bold mb-2 flex items-center gap-2 text-[#5b5fc7]">
+                <FileText className="w-3.5 h-3.5" /> RECURSOS ADICIONALES
+              </h3>
+              <p className="text-[12px] text-[#605E5C] mb-4">
+                Toda la infraestructura descrita ha sido diseñada bajo estándares ISO de seguridad y escalabilidad elástica.
+              </p>
+              <div className="flex gap-2">
+                <button className="flex items-center gap-2 px-4 py-1.5 bg-white border border-[#D1D1D1] rounded text-[11px] font-bold hover:bg-[#F3F2F1] transition">
+                  <ExternalLink className="w-3 h-3" /> Repositorio Técnico
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <footer className="py-8 text-center text-[#605E5C] border-t border-[#EDEBE9] bg-[#FAF9F8]">
+            <p className="text-[10px] font-bold uppercase tracking-[2px] opacity-60">GLYNNE S.A.S. · SYSTEM ARCHITECTURE · 2024</p>
+          </footer>
         </main>
       </div>
-  
-      <footer className="mt-6 text-sm text-gray-500 text-center">
-        GLYNNE · Plataforma de agentes y automatización guiada por IA
-      </footer>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #C8C8C8;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #A6A6A6;
+        }
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
     </div>
   );
-  
 }
