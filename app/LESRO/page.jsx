@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Importamos el router
+import { useRouter } from 'next/navigation';
+import { supabase } from '../lib/supabaseClient'; // 👈 MISMA IMPORTACIÓN
 import { X, AlertCircle } from 'lucide-react';
-import MenuLateral from './components/menuLateral';
 
+import MenuLateral from './components/menuLateral';
 import Dashboard from './components/dashboard';
 import PriceProduct from './components/priceProduct';
 import CatalogParser from './components/PDFsection';
@@ -14,18 +15,24 @@ export default function MenuInicial() {
   const [active, setActive] = useState('kanban');
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
-  
-  const router = useRouter(); // Inicializamos el router
+
+  const router = useRouter();
+
+  // 🔒 PROTECCIÓN DE RUTA (MISMA LÓGICA, MISMO COMPORTAMIENTO)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data?.user) {
+        router.replace('/login');
+      }
+    });
+  }, [router]);
 
   // --- LÓGICA PARA DETECTAR INTENTO DE SALIDA (BACK BUTTON) ---
   useEffect(() => {
-    // Bloqueamos el estado inicial
     window.history.pushState(null, null, window.location.pathname);
 
     const handlePopState = () => {
-      // Cuando el usuario intenta ir atrás, empujamos el estado de nuevo para "frenarlo"
       window.history.pushState(null, null, window.location.pathname);
-      // Disparamos el modal de confirmación
       setShowExitModal(true);
     };
 
@@ -38,7 +45,6 @@ export default function MenuInicial() {
 
   const handleConfirmExit = () => {
     setShowExitModal(false);
-    // Redirigimos específicamente a la página principal del panel
     router.push('/panel'); 
   };
 
@@ -59,14 +65,12 @@ export default function MenuInicial() {
       {/* MODAL ESTILO MICROSOFT TEAMS */}
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
-          {/* Fondo con desenfoque */}
           <div 
             className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" 
             onClick={() => setShowExitModal(false)} 
           />
           
           <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
-            {/* Header del Modal */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <span className="text-[14px] font-bold text-[#242424]">Confirmar salida</span>
               <button onClick={() => setShowExitModal(false)} className="text-slate-400 hover:text-slate-600">
@@ -74,7 +78,6 @@ export default function MenuInicial() {
               </button>
             </div>
 
-            {/* Cuerpo del Modal */}
             <div className="px-8 py-6 flex gap-4">
               <div className="bg-[#C4314B]/10 p-2 h-fit rounded-full shrink-0">
                 <AlertCircle size={22} className="text-[#C4314B]" />
@@ -89,7 +92,6 @@ export default function MenuInicial() {
               </div>
             </div>
 
-            {/* Footer con botones Teams Style */}
             <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
               <button
                 onClick={() => setShowExitModal(false)}

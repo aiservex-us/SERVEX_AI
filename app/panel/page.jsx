@@ -15,11 +15,11 @@ export default function PanelPage() {
   // 🔒 PROTECCIÓN DE RUTA (MISMA LÓGICA)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-/*
+
       if (!data?.user) {
         router.replace('/login');
       }
-  */
+
     });
   
   }, [router]);
