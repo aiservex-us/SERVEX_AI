@@ -10,7 +10,6 @@ import {
   Search,
   AlertCircle,
   Table as TableIcon,
-  ChevronRight,
   Download,
   Filter
 } from 'lucide-react';
@@ -67,113 +66,108 @@ export default function DataViewer() {
   );
 
   if (loading) return (
-    <div className="flex h-full flex-col items-center justify-center bg-[#F5F5F5] font-sans">
-      <div className="relative flex items-center justify-center">
-        <RefreshCw className="animate-spin text-[#5B5FC7]" size={40} />
-        <div className="absolute inset-0 animate-ping rounded-full border-4 border-[#5B5FC7] opacity-20"></div>
-      </div>
-      <span className="mt-4 text-sm font-semibold text-[#242424]">Cargando registros de Teams...</span>
+    <div className="flex h-screen flex-col items-center justify-center bg-[#F5F5F5] font-sans p-6">
+      <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
+      <span className="text-sm font-semibold text-[#242424] text-center">Sincronizando con Teams...</span>
     </div>
   );
 
   if (!data) return (
-    <div className="flex h-full items-center justify-center p-10 bg-[#F5F5F5]">
-      <div className="max-w-sm text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
+    <div className="flex h-screen items-center justify-center p-6 bg-[#F5F5F5]">
+      <div className="max-w-sm w-full text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
         <AlertCircle className="mx-auto mb-4 text-[#C4314B]" size={48} />
-        <h3 className="text-lg font-bold text-[#242424]">No se encontraron datos</h3>
-        <p className="text-sm text-[#616161] mt-2">No hay registros disponibles en la tabla ClientsSERVEX actualmente.</p>
+        <h3 className="text-lg font-bold text-[#242424]">Sin conexión a datos</h3>
+        <p className="text-sm text-[#616161] mt-2">No se han encontrado registros en ClientsSERVEX.</p>
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col h-full bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
       
-      {/* HEADER SOFISTICADO */}
-      <div className="bg-white px-6 py-4 border-b border-[#EDEBE9] shadow-sm z-20">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="bg-[#5B5FC7] p-2.5 rounded-lg shadow-md shadow-indigo-100">
-              <Database size={22} className="text-white" />
+      {/* HEADER DINÁMICO & RESPONSIVE */}
+      <div className="bg-white px-4 md:px-6 py-4 border-b border-[#EDEBE9] shadow-sm z-20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md flex-shrink-0">
+              <Database size={20} className="text-white" />
             </div>
-            <div>
+            <div className="overflow-hidden">
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-extrabold tracking-tight text-[#242424]">
+                <h2 className="text-base md:text-xl font-extrabold tracking-tight text-[#242424] truncate">
                   {data.company_name}
                 </h2>
-                <span className="text-[10px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase">
-                  Solo Lectura
+                <span className="hidden xs:inline-block text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase flex-shrink-0">
+                  Read Only
                 </span>
               </div>
-              <p className="text-xs text-[#616161] flex items-center gap-1 mt-0.5">
-                Actualizado el {new Date(data.created_at).toLocaleDateString()} a las {new Date(data.created_at).toLocaleTimeString()}
+              <p className="text-[10px] md:text-xs text-[#616161] truncate">
+                Actualizado: {new Date(data.created_at).toLocaleDateString()}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#F0F0F0] p-1 rounded-lg">
+          <div className="flex items-center gap-1 bg-[#F0F0F0] p-1 rounded-lg self-start sm:self-center">
             <button
               onClick={() => setActiveTab('csv_raw')}
-              className={`flex items-center gap-2 px-5 py-2 rounded-md text-xs font-bold transition-all duration-200 ${
-                activeTab === 'csv_raw' 
-                ? 'bg-white text-[#5B5FC7] shadow-sm scale-[1.02]' 
-                : 'text-[#616161] hover:bg-white/50'
+              className={`flex items-center gap-2 px-3 md:px-5 py-1.5 rounded-md text-[11px] md:text-xs font-bold transition-all duration-200 ${
+                activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:bg-white/50'
               }`}
             >
-              <FileSpreadsheet size={16} />
-              Manual CSV
+              <FileSpreadsheet size={14} />
+              <span className="hidden xs:block">Manual</span>
+              <span className="xs:hidden">CSV</span>
             </button>
             <button
               onClick={() => setActiveTab('csvpdf_raw')}
-              className={`flex items-center gap-2 px-5 py-2 rounded-md text-xs font-bold transition-all duration-200 ${
-                activeTab === 'csvpdf_raw' 
-                ? 'bg-white text-[#5B5FC7] shadow-sm scale-[1.02]' 
-                : 'text-[#616161] hover:bg-white/50'
+              className={`flex items-center gap-2 px-3 md:px-5 py-1.5 rounded-md text-[11px] md:text-xs font-bold transition-all duration-200 ${
+                activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:bg-white/50'
               }`}
             >
-              <FileText size={16} />
-              PDF Extraction
+              <FileText size={14} />
+              <span className="hidden xs:block">PDF Sync</span>
+              <span className="xs:hidden">PDF</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* TOOLBAR DE ACCIÓN */}
-      <div className="bg-white px-6 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-[#EDEBE9]">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={16} />
+      {/* TOOLBAR RESPONSIVE */}
+      <div className="bg-white px-4 md:px-6 py-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9]">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={14} />
           <input 
             type="text"
-            placeholder="Filtrar registros en tiempo real..."
-            className="w-full pl-10 pr-4 py-2 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-sm rounded-t-md"
+            placeholder="Buscar en tabla..."
+            className="w-full pl-9 pr-4 py-2 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-xs md:text-sm rounded-t-md"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
-        <div className="flex items-center gap-3">
-            <button onClick={fetchLatestData} className="p-2 hover:bg-[#F0F0F0] rounded-full text-[#616161] transition-colors" title="Refrescar">
-                <RefreshCw size={18} />
+        <div className="flex items-center justify-end gap-2">
+            <button onClick={fetchLatestData} className="p-2 hover:bg-[#F0F0F0] rounded-full text-[#616161]" title="Refrescar">
+                <RefreshCw size={16} />
             </button>
             <div className="h-6 w-[1px] bg-[#EDEBE9]"></div>
-            <button className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#616161] border border-[#D1D1D1] rounded hover:bg-[#F5F5F5]">
-                <Download size={14} /> Exportar
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold text-[#616161] border border-[#D1D1D1] rounded hover:bg-[#F5F5F5]">
+                <Download size={14} /> <span className="hidden sm:block">Exportar</span>
             </button>
         </div>
       </div>
 
-      {/* CONTENEDOR DE TABLA ESTILO TEAMS */}
-      <div className="flex-1 m-4 mb-2 bg-white rounded-xl shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
+      {/* ÁREA DE TABLA CON SCROLL HORIZONTAL */}
+      <div className="flex-1 m-2 md:m-4 bg-white rounded-xl shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
         {filteredData.length > 0 ? (
-          <div className="overflow-auto custom-scrollbar h-full">
-            <table className="w-full border-collapse text-sm">
+          <div className="overflow-x-auto overflow-y-auto custom-scrollbar h-full">
+            <table className="w-full border-collapse text-[11px] md:text-sm min-w-max">
               <thead>
                 <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
                   {Object.keys(currentCsvData[0]).map((header) => (
-                    <th key={header} className="px-6 py-4 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap">
-                      <div className="flex items-center gap-2 group cursor-pointer">
+                    <th key={header} className="px-4 md:px-6 py-3 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap">
+                      <div className="flex items-center gap-2 group cursor-pointer uppercase tracking-wider text-[10px]">
                         {header}
-                        <Filter size={12} className="opacity-0 group-hover:opacity-100 text-[#5B5FC7] transition-opacity" />
+                        <Filter size={10} className="text-[#5B5FC7] opacity-40 group-hover:opacity-100" />
                       </div>
                     </th>
                   ))}
@@ -183,12 +177,14 @@ export default function DataViewer() {
                 {filteredData.map((row, idx) => (
                   <tr key={idx} className="group hover:bg-[#F5F5F7] transition-colors">
                     {Object.values(row).map((val, i) => (
-                      <td key={i} className="px-6 py-3.5 text-[#424242] whitespace-nowrap border-r border-[#F0F0F0]/50 last:border-none">
-                        {val && val !== '---' ? (
-                          <span className="font-medium">{val}</span>
-                        ) : (
-                          <span className="text-[#BDBDBD] italic text-xs">N/A</span>
-                        )}
+                      <td key={i} className="px-4 md:px-6 py-3 text-[#424242] border-r border-[#F0F0F0]/50 last:border-none">
+                        <div className="max-w-[200px] md:max-w-none truncate">
+                            {val && val !== '---' ? (
+                            <span className="font-medium">{val}</span>
+                            ) : (
+                            <span className="text-[#BDBDBD] italic text-[10px]">N/A</span>
+                            )}
+                        </div>
                       </td>
                     ))}
                   </tr>
@@ -197,51 +193,33 @@ export default function DataViewer() {
             </table>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center flex-1 py-20 bg-[#FAF9F8]">
-            <div className="bg-white p-6 rounded-full shadow-inner mb-4">
-                <TableIcon size={48} strokeWidth={1} className="text-[#D1D1D1]" />
-            </div>
-            <p className="text-base font-semibold text-[#242424]">Sin resultados coincidentes</p>
-            <p className="text-sm text-[#616161]">Intenta ajustar los términos de búsqueda.</p>
+          <div className="flex flex-col items-center justify-center flex-1 py-10">
+            <TableIcon size={32} className="text-[#D1D1D1] mb-2" />
+            <p className="text-xs font-semibold text-[#616161]">No hay datos para mostrar</p>
           </div>
         )}
       </div>
 
-      {/* BARRA DE ESTADO INFERIOR */}
-      <div className="px-6 py-3 flex justify-between items-center text-xs font-medium text-[#616161]">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span>Conectado a Base de Datos</span>
-          </div>
+      {/* FOOTER MINI */}
+      <div className="px-4 py-2 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] md:text-xs font-medium text-[#616161]">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+          <span className="hidden xs:inline">DB Online</span>
+          <span className="xs:hidden">Live</span>
           <span className="text-[#EDEBE9]">|</span>
-          <span>Mostrando <strong>{filteredData.length}</strong> de <strong>{currentCsvData.length}</strong> registros</span>
+          <span>{filteredData.length} registros</span>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-[#E8EBFA] px-3 py-1 rounded text-[#5B5FC7]">
-            <span className="font-bold">MODO:</span>
-            <span className="uppercase">{activeTab === 'csv_raw' ? 'Manual' : 'Automático'}</span>
-          </div>
+        <div className="bg-[#5B5FC7]/10 px-2 py-0.5 rounded text-[#5B5FC7] font-bold uppercase text-[8px] md:text-[10px]">
+          {activeTab === 'csv_raw' ? 'Manual Mode' : 'PDF Extraction'}
         </div>
       </div>
 
       <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { 
-          width: 8px; 
-          height: 8px; 
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-          background: #D1D1D1; 
-          border-radius: 4px;
-          border: 2px solid #FFF;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
-          background: #A1A1A1; 
-        }
-        .custom-scrollbar::-webkit-scrollbar-track { 
-          background: #F5F5F5; 
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 1px solid #FFF; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
+        @media (max-width: 480px) { .xs\:hidden { display: none; } .xs\:block { display: block; } .xs\:inline-block { display: inline-block; } }
       `}</style>
     </div>
   );
