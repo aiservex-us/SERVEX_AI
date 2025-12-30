@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
+  { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox },
   { id: 'kanban', label: 'XML Data', icon: KanbanSquare },
-  { id: 'inbox', label: 'Sync Preview', icon: Inbox },
   { id: 'Tasks', label: 'Synchronizer', icon: ListChecks },
   { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3 },
   { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard },

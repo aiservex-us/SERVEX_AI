@@ -84,14 +84,14 @@ export default function DataViewer() {
   );
 
   if (loading) return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-[#F5F5F5] p-6">
+    <div className="flex h-full w-full flex-col items-center justify-center bg-[#FFF] p-6">
       <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
       <span className="text-sm font-semibold text-[#242424]">Sincronizando con Teams...</span>
     </div>
   );
 
   if (!data) return (
-    <div className="flex h-full w-full items-center justify-center p-6 bg-[#F5F5F5]">
+    <div className="flex h-full w-full items-center justify-center p-6 bg-[#FFF]">
       <div className="max-w-sm w-full text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
         <AlertCircle className="mx-auto mb-4 text-[#C4314B]" size={48} />
         <h3 className="text-lg font-bold">Sin conexión a datos</h3>
@@ -101,7 +101,7 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="flex flex-col h-full w-screen bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-full w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
       
       {/* HEADER */}
       <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
