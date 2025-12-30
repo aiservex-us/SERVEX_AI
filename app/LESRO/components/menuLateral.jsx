@@ -19,11 +19,10 @@ import {
 
 const menuItems = [
   { id: 'kanban', label: 'XML Data', icon: KanbanSquare },
-  { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3 },
-  { id: 'Tasks', label: 'Synchronizer', icon: ListChecks },
   { id: 'inbox', label: 'Sync Preview', icon: Inbox },
+  { id: 'Tasks', label: 'Synchronizer', icon: ListChecks },
+  { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3 },
   { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard },
-  
   { id: 'search', label: 'Search', icon: Search },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'mail', label: 'Data Explorer', icon: Mail }, // Esta es la sección donde se activará tu componente de lectura de tablas
