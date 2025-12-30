@@ -101,7 +101,7 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="flex flex-col h-full w-[90vw] bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-full w-[85vw] bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
       
       {/* HEADER */}
       <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
