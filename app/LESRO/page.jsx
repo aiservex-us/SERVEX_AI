@@ -6,6 +6,9 @@ import MenuLateral from './components/menuLateral';
 import Dashboard from './components/dashboard';
 import PriceProduct from './components/priceProduct';
 import CatalogParser from './components/PDFsection';
+// 👇 Importamos el nuevo componente
+import Csvs from './components/comparePDF/csvs'; 
+
 export default function MenuInicial() {
   // 👇 Vista inicial
   const [active, setActive] = useState('kanban');
@@ -21,6 +24,10 @@ export default function MenuInicial() {
 
       case 'Tasks': // 👈 CHANGE TRACKER
         return <CatalogParser />;
+
+      case 'inbox': // 👈 Sync Preview
+        return <Csvs />;
+
       default:
         return (
           <div className="p-6 text-gray-500">
