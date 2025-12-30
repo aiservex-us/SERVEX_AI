@@ -83,10 +83,10 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden w-full">
       
-      {/* HEADER DINÁMICO & RESPONSIVE */}
-      <div className="bg-white px-4 md:px-6 py-4 border-b border-[#EDEBE9] shadow-sm z-20">
+      {/* HEADER */}
+      <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md flex-shrink-0">
@@ -94,14 +94,14 @@ export default function DataViewer() {
             </div>
             <div className="overflow-hidden">
               <div className="flex items-center gap-2">
-                <h2 className="text-base md:text-xl font-extrabold tracking-tight text-[#242424] truncate">
+                <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424] truncate">
                   {data.company_name}
                 </h2>
-                <span className="hidden xs:inline-block text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase flex-shrink-0">
+                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase flex-shrink-0">
                   Read Only
                 </span>
               </div>
-              <p className="text-[10px] md:text-xs text-[#616161] truncate">
+              <p className="text-[10px] text-[#616161] truncate">
                 Actualizado: {new Date(data.created_at).toLocaleDateString()}
               </p>
             </div>
@@ -110,64 +110,62 @@ export default function DataViewer() {
           <div className="flex items-center gap-1 bg-[#F0F0F0] p-1 rounded-lg self-start sm:self-center">
             <button
               onClick={() => setActiveTab('csv_raw')}
-              className={`flex items-center gap-2 px-3 md:px-5 py-1.5 rounded-md text-[11px] md:text-xs font-bold transition-all duration-200 ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all duration-200 ${
                 activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:bg-white/50'
               }`}
             >
-              <FileSpreadsheet size={14} />
-              <span className="hidden xs:block">Manual</span>
-              <span className="xs:hidden">CSV</span>
+              <FileSpreadsheet size={12} />
+              <span>Manual</span>
             </button>
             <button
               onClick={() => setActiveTab('csvpdf_raw')}
-              className={`flex items-center gap-2 px-3 md:px-5 py-1.5 rounded-md text-[11px] md:text-xs font-bold transition-all duration-200 ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all duration-200 ${
                 activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:bg-white/50'
               }`}
             >
-              <FileText size={14} />
-              <span className="hidden xs:block">PDF Sync</span>
-              <span className="xs:hidden">PDF</span>
+              <FileText size={12} />
+              <span>PDF Sync</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* TOOLBAR RESPONSIVE */}
-      <div className="bg-white px-4 md:px-6 py-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9]">
+      {/* TOOLBAR */}
+      <div className="bg-white px-4 md:px-6 py-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9]">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={14} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={12} />
           <input 
             type="text"
             placeholder="Buscar en tabla..."
-            className="w-full pl-9 pr-4 py-2 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-xs md:text-sm rounded-t-md"
+            className="w-full pl-9 pr-4 py-1.5 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-[11px] rounded-t-md"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
         <div className="flex items-center justify-end gap-2">
-            <button onClick={fetchLatestData} className="p-2 hover:bg-[#F0F0F0] rounded-full text-[#616161]" title="Refrescar">
-                <RefreshCw size={16} />
+            <button onClick={fetchLatestData} className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#616161]" title="Refrescar">
+                <RefreshCw size={14} />
             </button>
             <div className="h-6 w-[1px] bg-[#EDEBE9]"></div>
-            <button className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-semibold text-[#616161] border border-[#D1D1D1] rounded hover:bg-[#F5F5F5]">
-                <Download size={14} /> <span className="hidden sm:block">Exportar</span>
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-semibold text-[#616161] border border-[#D1D1D1] rounded hover:bg-[#F5F5F5]">
+                <Download size={12} /> <span>Exportar</span>
             </button>
         </div>
       </div>
 
-      {/* ÁREA DE TABLA CON SCROLL HORIZONTAL */}
-      <div className="flex-1 m-2 md:m-4 bg-white rounded-xl shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
+      {/* ÁREA DE TABLA - CORRECCIÓN DE SCROLL X */}
+      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
         {filteredData.length > 0 ? (
-          <div className="overflow-x-auto overflow-y-auto custom-scrollbar h-full">
-            <table className="w-full border-collapse text-[11px] md:text-sm min-w-max">
+          <div className="flex-1 overflow-auto custom-scrollbar">
+            <table className="w-full border-collapse text-[10px] min-w-full">
               <thead>
                 <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
                   {Object.keys(currentCsvData[0]).map((header) => (
-                    <th key={header} className="px-4 md:px-6 py-3 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap">
-                      <div className="flex items-center gap-2 group cursor-pointer uppercase tracking-wider text-[10px]">
+                    <th key={header} className="px-3 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 group cursor-pointer uppercase tracking-wider text-[9px]">
                         {header}
-                        <Filter size={10} className="text-[#5B5FC7] opacity-40 group-hover:opacity-100" />
+                        <Filter size={8} className="text-[#5B5FC7] opacity-40 group-hover:opacity-100" />
                       </div>
                     </th>
                   ))}
@@ -177,14 +175,12 @@ export default function DataViewer() {
                 {filteredData.map((row, idx) => (
                   <tr key={idx} className="group hover:bg-[#F5F5F7] transition-colors">
                     {Object.values(row).map((val, i) => (
-                      <td key={i} className="px-4 md:px-6 py-3 text-[#424242] border-r border-[#F0F0F0]/50 last:border-none">
-                        <div className="max-w-[200px] md:max-w-none truncate">
-                            {val && val !== '---' ? (
-                            <span className="font-medium">{val}</span>
-                            ) : (
-                            <span className="text-[#BDBDBD] italic text-[10px]">N/A</span>
-                            )}
-                        </div>
+                      <td key={i} className="px-3 py-2 text-[#424242] border-r border-[#F0F0F0]/50 last:border-none whitespace-nowrap">
+                        {val && val !== '---' ? (
+                          <span className="font-medium">{val}</span>
+                        ) : (
+                          <span className="text-[#BDBDBD] italic text-[9px]">N/A</span>
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -200,18 +196,15 @@ export default function DataViewer() {
         )}
       </div>
 
-      {/* FOOTER MINI */}
-      <div className="px-4 py-2 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] md:text-xs font-medium text-[#616161]">
+      {/* FOOTER */}
+      <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161]">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-          <span className="hidden xs:inline">DB Online</span>
-          <span className="xs:hidden">Live</span>
-          <span className="text-[#EDEBE9]">|</span>
           <span>{filteredData.length} registros</span>
         </div>
         
-        <div className="bg-[#5B5FC7]/10 px-2 py-0.5 rounded text-[#5B5FC7] font-bold uppercase text-[8px] md:text-[10px]">
-          {activeTab === 'csv_raw' ? 'Manual Mode' : 'PDF Extraction'}
+        <div className="bg-[#5B5FC7]/10 px-2 py-0.5 rounded text-[#5B5FC7] font-bold uppercase text-[8px]">
+          {activeTab === 'csv_raw' ? 'Manual' : 'PDF Extraction'}
         </div>
       </div>
 
@@ -219,7 +212,6 @@ export default function DataViewer() {
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 1px solid #FFF; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
-        @media (max-width: 480px) { .xs\:hidden { display: none; } .xs\:block { display: block; } .xs\:inline-block { display: inline-block; } }
       `}</style>
     </div>
   );
