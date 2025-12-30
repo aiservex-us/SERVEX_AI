@@ -84,53 +84,53 @@ export default function DataViewer() {
   );
 
   if (loading) return (
-    <div className="flex h-full min-h-[400px] flex-col items-center justify-center bg-[#F5F5F5] font-sans p-6">
+    <div className="flex h-full w-full flex-col items-center justify-center bg-[#F5F5F5] p-6">
       <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
-      <span className="text-sm font-semibold text-[#242424] text-center">Sincronizando con Teams...</span>
+      <span className="text-sm font-semibold text-[#242424]">Sincronizando con Teams...</span>
     </div>
   );
 
   if (!data) return (
-    <div className="flex h-full min-h-[400px] items-center justify-center p-6 bg-[#F5F5F5]">
+    <div className="flex h-full w-full items-center justify-center p-6 bg-[#F5F5F5]">
       <div className="max-w-sm w-full text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
         <AlertCircle className="mx-auto mb-4 text-[#C4314B]" size={48} />
-        <h3 className="text-lg font-bold text-[#242424]">Sin conexión a datos</h3>
-        <p className="text-sm text-[#616161] mt-2">No se han encontrado registros en ClientsSERVEX.</p>
+        <h3 className="text-lg font-bold">Sin conexión a datos</h3>
+        <p className="text-sm text-[#616161] mt-2">No se han encontrado registros.</p>
       </div>
     </div>
   );
 
   return (
-    /* CAMBIO: h-full en lugar de h-screen para que no desborde el contenedor padre */
-    <div className="flex flex-col h-full w-full bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
+    /* Contenedor principal: h-full para no salirse del padre y min-w-0 para permitir que los hijos se encojan */
+    <div className="flex flex-col h-full w-full max-w-full bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
       
-      {/* HEADER */}
-      <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0">
+      {/* HEADER: Ocupa siempre el 100% del ancho visible */}
+      <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md flex-shrink-0">
               <Database size={20} className="text-white" />
             </div>
-            <div>
+            <div className="truncate">
               <div className="flex items-center gap-2">
-                <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424]">
+                <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424] truncate">
                   {data.company_name}
                 </h2>
-                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase flex-shrink-0">
+                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase shrink-0">
                   Read Only
                 </span>
               </div>
-              <p className="text-[10px] text-[#616161]">
+              <p className="text-[10px] text-[#616161] truncate">
                 Actualizado: {new Date(data.created_at).toLocaleDateString()}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-[#F0F0F0] p-1 rounded-lg self-start sm:self-center">
+          <div className="flex items-center gap-1 bg-[#F0F0F0] p-1 rounded-lg shrink-0">
             <button
               onClick={() => setActiveTab('csv_raw')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all duration-200 ${
-                activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:bg-white/50'
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161]'
               }`}
             >
               <FileSpreadsheet size={12} />
@@ -138,8 +138,8 @@ export default function DataViewer() {
             </button>
             <button
               onClick={() => setActiveTab('csvpdf_raw')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all duration-200 ${
-                activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:bg-white/50'
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161]'
               }`}
             >
               <FileText size={12} />
@@ -149,9 +149,9 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* TOOLBAR */}
-      <div className="bg-white px-4 md:px-6 py-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9] shrink-0">
-        <div className="relative flex-1">
+      {/* TOOLBAR: Ocupa siempre el 100% del ancho visible */}
+      <div className="bg-white px-4 md:px-6 py-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9] shrink-0 w-full">
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={12} />
           <input 
             type="text"
@@ -162,8 +162,8 @@ export default function DataViewer() {
           />
         </div>
         
-        <div className="flex items-center justify-end gap-2">
-            <button onClick={fetchLatestData} className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#616161]" title="Refrescar">
+        <div className="flex items-center justify-end gap-2 shrink-0">
+            <button onClick={fetchLatestData} className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#616161]">
                 <RefreshCw size={14} />
             </button>
             <div className="h-6 w-[1px] bg-[#EDEBE9]"></div>
@@ -173,19 +173,18 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* ÁREA DE TABLA - ESTA SECCIÓN MANEJA EL SCROLL INDEPENDIENTE */}
-      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
+      {/* ÁREA DE TABLA: Se ajusta al ancho del padre (100%) y genera scroll interno */}
+      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden min-w-0">
         {filteredData.length > 0 ? (
-          /* CAMBIO: overflow-auto y h-full garantizan scroll en ambos ejes */
-          <div className="flex-1 overflow-auto custom-scrollbar">
-            <table className="min-w-full border-collapse text-[10px]">
+          <div className="flex-1 overflow-auto custom-scrollbar w-full">
+            <table className="w-full border-collapse text-[10px]">
               <thead>
                 <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
                   {Object.keys(currentCsvData[0]).map((header) => (
-                    <th key={header} className="px-4 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5 group cursor-pointer uppercase tracking-wider text-[9px]">
+                    <th key={header} className="px-4 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap border-r border-[#EDEBE9]">
+                      <div className="flex items-center gap-1.5 uppercase tracking-wider text-[9px]">
                         {header}
-                        <Filter size={8} className="text-[#5B5FC7] opacity-40 group-hover:opacity-100" />
+                        <Filter size={8} className="text-[#5B5FC7] opacity-40" />
                       </div>
                     </th>
                   ))}
@@ -216,28 +215,27 @@ export default function DataViewer() {
         )}
       </div>
 
-      {/* FOOTER */}
-      <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161] shrink-0">
+      {/* FOOTER: Ocupa siempre el 100% del ancho visible */}
+      <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161] shrink-0 w-full">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
           <span>{filteredData.length} registros</span>
         </div>
-        
         <div className="bg-[#5B5FC7]/10 px-2 py-0.5 rounded text-[#5B5FC7] font-bold uppercase text-[8px]">
           {activeTab === 'csv_raw' ? 'Manual' : 'PDF Extraction'}
         </div>
       </div>
 
       <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
         
-        /* FUERZA EL ANCHO PARA QUE APAREZCA EL SCROLL HORIZONTAL */
+        /* BLOQUEO DE ANCHO DE TABLA */
         table { 
           table-layout: auto !important; 
-          min-width: max-content !important; 
-          width: 100%;
+          min-width: 100%; /* Asegura que cubra el fondo */
+          width: max-content; /* Permite que crezca horizontalmente según los datos */
         }
       `}</style>
     </div>
