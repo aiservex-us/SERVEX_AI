@@ -101,14 +101,13 @@ export default function DataViewer() {
   );
 
   return (
-    /* Contenedor principal: h-full para no salirse del padre y min-w-0 para permitir que los hijos se encojan */
-    <div className="flex flex-col h-full w-full max-w-full bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
       
-      {/* HEADER: Ocupa siempre el 100% del ancho visible */}
+      {/* HEADER */}
       <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md flex-shrink-0">
+            <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md shrink-0">
               <Database size={20} className="text-white" />
             </div>
             <div className="truncate">
@@ -149,7 +148,7 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* TOOLBAR: Ocupa siempre el 100% del ancho visible */}
+      {/* TOOLBAR */}
       <div className="bg-white px-4 md:px-6 py-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9] shrink-0 w-full">
         <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={12} />
@@ -173,15 +172,21 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* ÁREA DE TABLA: Se ajusta al ancho del padre (100%) y genera scroll interno */}
-      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden min-w-0">
+      {/* ÁREA DE TABLA - CORRECCIÓN CLAVE AQUÍ */}
+      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
         {filteredData.length > 0 ? (
-          <div className="flex-1 overflow-auto custom-scrollbar w-full">
-            <table className="w-full border-collapse text-[10px]">
+          /* overflow-auto permite el scroll tanto en X como en Y */
+          <div className="flex-1 overflow-auto custom-scrollbar">
+            {/* IMPORTANTÍSIMO: 
+               1. Quitamos 'w-full' de la tabla.
+               2. Usamos 'min-w-full' para que si hay pocos datos llene el ancho, 
+                  pero permita crecer si hay muchos.
+            */}
+            <table className="min-w-full border-separate border-spacing-0 text-[10px]">
               <thead>
-                <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
+                <tr className="bg-[#FAF9F8]">
                   {Object.keys(currentCsvData[0]).map((header) => (
-                    <th key={header} className="px-4 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap border-r border-[#EDEBE9]">
+                    <th key={header} className="px-4 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap border-b border-r border-[#EDEBE9]">
                       <div className="flex items-center gap-1.5 uppercase tracking-wider text-[9px]">
                         {header}
                         <Filter size={8} className="text-[#5B5FC7] opacity-40" />
@@ -215,7 +220,7 @@ export default function DataViewer() {
         )}
       </div>
 
-      {/* FOOTER: Ocupa siempre el 100% del ancho visible */}
+      {/* FOOTER */}
       <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161] shrink-0 w-full">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
@@ -227,15 +232,16 @@ export default function DataViewer() {
       </div>
 
       <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
         
-        /* BLOQUEO DE ANCHO DE TABLA */
+        /* FUERZA A LA TABLA A NO COLAPSAR: 
+           Esto hace que el scroll horizontal aparezca automáticamente.
+        */
         table { 
           table-layout: auto !important; 
-          min-width: 100%; /* Asegura que cubra el fondo */
-          width: max-content; /* Permite que crezca horizontalmente según los datos */
+          width: max-content !important; 
         }
       `}</style>
     </div>
