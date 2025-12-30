@@ -35,7 +35,7 @@ export default function LesroAIPanel() {
         {/* HEADER DE CONTEXTUALIZACIÓN */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[6px] border border-[#FFF]">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#5b5fc7] rounded-[4px] flex items-center justify-center shadow-sm">
+            <div className="w-12 h-12 bg-[#464775] rounded-[4px] flex items-center justify-center shadow-sm">
               <BrainCircuit className="text-white w-7 h-7" />
             </div>
             <div>
@@ -78,16 +78,16 @@ export default function LesroAIPanel() {
           <div className="bg-white p-5 rounded-[6px] border border-[#EDEBE9] hover:border-[#D1D1D1] transition-all">
             <div className="flex justify-between items-start mb-4">
               <div className="p-2 bg-[#F3F5F8] rounded-[4px]">
-                <ShieldCheck className="text-[#5b5fc7] w-5 h-5" />
+                <ShieldCheck className="text-[#464775] w-5 h-5" />
               </div>
               <BarChart3 className="text-[#616161] w-4 h-4" />
             </div>
             <h3 className="text-[14px] font-semibold text-[#242424]">Confidence Score</h3>
             <div className="flex items-center gap-3 mt-4">
               <div className="flex-1 bg-[#EDEBE9] h-2 rounded-full overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: "98.2%" }} className="h-full bg-[#5b5fc7]" />
+                <motion.div initial={{ width: 0 }} animate={{ width: "98.2%" }} className="h-full bg-[#464775]" />
               </div>
-              <span className="text-[13px] font-bold text-[#5b5fc7]">98.2%</span>
+              <span className="text-[13px] font-bold text-[#464775]">98.2%</span>
             </div>
             <p className="text-[11px] text-[#616161] mt-2 italic text-center">Precisión de atributos detectados</p>
           </div>
@@ -108,11 +108,11 @@ export default function LesroAIPanel() {
           </div>
 
           {/* Card: Exportación CET */}
-          <div className="bg-[#5b5fc7] p-5 rounded-[6px] text-white flex flex-col justify-between relative overflow-hidden">
+          <div className="bg-[#464775] p-5 rounded-[6px] text-white flex flex-col justify-between relative overflow-hidden">
             <div className="relative z-10">
               <h3 className="text-[14px] font-semibold mb-1">Finalización XML</h3>
               <p className="text-[11px] text-[#EAEBFA] mb-4">Exportación directa para Catalog Creator sin intervención manual.</p>
-              <button className="w-full bg-white text-[#5b5fc7] py-2 rounded-[4px] text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-[#F3F5F8] transition-colors">
+              <button className="w-full bg-white text-[#464775] py-2 rounded-[4px] text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-[#F3F5F8] transition-colors">
                 <FileCode size={16} /> GENERAR CATÁLOGO VITAL
               </button>
             </div>
@@ -125,7 +125,7 @@ export default function LesroAIPanel() {
           <div className="lg:col-span-2 bg-white border border-[#EDEBE9] rounded-[6px]">
             <div className="px-6 py-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
               <h3 className="text-[14px] font-bold flex items-center gap-2 uppercase tracking-wide">
-                <ArrowRightLeft size={16} className="text-[#5b5fc7]" />
+                <ArrowRightLeft size={16} className="text-[#464775]" />
                 Flujo de Sincronización Inteligente
               </h3>
             </div>
@@ -149,13 +149,13 @@ export default function LesroAIPanel() {
                           key={i}
                           animate={{ x: [0, 100], opacity: [0, 1, 0] }}
                           transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.3 }}
-                          className="w-2 h-2 bg-[#5b5fc7] rounded-full"
+                          className="w-2 h-2 bg-[#464775] rounded-full"
                          />
                        ))}
                     </div>
                   </div>
-                  <div className="mt-4 px-4 py-1.5 bg-[#EAEBFA] rounded-full border border-[#5b5fc7]/20">
-                    <span className="text-[10px] font-bold text-[#5b5fc7] uppercase">Servex AI Analysis Engine</span>
+                  <div className="mt-4 px-4 py-1.5 bg-[#EAEBFA] rounded-full border border-[#464775]/20">
+                    <span className="text-[10px] font-bold text-[#464775] uppercase">Servex AI Analysis Engine</span>
                   </div>
                 </div>
 
@@ -183,10 +183,10 @@ export default function LesroAIPanel() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-[11px] font-bold uppercase text-[#616161]">
                     <span>Sincronía Specs</span>
-                    <span className="text-[#5b5fc7]">Activa</span>
+                    <span className="text-[#464775]">Activa</span>
                   </div>
                   <div className="h-1.5 w-full bg-[#F3F5F8] rounded-full overflow-hidden">
-                    <div className="h-full bg-[#5b5fc7] w-[85%]" />
+                    <div className="h-full bg-[#464775] w-[85%]" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -221,7 +221,7 @@ export default function LesroAIPanel() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-[13px] text-[#242424]">Tiempo de Gestión</div>
-                  <div className="text-[#5b5fc7] font-bold text-[13px]">-7.5 hrs</div>
+                  <div className="text-[#464775] font-bold text-[13px]">-7.5 hrs</div>
                 </div>
               </div>
             </div>
@@ -238,7 +238,7 @@ export default function LesroAIPanel() {
 
             <button className="w-full bg-white border border-[#EDEBE9] p-4 rounded-[6px] hover:bg-[#FAF9F8] transition-colors flex items-center justify-between group">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#F3F5F8] rounded-[4px] group-hover:bg-[#5b5fc7] group-hover:text-white transition-colors">
+                <div className="p-2 bg-[#F3F5F8] rounded-[4px] group-hover:bg-[#464775] group-hover:text-white transition-colors">
                   <BarChart3 size={16} />
                 </div>
                 <span className="text-[13px] font-semibold">Ver Reporte Detallado IA</span>
@@ -255,8 +255,8 @@ export default function LesroAIPanel() {
           <strong>Servex US</strong> © 2026 | Sistema de Automatización de Catálogos para <strong>Lesro</strong>
         </p>
         <div className="flex gap-4">
-          <span className="text-[11px] font-semibold text-[#5b5fc7] cursor-pointer">Documentación Engine</span>
-          <span className="text-[11px] font-semibold text-[#5b5fc7] cursor-pointer">Soporte Técnico</span>
+          <span className="text-[11px] font-semibold text-[#464775] cursor-pointer">Documentación Engine</span>
+          <span className="text-[11px] font-semibold text-[#464775] cursor-pointer">Soporte Técnico</span>
         </div>
       </footer>
     </div>
