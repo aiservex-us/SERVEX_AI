@@ -84,14 +84,14 @@ export default function DataViewer() {
   );
 
   if (loading) return (
-    <div className="flex h-screen flex-col items-center justify-center bg-[#F5F5F5] font-sans p-6">
+    <div className="flex h-full min-h-[400px] flex-col items-center justify-center bg-[#F5F5F5] font-sans p-6">
       <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
       <span className="text-sm font-semibold text-[#242424] text-center">Sincronizando con Teams...</span>
     </div>
   );
 
   if (!data) return (
-    <div className="flex h-screen items-center justify-center p-6 bg-[#F5F5F5]">
+    <div className="flex h-full min-h-[400px] items-center justify-center p-6 bg-[#F5F5F5]">
       <div className="max-w-sm w-full text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
         <AlertCircle className="mx-auto mb-4 text-[#C4314B]" size={48} />
         <h3 className="text-lg font-bold text-[#242424]">Sin conexión a datos</h3>
@@ -101,10 +101,11 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-[#242424] w-full">
+    /* CAMBIO: h-full en lugar de h-screen para que no desborde el contenedor padre */
+    <div className="flex flex-col h-full w-full bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden">
       
       {/* HEADER */}
-      <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20">
+      <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md flex-shrink-0">
@@ -149,7 +150,7 @@ export default function DataViewer() {
       </div>
 
       {/* TOOLBAR */}
-      <div className="bg-white px-4 md:px-6 py-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9]">
+      <div className="bg-white px-4 md:px-6 py-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9] shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={12} />
           <input 
@@ -172,11 +173,12 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* ÁREA DE TABLA - CORRECCIÓN DE SCROLL HORIZONTAL (WIDTH) */}
+      {/* ÁREA DE TABLA - ESTA SECCIÓN MANEJA EL SCROLL INDEPENDIENTE */}
       <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
         {filteredData.length > 0 ? (
-          <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
-            <table className="border-collapse text-[10px]">
+          /* CAMBIO: overflow-auto y h-full garantizan scroll en ambos ejes */
+          <div className="flex-1 overflow-auto custom-scrollbar">
+            <table className="min-w-full border-collapse text-[10px]">
               <thead>
                 <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
                   {Object.keys(currentCsvData[0]).map((header) => (
@@ -215,7 +217,7 @@ export default function DataViewer() {
       </div>
 
       {/* FOOTER */}
-      <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161]">
+      <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161] shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
           <span>{filteredData.length} registros</span>
@@ -231,10 +233,10 @@ export default function DataViewer() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
         
-        /* Esta es la parte clave para que el Width no se corte */
+        /* FUERZA EL ANCHO PARA QUE APAREZCA EL SCROLL HORIZONTAL */
         table { 
-          table-layout: auto; 
-          min-width: max-content; 
+          table-layout: auto !important; 
+          min-width: max-content !important; 
           width: 100%;
         }
       `}</style>
