@@ -19,16 +19,17 @@ export default function MenuInicial() {
 
   const router = useRouter();
 
-  // 🔒 PROTECCIÓN DE RUTA (MISMA LÓGICA QUE PanelPage)
+  {/*
+  // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data?.user) {
         router.replace('/login');
       }
     });
-  }, [router]);
+  }, [router]); */}
 
-  // --- LÓGICA PARA DETECTAR INTENTO DE SALIDA ---
+  // --- EXIT ATTEMPT DETECTION LOGIC ---
   useEffect(() => {
     window.history.pushState(null, null, window.location.pathname);
 
@@ -57,14 +58,14 @@ export default function MenuInicial() {
       case 'inbox': return <Csvs />;
       case 'presentation': return <PrecentMain />;
       default:
-        return <div className="p-6 text-gray-500">Vista en construcción</div>;
+        return <div className="p-6 text-gray-500">View under construction</div>;
     }
   };
 
   return (
     <div className="h-screen w-full bg-[#fff] font-sans flex items-center justify-center relative">
 
-      {/* MODAL ESTILO MICROSOFT TEAMS */}
+      {/* MICROSOFT TEAMS STYLE MODAL */}
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
           <div 
@@ -74,7 +75,7 @@ export default function MenuInicial() {
           
           <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <span className="text-[14px] font-bold text-[#242424]">Confirmar salida</span>
+              <span className="text-[14px] font-bold text-[#242424]">Confirm exit</span>
               <button onClick={() => setShowExitModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={18} />
               </button>
@@ -86,10 +87,10 @@ export default function MenuInicial() {
               </div>
               <div>
                 <p className="text-[14px] font-bold text-[#242424] mb-1">
-                  ¿Deseas volver al panel principal?
+                  Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  Estás a punto de salir de la gestión de LESRO. Los cambios temporales en esta vista se cerrarán.
+                  You are about to leave the LESRO management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>
@@ -99,13 +100,13 @@ export default function MenuInicial() {
                 onClick={() => setShowExitModal(false)}
                 className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 onClick={handleConfirmExit}
                 className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#5B5FC7] rounded hover:bg-[#4F52B2] transition-all shadow-md"
               >
-                Confirmar y volver
+                Confirm and return
               </button>
             </div>
           </div>
