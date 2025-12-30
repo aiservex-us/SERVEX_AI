@@ -43,8 +43,39 @@ export default function DataViewer() {
     }
   };
 
-  const parseCSV = (csvString) => {
+  /**
+   * Procesa el CSV basado en la estructura de la pestaña activa.
+   * La pestaña Manual (csv_raw) ahora soporta la estructura del archivo proporcionado:
+   * - Delimitador: ";"
+   * - Salta las primeras 2 líneas de metadatos.
+   * - Los encabezados reales están en la línea 3.
+   */
+  const parseCSV = (csvString, type) => {
     if (!csvString || csvString === '---') return [];
+    
+    // --- Lógica específica para la estructura del archivo LESROEXEL (Pestaña Manual) ---
+    if (type === 'csv_raw') {
+      const allLines = csvString.trim().split('\n');
+      // Validamos que tenga al menos la línea de encabezados (índice 2) y datos
+      if (allLines.length <= 2) return [];
+      
+      // La línea 2 (index 2) contiene los nombres de las columnas
+      const headers = allLines[2].split(';').map(h => h.replace(/"/g, '').trim());
+      // A partir de la línea 3 empiezan los datos reales
+      const dataLines = allLines.slice(3);
+      
+      return dataLines.map(line => {
+        const values = line.split(';').map(v => v.replace(/"/g, '').trim());
+        return headers.reduce((obj, header, i) => {
+          // Asignamos valor o string vacío si no existe el campo
+          const key = header || `Col_${i}`;
+          obj[key] = values[i] || '';
+          return obj;
+        }, {});
+      });
+    }
+
+    // --- Lógica original para PDF Sync (SIN CAMBIOS) ---
     const lines = csvString.trim().split('\n');
     const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
     
@@ -57,7 +88,7 @@ export default function DataViewer() {
     });
   };
 
-  const currentCsvData = data ? parseCSV(data[activeTab]) : [];
+  const currentCsvData = data ? parseCSV(data[activeTab], activeTab) : [];
   
   const filteredData = currentCsvData.filter(row => 
     Object.values(row).some(val => 
@@ -154,7 +185,7 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* ÁREA DE TABLA - CORRECCIÓN DE SCROLL X */}
+      {/* ÁREA DE TABLA */}
       <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
         {filteredData.length > 0 ? (
           <div className="flex-1 overflow-auto custom-scrollbar">
