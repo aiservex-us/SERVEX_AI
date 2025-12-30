@@ -73,7 +73,7 @@ const LesroPricingFix = () => {
               finalData.push({
                 page: i,
                 sku: sku,
-                dims: dims[index] || "Ver PDF",
+                dims: dims[index] || "See PDF",
                 g2: p[0] || "---", g3: p[1] || "---", g4: p[2] || "---", g5: p[3] || "---",
                 g6: p[4] || "---", g7: p[5] || "---", g8: p[6] || "---", g9: p[7] || "---",
                 g10: p[8] || "---", g11: p[9] || "---", g12: p[10] || "---", g13: p[11] || "---"
@@ -84,7 +84,7 @@ const LesroPricingFix = () => {
         setResults(finalData);
         exportToCSV(finalData);
       } catch (err) {
-        console.error("Error procesando PDF:", err);
+        console.error("Error processing PDF:", err);
       } finally {
         setLoading(false);
       }
@@ -93,7 +93,7 @@ const LesroPricingFix = () => {
   };
 
   const exportToCSV = (data) => {
-    const headers = "Página,Modelo,Dimensiones,G2,G3,G4,G5,G6,G7,G8,G9,G10,G11,G12,G13\n";
+    const headers = "Page,Model,Dimensions,G2,G3,G4,G5,G6,G7,G8,G9,G10,G11,G12,G13\n";
     const rows = data.map(d => 
       `${d.page},${d.sku},"${d.dims}",${d.g2},${d.g3},${d.g4},${d.g5},${d.g6},${d.g7},${d.g8},${d.g9},${d.g10},${d.g11},${d.g12},${d.g13}`
     ).join("\n");
@@ -110,66 +110,52 @@ const LesroPricingFix = () => {
 
   if (!pdfLib) return <div className="p-10 text-[#6264A7] font-sans flex items-center gap-3">
     <RefreshCw className="animate-spin" size={20} />
-    Cargando motor de sincronización...
+    Loading synchronization engine...
   </div>;
 
   return (
-    <div className="min-h-screen bg-[#FAF9F8] font-sans text-[11px] text-[#242424]">
-      {/* Header Teams */}
-      <div className="bg-[#6264A7] p-3 shadow-md flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="bg-white p-1 rounded shadow-sm">
-            <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
-          </div>
-          <h2 className="text-white font-semibold text-[14px]">Lesro Master Sync | SVX Copilot</h2>
-        </div>
-        {loading && (
-          <div className="flex items-center gap-2 text-white text-[10px] bg-[#4f508a] px-3 py-1 rounded-full animate-pulse">
-            <RefreshCw size={12} className="animate-spin" />
-            PROCESANDO ESTRUCTURA PDF...
-          </div>
-        )}
-      </div>
+    <div className="min-h-screen bg-[#FFF] font-sans text-[11px] text-[#242424]">
+    
 
       <div className="max-w-[1600px] mx-auto p-6">
         
-        {/* BANNER INFORMATIVO */}
+        {/* INFORMATION BANNER */}
         <div className="mb-8 bg-gradient-to-r from-[#6264A7] to-[#464775] rounded-xl p-8 text-white shadow-lg relative overflow-hidden">
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 mb-3 bg-white/20 w-fit px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                 <Zap size={12} className="fill-white" /> AI-Powered Extraction
               </div>
-              <h1 className="text-2xl font-bold mb-2">Sincronizador Automático de Catálogos</h1>
+              <h1 className="text-2xl font-bold mb-2">Automated Catalog Synchronizer</h1>
               <p className="text-[13px] opacity-90 leading-relaxed">
-                Esta herramienta procesa el PDF oficial de Lesro, extrae los SKUs y las 12 categorías de precios (G2-G13). 
-                Al finalizar, generará automáticamente un archivo **CSV estructurado** listo para ser importado en el motor de sincronización SVX.
+                This tool processes the official Lesro PDF, extracting SKUs and the 12 pricing categories (G2-G13). 
+                Upon completion, it automatically generates a structured **CSV file** ready for import into the SVX synchronization engine.
               </p>
             </div>
             <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg border border-white/20 flex flex-col items-center">
-              <FileSpreadsheet size={40} className="mb-2 text-green-300" />
-              <span className="text-[10px] font-bold">FORMATO DE SALIDA</span>
+              <FileSpreadsheet size={40} className="mb-2 text-gray-300" />
+              <span className="text-[10px] font-bold">OUTPUT FORMAT</span>
               <span className="text-lg font-black">CSV UTF-8</span>
             </div>
           </div>
-          {/* Decoración fondo */}
+          {/* Background Decoration */}
           <div className="absolute top-0 right-0 -mr-10 -mt-10 opacity-10">
             <RefreshCw size={200} />
           </div>
         </div>
 
-        {/* PASOS Y CARGA */}
+        {/* STEPS AND UPLOAD */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           <div className="lg:col-span-1 space-y-4">
             <div className="bg-white p-5 rounded-lg border border-[#E1DFDD] shadow-sm">
               <h3 className="font-bold text-[#6264A7] mb-4 flex items-center gap-2">
-                <Info size={14} /> Guía de proceso
+                <Info size={14} /> Process Guide
               </h3>
               <div className="space-y-4 relative">
                 {[
-                  { icon: FileText, t: "Cargar PDF", d: "Sube el catálogo de precios." },
-                  { icon: RefreshCw, t: "Procesar", d: "SVX analiza SKUs y Grados." },
-                  { icon: Download, t: "Descarga", d: "El CSV se bajará solo." }
+                  { icon: FileText, t: "Upload PDF", d: "Upload the price catalog." },
+                  { icon: RefreshCw, t: "Process", d: "SVX analyzes SKUs and Grades." },
+                  { icon: Download, t: "Download", d: "The CSV will download automatically." }
                 ].map((step, i) => (
                   <div key={i} className="flex gap-3 items-start">
                     <div className="bg-[#F3F2F1] p-2 rounded text-[#6264A7]">
@@ -187,7 +173,7 @@ const LesroPricingFix = () => {
             <div className="bg-[#FFF4CE] p-4 rounded-lg border border-[#F3D372] flex gap-3">
               <AlertCircle size={18} className="text-[#7A5407] shrink-0" />
               <p className="text-[10px] text-[#7A5407] leading-tight">
-                <strong>Nota:</strong> Verifique que el PDF no esté protegido por contraseña para permitir la lectura de SKUs.
+                <strong>Note:</strong> Ensure the PDF is not password protected to allow SKU reading.
               </p>
             </div>
           </div>
@@ -200,8 +186,8 @@ const LesroPricingFix = () => {
                 {loading ? <RefreshCw className="text-[#6264A7] animate-spin" size={32} /> : <FileUp size={32} className="text-[#6264A7]" />}
               </div>
               
-              <h3 className="text-sm font-bold mb-1">Arrastra tu catálogo aquí</h3>
-              <p className="text-[#616161] mb-6">Soporta formatos PDF de lista de precios Lesro</p>
+              <h3 className="text-sm font-bold mb-1">Drag your catalog here</h3>
+              <p className="text-[#616161] mb-6">Supports Lesro price list PDF formats</p>
               
               <input 
                 type="file" 
@@ -210,7 +196,7 @@ const LesroPricingFix = () => {
                 className="text-[11px] file:bg-[#6264A7] file:text-white file:border-0 file:py-2.5 file:px-6 file:rounded-md file:font-bold cursor-pointer file:shadow-md file:hover:bg-[#4f508a] transition-all"
               />
               
-              {loading && <p className="mt-4 text-[#6264A7] font-bold animate-pulse">Analizando estructura de precios...</p>}
+              {loading && <p className="mt-4 text-[#6264A7] font-bold animate-pulse">Analyzing pricing structure...</p>}
             </div>
           </div>
         </div>
@@ -221,9 +207,9 @@ const LesroPricingFix = () => {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full border border-green-200">
                   <ShieldCheck size={14} />
-                  <span className="font-bold uppercase tracking-tighter">Extracción Exitosa</span>
+                  <span className="font-bold uppercase tracking-tighter">Extraction Successful</span>
                 </div>
-                <span className="font-bold text-[#6264A7] text-[13px]">{results.length} productos detectados</span>
+                <span className="font-bold text-[#6264A7] text-[13px]">{results.length} products detected</span>
               </div>
               
               <div className="flex items-center space-x-3 bg-white p-1 rounded-md border border-[#EDEBE9]">
@@ -231,15 +217,15 @@ const LesroPricingFix = () => {
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => prev - 1)}
                   className="px-3 py-1.5 hover:bg-[#F3F2F1] rounded disabled:opacity-20 transition-colors font-bold"
-                > Anterior </button>
+                > Previous </button>
                 <div className="h-4 w-[1px] bg-[#EDEBE9]"></div>
-                <span className="px-2 font-medium">Página {currentPage} de {totalPages}</span>
+                <span className="px-2 font-medium">Page {currentPage} of {totalPages}</span>
                 <div className="h-4 w-[1px] bg-[#EDEBE9]"></div>
                 <button 
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
                   className="px-3 py-1.5 hover:bg-[#F3F2F1] rounded disabled:opacity-20 transition-colors font-bold"
-                > Siguiente </button>
+                > Next </button>
               </div>
             </div>
 
@@ -247,8 +233,8 @@ const LesroPricingFix = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-[#F3F2F1]">
                   <tr>
-                    <th className="p-3 text-left border-r w-32 font-bold text-[#444]">SKU MODELO</th>
-                    <th className="p-3 text-left border-r w-48 font-bold text-[#444]">DIMENSIONES</th>
+                    <th className="p-3 text-left border-r w-32 font-bold text-[#444]">MODEL SKU</th>
+                    <th className="p-3 text-left border-r w-48 font-bold text-[#444]">DIMENSIONS</th>
                     <th className="p-3 text-center border-r bg-[#E8E8FF] text-[#6264A7] font-black italic">G2 / BASE</th>
                     {['G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13'].map(g => (
                       <th key={g} className="p-3 text-center border-r font-bold text-[#616161]">{g}</th>
@@ -278,10 +264,10 @@ const LesroPricingFix = () => {
               </table>
             </div>
             
-            {/* Footer de la tabla */}
+            {/* Table Footer */}
             <div className="p-4 bg-[#FAF9F8] border-t flex items-center gap-2 text-[#616161]">
-              <Info size={14} />
-              <p>El archivo CSV ha sido optimizado para la importación directa. No requiere limpieza manual de datos.</p>
+              <span className="shrink-0"><Info size={14} /></span>
+              <p>The CSV file has been optimized for direct import. It does not require manual data cleaning.</p>
             </div>
           </div>
         )}
@@ -290,7 +276,7 @@ const LesroPricingFix = () => {
   );
 };
 
-// Helper Icon para el botón de carga
+// Helper Icon for the upload button
 const FileUp = ({ size, className }) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
