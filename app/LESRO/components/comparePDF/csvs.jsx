@@ -101,25 +101,25 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-[#242424] overflow-hidden w-full">
+    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-[#242424] w-full overflow-auto">
       
       {/* HEADER */}
       <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 overflow-hidden">
+          <div className="flex items-center gap-3">
             <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md flex-shrink-0">
               <Database size={20} className="text-white" />
             </div>
-            <div className="overflow-hidden">
+            <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424] truncate">
+                <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424]">
                   {data.company_name}
                 </h2>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase flex-shrink-0">
                   Read Only
                 </span>
               </div>
-              <p className="text-[10px] text-[#616161] truncate">
+              <p className="text-[10px] text-[#616161]">
                 Actualizado: {new Date(data.created_at).toLocaleDateString()}
               </p>
             </div>
@@ -172,12 +172,11 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* ÁREA DE TABLA - SCROLL X GARANTIZADO */}
-      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col">
+      {/* ÁREA DE TABLA - SCROLL X Y Y HABILITADO */}
+      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
         {filteredData.length > 0 ? (
           <div className="flex-1 overflow-auto custom-scrollbar">
-            {/* El contenedor table tiene min-w-full para forzar el scroll si hay muchas columnas */}
-            <table className="w-full border-collapse text-[10px] min-w-max">
+            <table className="min-w-full border-collapse text-[10px]">
               <thead>
                 <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
                   {Object.keys(currentCsvData[0]).map((header) => (
@@ -231,8 +230,7 @@ export default function DataViewer() {
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
-        /* Asegura que la tabla no se colapse y permita el scroll lateral */
-        table { table-layout: auto; }
+        table { table-layout: auto; min-width: max-content; }
       `}</style>
     </div>
   );
