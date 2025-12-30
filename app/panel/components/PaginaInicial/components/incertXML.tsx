@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
-import Link from 'next/link'; // Importado para el redireccionamiento
+import Link from 'next/link'; 
 import { 
   UploadCloud, 
   FileCode, 
@@ -16,28 +16,28 @@ import {
   HelpCircle,
   Maximize2,
   FileSpreadsheet,
-  RefreshCw, // Icono para el botón de sincronizar
-  FileType // Icono para el nuevo CSV PDF
+  RefreshCw, 
+  FileType 
 } from 'lucide-react';
 
 export default function UploadClientXML() {
   const [companyName, setCompanyName] = useState('');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
-  const [csvPdfContent, setCsvPdfContent] = useState(''); // Nuevo estado para CSV de PDF
+  const [csvPdfContent, setCsvPdfContent] = useState(''); 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
   const [dragActive, setDragActive] = useState(false);
   const [dragActiveCSV, setDragActiveCSV] = useState(false); 
-  const [dragActiveCsvPdf, setDragActiveCsvPdf] = useState(false); // Nuevo drag active
+  const [dragActiveCsvPdf, setDragActiveCsvPdf] = useState(false); 
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
-  const csvPdfInputRef = useRef<HTMLInputElement | null>(null); // Nuevo ref
+  const csvPdfInputRef = useRef<HTMLInputElement | null>(null); 
 
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
-      setMessage({ text: 'Solo se permiten archivos XML', type: 'error' });
+      setMessage({ text: 'Only XML files are allowed', type: 'error' });
       return;
     }
 
@@ -45,14 +45,14 @@ export default function UploadClientXML() {
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setXmlContent(content);
-      setMessage({ text: 'Archivo XML cargado correctamente', type: 'success' });
+      setMessage({ text: 'XML file loaded successfully', type: 'success' });
     };
     reader.readAsText(file);
   };
 
   const readCSVFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv')) {
-      setMessage({ text: 'Solo se permiten archivos CSV', type: 'error' });
+      setMessage({ text: 'Only CSV files are allowed', type: 'error' });
       return;
     }
 
@@ -60,14 +60,14 @@ export default function UploadClientXML() {
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setCsvContent(content);
-      setMessage({ text: 'Archivo CSV cargado correctamente', type: 'success' });
+      setMessage({ text: 'CSV file loaded successfully', type: 'success' });
     };
     reader.readAsText(file);
   };
 
   const readCsvPdfFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv')) {
-      setMessage({ text: 'Solo se permiten archivos CSV (PDF Transformed)', type: 'error' });
+      setMessage({ text: 'Only CSV files (PDF Transformed) are allowed', type: 'error' });
       return;
     }
 
@@ -75,7 +75,7 @@ export default function UploadClientXML() {
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setCsvPdfContent(content);
-      setMessage({ text: 'CSV de PDF cargado correctamente', type: 'success' });
+      setMessage({ text: 'PDF CSV loaded successfully', type: 'success' });
     };
     reader.readAsText(file);
   };
@@ -104,23 +104,23 @@ export default function UploadClientXML() {
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!companyName.trim() || !xmlContent.trim()) {
-      setMessage({ text: 'Nombre y XML son obligatorios', type: 'error' });
+      setMessage({ text: 'Name and XML are required', type: 'error' });
       return;
     }
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setMessage({ text: 'Usuario no autorizado', type: 'error' }); return; }
+      if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
       const { error } = await supabase.from('ClientsSERVEX').insert({
         company_name: companyName, 
         xml_raw: xmlContent, 
         csv_raw: csvContent, 
-        csvpdf_raw: csvPdfContent, // Nueva columna agregada
+        csvpdf_raw: csvPdfContent, 
         user_id: user.id,
       });
-      if (error) setMessage({ text: 'Error al guardar los datos', type: 'error' });
+      if (error) setMessage({ text: 'Error saving data', type: 'error' });
       else {
-        setMessage({ text: 'Datos guardados exitosamente', type: 'success' });
+        setMessage({ text: 'Data saved successfully', type: 'success' });
         setCompanyName(''); setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
       }
     } finally { setLoading(false); }
@@ -129,7 +129,6 @@ export default function UploadClientXML() {
   return (
     <div className="min-h-screen bg-[#FFF] flex font-sans text-[#242424]">
       
-      {/* --- MAIN CONTENT AREA --- */}
       <div className="flex-1 flex flex-col">
         
         {/* --- TEAMS TOP BAR --- */}
@@ -153,8 +152,8 @@ export default function UploadClientXML() {
               <FileCode className="text-[#5B5FC7]" size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#242424]">Carga de Catálogo CET</h1>
-              <p className="text-[11px] text-[#616161]">Procesamiento de datos estructurados para el ecosistema Servex</p>
+              <h1 className="text-lg font-bold text-[#242424]">CET Catalog Upload</h1>
+              <p className="text-[11px] text-[#616161]">Structured data processing for the Servex ecosystem</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -169,23 +168,23 @@ export default function UploadClientXML() {
           {/* Left Panel: Steps/Info */}
           <div className="col-span-12 lg:col-span-4 space-y-4">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Estado del Proceso</h3>
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Process Status</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${companyName ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>1</div>
-                  <span className="text-xs font-medium">Nombre de Entidad</span>
+                  <span className="text-xs font-medium">Entity Name</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">Validación de XML</span>
+                  <span className="text-xs font-medium">XML Validation</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>3</div>
-                  <span className="text-xs font-medium">Carga de CSV</span>
+                  <span className="text-xs font-medium">CSV Upload</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvPdfContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>4</div>
-                  <span className="text-xs font-medium">Sincronización PDF</span>
+                  <span className="text-xs font-medium">PDF Synchronization</span>
                 </div>
               </div>
             </div>
@@ -193,10 +192,10 @@ export default function UploadClientXML() {
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
               <div className="flex items-center gap-2 text-[#5B5FC7] mb-3">
                 <Info size={16} />
-                <span className="text-xs font-bold">Nota de Seguridad</span>
+                <span className="text-xs font-bold">Security Note</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                Este canal está cifrado de extremo a extremo (E2EE). Los datos se almacenan en instancias aisladas de Supabase.
+                This channel is end-to-end encrypted (E2EE). Data is stored in isolated Supabase instances.
               </p>
             </div>
           </div>
@@ -204,15 +203,14 @@ export default function UploadClientXML() {
           {/* Right Panel: Form */}
           <div className="col-span-12 lg:col-span-8 space-y-4">
             
-            {/* NUEVA SECCIÓN: SINCRONIZA TU CATALOGO */}
             <div className="bg-[#F3F2F1] rounded-lg border border-[#E1DFDD] p-6 mb-4 shadow-sm flex flex-col items-center text-center">
-              <h2 className="text-sm font-black text-[#242424] uppercase tracking-wider mb-1">SINCRONIZA TU CATALOGO</h2>
+              <h2 className="text-sm font-black text-[#242424] uppercase tracking-wider mb-1">SYNC YOUR CATALOG</h2>
               <p className="text-[11px] text-[#616161] max-w-md mb-4 leading-normal">
-                Si los datos a ingresar son del pdf, sincroniza los datos con el formato de la plataforma para enlazar.
+                If the data to be entered comes from a PDF, synchronize the data with the platform format to link them.
               </p>
               <Link href="/synchronizer" className="bg-white border border-[#5B5FC7] text-[#5B5FC7] px-6 py-2 rounded text-[11px] font-bold hover:bg-[#5B5FC7] hover:text-white transition-all flex items-center gap-2 shadow-sm">
                 <RefreshCw size={14} />
-                Ir al Sincronizador
+                Go to Synchronizer
               </Link>
             </div>
 
@@ -221,12 +219,12 @@ export default function UploadClientXML() {
                 
                 {/* Field: Company */}
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-[#242424]">Compañía / Cliente</label>
+                  <label className="text-xs font-bold text-[#242424]">Company / Client</label>
                   <div className="relative group">
                     <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#5B5FC7]" size={14} />
                     <input
                       className="w-full text-sm rounded border border-gray-300 bg-white pl-9 pr-4 py-2 outline-none border-b-2 focus:border-b-[#5B5FC7] transition-all placeholder:text-gray-300"
-                      placeholder="Nombre de la empresa"
+                      placeholder="Company name"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                     />
@@ -244,7 +242,7 @@ export default function UploadClientXML() {
                       ${dragActive ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Cargar XML</p>
+                    <p className="text-[10px] font-bold text-[#242424]">Upload XML</p>
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => {
                       const file = e.target.files?.[0]; if (file) readXMLFile(file);
                     }} />
@@ -260,13 +258,13 @@ export default function UploadClientXML() {
                       ${dragActiveCSV ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Cargar CSV</p>
+                    <p className="text-[10px] font-bold text-[#242424]">Upload CSV</p>
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
                       const file = e.target.files?.[0]; if (file) readCSVFile(file);
                     }} />
                   </div>
 
-                  {/* Field: Drag & Drop CSV PDF (NUEVO) */}
+                  {/* Field: Drag & Drop CSV PDF */}
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActiveCsvPdf(true); }}
                     onDragLeave={() => setDragActiveCsvPdf(false)}
@@ -276,7 +274,7 @@ export default function UploadClientXML() {
                       ${dragActiveCsvPdf ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     <FileType className={`mx-auto mb-2 ${dragActiveCsvPdf ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Cargar CSV (PDF)</p>
+                    <p className="text-[10px] font-bold text-[#242424]">Upload CSV (PDF)</p>
                     <input ref={csvPdfInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
                       const file = e.target.files?.[0]; if (file) readCsvPdfFile(file);
                     }} />
@@ -286,7 +284,7 @@ export default function UploadClientXML() {
                 {/* Field: Content Previews */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">Vista previa XML</label>
+                    <label className="text-xs font-bold text-[#242424]">XML Preview</label>
                     <textarea
                       className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
                       placeholder="XML Content..."
@@ -295,7 +293,7 @@ export default function UploadClientXML() {
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">Vista previa CSV</label>
+                    <label className="text-xs font-bold text-[#242424]">CSV Preview</label>
                     <textarea
                       className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
                       placeholder="CSV Content..."
@@ -304,7 +302,7 @@ export default function UploadClientXML() {
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">Vista previa CSV PDF</label>
+                    <label className="text-xs font-bold text-[#242424]">PDF CSV Preview</label>
                     <textarea
                       className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
                       placeholder="CSV from PDF Content..."
@@ -331,7 +329,7 @@ export default function UploadClientXML() {
                   disabled={loading}
                   className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm active:scale-95 disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'Guardando...' : 'Guardar Cambios'}
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>

@@ -1,37 +1,30 @@
-"use client"; // 1. CRÍTICO: Indica que es un componente de cliente
+"use client";
 
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../../../../lib/supabaseClient';
 import { 
   Trash2, 
   RefreshCw, 
   Search, 
   FileText, 
-  Calendar as CalendarIcon, // 2. Renombrado para evitar conflictos
+  Calendar as CalendarIcon, 
   Building2, 
   AlertTriangle,
   CheckSquare,
   Square,
-  Info
+  Info,
+  Database,
+  Layers
 } from 'lucide-react';
 
 const ClientsBatchManager = () => {
+  // --- ORIGINAL LOGIC (UNCHANGED) ---
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const colors = {
-    purple: '#5b5fc7',
-    danger: '#d13438',
-    bg: '#f5f5f5',
-    card: '#ffffff',
-    border: '#e1e1e1',
-    text: '#242424',
-    subtext: '#616161',
-    selection: '#f3f2f1'
-  };
 
   useEffect(() => {
     fetchData();
@@ -48,14 +41,13 @@ const ClientsBatchManager = () => {
       if (error) throw error;
       setRecords(data || []);
     } catch (err) {
-      console.error("Error cargando datos:", err.message);
+      console.error("Data loading error:", err.message);
     } finally {
       setLoading(false);
       setSelectedIds([]);
     }
   };
 
-  // Lógica de Selección
   const filteredRecords = Array.isArray(records) ? records.filter(r => 
     r.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.file_name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -76,7 +68,7 @@ const ClientsBatchManager = () => {
   };
 
   const handleBatchDelete = async () => {
-    if (!window.confirm(`¿Eliminar ${selectedIds.length} registros?`)) return;
+    if (!window.confirm(`Delete ${selectedIds.length} records?`)) return;
     setIsDeleting(true);
     try {
       const { error } = await supabase
@@ -94,101 +86,198 @@ const ClientsBatchManager = () => {
     }
   };
 
+  // --- UI CONFIGURATION ---
+  const containerVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } }
+  };
+
   return (
-    // 3. CAMBIO: minHeight 100vh eliminado para que se ajuste al Dashboard
-    <div style={{ background: colors.bg, width: '100%', padding: 20, fontFamily: 'Segoe UI, sans-serif' }}>
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="w-full min-h-screen p-6 bg-[#FFF] font-sans text-[#242424]"
+      style={{ fontFamily: '"Segoe UI", "Segoe UI Web", -apple-system, sans-serif' }}
+    >
       
-      {/* HEADER */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: 16,
-        background: colors.card,
-        padding: '16px 24px',
-        borderRadius: 8,
-        border: `1px solid ${colors.border}`
-      }}>
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: colors.purple }}>Gestión de Lotes</h1>
-          <p style={{ fontSize: 12, color: colors.subtext, margin: 0 }}>
-            {selectedIds.length > 0 ? `${selectedIds.length} seleccionados` : `Total: ${records.length} registros`}
+      {/* MAIN BANNER */}
+      <div className="relative overflow-hidden bg-[#464775] rounded-lg p-8 mb-6 text-white shadow-sm">
+        <div className="relative z-10">
+          <h1 className="text-2xl font-semibold mb-2">SERVEX Master Database</h1>
+          <p className="text-sm opacity-90 max-w-2xl leading-relaxed">
+            Welcome to the master control center. Here you can analyze, audit, and manage the comprehensive 
+            database storing all SERVEX client company information. Use the filtering and batch selection 
+            tools to optimize record maintenance.
           </p>
         </div>
+        <Database className="absolute right-[-20px] top-[-20px] w-48 h-48 opacity-10 rotate-12" />
+      </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
-          {selectedIds.length > 0 && (
-            <button onClick={handleBatchDelete} disabled={isDeleting} style={{ background: colors.danger, color: '#fff', border: 'none', borderRadius: 6, padding: '8px 16px', cursor: 'pointer', fontWeight: 600 }}>
-              <Trash2 size={16} />
-            </button>
-          )}
-          
-          <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: 10, top: 10, color: colors.subtext }} />
-            <input 
-              type="text" 
-              placeholder="Buscar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: '8px 12px 8px 36px', borderRadius: 6, border: `1px solid ${colors.border}` }}
-            />
+      {/* SUMMARY CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {[
+          { title: "Total Clients", val: records.length, icon: Building2, color: "#5b5fc7" },
+          { title: "PDF Records", val: records.filter(r => !r.csv_raw).length, icon: FileText, color: "#d13438" },
+          { title: "CSV Records", val: records.filter(r => r.csv_raw).length, icon: Layers, color: "#27ae60" }
+        ].map((card, i) => (
+          <div key={i} className="bg-white p-4 rounded-md border border-[#EDEBE9] flex items-center gap-4">
+            <div className="p-3 rounded-full bg-[#F3F5F8]" style={{ color: card.color }}>
+              <card.icon size={20} />
+            </div>
+            <div>
+              <p className="text-[#616161] text-xs font-normal">{card.title}</p>
+              <p className="text-xl font-semibold">{loading ? "..." : card.val}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* MANAGEMENT AREA */}
+      <div className="bg-white rounded-md border border-[#EDEBE9] overflow-hidden shadow-sm">
+        
+        {/* TOOLBAR */}
+        <div className="p-4 border-b border-[#EDEBE9] flex flex-wrap justify-between items-center gap-4 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#5b5fc7] w-1 h-6 rounded-full"></div>
+            <div>
+              <h2 className="text-sm font-semibold text-[#242424]">Batch Management</h2>
+              <p className="text-[11px] text-[#616161]">
+                {selectedIds.length > 0 ? `${selectedIds.length} items selected` : "Full record list"}
+              </p>
+            </div>
           </div>
 
-          <button onClick={fetchData} style={{ background: 'none', border: `1px solid ${colors.border}`, borderRadius: 6, padding: '8px 12px', cursor: 'pointer' }}>
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Search Input */}
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" />
+              <input 
+                type="text" 
+                placeholder="Filter by company or file..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-3 py-1.5 text-sm bg-[#F3F5F8] border border-transparent focus:border-[#5b5fc7] focus:bg-white rounded-[4px] outline-none w-64 transition-all"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex border-l border-[#EDEBE9] ml-2 pl-2 gap-2">
+              {selectedIds.length > 0 && (
+                <button 
+                  onClick={handleBatchDelete} 
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#d13438] hover:bg-[#a4262c] text-white rounded-[4px] text-xs font-semibold transition-colors"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
+              )}
+              
+              <button 
+                onClick={fetchData}
+                title="Refresh data"
+                className="p-1.5 text-[#616161] hover:bg-[#F3F5F8] rounded-[4px] border border-[#EDEBE9] transition-colors"
+              >
+                <RefreshCw size={14} className={loading ? 'animate-spin text-[#5b5fc7]' : ''} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* FLUENT DESIGN TABLE */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
+                <th className="p-3 w-10">
+                  <button onClick={toggleSelectAll} className="flex items-center justify-center hover:bg-[#EDEBE9] p-1 rounded transition-colors">
+                    {selectedIds.length === filteredRecords.length && filteredRecords.length > 0 
+                      ? <CheckSquare size={16} className="text-[#5b5fc7]" /> 
+                      : <Square size={16} className="text-[#616161]" />
+                    }
+                  </button>
+                </th>
+                <th className="p-3 text-xs font-semibold text-[#616161] uppercase tracking-wider">Date</th>
+                <th className="p-3 text-xs font-semibold text-[#616161] uppercase tracking-wider">Company</th>
+                <th className="p-3 text-xs font-semibold text-[#616161] uppercase tracking-wider">File Name</th>
+                <th className="p-3 text-xs font-semibold text-[#616161] uppercase tracking-wider">Data Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="p-12 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-6 h-6 border-2 border-[#5b5fc7] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-xs text-[#616161] font-medium">Syncing with database...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredRecords.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-12 text-center text-xs text-[#616161]">
+                    No records found matching your search.
+                  </td>
+                </tr>
+              ) : (
+                filteredRecords.map((row) => (
+                  <tr 
+                    key={row.id} 
+                    className={`border-b border-[#F3F5F8] transition-colors ${selectedIds.includes(row.id) ? 'bg-[#F3F2F1]' : 'hover:bg-[#FAF9F8]'}`}
+                  >
+                    <td className="p-3">
+                      <button onClick={() => toggleSelectOne(row.id)} className="flex items-center justify-center p-1">
+                        {selectedIds.includes(row.id) 
+                          ? <CheckSquare size={16} className="text-[#5b5fc7]" /> 
+                          : <Square size={16} className="text-[#616161] opacity-40 hover:opacity-100" />
+                        }
+                      </button>
+                    </td>
+                    <td className="p-3 text-xs text-[#616161]">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon size={12} />
+                        {new Date(row.created_at).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="p-3 text-sm font-semibold text-[#242424]">
+                      {row.company_name || 'N/A'}
+                    </td>
+                    <td className="p-3 text-xs text-[#616161]">
+                      <div className="flex items-center gap-2">
+                        <FileText size={12} />
+                        {row.file_name || 'unknown_file.pdf'}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                         row.csv_raw 
+                          ? 'bg-[#DFF6DD] text-[#107C10]' 
+                          : 'bg-[#DEECF9] text-[#0078D4]'
+                       }`}>
+                        {row.csv_raw ? 'CSV Raw' : 'PDF Parsed'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* INFO FOOTER */}
+        <div className="bg-[#FAF9F8] p-3 border-t border-[#EDEBE9] flex justify-between items-center">
+          <div className="flex items-center gap-2 text-[11px] text-[#616161]">
+            <Info size={14} className="text-[#5b5fc7]" />
+            <span>Select rows to perform batch actions on the data infrastructure.</span>
+          </div>
+          <span className="text-[11px] font-semibold text-[#616161]">
+            v2.4.0 SERVE-DB
+          </span>
         </div>
       </div>
-
-      {/* TABLA */}
-      <div style={{ background: colors.card, borderRadius: 8, border: `1px solid ${colors.border}`, overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ background: '#fcfcfc', borderBottom: `2px solid ${colors.border}` }}>
-              <th style={{ padding: 12, width: 40 }}>
-                <button onClick={toggleSelectAll} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                  {selectedIds.length === filteredRecords.length && filteredRecords.length > 0 
-                    ? <CheckSquare size={18} color={colors.purple} /> 
-                    : <Square size={18} color={colors.subtext} />
-                  }
-                </button>
-              </th>
-              <th style={styles.th}>Fecha</th>
-              <th style={styles.th}>Empresa</th>
-              <th style={styles.th}>Archivo</th>
-              <th style={styles.th}>Tipo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan="5" style={{ padding: 40, textAlign: 'center' }}>Cargando base de datos...</td></tr>
-            ) : filteredRecords.map((row) => (
-              <tr key={row.id} style={{ borderBottom: `1px solid ${colors.border}`, background: selectedIds.includes(row.id) ? colors.selection : 'transparent' }}>
-                <td style={{ padding: 12 }}>
-                  <button onClick={() => toggleSelectOne(row.id)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                    {selectedIds.includes(row.id) ? <CheckSquare size={18} color={colors.purple} /> : <Square size={18} color={colors.subtext} />}
-                  </button>
-                </td>
-                <td style={styles.td}>{new Date(row.created_at).toLocaleDateString()}</td>
-                <td style={{ ...styles.td, fontWeight: 600 }}>{row.company_name || 'N/A'}</td>
-                <td style={styles.td}>{row.file_name || '---'}</td>
-                <td style={styles.td}>
-                   <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700, background: row.csv_raw ? '#dff6dd' : '#deecf9' }}>
-                    {row.csv_raw ? 'CSV' : 'PDF'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </motion.div>
   );
-};
-
-const styles = {
-  th: { padding: '12px 16px', fontSize: 13, fontWeight: 600, color: '#616161' },
-  td: { padding: '12px 16px', fontSize: 13, color: '#242424' }
 };
 
 export default ClientsBatchManager;
