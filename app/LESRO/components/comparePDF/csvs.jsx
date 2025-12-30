@@ -173,7 +173,7 @@ export default function DataViewer() {
       </div>
 
       {/* ÁREA DE TABLA - SCROLL X GARANTIZADO */}
-      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
+      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col">
         {filteredData.length > 0 ? (
           <div className="flex-1 overflow-auto custom-scrollbar">
             {/* El contenedor table tiene min-w-full para forzar el scroll si hay muchas columnas */}
