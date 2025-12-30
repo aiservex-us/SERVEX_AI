@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../lib/supabaseClient'; // 👈 MISMA IMPORTACIÓN
+import { supabase } from '../lib/supabaseClient'; 
 import { X, AlertCircle } from 'lucide-react';
 
 import MenuLateral from './components/menuLateral';
@@ -10,24 +10,16 @@ import Dashboard from './components/dashboard';
 import PriceProduct from './components/priceProduct';
 import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
+import PrecentMain from './components/PrecentMain'; // Importación del componente premium
 
 export default function MenuInicial() {
-  const [active, setActive] = useState('kanban');
+  const [active, setActive] = useState('presentation'); // Cambiado a 'presentation' por defecto
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 
   const router = useRouter();
 
-  // 🔒 PROTECCIÓN DE RUTA (MISMA LÓGICA, MISMO COMPORTAMIENTO)
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data?.user) {
-        router.replace('/login');
-      }
-    });
-  }, [router]);
-
-  // --- LÓGICA PARA DETECTAR INTENTO DE SALIDA (BACK BUTTON) ---
+  // --- LÓGICA PARA DETECTAR INTENTO DE SALIDA ---
   useEffect(() => {
     window.history.pushState(null, null, window.location.pathname);
 
@@ -54,6 +46,7 @@ export default function MenuInicial() {
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
+      case 'presentation': return <PrecentMain />; // Lógica para mostrar el panel premium
       default:
         return <div className="p-6 text-gray-500">Vista en construcción</div>;
     }

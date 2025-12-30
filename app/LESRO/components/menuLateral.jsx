@@ -14,18 +14,21 @@ import {
   Settings,
   ChevronLeft,
   X,
-  Database // Importado para el icono de Mail/Data si prefieres cambiarlo luego
+  LayoutTemplate, // Importado para la nueva sección
+  Database
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox },
+  // Nueva sección agregada para que el icono sea visible
+  { id: 'presentation', label: 'Executive Panel', icon: LayoutTemplate }, 
   { id: 'kanban', label: 'XML Data', icon: KanbanSquare },
+  { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox },
   { id: 'Tasks', label: 'Synchronizer', icon: ListChecks },
   { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3 },
   { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard },
   { id: 'search', label: 'Search', icon: Search },
   { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'mail', label: 'Data Explorer', icon: Mail }, // Esta es la sección donde se activará tu componente de lectura de tablas
+  { id: 'mail', label: 'Data Explorer', icon: Mail },
 ];
 
 export default function MenuLateral({
@@ -183,7 +186,7 @@ export default function MenuLateral({
           );
         })}
 
-        {/* TARJETA SVX COPILOT (Sin la leyenda dentro) */}
+        {/* TARJETA SVX COPILOT */}
         <div className={`
           mt-3 flex items-center rounded-xl transition-all duration-300
           ${collapsed ? 'justify-center h-12' : 'p-2 bg-[#6264A7]/5 border border-[#6264A7]/10'}
@@ -214,7 +217,7 @@ export default function MenuLateral({
           </div>
         </div>
 
-        {/* LEYENDA GLYNNE: AL FINAL DE TODO */}
+        {/* LEYENDA GLYNNE */}
         <div className={`
           transition-all duration-[400ms] overflow-hidden pt-2
           ${collapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
