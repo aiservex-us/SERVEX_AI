@@ -101,7 +101,7 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-[#242424] w-full overflow-auto">
+    <div className="flex flex-col h-screen bg-[#F5F5F5] font-sans text-[#242424] w-full">
       
       {/* HEADER */}
       <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20">
@@ -172,15 +172,15 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* ÁREA DE TABLA - SCROLL X Y Y HABILITADO */}
-      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col">
+      {/* ÁREA DE TABLA - CORRECCIÓN DE SCROLL HORIZONTAL (WIDTH) */}
+      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
         {filteredData.length > 0 ? (
-          <div className="flex-1 overflow-auto custom-scrollbar">
-            <table className="min-w-full border-collapse text-[10px]">
+          <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
+            <table className="border-collapse text-[10px]">
               <thead>
                 <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9]">
                   {Object.keys(currentCsvData[0]).map((header) => (
-                    <th key={header} className="px-3 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap">
+                    <th key={header} className="px-4 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap">
                       <div className="flex items-center gap-1.5 group cursor-pointer uppercase tracking-wider text-[9px]">
                         {header}
                         <Filter size={8} className="text-[#5B5FC7] opacity-40 group-hover:opacity-100" />
@@ -193,7 +193,7 @@ export default function DataViewer() {
                 {filteredData.map((row, idx) => (
                   <tr key={idx} className="group hover:bg-[#F5F5F7] transition-colors">
                     {Object.values(row).map((val, i) => (
-                      <td key={i} className="px-3 py-2 text-[#424242] border-r border-[#F0F0F0]/50 last:border-none whitespace-nowrap">
+                      <td key={i} className="px-4 py-2 text-[#424242] border-r border-[#F0F0F0]/50 last:border-none whitespace-nowrap">
                         {val && val !== '---' ? (
                           <span className="font-medium">{val}</span>
                         ) : (
@@ -230,7 +230,13 @@ export default function DataViewer() {
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
-        table { table-layout: auto; min-width: max-content; }
+        
+        /* Esta es la parte clave para que el Width no se corte */
+        table { 
+          table-layout: auto; 
+          min-width: max-content; 
+          width: 100%;
+        }
       `}</style>
     </div>
   );
