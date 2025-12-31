@@ -2,33 +2,33 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard,
-  Search,
+  SearchCode, // Icono mejorado para búsqueda
   BarChart3,
-  Bell,
   Mail,
   Inbox,
   KanbanSquare,
   ListChecks,
-  BookOpen,
   Headphones,
   Settings,
   ChevronLeft,
   X,
-  LayoutTemplate, // Importado para la nueva sección
-  Database
+  LayoutTemplate,
+  Database,
+  FileDiff // Icono para comparación de archivos/catálogos
 } from 'lucide-react';
 
 const menuItems = [
-  // Nueva sección agregada para que el icono sea visible
   { id: 'presentation', label: 'Executive Panel', icon: LayoutTemplate }, 
-  { id: 'kanban', label: 'XML Data', icon: KanbanSquare },
+  { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard },
+  { id: 'kanban', label: 'XML CET Data', icon: KanbanSquare },
   { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox },
   { id: 'Tasks', label: 'Synchronizer', icon: ListChecks },
   { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3 },
-  { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard },
-  { id: 'search', label: 'Search', icon: Search },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'mail', label: 'Data Explorer', icon: Mail },
+  { id: 'notifications', label: 'Catalog Comparison', icon: FileDiff },
+ 
+  // Secciones corregidas según tu solicitud:
+  
+  { id: 'mail', label: 'Data Explorer', icon: Database },
 ];
 
 export default function MenuLateral({
@@ -88,7 +88,7 @@ export default function MenuLateral({
           relative flex items-center transition-all duration-300
           ${collapsed ? 'justify-center h-10' : 'h-9 bg-slate-50/50 border border-slate-100 rounded-lg px-2 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#6264A7]/10 focus-within:border-[#6264A7]/30'}
         `}>
-          <Search className={`shrink-0 transition-colors ${searchQuery ? 'text-[#6264A7]' : 'text-slate-400'} ${collapsed ? 'w-5 h-5' : 'w-3.5 h-3.5'}`} />
+          <SearchCode className={`shrink-0 transition-colors ${searchQuery ? 'text-[#6264A7]' : 'text-slate-400'} ${collapsed ? 'w-5 h-5' : 'w-3.5 h-3.5'}`} />
           
           <input
             type="text"
