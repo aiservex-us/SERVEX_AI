@@ -26,6 +26,12 @@ export default function UploadClientXML() {
   const [csvContent, setCsvContent] = useState(''); 
   const [csvPdfContent, setCsvPdfContent] = useState(''); 
   const [loading, setLoading] = useState(false);
+  
+  // Estados para la carga de archivos local
+  const [readingXml, setReadingXml] = useState(false);
+  const [readingCsv, setReadingCsv] = useState(false);
+  const [readingCsvPdf, setReadingCsvPdf] = useState(false);
+
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
   const [dragActive, setDragActive] = useState(false);
   const [dragActiveCSV, setDragActiveCSV] = useState(false); 
@@ -41,11 +47,13 @@ export default function UploadClientXML() {
       return;
     }
 
+    setReadingXml(true);
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setXmlContent(content);
       setMessage({ text: 'XML file loaded successfully', type: 'success' });
+      setReadingXml(false);
     };
     reader.readAsText(file);
   };
@@ -56,11 +64,13 @@ export default function UploadClientXML() {
       return;
     }
 
+    setReadingCsv(true);
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setCsvContent(content);
       setMessage({ text: 'CSV file loaded successfully', type: 'success' });
+      setReadingCsv(false);
     };
     reader.readAsText(file);
   };
@@ -71,11 +81,13 @@ export default function UploadClientXML() {
       return;
     }
 
+    setReadingCsvPdf(true);
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setCsvPdfContent(content);
       setMessage({ text: 'PDF CSV loaded successfully', type: 'success' });
+      setReadingCsvPdf(false);
     };
     reader.readAsText(file);
   };
@@ -241,8 +253,12 @@ export default function UploadClientXML() {
                     className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
                       ${dragActive ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
-                    <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Upload XML</p>
+                    {readingXml ? (
+                      <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} />
+                    ) : (
+                      <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
+                    )}
+                    <p className="text-[10px] font-bold text-[#242424]">{readingXml ? 'Reading...' : 'Upload XML'}</p>
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => {
                       const file = e.target.files?.[0]; if (file) readXMLFile(file);
                     }} />
@@ -257,8 +273,12 @@ export default function UploadClientXML() {
                     className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
                       ${dragActiveCSV ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
-                    <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Upload CSV</p>
+                    {readingCsv ? (
+                      <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} />
+                    ) : (
+                      <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
+                    )}
+                    <p className="text-[10px] font-bold text-[#242424]">{readingCsv ? 'Reading...' : 'Upload CSV'}</p>
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
                       const file = e.target.files?.[0]; if (file) readCSVFile(file);
                     }} />
@@ -273,8 +293,12 @@ export default function UploadClientXML() {
                     className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
                       ${dragActiveCsvPdf ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
-                    <FileType className={`mx-auto mb-2 ${dragActiveCsvPdf ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Upload CSV (PDF)</p>
+                    {readingCsvPdf ? (
+                      <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} />
+                    ) : (
+                      <FileType className={`mx-auto mb-2 ${dragActiveCsvPdf ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
+                    )}
+                    <p className="text-[10px] font-bold text-[#242424]">{readingCsvPdf ? 'Reading...' : 'Upload CSV (PDF)'}</p>
                     <input ref={csvPdfInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
                       const file = e.target.files?.[0]; if (file) readCsvPdfFile(file);
                     }} />
@@ -285,30 +309,51 @@ export default function UploadClientXML() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
-                    <textarea
-                      className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
-                      placeholder="XML Content..."
-                      value={xmlContent}
-                      onChange={(e) => setXmlContent(e.target.value)}
-                    />
+                    <div className="relative">
+                      {readingXml && (
+                        <div className="absolute inset-0 bg-[#F3F2F1]/80 flex items-center justify-center z-10 rounded">
+                          <RefreshCw className="animate-spin text-[#5B5FC7]" size={20} />
+                        </div>
+                      )}
+                      <textarea
+                        className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
+                        placeholder="XML Content..."
+                        value={xmlContent}
+                        onChange={(e) => setXmlContent(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">CSV Preview</label>
-                    <textarea
-                      className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
-                      placeholder="CSV Content..."
-                      value={csvContent}
-                      onChange={(e) => setCsvContent(e.target.value)}
-                    />
+                    <div className="relative">
+                      {readingCsv && (
+                        <div className="absolute inset-0 bg-[#F3F2F1]/80 flex items-center justify-center z-10 rounded">
+                          <RefreshCw className="animate-spin text-[#5B5FC7]" size={20} />
+                        </div>
+                      )}
+                      <textarea
+                        className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
+                        placeholder="CSV Content..."
+                        value={csvContent}
+                        onChange={(e) => setCsvContent(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">PDF CSV Preview</label>
-                    <textarea
-                      className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
-                      placeholder="CSV from PDF Content..."
-                      value={csvPdfContent}
-                      onChange={(e) => setCsvPdfContent(e.target.value)}
-                    />
+                    <div className="relative">
+                      {readingCsvPdf && (
+                        <div className="absolute inset-0 bg-[#F3F2F1]/80 flex items-center justify-center z-10 rounded">
+                          <RefreshCw className="animate-spin text-[#5B5FC7]" size={20} />
+                        </div>
+                      )}
+                      <textarea
+                        className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
+                        placeholder="CSV from PDF Content..."
+                        value={csvPdfContent}
+                        onChange={(e) => setCsvPdfContent(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
 
