@@ -6,31 +6,36 @@ import Papa from 'papaparse';
 import { supabase, getCurrentUser } from '@/app/lib/supabaseClient';
 import { 
   FiUploadCloud, FiCheck, FiZap, FiShield, 
-  FiCpu, FiAlertCircle, FiPlus, FiTrash2, FiRefreshCw 
+  FiCpu, FiAlertCircle, FiPlus, FiTrash2, FiRefreshCw, FiDatabase
 } from 'react-icons/fi';
 import { BsFileEarmarkArrowUp } from 'react-icons/bs';
 
 const SVXCopilotEnterprise = () => {
-  // Estados de carga y datos
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [file, setFile] = useState(null);
   const [user, setUser] = useState(null);
   const [dbContent, setDbContent] = useState(null);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [dbStatus, setDbStatus] = useState('checking'); // checking, found, empty
 
   useEffect(() => {
     const initAuth = async () => {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
-      if (currentUser) fetchMasterData(currentUser.id);
+      if (currentUser) {
+        fetchMasterData(currentUser.id);
+      } else {
+        setDbStatus('empty');
+        setError("No se detectó sesión de usuario activa.");
+      }
     };
     initAuth();
   }, []);
 
-  // 1. Obtener el CSV maestro de Supabase
   const fetchMasterData = async (userId) => {
     try {
+      console.log("🔍 Buscando catálogo maestro para UID:", userId);
       const { data, error } = await supabase
         .from('ClientsSERVEX')
         .select('csv_raw')
@@ -39,15 +44,25 @@ const SVXCopilotEnterprise = () => {
         .limit(1)
         .single();
 
-      if (error) throw error;
-      setDbContent(data.csv_raw);
+      if (error) {
+        console.warn("⚠️ Error o registro no encontrado:", error.message);
+        setDbStatus('empty');
+        return;
+      }
+
+      if (data && data.csv_raw) {
+        console.log("✅ Datos maestros recuperados exitosamente.");
+        setDbContent(data.csv_raw);
+        setDbStatus('found');
+      } else {
+        setDbStatus('empty');
+      }
     } catch (err) {
-      console.error("Error fetching DB data:", err);
-      setError("No se pudo cargar el catálogo maestro de la base de datos.");
+      console.error("❌ Error fatal fetchMasterData:", err);
+      setDbStatus('empty');
     }
   };
 
-  // 2. Procesar el archivo subido
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files?.[0];
     if (uploadedFile) {
@@ -56,35 +71,59 @@ const SVXCopilotEnterprise = () => {
     }
   };
 
-  // 3. Lógica de Neural Matching 1:1 (Comparación Delta)
+  // Función para limpiar el CSV de Lesro (quitar las primeras 2 líneas de texto)
+  const cleanCSV = (rawText) => {
+    const lines = rawText.split('\n');
+    // Buscamos la línea que contiene "ID" que es el encabezado real
+    const headerIndex = lines.findIndex(line => line.includes('ID;Price Guide'));
+    if (headerIndex === -1) return rawText; // Si no lo encuentra, devuelve original
+    return lines.slice(headerIndex).join('\n');
+  };
+
   const runAudit = async () => {
-    if (!file || !dbContent) {
-      setError("Se requiere un archivo subido y datos en la BD para comparar.");
+    if (!file) {
+      setError("Por favor, selecciona un archivo CSV primero.");
+      return;
+    }
+    if (!dbContent) {
+      setError("No hay datos maestros en la base de datos para este usuario. Sube un archivo a la tabla 'ClientsSERVEX' primero.");
       return;
     }
 
     setIsAnalyzing(true);
     
-    // Parsear el archivo local
-    Papa.parse(file, {
+    // Configuración de PapaParse para archivos con ";"
+    const parseConfig = {
       header: true,
       skipEmptyLines: true,
-      complete: (fileRes) => {
-        // Parsear el contenido de la BD
-        Papa.parse(dbContent, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (dbRes) => {
-            compareData(fileRes.data, dbRes.data);
-          }
-        });
-      }
-    });
+      delimiter: ";",
+      transformHeader: (h) => h.trim()
+    };
+
+    // Leer archivo subido
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = cleanCSV(e.target.result);
+      Papa.parse(text, {
+        ...parseConfig,
+        complete: (fileRes) => {
+          // Parsear contenido de DB
+          const dbText = cleanCSV(dbContent);
+          Papa.parse(dbText, {
+            ...parseConfig,
+            complete: (dbRes) => {
+              compareData(fileRes.data, dbRes.data);
+            }
+          });
+        }
+      });
+    };
+    reader.readAsText(file);
   };
 
   const compareData = (newData, oldData) => {
-    // Usamos la primera columna como ID (SKU/Código)
-    const primaryKey = Object.keys(newData[0])[0];
+    // La llave primaria es "ID" (SKU)
+    const primaryKey = "ID";
     
     const oldMap = new Map(oldData.map(item => [item[primaryKey], item]));
     const newMap = new Map(newData.map(item => [item[primaryKey], item]));
@@ -94,26 +133,29 @@ const SVXCopilotEnterprise = () => {
       removed: [],
       modified: [],
       unchanged: [],
-      summary: { total: newData.length }
     };
 
-    // Identificar Nuevos y Modificados
     newData.forEach(newItem => {
       const id = newItem[primaryKey];
+      if (!id) return;
+
       const oldItem = oldMap.get(id);
 
       if (!oldItem) {
         delta.added.push(newItem);
-      } else if (JSON.stringify(newItem) !== JSON.stringify(oldItem)) {
-        delta.modified.push({ id, before: oldItem, after: newItem });
       } else {
-        delta.unchanged.push(newItem);
+        // Comparación profunda de valores
+        const isDifferent = JSON.stringify(newItem) !== JSON.stringify(oldItem);
+        if (isDifferent) {
+          delta.modified.push({ id, before: oldItem, after: newItem });
+        } else {
+          delta.unchanged.push(newItem);
+        }
       }
     });
 
-    // Identificar Eliminados
     oldData.forEach(oldItem => {
-      if (!newMap.has(oldItem[primaryKey])) {
+      if (oldItem[primaryKey] && !newMap.has(oldItem[primaryKey])) {
         delta.removed.push(oldItem);
       }
     });
@@ -122,14 +164,9 @@ const SVXCopilotEnterprise = () => {
     setIsAnalyzing(false);
   };
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
-  };
-
   return (
     <div className="flex flex-col items-center min-h-screen bg-white p-4 md:p-8 font-sans text-[#242424]">
-      <motion.div initial="hidden" animate="visible" variants={fadeIn} className="w-full max-w-7xl space-y-6">
+      <motion.div initial={{opacity:0}} animate={{opacity:1}} className="w-full max-w-7xl space-y-6">
         
         {/* HEADER */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 bg-[#FAF9F8] border border-[#EDEBE9] rounded-xl p-6 shadow-sm">
@@ -138,160 +175,119 @@ const SVXCopilotEnterprise = () => {
               <FiCpu className={`${isAnalyzing ? 'animate-spin' : ''} text-[#464775] text-2xl`} />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="bg-[#464775] text-white text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tight">Enterprise AI</span>
-                <h1 className="text-xl font-extrabold tracking-tight">SVX Copilot <span className="font-normal text-[#616161]">| Delta Intelligence</span></h1>
+              <h1 className="text-xl font-extrabold tracking-tight">SVX Copilot <span className="font-normal text-[#616161]">| Delta Intelligence</span></h1>
+              <div className="flex items-center gap-2 mt-1">
+                <FiDatabase className={dbStatus === 'found' ? 'text-green-500' : 'text-amber-500'} />
+                <span className="text-[11px] font-bold uppercase">
+                  {dbStatus === 'found' ? 'Base de Datos Conectada' : 'Sin Catálogo Maestro'}
+                </span>
               </div>
-              <p className="text-[#616161] text-[13px]">Usuario: <span className="font-bold text-[#464775]">{user?.email || 'Verificando...'}</span></p>
             </div>
           </div>
-          <div className="flex flex-col items-end border-l border-[#EDEBE9] pl-5">
-            <span className="text-[9px] font-bold text-[#616161] uppercase mb-1">Impacto Operativo</span>
-            <div className="flex items-center gap-2 text-[#237B4B]">
-              <FiZap size={14} />
-              <span className="text-2xl font-black">{results ? '-99.9%' : '0.0%'}</span>
-            </div>
+          <div className="text-right">
+             <span className="text-[10px] text-[#616161]">USUARIO</span>
+             <p className="text-xs font-bold">{user?.email || 'No identificado'}</p>
           </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* SIDEBAR PROTOCOLO */}
-          <div className="lg:col-span-4 bg-white border border-[#EDEBE9] rounded-xl p-6 flex flex-col">
-            <h4 className="text-[11px] font-black text-[#464775] uppercase tracking-[1.5px] mb-6">Protocolo Copilot</h4>
-            
-            <div className="space-y-8 relative">
-              <div className="absolute left-[10px] top-2 bottom-2 w-px bg-[#EDEBE9]" />
-              
-              <Step icon={<FiCheck />} title="Ingesta" active={!!file} subtitle="Archivo listo para análisis" />
-              <Step icon="2" title="Neural Matching" active={isAnalyzing || results} subtitle="Mapeo contra csv_raw" />
-              <Step icon="3" title="Delta Report" active={!!results} subtitle="Extracción de discrepancias" />
+          {/* IZQUIERDA: RESUMEN */}
+          <div className="lg:col-span-4 bg-white border border-[#EDEBE9] rounded-xl p-6">
+            <h4 className="text-[11px] font-black text-[#464775] uppercase tracking-wider mb-6">Protocolo de Auditoría</h4>
+            <div className="space-y-4">
+              <Step active={!!file} label="1. Carga de Nuevo Catálogo" />
+              <Step active={dbStatus === 'found'} label="2. Vínculo con Maestro (Supabase)" />
+              <Step active={!!results} label="3. Análisis de Discrepancias" />
             </div>
 
             {results && (
-              <div className="mt-8 p-4 bg-[#F3F2F1] rounded-lg space-y-3">
-                <h5 className="text-[10px] font-black uppercase text-[#616161]">Resumen de Cambios</h5>
-                <div className="grid grid-cols-2 gap-2">
-                  <Stat label="Nuevos" value={results.added.length} color="text-green-600" />
-                  <Stat label="Cambios" value={results.modified.length} color="text-blue-600" />
-                  <Stat label="Eliminados" value={results.removed.length} color="text-red-600" />
-                  <Stat label="Iguales" value={results.unchanged.length} color="text-gray-600" />
-                </div>
+              <div className="mt-8 grid grid-cols-2 gap-3">
+                <StatCard label="Nuevos" val={results.added.length} color="bg-green-100 text-green-700" />
+                <StatCard label="Cambios" val={results.modified.length} color="bg-blue-100 text-blue-700" />
+                <StatCard label="Eliminados" val={results.removed.length} color="bg-red-100 text-red-700" />
+                <StatCard label="Sin cambios" val={results.unchanged.length} color="bg-gray-100 text-gray-700" />
               </div>
             )}
           </div>
 
-          {/* CONSOLA PRINCIPAL */}
+          {/* DERECHA: ACCIÓN */}
           <div className="lg:col-span-8 bg-white border border-[#EDEBE9] rounded-xl p-8 shadow-sm">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h2 className="text-xl font-black tracking-tight">Consola de Comparación</h2>
-                <p className="text-[13px] text-[#616161] mt-1">Comparando archivo local vs instancia Supabase.</p>
-              </div>
-              <BsFileEarmarkArrowUp size={32} className={file ? "text-[#464775]" : "text-[#EDEBE9]"} />
-            </div>
-
             {!results ? (
               <>
-                <label className="border-2 border-dashed border-[#EDEBE9] rounded-xl p-14 flex flex-col items-center bg-[#FAF9F8] hover:bg-white hover:border-[#464775] transition-all cursor-pointer mb-8 group">
+                <div className="mb-6">
+                  <h2 className="text-lg font-black italic">Consola de Ingesta Delta</h2>
+                  <p className="text-xs text-[#616161]">Sube el archivo modificado para compararlo contra el almacenamiento oficial.</p>
+                </div>
+
+                <label className="border-2 border-dashed border-[#EDEBE9] rounded-xl p-16 flex flex-col items-center bg-[#FAF9F8] hover:border-[#464775] transition-all cursor-pointer mb-6">
                   <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
-                  <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md mb-4 text-[#464775] group-hover:scale-110 transition-transform">
-                    <FiUploadCloud size={28} />
-                  </div>
-                  <p className="text-[15px] font-black">{file ? file.name : 'Selecciona el catálogo nuevo'}</p>
-                  <p className="text-[11px] text-[#616161] mt-2 font-medium">CSV Maestro de Clientes</p>
+                  <FiUploadCloud size={40} className="mb-4 text-[#464775]" />
+                  <span className="font-bold text-sm">{file ? file.name : "Seleccionar CSV de Cliente"}</span>
                 </label>
 
                 {error && (
-                  <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs flex items-center gap-2">
+                  <div className="mb-4 p-3 bg-red-50 text-red-700 text-[11px] rounded flex items-center gap-2">
                     <FiAlertCircle /> {error}
                   </div>
                 )}
 
-                <div className="flex justify-end gap-3">
-                  <button onClick={() => setFile(null)} className="px-6 py-2 border border-[#D1D1D1] rounded-lg text-[12px] font-bold text-[#616161] hover:bg-[#F5F5F5] uppercase">
-                    Limpiar
-                  </button>
+                <div className="flex justify-end">
                   <button 
                     onClick={runAudit}
-                    disabled={isAnalyzing || !file}
-                    className="px-7 py-2 bg-[#464775] text-white rounded-lg text-[12px] font-black hover:bg-[#38395d] disabled:opacity-50 shadow-md flex items-center gap-2 uppercase"
+                    disabled={isAnalyzing || !file || dbStatus !== 'found'}
+                    className="px-8 py-3 bg-[#464775] text-white rounded-lg text-xs font-black hover:bg-[#38395d] disabled:opacity-30 flex items-center gap-2"
                   >
-                    {isAnalyzing ? <FiRefreshCw className="animate-spin" /> : <FiZap />} 
-                    {isAnalyzing ? 'Procesando...' : 'Iniciar Auditoría Delta'}
+                    {isAnalyzing ? <FiRefreshCw className="animate-spin" /> : <FiZap />}
+                    EJECUTAR COMPARACIÓN 1:1
                   </button>
                 </div>
               </>
             ) : (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-sm text-[#464775]">Análisis de Discrepancias Finalizado</h3>
-                  <button onClick={() => setResults(null)} className="text-[10px] font-bold underline">Cargar otro archivo</button>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center pb-4 border-b">
+                  <h3 className="font-bold">Resultados del Análisis</h3>
+                  <button onClick={() => setResults(null)} className="text-[10px] underline uppercase">Subir otro</button>
                 </div>
-                
-                <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2">
-                  {results.added.map((item, i) => (
-                    <DeltaRow key={i} type="added" data={item} icon={<FiPlus />} />
-                  ))}
+                <div className="max-h-[400px] overflow-y-auto space-y-2">
                   {results.modified.map((item, i) => (
-                    <DeltaRow key={i} type="modified" data={item.after} icon={<FiRefreshCw />} />
+                    <div key={i} className="p-3 bg-blue-50 border border-blue-100 rounded text-[11px] flex justify-between">
+                      <div>
+                        <span className="font-black">ID: {item.id}</span>
+                        <p className="text-[#616161]">Se detectó cambio en atributos de precio/descripción.</p>
+                      </div>
+                      <span className="text-blue-600 font-bold uppercase">Modificado</span>
+                    </div>
                   ))}
-                  {results.removed.map((item, i) => (
-                    <DeltaRow key={i} type="removed" data={item} icon={<FiTrash2 />} />
+                  {results.added.map((item, i) => (
+                    <div key={i} className="p-3 bg-green-50 border border-green-100 rounded text-[11px] flex justify-between">
+                      <span className="font-black">ID: {item.ID}</span>
+                      <span className="text-green-600 font-bold uppercase">Nuevo SKU</span>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
           </div>
         </div>
-
-        <footer className="pt-6 border-t border-[#EDEBE9] flex justify-between items-center">
-          <p className="text-[9px] text-[#616161] font-medium"><strong>Servex US Engineering</strong> © 2026</p>
-          <div className="flex items-center gap-1 text-[9px] font-bold text-[#237B4B]"><FiShield size={12} /> SECURE DB LINKED</div>
-        </footer>
       </motion.div>
     </div>
   );
 };
 
-// Componentes Auxiliares UI
-const Step = ({ icon, title, active, subtitle }) => (
-  <div className={`flex items-start relative z-10 transition-opacity ${active ? 'opacity-100' : 'opacity-40'}`}>
-    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] shadow-sm border-2 ${active ? 'bg-[#464775] text-white border-white' : 'bg-white border-[#EDEBE9] text-[#616161]'}`}>
-      {icon}
+const Step = ({ active, label }) => (
+  <div className={`flex items-center gap-3 ${active ? 'opacity-100' : 'opacity-30'}`}>
+    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${active ? 'bg-[#464775] text-white' : 'bg-gray-200'}`}>
+      {active ? <FiCheck /> : '•'}
     </div>
-    <div className="ml-4">
-      <h3 className="text-[13px] font-bold">{title}</h3>
-      <p className="text-[10px] text-[#616161] mt-0.5">{subtitle}</p>
-    </div>
+    <span className="text-xs font-medium">{label}</span>
   </div>
 );
 
-const Stat = ({ label, value, color }) => (
-  <div className="bg-white p-2 rounded border border-[#EDEBE9]">
-    <p className="text-[8px] uppercase font-bold text-[#616161]">{label}</p>
-    <p className={`text-sm font-black ${color}`}>{value}</p>
+const StatCard = ({ label, val, color }) => (
+  <div className={`${color} p-3 rounded-lg`}>
+    <p className="text-[9px] uppercase font-black opacity-70">{label}</p>
+    <p className="text-lg font-black">{val}</p>
   </div>
 );
-
-const DeltaRow = ({ type, data, icon }) => {
-  const styles = {
-    added: "bg-green-50 border-green-200 text-green-700",
-    modified: "bg-blue-50 border-blue-200 text-blue-700",
-    removed: "bg-red-50 border-red-200 text-red-700 opacity-70",
-  };
-
-  return (
-    <div className={`p-3 border rounded-lg flex items-center justify-between text-[11px] ${styles[type]}`}>
-      <div className="flex items-center gap-3">
-        <span className="text-lg">{icon}</span>
-        <div>
-          <span className="font-bold uppercase">{Object.values(data)[0]}</span>
-          <span className="ml-2 opacity-80">{Object.values(data)[1]}</span>
-        </div>
-      </div>
-      <span className="text-[9px] font-bold uppercase tracking-widest">{type}</span>
-    </div>
-  );
-};
 
 export default SVXCopilotEnterprise;
