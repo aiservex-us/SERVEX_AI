@@ -35,9 +35,9 @@ const SVXCopilotEnterprise = () => {
     const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
     if (lines.length === 0) return;
 
-    // Detectamos delimitador (tu archivo usa ;)
-    const sampleLine = lines[2] || lines[0];
-    const delimiter = sampleLine.includes(';') ? ';' : ',';
+    // Detectamos delimitador (tu archivo de Lesro usa ;)
+    const sampleLine = lines.find(l => l.includes(';') || l.includes(','));
+    const delimiter = sampleLine && sampleLine.includes(';') ? ';' : ',';
 
     const matrix = lines.map(line => 
       line.split(delimiter).map(cell => cell.trim())
@@ -60,57 +60,62 @@ const SVXCopilotEnterprise = () => {
     }
   }, []);
 
-  // 2. FUNCIÓN DE AUDITORÍA (COMPARA CONTRA csv_raw)
+  // 2. FUNCIÓN DE AUDITORÍA (COMPARA CONTRA EL CONTENIDO DE LA DB)
   const handleAnalyze = async () => {
     if (data.length === 0) return;
     setIsAnalyzing(true);
 
     try {
-      // Consultamos la columna csv_raw filtrando por el nombre exacto del archivo
-      const { data: dbRow, error } = await supabase
+      // NOTA: Eliminamos el filtro por nombre de archivo. 
+      // Traemos el primer registro disponible en la tabla que tenga datos en csv_raw.
+      const { data: dbRows, error } = await supabase
         .from('ClientsSERVEX')
         .select('csv_raw')
-        .eq('file_name', fileName)
-        .maybeSingle(); // Evita el error 406 si no hay match
+        .not('csv_raw', 'is', null)
+        .limit(1); 
 
       if (error) throw error;
 
-      if (!dbRow || !dbRow.csv_raw) {
-        alert(`No se encontró un registro maestro para el archivo: ${fileName}\nVerifica que el nombre en la base de datos sea idéntico.`);
+      if (!dbRows || dbRows.length === 0) {
+        alert("No se encontró ningún registro maestro en la tabla 'ClientsSERVEX'.");
         setIsAnalyzing(false);
         return;
       }
 
+      const dbRow = dbRows[0];
+
       // Procesamos el contenido de la base de datos (csv_raw)
       const dbLines = dbRow.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
-      const dbDelimiter = dbLines[2]?.includes(';') ? ';' : ',';
+      const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
       const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
 
-      // Identificar cabecera (normalmente fila 3 en tus archivos de Lesro)
+      // Identificar fila de cabecera (donde aparece 'ID' o 'Product Name')
       const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product'));
       const header = data[headerIndex] || data[0];
 
-      // COMPARACIÓN FILA POR FILA
+      // COMPARACIÓN FILA POR FILA (empezando después de la cabecera)
       const currentRows = data.slice(headerIndex + 1);
       const masterRows = dbMatrix.slice(headerIndex + 1);
 
       const discrepancies = currentRows.filter((row, idx) => {
         const mRow = masterRows[idx];
-        if (!mRow) return true; // Fila extra en el archivo nuevo
+        if (!mRow) return true; // Si hay filas extra en el archivo subido
+        // Comparación rápida mediante stringify
         return JSON.stringify(row) !== JSON.stringify(mRow);
       });
 
       if (discrepancies.length === 0) {
         setMatchStatus('match');
+        alert("✅ Integridad Total: El contenido coincide al 100% con la base de datos.");
       } else {
         setMatchStatus('mismatch');
         setDiffCount(discrepancies.length);
-        // ACTUALIZAMOS LA TABLA: Solo mostramos la cabecera y las filas con errores
+        // ACTUALIZAMOS LA TABLA: Solo mostramos la cabecera y las filas con errores para que sea fácil ver qué cambió
         setData([header, ...discrepancies]);
       }
     } catch (err) {
-      console.error("Error:", err);
-      alert("Error al conectar con Supabase. Revisa la consola.");
+      console.error("Error en auditoría:", err);
+      alert("Error al conectar con la base de datos.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -128,38 +133,38 @@ const SVXCopilotEnterprise = () => {
             </div>
             <div>
               <h1 className="text-xl font-black tracking-tight text-[#242424]">
-                SVX Copilot <span className="font-light text-[#616161]">| Neural Auditor</span>
+                SVX Copilot <span className="font-light text-[#616161]">| Delta Audit</span>
               </h1>
-              <p className="text-[11px] text-[#616161] uppercase font-bold tracking-widest">Enterprise Delta Sync</p>
+              <p className="text-[11px] text-[#616161] uppercase font-bold tracking-widest">Master Data Comparison</p>
             </div>
           </div>
 
           <div className="flex gap-8">
             <div className="text-right">
-              <p className="text-[10px] font-bold text-[#616161] uppercase">Estado de Integridad</p>
+              <p className="text-[10px] font-bold text-[#616161] uppercase">Integridad Detectada</p>
               <p className={`text-xl font-black ${matchStatus === 'match' ? 'text-[#237B4B]' : matchStatus === 'mismatch' ? 'text-red-500' : 'text-[#464775]'}`}>
-                {matchStatus === 'match' ? '100% OK' : matchStatus === 'mismatch' ? `ERR: ${diffCount}` : 'WAITING'}
+                {matchStatus === 'match' ? '100%' : matchStatus === 'mismatch' ? `DIF: ${diffCount}` : '---'}
               </p>
             </div>
           </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LADO IZQUIERDO: LOGICA */}
+          {/* LADO IZQUIERDO: INFO */}
           <div className="lg:col-span-4 bg-white border border-[#EDEBE9] rounded-xl p-6">
-             <h3 className="text-[12px] font-black text-[#464775] mb-6 uppercase">Protocolo de Auditoría</h3>
+             <h3 className="text-[12px] font-black text-[#464775] mb-6 uppercase">Protocolo Intelligence</h3>
              <div className="space-y-6 relative">
                 <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-[#F3F2F1]" />
-                <Step icon={<FiCheck />} title="Ingesta" desc={fileName || "Subir archivo .csv"} active={data.length > 0} />
-                <Step icon={<FiSearch />} title="Mapeo csv_raw" desc="Comparando contra DB" active={isAnalyzing} />
-                <Step icon={<FiAlertTriangle />} title="Resultado" desc={matchStatus === 'mismatch' ? "Diferencias encontradas" : "Sin cambios"} active={matchStatus} />
+                <Step icon={<FiCheck />} title="Archivo Local" desc={fileName || "Esperando CSV..."} active={data.length > 0} />
+                <Step icon={<FiSearch />} title="Extracción DB" desc="Leyendo columna csv_raw" active={isAnalyzing || matchStatus} />
+                <Step icon={<FiShield />} title="Resultado" desc={matchStatus === 'mismatch' ? "Diferencias visualizadas" : "Análisis pendiente"} active={matchStatus} />
              </div>
           </div>
 
           {/* LADO DERECHO: CONSOLA */}
           <div className="lg:col-span-8 bg-white border border-[#EDEBE9] rounded-xl p-8 shadow-sm flex flex-col min-h-[550px]">
             <div className="flex justify-between items-start mb-6">
-              <h2 className="text-lg font-bold">Consola de Comparación Binaria</h2>
+              <h2 className="text-lg font-bold">Consola de Comparación de Contenido</h2>
               <BsFileEarmarkArrowUp size={24} className={data.length > 0 ? "text-[#464775]" : "text-[#EDEBE9]"} />
             </div>
 
@@ -172,8 +177,8 @@ const SVXCopilotEnterprise = () => {
                   className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}
                 >
                   <FiUploadCloud size={40} className="text-[#464775] mb-4" />
-                  <p className="font-bold">Arrastra el catálogo aquí</p>
-                  <p className="text-[11px] text-[#616161]">Formato CSV (Separado por punto y coma)</p>
+                  <p className="font-bold">Sube el CSV que deseas auditar</p>
+                  <p className="text-[11px] text-[#616161]">Se comparará el contenido contra el maestro de la DB</p>
                 </div>
               ) : (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-grow overflow-hidden flex flex-col">
@@ -182,7 +187,7 @@ const SVXCopilotEnterprise = () => {
                       <thead className="bg-[#FAF9F8] sticky top-0 shadow-sm">
                         <tr>
                           {data[0].map((h, i) => (
-                            <th key={i} className="p-3 font-black border-b text-[#464775]">{h}</th>
+                            <th key={i} className="p-3 font-black border-b text-[#464775] uppercase">{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -196,8 +201,8 @@ const SVXCopilotEnterprise = () => {
                     </table>
                   </div>
                   {matchStatus === 'mismatch' && (
-                    <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg text-red-700 text-[11px] font-bold flex items-center gap-2">
-                      <FiAlertTriangle /> SE ESTÁN MOSTRANDO ÚNICAMENTE LAS {diffCount} FILAS QUE NO COINCIDEN CON LA DB.
+                    <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg text-red-700 text-[11px] font-bold flex items-center gap-2 animate-pulse">
+                      <FiAlertTriangle /> ATENCIÓN: Se muestran solo las {diffCount} filas que NO coinciden con el registro maestro.
                     </div>
                   )}
                 </motion.div>
@@ -205,15 +210,15 @@ const SVXCopilotEnterprise = () => {
             </AnimatePresence>
 
             <div className="mt-8 flex justify-end gap-3">
-               <button onClick={() => { setData([]); setMatchStatus(null); }} className="px-6 py-2 border rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-all">
-                  DESCARTAR
+               <button onClick={() => { setData([]); setMatchStatus(null); setFileName(""); }} className="px-6 py-2 border rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-all">
+                  LIMPIAR
                </button>
                <button 
                 onClick={handleAnalyze}
                 disabled={data.length === 0 || isAnalyzing}
                 className={`px-8 py-2 rounded-lg text-[12px] font-black shadow-lg flex items-center gap-2 ${data.length > 0 ? 'bg-[#464775] text-white hover:opacity-90' : 'bg-gray-100 text-gray-400'}`}
                >
-                 {isAnalyzing ? "PROCESANDO..." : "INICIAR AUDITORÍA"} <FiZap />
+                 {isAnalyzing ? "AUDITANDO..." : "INICIAR COMPARACIÓN"} <FiZap />
                </button>
             </div>
           </div>
