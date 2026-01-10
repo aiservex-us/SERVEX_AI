@@ -27,18 +27,14 @@ const SVXCopilotEnterprise = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [matchStatus, setMatchStatus] = useState(null); // 'match', 'mismatch', 'error'
+  const [matchStatus, setMatchStatus] = useState(null); 
   const [diffCount, setDiffCount] = useState(0);
-
-  // ESTADO PARA ALERTAS CUSTOM
   const [alert, setAlert] = useState({ show: false, message: '', type: 'info' });
 
-  // Función para disparar la alerta custom
   const showAlert = (message, type = 'info') => {
     setAlert({ show: true, message, type });
   };
 
-  // Auto-cerrar alerta después de 5 segundos
   useEffect(() => {
     if (alert.show) {
       const timer = setTimeout(() => setAlert({ ...alert, show: false }), 5000);
@@ -46,28 +42,18 @@ const SVXCopilotEnterprise = () => {
     }
   }, [alert.show]);
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
-  };
-
-  // 1. PROCESAR CSV LOCAL
   const processCSV = (text) => {
     const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
     if (lines.length === 0) return;
-
     const sampleLine = lines.find(l => l.includes(';') || l.includes(','));
     const delimiter = sampleLine && sampleLine.includes(';') ? ';' : ',';
-
-    const matrix = lines.map(line => 
-      line.split(delimiter).map(cell => cell.trim())
-    );
+    const matrix = lines.map(line => line.split(delimiter).map(cell => cell.trim()));
 
     setData(matrix);
     setMatchStatus(null);
     setDiffCount(0);
     setMasterDataRows([]);
-    showAlert("Archivo CSV cargado correctamente", "info");
+    showAlert("Archivo CSV cargado correctamente", "success");
   };
 
   const handleDrop = useCallback((e) => {
@@ -84,11 +70,9 @@ const SVXCopilotEnterprise = () => {
     }
   }, []);
 
-  // 2. FUNCIÓN DE AUDITORÍA
   const handleAnalyze = async () => {
     if (data.length === 0) return;
     setIsAnalyzing(true);
-
     try {
       const { data: dbRows, error } = await supabase
         .from('ClientsSERVEX')
@@ -97,11 +81,9 @@ const SVXCopilotEnterprise = () => {
         .limit(1); 
 
       if (error) throw error;
-
       if (!dbRows || dbRows.length === 0) {
-        showAlert("No se encontró registro maestro en ClientsSERVEX", "error");
-        setIsAnalyzing(false);
-        return;
+        showAlert("Registro maestro no encontrado", "error");
+        setIsAnalyzing(false); return;
       }
 
       const dbRow = dbRows[0];
@@ -111,7 +93,6 @@ const SVXCopilotEnterprise = () => {
 
       const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product'));
       const header = data[headerIndex] || data[0];
-
       const currentRows = data.slice(headerIndex + 1);
       const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
 
@@ -125,17 +106,16 @@ const SVXCopilotEnterprise = () => {
 
       if (discrepancies.length === 0) {
         setMatchStatus('match');
-        showAlert("Integridad Total: 100% de coincidencia con DB", "success");
+        showAlert("Integridad Total Confirmada", "success");
       } else {
         setMatchStatus('mismatch');
         setDiffCount(discrepancies.length);
         setMasterDataRows(discrepancies.map(d => d.mRow));
         setData([header, ...discrepancies.map(d => d.row)]);
-        showAlert(`Auditoría finalizada: ${discrepancies.length} discrepancias halladas`, "warning");
+        showAlert(`Discrepancias detectadas: ${discrepancies.length}`, "warning");
       }
     } catch (err) {
-      console.error("Error en auditoría:", err);
-      showAlert("Error crítico de conexión con la DB", "error");
+      showAlert("Error de conexión con SVX Cloud", "error");
     } finally {
       setIsAnalyzing(false);
     }
@@ -144,94 +124,98 @@ const SVXCopilotEnterprise = () => {
   return (
     <div className="flex flex-col items-center min-h-screen bg-[#FDFDFD] p-4 md:p-8 font-sans text-[#242424]">
       
-      {/* --- NOTIFICACIÓN CUSTOM (ALERT) --- */}
+      {/* NOTIFICACIONES CUSTOM */}
       <AnimatePresence>
         {alert.show && (
           <motion.div 
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
+            initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }}
             className="fixed top-6 right-6 z-[9999] flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border min-w-[320px] bg-white border-[#EDEBE9]"
           >
-            <div className={`p-2 rounded-lg text-white ${
-              alert.type === 'success' ? 'bg-[#237B4B]' : 
-              alert.type === 'error' ? 'bg-[#A4262C]' : 
-              alert.type === 'warning' ? 'bg-[#D83B01]' : 'bg-[#464775]'
-            }`}>
+            <div className={`p-2 rounded-lg text-white ${alert.type === 'success' ? 'bg-[#237B4B]' : alert.type === 'error' ? 'bg-[#A4262C]' : alert.type === 'warning' ? 'bg-[#D83B01]' : 'bg-[#464775]'}`}>
               {alert.type === 'success' && <FiCheckCircle size={18} />}
               {alert.type === 'error' && <FiXCircle size={18} />}
               {alert.type === 'warning' && <FiAlertTriangle size={18} />}
               {alert.type === 'info' && <FiInfo size={18} />}
             </div>
             <div className="flex-grow">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#616161] mb-0.5">SVX System</p>
-              <p className="text-[12px] font-bold text-[#242424]">{alert.message}</p>
+              <p className="text-[9px] font-black uppercase tracking-tighter text-[#616161]">SVX System Message</p>
+              <p className="text-[12px] font-bold">{alert.message}</p>
             </div>
-            <button onClick={() => setAlert({ ...alert, show: false })} className="text-gray-400 hover:text-black transition-colors">
-              <FiX size={16} />
-            </button>
-            <motion.div 
-              initial={{ width: "100%" }}
-              animate={{ width: "0%" }}
-              transition={{ duration: 5, ease: "linear" }}
-              className="absolute bottom-0 left-0 h-1 bg-[#464775]/20"
-            />
+            <button onClick={() => setAlert({ ...alert, show: false })}><FiX size={16} /></button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div initial="hidden" animate="visible" variants={fadeIn} className="w-full max-w-7xl space-y-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-7xl space-y-6">
         
-        {/* BRANDING HEADER */}
+        {/* HEADER */}
         <header className="flex flex-col md:flex-row justify-between items-center bg-white border border-[#EDEBE9] rounded-xl p-6 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#464775] rounded-lg flex items-center justify-center text-white shadow-lg">
-              <FiCpu size={24} />
-            </div>
+            <div className="w-12 h-12 bg-[#464775] rounded-lg flex items-center justify-center text-white shadow-lg"><FiCpu size={24} /></div>
             <div>
-              <h1 className="text-xl font-black tracking-tight text-[#242424]">
-                SVX Copilot <span className="font-light text-[#616161]">| Delta Audit</span>
-              </h1>
+              <h1 className="text-xl font-black tracking-tight">SVX Copilot <span className="font-light text-[#616161]">| Delta Audit</span></h1>
               <p className="text-[11px] text-[#616161] uppercase font-bold tracking-widest">Master Data Comparison</p>
             </div>
           </div>
-
-          <div className="flex gap-8">
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-[#616161] uppercase">Diferencias Críticas</p>
-              <p className={`text-xl font-black ${matchStatus === 'match' ? 'text-[#237B4B]' : matchStatus === 'mismatch' ? 'text-red-500' : 'text-[#464775]'}`}>
-                {matchStatus === 'match' ? '0' : matchStatus === 'mismatch' ? diffCount : '---'}
-              </p>
-            </div>
+          <div className="text-right">
+            <p className="text-[10px] font-bold text-[#616161] uppercase">Diferencias Críticas</p>
+            <p className={`text-xl font-black ${matchStatus === 'match' ? 'text-[#237B4B]' : matchStatus === 'mismatch' ? 'text-red-500' : 'text-[#464775]'}`}>
+              {matchStatus === 'match' ? '0' : matchStatus === 'mismatch' ? diffCount : '---'}
+            </p>
           </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LADO IZQUIERDO: INFO */}
-          <div className="lg:col-span-3 bg-white border border-[#EDEBE9] rounded-xl p-6">
-              <h3 className="text-[12px] font-black text-[#464775] mb-6 uppercase">Protocolo de Análisis</h3>
-              <div className="space-y-6 relative">
-                <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-[#F3F2F1]" />
-                <Step icon={<FiCheck />} title="Archivo Local" desc={fileName || "Esperando CSV..."} active={data.length > 0} />
-                <Step icon={<FiSearch />} title="Mapeo Binario" desc="Celda por celda" active={isAnalyzing || matchStatus} />
-                <Step icon={<FiShield />} title="Resultado" desc={matchStatus === 'mismatch' ? "Diferencias visualizadas" : "Esperando..."} active={matchStatus} />
+          
+          {/* LADO IZQUIERDO: PROTOCOLO DE ANÁLISIS REFORZADO */}
+          <div className="lg:col-span-3 bg-white border border-[#EDEBE9] rounded-xl overflow-hidden flex flex-col shadow-sm">
+              <div className="bg-[#FAF9F8] p-4 border-b border-[#EDEBE9]">
+                <h3 className="text-[11px] font-black text-[#464775] uppercase tracking-wider">Protocolo de Análisis</h3>
               </div>
               
-              {matchStatus === 'mismatch' && (
-                <div className="mt-10 p-4 bg-[#FAF9F8] rounded-lg border border-[#EDEBE9]">
-                  <h4 className="text-[10px] font-black uppercase text-[#464775] mb-2">Leyenda de Auditoría</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-red-400 rounded-full" />
-                      <span className="text-[9px] font-bold text-[#616161]">ROJO: DATO EN DB (ANTERIOR)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-[#237B4B] rounded-full" />
-                      <span className="text-[9px] font-bold text-[#616161]">VERDE: DATO NUEVO (CSV)</span>
-                    </div>
-                  </div>
+              <div className="p-6 flex-grow">
+                <div className="flex flex-col">
+                  <Step 
+                    icon={<FiCheck />} 
+                    title="Archivo Local" 
+                    desc={fileName || "Pendiente de carga"} 
+                    active={data.length > 0} 
+                    isLast={false} 
+                  />
+                  <Step 
+                    icon={<FiSearch />} 
+                    title="Mapeo Binario" 
+                    desc="Comparación en SVX Cloud" 
+                    active={isAnalyzing || matchStatus} 
+                    isLast={false} 
+                  />
+                  <Step 
+                    icon={<FiShield />} 
+                    title="Resultado Delta" 
+                    desc={matchStatus === 'mismatch' ? "Cambios detectados" : "Esperando ejecución"} 
+                    active={matchStatus} 
+                    isLast={true} 
+                  />
                 </div>
-              )}
+                
+                {matchStatus === 'mismatch' && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 p-4 bg-[#FFF4F4] rounded-lg border border-red-100">
+                    <h4 className="text-[10px] font-black uppercase text-red-700 mb-3 flex items-center gap-2">
+                      <FiAlertTriangle /> Leyenda Delta
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-red-500 rounded-sm shadow-sm" />
+                        <span className="text-[10px] font-bold text-red-800 tracking-tight">DATA MAESTRA (DB)</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-[#237B4B] rounded-sm shadow-sm" />
+                        <span className="text-[10px] font-bold text-[#237B4B] tracking-tight">NUEVO VALOR (CSV)</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
           </div>
 
           {/* LADO DERECHO: CONSOLA */}
@@ -255,7 +239,7 @@ const SVXCopilotEnterprise = () => {
                 </div>
               ) : (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-grow overflow-hidden flex flex-col">
-                  <div className="overflow-auto border rounded-lg max-h-[450px]">
+                  <div className="overflow-auto border rounded-lg max-h-[450px] shadow-inner">
                     <table className="w-full text-left text-[10px]">
                       <thead className="bg-[#FAF9F8] sticky top-0 shadow-sm z-20">
                         <tr>
@@ -270,22 +254,16 @@ const SVXCopilotEnterprise = () => {
                             {row.map((cell, ci) => {
                               const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                               const isCellDiff = masterCell !== null && cell !== masterCell;
-
                               return (
-                                <td key={ci} className={`p-3 border-r border-[#F3F2F1] last:border-0 ${isCellDiff ? 'bg-orange-50/30' : ''}`}>
+                                <td key={ci} className={`p-3 border-r border-[#F3F2F1] last:border-0 ${isCellDiff ? 'bg-orange-50/20' : ''}`}>
                                   {isCellDiff ? (
                                     <div className="flex flex-col gap-1">
-                                      <span className="text-red-500 line-through opacity-70 font-medium">
-                                        {masterCell || '(vacío)'}
-                                      </span>
+                                      <span className="text-red-500 line-through font-medium">{masterCell || '(null)'}</span>
                                       <div className="flex items-center gap-1 text-[#237B4B] font-bold">
-                                        <FiArrowRight size={10} />
-                                        <span>{cell}</span>
+                                        <FiArrowRight size={10} /><span>{cell}</span>
                                       </div>
                                     </div>
-                                  ) : (
-                                    <span className="text-[#616161]">{cell}</span>
-                                  )}
+                                  ) : <span className="text-[#616161]">{cell}</span>}
                                 </td>
                               );
                             })}
@@ -294,26 +272,19 @@ const SVXCopilotEnterprise = () => {
                       </tbody>
                     </table>
                   </div>
-                  {matchStatus === 'mismatch' && (
-                    <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg text-red-700 text-[11px] font-bold flex items-center gap-2">
-                      <FiAlertTriangle className="animate-pulse" /> 
-                      AUDITORÍA ACTIVA: Se muestran {diffCount} filas con cambios detectados en valores específicos.
-                    </div>
-                  )}
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <div className="mt-8 flex justify-end gap-3">
-               <button onClick={() => { setData([]); setMatchStatus(null); setFileName(""); setMasterDataRows([]); }} className="px-6 py-2 border rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-all">
-                 RESETEAR
+            <div className="mt-8 flex justify-end gap-3 pt-6 border-t">
+               <button onClick={() => { setData([]); setMatchStatus(null); setFileName(""); setMasterDataRows([]); }} className="px-6 py-2 border rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-all uppercase tracking-tighter">
+                 Resetear Consola
                </button>
                <button 
-                onClick={handleAnalyze}
-                disabled={data.length === 0 || isAnalyzing}
-                className={`px-8 py-2 rounded-lg text-[12px] font-black shadow-lg flex items-center gap-2 ${data.length > 0 ? 'bg-[#464775] text-white hover:opacity-90' : 'bg-gray-100 text-gray-400'}`}
+                onClick={handleAnalyze} disabled={data.length === 0 || isAnalyzing}
+                className={`px-8 py-2 rounded-lg text-[12px] font-black shadow-lg flex items-center gap-2 transition-all ${data.length > 0 ? 'bg-[#464775] text-white hover:scale-[1.02]' : 'bg-gray-100 text-gray-400'}`}
                >
-                 {isAnalyzing ? "COMPARANDO..." : "EJECUTAR AUDITORÍA"} <FiZap />
+                 {isAnalyzing ? "PROCESANDO..." : "EJECUTAR AUDITORÍA"} <FiZap />
                </button>
             </div>
           </div>
@@ -323,14 +294,22 @@ const SVXCopilotEnterprise = () => {
   );
 };
 
-const Step = ({ icon, title, desc, active }) => (
-  <div className={`flex items-start gap-4 transition-opacity ${!active && 'opacity-30'}`}>
-    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] border-2 ${active ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>
-      {icon}
+/* COMPONENTE STEP OPTIMIZADO */
+const Step = ({ icon, title, desc, active, isLast }) => (
+  <div className="flex gap-4 relative">
+    <div className="flex flex-col items-center">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] border-2 z-10 transition-all ${active ? 'bg-[#464775] border-[#464775] text-white shadow-md' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>
+        {icon}
+      </div>
+      {!isLast && (
+        <div className={`w-[2px] h-full -my-1 transition-colors ${active ? 'bg-[#464775]' : 'bg-[#F3F2F1]'}`} />
+      )}
     </div>
-    <div>
-      <h4 className="text-[12px] font-bold">{title}</h4>
-      <p className="text-[10px] text-[#616161]">{desc}</p>
+    <div className={`pb-8 transition-opacity ${!active && 'opacity-40'}`}>
+      <h4 className="text-[12px] font-black text-[#242424] leading-none mb-1">{title}</h4>
+      <p className="text-[10px] text-[#616161] font-medium max-w-[140px] break-words line-clamp-2" title={desc}>
+        {desc}
+      </p>
     </div>
   </div>
 );
