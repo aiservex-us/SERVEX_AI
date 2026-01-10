@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiUploadCloud, 
@@ -9,7 +9,10 @@ import {
   FiX,
   FiSearch,
   FiAlertTriangle,
-  FiArrowRight
+  FiArrowRight,
+  FiCheckCircle,
+  FiInfo,
+  FiXCircle
 } from 'react-icons/fi';
 import { 
   BsFileEarmarkArrowUp
@@ -20,19 +23,35 @@ import { supabase } from '../../../lib/supabaseClient';
 
 const SVXCopilotEnterprise = () => {
   const [data, setData] = useState([]); 
-  const [masterDataRows, setMasterDataRows] = useState([]); // Para guardar las filas originales de la DB
+  const [masterDataRows, setMasterDataRows] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [matchStatus, setMatchStatus] = useState(null); // 'match', 'mismatch', 'error'
   const [diffCount, setDiffCount] = useState(0);
 
+  // ESTADO PARA ALERTAS CUSTOM
+  const [alert, setAlert] = useState({ show: false, message: '', type: 'info' });
+
+  // Función para disparar la alerta custom
+  const showAlert = (message, type = 'info') => {
+    setAlert({ show: true, message, type });
+  };
+
+  // Auto-cerrar alerta después de 5 segundos
+  useEffect(() => {
+    if (alert.show) {
+      const timer = setTimeout(() => setAlert({ ...alert, show: false }), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [alert.show]);
+
   const fadeIn = {
     hidden: { opacity: 0, y: 12 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
   };
 
-  // 1. PROCESAR CSV LOCAL (Detecta ; o ,)
+  // 1. PROCESAR CSV LOCAL
   const processCSV = (text) => {
     const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
     if (lines.length === 0) return;
@@ -48,6 +67,7 @@ const SVXCopilotEnterprise = () => {
     setMatchStatus(null);
     setDiffCount(0);
     setMasterDataRows([]);
+    showAlert("Archivo CSV cargado correctamente", "info");
   };
 
   const handleDrop = useCallback((e) => {
@@ -59,10 +79,12 @@ const SVXCopilotEnterprise = () => {
       const reader = new FileReader();
       reader.onload = (event) => processCSV(event.target.result);
       reader.readAsText(file);
+    } else {
+      showAlert("Formato no válido. Use solo .CSV", "error");
     }
   }, []);
 
-  // 2. FUNCIÓN DE AUDITORÍA CON COMPARACIÓN DETALLADA (BEFORE/AFTER)
+  // 2. FUNCIÓN DE AUDITORÍA
   const handleAnalyze = async () => {
     if (data.length === 0) return;
     setIsAnalyzing(true);
@@ -77,7 +99,7 @@ const SVXCopilotEnterprise = () => {
       if (error) throw error;
 
       if (!dbRows || dbRows.length === 0) {
-        alert("No se encontró ningún registro maestro en la tabla 'ClientsSERVEX'.");
+        showAlert("No se encontró registro maestro en ClientsSERVEX", "error");
         setIsAnalyzing(false);
         return;
       }
@@ -93,9 +115,8 @@ const SVXCopilotEnterprise = () => {
       const currentRows = data.slice(headerIndex + 1);
       const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
 
-      // Creamos un array de objetos que contienen la fila nueva y su correspondiente maestra
       const auditResults = currentRows.map((row, idx) => {
-        const mRow = masterRowsOnly[idx] || []; // Fila espejo en la DB
+        const mRow = masterRowsOnly[idx] || [];
         const isDifferent = JSON.stringify(row) !== JSON.stringify(mRow);
         return { row, mRow, isDifferent };
       });
@@ -104,19 +125,17 @@ const SVXCopilotEnterprise = () => {
 
       if (discrepancies.length === 0) {
         setMatchStatus('match');
-        alert("✅ Integridad Total: El contenido coincide al 100% con la base de datos.");
+        showAlert("Integridad Total: 100% de coincidencia con DB", "success");
       } else {
         setMatchStatus('mismatch');
         setDiffCount(discrepancies.length);
-        
-        // Guardamos las filas de la DB correspondientes a los errores para el "Antes"
         setMasterDataRows(discrepancies.map(d => d.mRow));
-        // Actualizamos data con las filas nuevas del CSV
         setData([header, ...discrepancies.map(d => d.row)]);
+        showAlert(`Auditoría finalizada: ${discrepancies.length} discrepancias halladas`, "warning");
       }
     } catch (err) {
       console.error("Error en auditoría:", err);
-      alert("Error al conectar con la base de datos.");
+      showAlert("Error crítico de conexión con la DB", "error");
     } finally {
       setIsAnalyzing(false);
     }
@@ -124,6 +143,43 @@ const SVXCopilotEnterprise = () => {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-[#FDFDFD] p-4 md:p-8 font-sans text-[#242424]">
+      
+      {/* --- NOTIFICACIÓN CUSTOM (ALERT) --- */}
+      <AnimatePresence>
+        {alert.show && (
+          <motion.div 
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
+            className="fixed top-6 right-6 z-[9999] flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border min-w-[320px] bg-white border-[#EDEBE9]"
+          >
+            <div className={`p-2 rounded-lg text-white ${
+              alert.type === 'success' ? 'bg-[#237B4B]' : 
+              alert.type === 'error' ? 'bg-[#A4262C]' : 
+              alert.type === 'warning' ? 'bg-[#D83B01]' : 'bg-[#464775]'
+            }`}>
+              {alert.type === 'success' && <FiCheckCircle size={18} />}
+              {alert.type === 'error' && <FiXCircle size={18} />}
+              {alert.type === 'warning' && <FiAlertTriangle size={18} />}
+              {alert.type === 'info' && <FiInfo size={18} />}
+            </div>
+            <div className="flex-grow">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#616161] mb-0.5">SVX System</p>
+              <p className="text-[12px] font-bold text-[#242424]">{alert.message}</p>
+            </div>
+            <button onClick={() => setAlert({ ...alert, show: false })} className="text-gray-400 hover:text-black transition-colors">
+              <FiX size={16} />
+            </button>
+            <motion.div 
+              initial={{ width: "100%" }}
+              animate={{ width: "0%" }}
+              transition={{ duration: 5, ease: "linear" }}
+              className="absolute bottom-0 left-0 h-1 bg-[#464775]/20"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div initial="hidden" animate="visible" variants={fadeIn} className="w-full max-w-7xl space-y-6">
         
         {/* BRANDING HEADER */}
@@ -153,29 +209,29 @@ const SVXCopilotEnterprise = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LADO IZQUIERDO: INFO */}
           <div className="lg:col-span-3 bg-white border border-[#EDEBE9] rounded-xl p-6">
-             <h3 className="text-[12px] font-black text-[#464775] mb-6 uppercase">Protocolo de Análisis</h3>
-             <div className="space-y-6 relative">
+              <h3 className="text-[12px] font-black text-[#464775] mb-6 uppercase">Protocolo de Análisis</h3>
+              <div className="space-y-6 relative">
                 <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-[#F3F2F1]" />
                 <Step icon={<FiCheck />} title="Archivo Local" desc={fileName || "Esperando CSV..."} active={data.length > 0} />
                 <Step icon={<FiSearch />} title="Mapeo Binario" desc="Celda por celda" active={isAnalyzing || matchStatus} />
                 <Step icon={<FiShield />} title="Resultado" desc={matchStatus === 'mismatch' ? "Diferencias visualizadas" : "Esperando..."} active={matchStatus} />
-             </div>
-             
-             {matchStatus === 'mismatch' && (
-               <div className="mt-10 p-4 bg-[#FAF9F8] rounded-lg border border-[#EDEBE9]">
-                 <h4 className="text-[10px] font-black uppercase text-[#464775] mb-2">Leyenda de Auditoría</h4>
-                 <div className="space-y-2">
-                   <div className="flex items-center gap-2">
-                     <div className="w-2 h-2 bg-red-400 rounded-full" />
-                     <span className="text-[9px] font-bold text-[#616161]">ROJO: DATO EN DB (ANTERIOR)</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <div className="w-2 h-2 bg-[#237B4B] rounded-full" />
-                     <span className="text-[9px] font-bold text-[#616161]">VERDE: DATO NUEVO (CSV)</span>
-                   </div>
-                 </div>
-               </div>
-             )}
+              </div>
+              
+              {matchStatus === 'mismatch' && (
+                <div className="mt-10 p-4 bg-[#FAF9F8] rounded-lg border border-[#EDEBE9]">
+                  <h4 className="text-[10px] font-black uppercase text-[#464775] mb-2">Leyenda de Auditoría</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-red-400 rounded-full" />
+                      <span className="text-[9px] font-bold text-[#616161]">ROJO: DATO EN DB (ANTERIOR)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-[#237B4B] rounded-full" />
+                      <span className="text-[9px] font-bold text-[#616161]">VERDE: DATO NUEVO (CSV)</span>
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
 
           {/* LADO DERECHO: CONSOLA */}
@@ -212,7 +268,6 @@ const SVXCopilotEnterprise = () => {
                         {data.slice(1).map((row, ri) => (
                           <tr key={ri} className="border-b hover:bg-gray-50 transition-colors">
                             {row.map((cell, ci) => {
-                              // Verificamos si esta celda es diferente a la de la DB
                               const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                               const isCellDiff = masterCell !== null && cell !== masterCell;
 
@@ -251,7 +306,7 @@ const SVXCopilotEnterprise = () => {
 
             <div className="mt-8 flex justify-end gap-3">
                <button onClick={() => { setData([]); setMatchStatus(null); setFileName(""); setMasterDataRows([]); }} className="px-6 py-2 border rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-all">
-                  RESETEAR
+                 RESETEAR
                </button>
                <button 
                 onClick={handleAnalyze}
