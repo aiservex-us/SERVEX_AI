@@ -19,12 +19,15 @@ import {
 
 const menuItems = [
   { id: 'presentation', label: 'Executive Panel', icon: LayoutTemplate }, 
-  { id: 'notifications', label: 'Change Tracker', icon: FileDiff },
-  { id: 'Tasks', label: 'Synchronizer', icon: ListChecks },
   { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard },
-  { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3 },
   { id: 'kanban', label: 'XML CET Data', icon: KanbanSquare },
   { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox },
+  { id: 'notifications', label: 'Change Tracker', icon: FileDiff },
+  { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3 },
+  { id: 'Tasks', label: 'Synchronizer', icon: ListChecks },
+ 
+
+
 
 ];
 
