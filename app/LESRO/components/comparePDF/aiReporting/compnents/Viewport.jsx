@@ -115,8 +115,8 @@ const Viewport = () => {
         
         {/* Background Animation (solo si no hay chat) */}
         {!isChatActive && (
-          <div className="absolute inset-0 z-0 flex items-center justify-center" style={{ backgroundImage: "url('/ball2.gif')", backgroundSize: '80%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
-            <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]"></div>
+          <div className="absolute inset-0 z-0 flex items-center justify-center" style={{ backgroundImage: "url('/ball3.gif')", backgroundSize: '50%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[0px]"></div>
           </div>
         )}
 
