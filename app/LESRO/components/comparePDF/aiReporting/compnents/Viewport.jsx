@@ -199,14 +199,7 @@ const Viewport = () => {
               </button>
             </div>
           </form>
-          {!isChatActive && (
-            <div className="mt-4 flex flex-wrap gap-3 items-center justify-center">
-              <span className="text-[10px] font-bold text-gray-400 uppercase italic">Suggestions:</span>
-              {["Export reports", "Monthly KPI"].map((tip, i) => (
-                <button key={i} onClick={() => setInputValue(tip)} className="text-[11px] text-[#464775] hover:underline font-semibold">{tip}</button>
-              ))}
-            </div>
-          )}
+
         </div>
       </div>
     </main>
