@@ -76,7 +76,7 @@ const LesroSyncCopilot = () => {
       case 'SYNC':
       default:
         return (
-          <motion.div {...pageTransition} className="flex flex-col h-[93vh] bg-white">
+          <motion.div {...pageTransition} className="flex flex-col h-[90%] bg-white">
             {/* STICKY INTERNAL HEADER */}
             <div className="p-6 border-b border-[#EDEBE9] bg-white sticky top-0 z-20">
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">

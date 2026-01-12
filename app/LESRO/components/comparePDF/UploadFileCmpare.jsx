@@ -122,7 +122,7 @@ const SVXCopilotEnterprise = () => {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-[#FDFDFD] p-4 md:p-8 font-sans text-[#242424]">
+    <div className="flex flex-col items-center min-h-[100%] bg-[#FDFDFD] p-4 md:p-8 font-sans text-[#242424]">
       
       {/* NOTIFICACIONES CUSTOM */}
       <AnimatePresence>
