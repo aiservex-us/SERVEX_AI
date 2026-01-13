@@ -94,10 +94,7 @@ const Viewport = () => {
 
       {/* --- HEADER --- */}
       <header className="h-10 flex items-center justify-between px-6 bg-[#FFFFFF] border-b border-[#EDEBE9] z-20">
-        <div className="flex bg-[#F3F2F1] rounded p-0.5 border border-[#EDEBE9]">
-          <button className="px-3 py-0.5 text-[10px] font-bold bg-[#FFFFFF] shadow-sm text-[#242424] rounded-sm uppercase">Context</button>
-          <button className="px-3 py-0.5 text-[10px] font-bold text-[#605E5C] uppercase">Analizer</button>
-        </div>
+      
         <div className="text-[11px] font-medium text-[#605E5C]">
           Project / <span className="text-[#464775] font-bold">SVX copilot v1.2</span>
         </div>
@@ -106,8 +103,7 @@ const Viewport = () => {
             <button onClick={() => setShowDeleteConfirm(true)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-md transition-all mr-1"><Trash2 size={16} /></button>
           )}
           <div className="w-6 h-6 rounded-full bg-[#EDEBE9] flex items-center justify-center text-[#464775]"><PH.User size={14} weight="bold" /></div>
-          <button className="bg-[#464775] text-white px-3 py-1 rounded text-[10px] font-bold flex items-center gap-1.5 shadow-sm">EXPORT <PH.DownloadSimple size={14} weight="bold" /></button>
-        </div>
+               </div>
       </header>
 
       {/* --- MAIN CONTENT --- */}

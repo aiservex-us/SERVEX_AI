@@ -1,17 +1,66 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import * as PH from "@phosphor-icons/react";
+import { ChevronRight, Layers, Cpu, Boxes, Search, Package, Headset } from 'lucide-react';
 import { supabase } from '@/app/lib/supabaseClient';
+
+// --- SUBCOMPONENT: STAT ITEM (ACCORDION) ---
+const StatItem = ({ icon, label, value, description, isOpen, onClick }) => (
+  <div
+    onClick={onClick}
+    className={`bg-white px-4 py-3 rounded-xl shadow-sm border cursor-pointer transition-all
+      ${isOpen ? 'border-[#6264A7]/40' : 'border-slate-100 hover:border-[#6264A7]/30'}
+    `}
+  >
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="bg-slate-50 text-[#6264A7] p-2 rounded-lg">
+          {icon}
+        </div>
+        <div className="leading-tight">
+          <p className="text-[9px] uppercase font-semibold text-slate-400 tracking-wider">
+            {label}
+          </p>
+          <p className="font-semibold text-[13px] text-slate-700">
+            {value}
+          </p>
+        </div>
+      </div>
+      <ChevronRight
+        size={14}
+        className={`transition-all text-slate-300
+          ${isOpen ? 'rotate-90 text-[#6264A7]' : ''}
+        `}
+      />
+    </div>
+    <div
+      className={`overflow-hidden transition-all duration-300
+        ${isOpen ? 'max-h-40 mt-3 opacity-100' : 'max-h-0 opacity-0'}
+      `}
+    >
+      <p className="text-[11px] text-slate-500 leading-snug">
+        {description}
+      </p>
+    </div>
+  </div>
+);
+
+const logos = [
+  '/logosEmpresas/9to5 Seating - Red.svg', 
+  '/logosEmpresas/lesro.png', 
+  '/logosEmpresas/logo.svg',
+  '/logosEmpresas/Teknion_logo_RGB.svg', 
+  '/logosEmpresas/ShawFloorsLogo_Navy.png'
+];
 
 const SidebarTeams = () => {
   const [rows, setRows] = useState([]);
   const [headers, setHeaders] = useState([]);
-  const [rawCSV, setRawCSV] = useState('');
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [multiplier, setMultiplier] = useState(1);
-  const [copied, setCopied] = useState(false);
+  const [openIndex, setOpenIndex] = useState(null);
+  const sliderRef = useRef(null);
 
   useEffect(() => {
     const fetchCSV = async () => {
@@ -24,7 +73,6 @@ const SidebarTeams = () => {
         .single();
 
       if (!error && data?.csv_raw) {
-        setRawCSV(data.csv_raw);
         const lines = data.csv_raw.replace(/\r\n/g, '\n').trim().split('\n');
         const h = lines[0].split(',').map(v => v.replace(/^"|"$/g, '').trim());
         const r = lines.slice(1).map(line => {
@@ -39,133 +87,121 @@ const SidebarTeams = () => {
     fetchCSV();
   }, []);
 
-  const analysis = useMemo(() => {
-    if (!rows.length) return null;
-    const priceCol = headers.find(h => /precio|price|costo/i.test(h));
-    const nameCol = headers.find(h => /nombre|name|producto/i.test(h)) || headers[0];
-    const validPrices = rows.map(r => parseFloat(r[priceCol])).filter(p => !isNaN(p));
-    const avg = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+  const filteredResult = useMemo(() => {
+    if (!searchQuery || rows.length === 0) return null;
+    // Keep regex looking for both English and Spanish terms just in case the CSV headers vary
+    const nameCol = headers.find(h => /nombre|name|producto|product/i.test(h)) || headers[0];
+    const priceCol = headers.find(h => /precio|price|costo|cost/i.test(h));
     
-    const searchResult = searchQuery 
-      ? rows.find(r => r[nameCol]?.toLowerCase().includes(searchQuery.toLowerCase()))
-      : null;
+    const found = rows.find(r => r[nameCol]?.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (found) return { name: found[nameCol], price: found[priceCol] };
+    return null;
+  }, [searchQuery, rows, headers]);
 
-    return { priceCol, nameCol, avg, total: rows.length, searchResult };
-  }, [rows, headers, searchQuery]);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(rawCSV);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const handleNext = () => sliderRef.current?.scrollBy({ left: 160, behavior: 'smooth' });
 
   if (loading) return (
-    <aside className="w-[300px] border-l border-[#EDEBE9] bg-[#FFF] flex items-center justify-center h-full">
-      <PH.CircleNotch size={24} className="animate-spin text-[#5B5FC7]" />
+    <aside className="w-[320px] bg-white border-l flex items-center justify-center h-full">
+      <PH.CircleNotch size={24} className="animate-spin text-[#6264A7]" />
     </aside>
   );
 
   return (
-    <aside className="w-[300px] bg-[#FFF] border-l border-[#EDEBE9] flex flex-col h-full font-sans text-[#242424]">
+    <aside className="w-[320px] bg-[#FFF] border-l border-[#EDEBE9] flex flex-col h-full font-sans text-[#242424] overflow-hidden">
       
-      {/* HEADER TIPO TEAMS */}
+      {/* HEADER */}
       <div className="p-4 bg-white border-b border-[#EDEBE9]">
-        <div className="flex items-center gap-2 mb-3">
-          <PH.ChartBarHorizontal size={20} weight="fill" className="text-[#5B5FC7]" />
-          <h2 className="text-[14px] font-semibold">Análisis de Catálogo</h2>
+        <div className="flex items-center gap-2 mb-1">
+          <PH.ChartBarHorizontal size={20} weight="fill" className="text-[#6264A7]" />
+          <h2 className="text-[14px] font-bold text-slate-700">Intelligence Panel</h2>
         </div>
-        
-        {/* BUSCADOR FLUENT */}
-        <div className="relative group">
-          <input 
-            type="text"
-            placeholder="Buscar en datos..."
-            className="w-full pl-3 pr-8 py-1.5 bg-white border border-[#E0E0E0] border-b-[#616161] rounded-sm text-[12px] focus:outline-none focus:border-b-[#5B5FC7] transition-all"
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <PH.MagnifyingGlass size={14} className="absolute right-2.5 top-2.5 text-[#616161]" />
-        </div>
+        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-tight">Total: {rows.length} Records</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+      <div className="flex-1 overflow-y-auto p-4 space-y-5 custom-scrollbar">
         
-        {/* RESULTADO DE BÚSQUEDA */}
-        {analysis?.searchResult && (
-          <div className="bg-white border border-[#EDEBE9] rounded-md p-3 shadow-sm">
-            <div className="text-[10px] text-[#616161] uppercase font-bold mb-1">Coincidencia</div>
-            <div className="text-[12px] font-semibold truncate">{analysis.searchResult[analysis.nameCol]}</div>
-            <div className="text-[14px] font-bold text-[#5B5FC7] mt-1">
-              ${parseFloat(analysis.searchResult[analysis.priceCol]).toLocaleString()}
-            </div>
-          </div>
-        )}
-
-        {/* MÉTRICAS RÁPIDAS */}
-        <div className="space-y-3">
-          <SectionTitle title="Métricas clave" />
-          <div className="grid grid-cols-2 gap-2">
-            <MetricCard label="Registros" value={analysis?.total} />
-
-          </div>
-        </div>
-
-        
-
-        {/* INSPECTOR DE CSV RAW (EL CONTENEDOR QUE PEDISTE) */}
-        <div className="space-y-2 flex flex-col h-64">
-          <div className="flex justify-between items-center">
-            <SectionTitle title="Origen de datos (CSV)" />
-            <button 
-              onClick={handleCopy}
-              className="text-[11px] text-[#5B5FC7] hover:bg-[#EBEBEB] px-2 py-0.5 rounded transition-colors flex items-center gap-1"
-            >
-              {copied ? <PH.CheckCircle size={14} weight="fill" /> : <PH.Copy size={14} />}
-              {copied ? 'Copiado' : 'Copiar'}
-            </button>
+        {/* 1. FILTER CONTAINER */}
+        <section className="bg-white rounded-xl p-4 shadow-sm border border-slate-200/60 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Catalog Filter</h2>
+            <Search size={14} className="text-slate-300" />
           </div>
           
-          <div className="flex-1 bg-[#FFF] rounded border border-[#979696] flex flex-col overflow-hidden">
-            {/* Header del mini terminal */}
-            <div className="bg-[#FFF] px-3 py-1.5 flex items-center justify-between border-b border-[#979696]">
-              <span className="text-[10px] text-[#626262] font-mono">csv_raw_data.log</span>
-              <div className="flex gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#FF5F56]"></div>
-                <div className="w-2 h-2 rounded-full bg-[#FFBD2E]"></div>
-                <div className="w-2 h-2 rounded-full bg-[#27C93F]"></div>
+          <div className="relative">
+            <input 
+              type="text"
+              placeholder="Search for a product..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[12px] focus:ring-2 focus:ring-[#6264A7]/20 outline-none transition-all"
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {filteredResult ? (
+            <div className="bg-[#EEF2FF] border border-[#C7D2FE] p-3 rounded-lg animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-start gap-2">
+                <Package size={14} className="text-[#6264A7] mt-0.5" />
+                <div className="overflow-hidden">
+                  <p className="text-[11px] font-bold text-[#4338CA] truncate">{filteredResult.name}</p>
+                  <p className="text-[13px] font-black text-[#1E1B4B] mt-1">${filteredResult.price || '0.00'}</p>
+                </div>
               </div>
             </div>
-            {/* Contenido */}
-            <div className="p-3 overflow-auto custom-scrollbar h-full">
-              <pre className="text-[11px] font-mono text-[#5f5f5f] leading-relaxed">
-                {rawCSV}
-              </pre>
-            </div>
-          </div>
+          ) : searchQuery && (
+            <p className="text-[10px] text-center text-slate-400 italic">No matches found</p>
+          )}
+        </section>
+
+      {/* 2. INTERACTIVE STATS - IA CATALOG CREATOR */}
+      <div className="space-y-2">
+          <StatItem
+            icon={<Boxes size={16} />}
+            label="CET Catalog Creator"
+            value="Analyze · Structure · Edit"
+            description="This specialized AI model allows you to analyze, compare, structure, and bulk edit CET Designer content, offering comprehensive assistance in technical catalog management."
+            isOpen={openIndex === 0}
+            onClick={() => setOpenIndex(openIndex === 0 ? null : 0)}
+          />
+          <StatItem
+            icon={<Cpu size={16} />}
+            label="AI Specialist Model"
+            value="CET Designer Assistance"
+            description="Intelligent assistance designed to optimize processes within the CET ecosystem, ensuring every rule and configuration is perfectly aligned with industry standards."
+            isOpen={openIndex === 1}
+            onClick={() => setOpenIndex(openIndex === 1 ? null : 1)}
+          />
         </div>
 
+        {/* 4. TECHNICAL SUPPORT */}
+        <section>
+          <div className="bg-white border border-slate-200 rounded-[1.5rem] p-6 shadow-sm flex flex-col items-center text-center transition-all hover:border-[#6264A7]/30">
+            <div className="mb-4 relative">
+              <div className="absolute inset-0 bg-[#6264A7] opacity-10 blur-xl rounded-full"></div>
+              <div className="relative bg-gradient-to-br from-[#F5F6FF] to-[#EBEDFF] w-12 h-12 rounded-2xl flex items-center justify-center border border-[#6264A7]/10">
+                <PH.Headset size={24} weight="duotone" className="text-[#6264A7]" />
+              </div>
+            </div>
+            <h2 className="text-[14px] font-bold text-slate-800 leading-tight">Need technical help?</h2>
+            <p className="text-slate-400 text-[10px] mt-1 mb-4 leading-relaxed">Personalized assistance to optimize your catalogs.</p>
+            <button className="bg-[#6264A7] text-white w-full py-2.5 rounded-xl font-bold text-[10px] flex items-center justify-center gap-2 hover:bg-[#4b4d8a] transition-all">
+              Contact Support <ChevronRight size={12} />
+            </button>
+          </div>
+        </section>
+
+        {/* 5. MAIN CTA */}
+        <section className="bg-white border border-[#6264A7]/20 rounded-xl p-5 text-center shadow-sm">
+          <h3 className="text-slate-800 font-bold text-[11px] mb-1 uppercase tracking-tight">Svx Copilot Pro</h3>
+          <p className="text-slate-400 mb-4 text-[9px]">Scale your catalog creation now.</p>
+          <button className="bg-[#F8F9FA] text-slate-700 border border-slate-200 w-full py-2 rounded-lg font-bold text-[10px] hover:bg-slate-100 transition-colors">
+            Upgrade Plan
+          </button>
+        </section>
+
       </div>
 
-      {/* FOOTER */}
-      <div className="p-4 border-t border-[#EDEBE9] bg-[#F5F5F5]">
-        <p className="text-[10px] text-[#616161] text-center">
-          Interpretación generada por <strong>IA de ServeX</strong>
-        </p>
-      </div>
+
     </aside>
   );
 };
-
-// Subcomponente: Títulos de sección estilo Teams
-const SectionTitle = ({ title }) => (
-  <h4 className="text-[11px] font-bold text-[#616161] uppercase tracking-tight">{title}</h4>
-);
-
-// Subcomponente: Cards de métricas
-const MetricCard = ({ label, value }) => (
-  <div className="bg-white border border-[#EDEBE9] p-2.5 rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-    <div className="text-[10px] text-[#616161] mb-0.5">{label}</div>
-    <div className="text-[14px] font-bold text-[#242424]">{value}</div>
-  </div>
-);
 
 export default SidebarTeams;

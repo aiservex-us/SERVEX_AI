@@ -50,7 +50,7 @@ export default function MenuLateral({
         border-r border-slate-100/80
         flex flex-col
         transition-all duration-[500ms] ease-[cubic-bezier(0.4,0,0.2,1)]
-        ${collapsed ? 'w-[68px]' : 'w-[250px]'}
+        ${collapsed ? 'w-[58px]' : 'w-[210px]'}
       `}
     >
       {/* HEADER: LOGO & TOGGLE */}
