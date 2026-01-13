@@ -124,10 +124,10 @@ const SidebarTeams = () => {
             </button>
           </div>
           
-          <div className="flex-1 bg-[#FFF] rounded border border-[#3D3D3D] flex flex-col overflow-hidden">
+          <div className="flex-1 bg-[#FFF] rounded border border-[#979696] flex flex-col overflow-hidden">
             {/* Header del mini terminal */}
-            <div className="bg-[#FFF] px-3 py-1.5 flex items-center justify-between border-b border-[#3D3D3D]">
-              <span className="text-[10px] text-[#979696] font-mono">csv_raw_data.log</span>
+            <div className="bg-[#FFF] px-3 py-1.5 flex items-center justify-between border-b border-[#979696]">
+              <span className="text-[10px] text-[#626262] font-mono">csv_raw_data.log</span>
               <div className="flex gap-1.5">
                 <div className="w-2 h-2 rounded-full bg-[#FF5F56]"></div>
                 <div className="w-2 h-2 rounded-full bg-[#FFBD2E]"></div>
@@ -136,7 +136,7 @@ const SidebarTeams = () => {
             </div>
             {/* Contenido */}
             <div className="p-3 overflow-auto custom-scrollbar h-full">
-              <pre className="text-[11px] font-mono text-[#b3b1b1] leading-relaxed">
+              <pre className="text-[11px] font-mono text-[#5f5f5f] leading-relaxed">
                 {rawCSV}
               </pre>
             </div>
