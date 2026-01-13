@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import * as PH from "@phosphor-icons/react";
-import { ChevronRight, Layers, Cpu, Boxes, Search, Package, Headset } from 'lucide-react';
+import { ChevronRight, Cpu, Boxes, Search, Package } from 'lucide-react';
 import { supabase } from '@/app/lib/supabaseClient';
 
 // --- SUBCOMPONENT: STAT ITEM (ACCORDION) ---
@@ -46,21 +46,34 @@ const StatItem = ({ icon, label, value, description, isOpen, onClick }) => (
   </div>
 );
 
-const logos = [
-  '/logosEmpresas/9to5 Seating - Red.svg', 
-  '/logosEmpresas/lesro.png', 
-  '/logosEmpresas/logo.svg',
-  '/logosEmpresas/Teknion_logo_RGB.svg', 
-  '/logosEmpresas/ShawFloorsLogo_Navy.png'
-];
-
 const SidebarTeams = () => {
   const [rows, setRows] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [openIndex, setOpenIndex] = useState(null);
-  const sliderRef = useRef(null);
+
+  // --- HELPER: PARSE CSV CELL BY CELL ---
+  // Esta función separa por celdas reales, ignorando comas dentro de comillas
+  const parseCSVLine = (line) => {
+    const result = [];
+    let curVal = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(curVal.trim());
+        curVal = "";
+      } else {
+        curVal += char;
+      }
+    }
+    result.push(curVal.trim());
+    return result;
+  };
 
   useEffect(() => {
     const fetchCSV = async () => {
@@ -74,11 +87,16 @@ const SidebarTeams = () => {
 
       if (!error && data?.csv_raw) {
         const lines = data.csv_raw.replace(/\r\n/g, '\n').trim().split('\n');
-        const h = lines[0].split(',').map(v => v.replace(/^"|"$/g, '').trim());
+        
+        // Procesar encabezados por celdas
+        const h = parseCSVLine(lines[0]);
+        
+        // Procesar filas por celdas
         const r = lines.slice(1).map(line => {
-          const values = line.split(',').map(v => v.replace(/^"|"$/g, '').trim());
+          const values = parseCSVLine(line);
           return h.reduce((acc, curr, i) => ({ ...acc, [curr]: values[i] }), {});
         });
+
         setHeaders(h);
         setRows(r);
       }
@@ -89,16 +107,17 @@ const SidebarTeams = () => {
 
   const filteredResult = useMemo(() => {
     if (!searchQuery || rows.length === 0) return null;
-    // Keep regex looking for both English and Spanish terms just in case the CSV headers vary
+    
     const nameCol = headers.find(h => /nombre|name|producto|product/i.test(h)) || headers[0];
     const priceCol = headers.find(h => /precio|price|costo|cost/i.test(h));
     
-    const found = rows.find(r => r[nameCol]?.toLowerCase().includes(searchQuery.toLowerCase()));
+    const found = rows.find(r => 
+      r[nameCol]?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     if (found) return { name: found[nameCol], price: found[priceCol] };
     return null;
   }, [searchQuery, rows, headers]);
-
-  const handleNext = () => sliderRef.current?.scrollBy({ left: 160, behavior: 'smooth' });
 
   if (loading) return (
     <aside className="w-[320px] bg-white border-l flex items-center justify-center h-full">
@@ -141,8 +160,14 @@ const SidebarTeams = () => {
               <div className="flex items-start gap-2">
                 <Package size={14} className="text-[#6264A7] mt-0.5" />
                 <div className="overflow-hidden">
-                  <p className="text-[11px] font-bold text-[#4338CA] truncate">{filteredResult.name}</p>
-                  <p className="text-[13px] font-black text-[#1E1B4B] mt-1">${filteredResult.price || '0.00'}</p>
+                  <p className="text-[11px] font-bold text-[#4338CA] leading-tight mb-1">
+                    {filteredResult.name}
+                  </p>
+                  <div className="inline-block bg-white px-2 py-1 rounded border border-[#C7D2FE] shadow-sm">
+                     <p className="text-[13px] font-black text-[#1E1B4B]">
+                       ${filteredResult.price || '0.00'}
+                     </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -151,13 +176,13 @@ const SidebarTeams = () => {
           )}
         </section>
 
-      {/* 2. INTERACTIVE STATS - IA CATALOG CREATOR */}
-      <div className="space-y-2">
+        {/* 2. INTERACTIVE STATS */}
+        <div className="space-y-2">
           <StatItem
             icon={<Boxes size={16} />}
             label="CET Catalog Creator"
             value="Analyze · Structure · Edit"
-            description="This specialized AI model allows you to analyze, compare, structure, and bulk edit CET Designer content, offering comprehensive assistance in technical catalog management."
+            description="Specialized AI model to analyze, compare, and bulk edit CET Designer content for technical catalog management."
             isOpen={openIndex === 0}
             onClick={() => setOpenIndex(openIndex === 0 ? null : 0)}
           />
@@ -165,15 +190,15 @@ const SidebarTeams = () => {
             icon={<Cpu size={16} />}
             label="AI Specialist Model"
             value="CET Designer Assistance"
-            description="Intelligent assistance designed to optimize processes within the CET ecosystem, ensuring every rule and configuration is perfectly aligned with industry standards."
+            description="Intelligent assistance to optimize processes within the CET ecosystem, ensuring industry standard compliance."
             isOpen={openIndex === 1}
             onClick={() => setOpenIndex(openIndex === 1 ? null : 1)}
           />
         </div>
 
-        {/* 4. TECHNICAL SUPPORT */}
+        {/* 3. TECHNICAL SUPPORT */}
         <section>
-          <div className="bg-white border border-slate-200 rounded-[1.5rem] p-6 shadow-sm flex flex-col items-center text-center transition-all hover:border-[#6264A7]/30">
+          <div className="bg-white border border-slate-200 rounded-[1.5rem] p-6 shadow-sm flex flex-col items-center text-center">
             <div className="mb-4 relative">
               <div className="absolute inset-0 bg-[#6264A7] opacity-10 blur-xl rounded-full"></div>
               <div className="relative bg-gradient-to-br from-[#F5F6FF] to-[#EBEDFF] w-12 h-12 rounded-2xl flex items-center justify-center border border-[#6264A7]/10">
@@ -181,14 +206,14 @@ const SidebarTeams = () => {
               </div>
             </div>
             <h2 className="text-[14px] font-bold text-slate-800 leading-tight">Need technical help?</h2>
-            <p className="text-slate-400 text-[10px] mt-1 mb-4 leading-relaxed">Personalized assistance to optimize your catalogs.</p>
-            <button className="bg-[#6264A7] text-white w-full py-2.5 rounded-xl font-bold text-[10px] flex items-center justify-center gap-2 hover:bg-[#4b4d8a] transition-all">
+            <p className="text-slate-400 text-[10px] mt-1 mb-4">Personalized assistance for your catalogs.</p>
+            <button className="bg-[#6264A7] text-white w-full py-2.5 rounded-xl font-bold text-[10px] flex items-center justify-center gap-2">
               Contact Support <ChevronRight size={12} />
             </button>
           </div>
         </section>
 
-        {/* 5. MAIN CTA */}
+        {/* 4. MAIN CTA */}
         <section className="bg-white border border-[#6264A7]/20 rounded-xl p-5 text-center shadow-sm">
           <h3 className="text-slate-800 font-bold text-[11px] mb-1 uppercase tracking-tight">Svx Copilot Pro</h3>
           <p className="text-slate-400 mb-4 text-[9px]">Scale your catalog creation now.</p>
@@ -196,10 +221,7 @@ const SidebarTeams = () => {
             Upgrade Plan
           </button>
         </section>
-
       </div>
-
-
     </aside>
   );
 };
