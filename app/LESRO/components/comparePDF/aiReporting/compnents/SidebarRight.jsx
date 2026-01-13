@@ -21,17 +21,23 @@ const SidebarRight = () => {
         .from('ClientsSERVEX')
         .select('csv_raw, created_at')
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .single(); // ✅ NO limit()
 
-      if (error || !data?.csv_row) {
-        console.error(error);
+      if (error) {
+        console.error('❌ Supabase error:', error);
         setRows([]);
         setLoading(false);
         return;
       }
 
-      const parsed = parseCSV(data.csv_row);
+      if (!data?.csv_raw) {
+        console.warn('⚠️ csv_raw está vacío');
+        setRows([]);
+        setLoading(false);
+        return;
+      }
+
+      const parsed = parseCSV(data.csv_raw);
       setRows(parsed);
       setLoading(false);
     };
@@ -40,20 +46,32 @@ const SidebarRight = () => {
   }, []);
 
   // ===============================
-  // CSV PARSER (SIMPLE & SEGURO)
+  // CSV PARSER (ROBUSTO PARA CSV REAL)
   // ===============================
   const parseCSV = (csv) => {
-    const lines = csv.trim().split('\n');
+    if (!csv) return [];
+
+    const lines = csv
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .trim()
+      .split('\n');
+
     if (lines.length <= 1) return [];
 
-    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+    const headers = lines[0]
+      .split(',')
+      .map(h => h.replace(/^"|"$/g, '').trim());
 
     return lines.slice(1).map((line, index) => {
-      const values = line.split(',').map(v => v.replace(/"/g, '').trim());
+      const values = line
+        .split(',')
+        .map(v => v.replace(/^"|"$/g, '').trim());
+
       return {
         id: index,
         data: headers.reduce((acc, h, i) => {
-          acc[h] = values[i] || '';
+          acc[h] = values[i] ?? '';
           return acc;
         }, {})
       };
