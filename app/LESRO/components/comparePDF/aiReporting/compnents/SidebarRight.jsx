@@ -19,7 +19,7 @@ const SidebarRight = () => {
 
       const { data, error } = await supabase
         .from('ClientsSERVEX')
-        .select('csv_row, created_at')
+        .select('csv_raw, created_at')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
