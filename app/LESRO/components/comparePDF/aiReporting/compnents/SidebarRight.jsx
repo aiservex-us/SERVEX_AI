@@ -105,26 +105,11 @@ const SidebarTeams = () => {
           <SectionTitle title="Métricas clave" />
           <div className="grid grid-cols-2 gap-2">
             <MetricCard label="Registros" value={analysis?.total} />
-            <MetricCard label="Promedio" value={`$${Math.round(analysis?.avg * multiplier)}`} />
+
           </div>
         </div>
 
-        {/* SIMULADOR (FLUENT SLIDER) */}
-        <div className="space-y-3">
-          <SectionTitle title="Ajuste de mercado" />
-          <div className="bg-white p-3 border border-[#EDEBE9] rounded-md">
-            <div className="flex justify-between text-[11px] mb-2">
-              <span className="text-[#616161]">Margen</span>
-              <span className="font-bold text-[#5B5FC7]">{Math.round((multiplier - 1) * 100)}%</span>
-            </div>
-            <input 
-              type="range" min="0.5" max="2" step="0.1" 
-              className="w-full h-[3px] bg-[#EDEBE9] appearance-none cursor-pointer accent-[#5B5FC7]"
-              value={multiplier}
-              onChange={(e) => setMultiplier(parseFloat(e.target.value))}
-            />
-          </div>
-        </div>
+        
 
         {/* INSPECTOR DE CSV RAW (EL CONTENEDOR QUE PEDISTE) */}
         <div className="space-y-2 flex flex-col h-64">
@@ -142,16 +127,16 @@ const SidebarTeams = () => {
           <div className="flex-1 bg-[#FFF] rounded border border-[#3D3D3D] flex flex-col overflow-hidden">
             {/* Header del mini terminal */}
             <div className="bg-[#FFF] px-3 py-1.5 flex items-center justify-between border-b border-[#3D3D3D]">
-              <span className="text-[10px] text-[#ADADAD] font-mono">csv_raw_data.log</span>
+              <span className="text-[10px] text-[#979696] font-mono">csv_raw_data.log</span>
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#FF5F56]/30"></div>
-                <div className="w-2 h-2 rounded-full bg-[#FFBD2E]/30"></div>
-                <div className="w-2 h-2 rounded-full bg-[#27C93F]/30"></div>
+                <div className="w-2 h-2 rounded-full bg-[#FF5F56]"></div>
+                <div className="w-2 h-2 rounded-full bg-[#FFBD2E]"></div>
+                <div className="w-2 h-2 rounded-full bg-[#27C93F]"></div>
               </div>
             </div>
             {/* Contenido */}
             <div className="p-3 overflow-auto custom-scrollbar h-full">
-              <pre className="text-[11px] font-mono text-[#D4D4D4] leading-relaxed">
+              <pre className="text-[11px] font-mono text-[#b3b1b1] leading-relaxed">
                 {rawCSV}
               </pre>
             </div>
