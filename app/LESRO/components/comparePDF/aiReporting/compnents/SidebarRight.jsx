@@ -8,30 +8,18 @@ const SidebarRight = () => {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [expandedId, setExpandedId] = useState(null); // Controla qué item está abierto
 
-  // ===============================
-  // FETCH CSV FROM SUPABASE
-  // ===============================
   useEffect(() => {
     const fetchCSV = async () => {
       setLoading(true);
-
       const { data, error } = await supabase
         .from('ClientsSERVEX')
         .select('csv_raw, created_at')
         .order('created_at', { ascending: false })
-        .single(); // ✅ NO limit()
+        .single();
 
-      if (error) {
-        console.error('❌ Supabase error:', error);
-        setRows([]);
-        setLoading(false);
-        return;
-      }
-
-      if (!data?.csv_raw) {
-        console.warn('⚠️ csv_raw está vacío');
+      if (error || !data?.csv_raw) {
         setRows([]);
         setLoading(false);
         return;
@@ -41,35 +29,17 @@ const SidebarRight = () => {
       setRows(parsed);
       setLoading(false);
     };
-
     fetchCSV();
   }, []);
 
-  // ===============================
-  // CSV PARSER (ROBUSTO PARA CSV REAL)
-  // ===============================
   const parseCSV = (csv) => {
     if (!csv) return [];
-
-    const lines = csv
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      .trim()
-      .split('\n');
-
-    if (lines.length <= 1) return [];
-
-    const headers = lines[0]
-      .split(',')
-      .map(h => h.replace(/^"|"$/g, '').trim());
-
+    const lines = csv.replace(/\r\n/g, '\n').trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
     return lines.slice(1).map((line, index) => {
-      const values = line
-        .split(',')
-        .map(v => v.replace(/^"|"$/g, '').trim());
-
+      const values = line.split(',').map(v => v.replace(/^"|"$/g, '').trim());
       return {
-        id: index,
+        id: `item-${index}`,
         data: headers.reduce((acc, h, i) => {
           acc[h] = values[i] ?? '';
           return acc;
@@ -78,12 +48,8 @@ const SidebarRight = () => {
     });
   };
 
-  // ===============================
-  // FILTER
-  // ===============================
   const filteredRows = useMemo(() => {
     if (!search) return rows;
-
     return rows.filter(r =>
       Object.values(r.data).some(val =>
         String(val).toLowerCase().includes(search.toLowerCase())
@@ -91,105 +57,96 @@ const SidebarRight = () => {
     );
   }, [rows, search]);
 
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
+
   return (
-    <aside
-      className="
-        w-full sm:w-64 lg:w-72
-        bg-[#FFFFFF] border-l border-[#EDEBE9]
-        p-4 flex flex-col h-full
-        overflow-hidden
-      "
-    >
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-[11px] uppercase tracking-widest text-[#242424]">
-          AI Catalog
+    <aside className="w-full sm:w-64 lg:w-80 bg-[#FFFFFF] border-l border-[#EDEBE9] flex flex-col h-full overflow-hidden font-sans">
+      
+      {/* HEADER TIPO TEAMS */}
+      <div className="p-4 flex items-center justify-between">
+        <h3 className="text-[12px] font-bold text-[#242424] flex items-center gap-2">
+          <PH.Package weight="bold" className="text-[#464775]" />
+          Catálogo de Productos
         </h3>
-        <PH.Database size={16} className="text-[#605E5C]" />
+        <span className="text-[10px] bg-[#F3F2F1] px-2 py-0.5 rounded text-[#605E5C] font-medium">
+          {filteredRows.length}
+        </span>
       </div>
 
-      {/* SEARCH */}
-      <div className="relative mb-4">
-        <PH.MagnifyingGlass
-          size={14}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#A19F9D]"
-        />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar en catálogo..."
-          className="
-            w-full pl-9 pr-3 py-2
-            bg-[#FAF9F8]
-            border border-[#EDEBE9]
-            focus:border-[#464775]
-            rounded-lg text-[11px]
-            outline-none transition-all
-          "
-        />
+      {/* SEARCH BAR */}
+      <div className="px-4 pb-4">
+        <div className="relative group">
+          <PH.MagnifyingGlass size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#605E5C] group-focus-within:text-[#464775]" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Filtrar por código..."
+            className="w-full pl-9 pr-3 py-1.5 bg-[#FAF9F8] border-b border-[#EDEBE9] focus:border-[#464775] text-[12px] outline-none transition-all placeholder:text-[#A19F9D]"
+          />
+        </div>
       </div>
 
-      {/* CONTENT */}
-      <div className="flex-1 overflow-y-auto space-y-1 pr-1">
+      {/* LISTA DINÁMICA */}
+      <div className="flex-1 overflow-y-auto px-2 space-y-1 custom-scrollbar">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-10 text-[#605E5C]">
-            <PH.CircleNotch size={24} className="animate-spin mb-2" />
-            <span className="text-[10px] font-semibold">
-              Cargando catálogo…
-            </span>
-          </div>
-        ) : filteredRows.length === 0 ? (
-          <div className="text-center text-[10px] text-[#A19F9D] py-10">
-            No hay resultados
+          <div className="flex flex-col items-center justify-center py-10">
+            <PH.CircleNotch size={20} className="animate-spin text-[#464775]" />
           </div>
         ) : (
-          filteredRows.map((row, index) => {
-            const primaryValue =
-              Object.values(row.data)[0] || 'Registro';
+          filteredRows.map((row) => {
+            const isExpanded = expandedId === row.id;
+            const entries = Object.entries(row.data);
+            const productCode = entries[0][1]; // Asumimos que la primera columna es el código
 
             return (
-              <div
+              <div 
                 key={row.id}
-                onClick={() => setSelectedIndex(index)}
-                className={`
-                  flex items-center gap-3
-                  px-3 py-2 rounded-lg cursor-pointer
-                  transition-all
-                  ${
-                    selectedIndex === index
-                      ? 'bg-[#464775]/5 border border-[#464775]/30'
-                      : 'hover:bg-[#F3F2F1]'
-                  }
-                `}
+                className={`group rounded-md border transition-all duration-200 ${
+                  isExpanded ? 'border-[#464775]/30 bg-[#FAF9F8]' : 'border-transparent hover:bg-[#F3F2F1]'
+                }`}
               >
-                <div
-                  className={`
-                    w-7 h-7 rounded-full flex items-center justify-center
-                    ${
-                      selectedIndex === index
-                        ? 'bg-[#464775]/10'
-                        : 'bg-white border border-[#EDEBE9]'
-                    }
-                  `}
+                {/* CABECERA DEL ITEM (SIEMPRE VISIBLE) */}
+                <button
+                  onClick={() => toggleExpand(row.id)}
+                  className="w-full flex items-center gap-3 p-2.5 text-left"
                 >
-                  <PH.FileText
-                    size={12}
-                    className={
-                      selectedIndex === index
-                        ? 'text-[#464775]'
-                        : 'text-[#A19F9D]'
-                    }
+                  <PH.CaretRight 
+                    size={12} 
+                    weight="bold"
+                    className={`text-[#605E5C] transition-transform duration-200 ${isExpanded ? 'rotate-90 text-[#464775]' : ''}`} 
                   />
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[12px] font-semibold truncate ${isExpanded ? 'text-[#464775]' : 'text-[#242424]'}`}>
+                      {productCode}
+                    </p>
+                  </div>
+                  {!isExpanded && (
+                    <PH.Info size={14} className="opacity-0 group-hover:opacity-100 text-[#A19F9D]" />
+                  )}
+                </button>
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-semibold text-[#242424] truncate">
-                    {primaryValue}
-                  </p>
-                  <p className="text-[9px] text-[#605E5C] truncate">
-                    {Object.keys(row.data).length} campos
-                  </p>
-                </div>
+                {/* CONTENIDO DESPLEGABLE */}
+                {isExpanded && (
+                  <div className="px-3 pb-3 pt-1 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="h-[1px] bg-[#EDEBE9] mb-2" />
+                    {entries.slice(1).map(([key, value]) => (
+                      <div key={key} className="flex flex-col">
+                        <span className="text-[9px] uppercase tracking-wider text-[#605E5C] font-bold">
+                          {key}
+                        </span>
+                        <span className="text-[11px] text-[#242424] break-words">
+                          {value || '—'}
+                        </span>
+                      </div>
+                    ))}
+                    <button className="w-full mt-2 py-1.5 bg-[#464775] text-white text-[10px] font-semibold rounded hover:bg-[#3b3c63] transition-colors flex items-center justify-center gap-2">
+                      <PH.Copy size={12} />
+                      Copiar Referencia
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })
@@ -197,11 +154,13 @@ const SidebarRight = () => {
       </div>
 
       {/* FOOTER */}
-      <div className="mt-4 p-3 bg-[#F3F2F1] rounded-lg border border-[#EDEBE9]">
-        <p className="text-[9px] text-[#605E5C] flex gap-2 leading-tight">
-          <PH.Info size={12} className="text-[#464775] shrink-0" />
-          Selecciona un elemento del catálogo para usarlo como contexto IA.
-        </p>
+      <div className="p-4 bg-[#F3F2F1]/50 border-t border-[#EDEBE9]">
+        <div className="flex items-start gap-2">
+          <PH.Lightbulb size={16} className="text-[#464775] shrink-0 mt-0.5" />
+          <p className="text-[10px] text-[#605E5C] leading-relaxed">
+            Haz clic en un código para ver los detalles técnicos y disponibilidad.
+          </p>
+        </div>
       </div>
     </aside>
   );
