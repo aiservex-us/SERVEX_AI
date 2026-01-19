@@ -5,7 +5,7 @@ import { marked } from "marked";
 import { 
   Sparkles, Layout, BarChart3, Shield, 
   SendHorizontal, Paperclip, Mic, Trash2, AlertCircle,
-  Database, ChevronDown, Check, Zap, Info
+  Database, ChevronDown, Check, Zap, Info, X, FileText
 } from 'lucide-react';
 
 const Viewport = () => {
@@ -16,11 +16,19 @@ const Viewport = () => {
   const [mode, setMode] = useState('platform');
   const [context, setContext] = useState('Servex US');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
+
+  // === NUEVO (NO MODIFICA NADA EXISTENTE) ===
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  const [attachedFile, setAttachedFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const [userId] = useState(`USER-${Math.floor(Math.random() * 10000)}`);
   const messagesEndRef = useRef(null);
 
   const confirmClearChat = () => {
     setMessages([]);
+    setAttachedFile(null);
     setShowDeleteConfirm(false);
   };
 
@@ -32,28 +40,126 @@ const Viewport = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (e) => {
+  // ============================
+  // 🎤 VOICE TO TEXT (REAL)
+  // ============================
+  const handleMicClick = () => {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Tu navegador no soporta reconocimiento de voz.");
+    return;
+  }
+
+  if (!recognitionRef.current) {
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "es-ES";
+    recognition.continuous = false; // 👈 CLAVE
+    recognition.interimResults = false;
+
+    let finalTranscript = "";
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      finalTranscript = "";
+    };
+
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+
+      if (finalTranscript.trim()) {
+        setInputValue(prev =>
+          prev.trim()
+            ? prev + " " + finalTranscript.trim()
+            : finalTranscript.trim()
+        );
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+  }
+
+  // Toggle real
+  if (isListening) {
+    recognitionRef.current.stop();
+  } else {
+    recognitionRef.current.start();
+  }
+};
+
+
+  // ============================
+  // CSV
+  // ============================
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.name.endsWith('.csv')) {
+      setAttachedFile(file);
+    } else {
+      alert("Por favor selecciona un archivo CSV válido");
+    }
+  };
+
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() && !attachedFile) return;
+
+    const userText = attachedFile 
+      ? `${inputValue} (Archivo adjunto: ${attachedFile.name})`.trim() 
+      : inputValue;
 
     const newMessage = {
       from: 'user',
-      text: inputValue,
+      text: userText,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     setMessages([...messages, newMessage]);
     setInputValue("");
-    
+    setAttachedFile(null);
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          mensaje: userText,
+          rol: "especialista en datos empresariales"
+        }),
+      });
+
+      const data = await response.json();
+
       setMessages(prev => [...prev, {
         from: 'bot',
-        text: "I'm processing your request using the **2026 official documentation**. How else can I assist you with the SVX project?",
+        text: data.respuesta,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
+    } catch {
+      setMessages(prev => [...prev, {
+        from: 'bot',
+        text: "**Error de conexión con el servidor**",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const isChatActive = messages.length > 0;
@@ -61,7 +167,15 @@ const Viewport = () => {
   return (
     <main className="flex-1 flex flex-col relative bg-[#FFF] h-[100%] font-sans overflow-hidden">
       
-      {/* --- MODAL DE CONFIRMACIÓN --- */}
+      {/* Input de archivo oculto */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        accept=".csv" 
+        className="hidden" 
+      />
+
       <AnimatePresence>
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -92,9 +206,7 @@ const Viewport = () => {
         )}
       </AnimatePresence>
 
-      {/* --- HEADER --- */}
       <header className="h-10 flex items-center justify-between px-6 bg-[#FFFFFF] border-b border-[#EDEBE9] z-20">
-      
         <div className="text-[11px] font-medium text-[#605E5C]">
           Project / <span className="text-[#464775] font-bold">SVX copilot v1.2</span>
         </div>
@@ -103,33 +215,32 @@ const Viewport = () => {
             <button onClick={() => setShowDeleteConfirm(true)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-md transition-all mr-1"><Trash2 size={16} /></button>
           )}
           <div className="w-6 h-6 rounded-full bg-[#EDEBE9] flex items-center justify-center text-[#464775]"><PH.User size={14} weight="bold" /></div>
-               </div>
+        </div>
       </header>
 
-      {/* --- MAIN CONTENT --- */}
       <div className="flex-1 m-2 rounded-xl border border-[#EDEBE9] shadow-sm relative overflow-hidden bg-white flex flex-col">
         
-        {/* Background Animation (solo si no hay chat) */}
         {!isChatActive && (
-          <div className="absolute inset-0 z-0 flex items-center justify-center" style={{ backgroundImage: "url('/ball3.gif')", backgroundSize: '50%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+          <div className="absolute inset-0 z-0 flex items-center justify-center" style={{ backgroundImage: "url('/ball.gif')", backgroundSize: '40%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
             <div className="absolute inset-0 bg-white/40 backdrop-blur-[0px]"></div>
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto z-10">
+        <div className="flex-1 overflow-y-auto z-10 pb-[180px]"> 
           {isChatActive ? (
-            /* --- CHAT VIEW --- */
             <div className="max-w-4xl mx-auto space-y-8 w-full px-4 py-10">
               {messages.map((msg, idx) => (
                 <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-4 w-full ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-sm ${msg.from === 'user' ? 'bg-slate-700' : 'bg-[#464775]'}`}>{msg.from === 'user' ? 'ME' : 'AI'}</div>
+                  {/* Cambio de color en avatar del usuario a Morado */}
+                  <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-sm ${msg.from === 'user' ? 'bg-[#464775]' : 'bg-slate-200 !text-slate-600'}`}>{msg.from === 'user' ? 'ME' : 'AI'}</div>
                   <div className={`flex flex-col max-w-[85%] ${msg.from === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className={`flex items-baseline gap-2 mb-1 ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                       <span className="font-bold text-[12px] text-slate-700">{msg.from === 'user' ? 'You' : 'Copilot'}</span>
                       <span className="text-[10px] text-slate-400 font-medium">{msg.time}</span>
                     </div>
-                    <div className={`p-4 rounded-2xl text-[13.5px] leading-relaxed border shadow-sm ${msg.from === 'user' ? 'bg-white border-slate-200 text-slate-700 rounded-tr-none' : 'bg-[#464775] border-[#464775] text-white rounded-tl-none'}`}>
-                      {msg.from === "bot" ? <div className="prose prose-sm prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }} /> : <p className="whitespace-pre-wrap">{msg.text}</p>}
+                    {/* Cambio de colores en burbujas: Usuario -> Morado | Bot -> Blanco con texto negro */}
+                    <div className={`p-4 rounded-2xl text-[13.5px] leading-relaxed border shadow-sm ${msg.from === 'user' ? 'bg-[#464775] border-[#464775] text-white rounded-tr-none' : 'bg-white border-slate-200 text-slate-700 rounded-tl-none'}`}>
+                      {msg.from === "bot" ? <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }} /> : <p className="whitespace-pre-wrap">{msg.text}</p>}
                     </div>
                   </div>
                 </motion.div>
@@ -138,44 +249,46 @@ const Viewport = () => {
               <div ref={messagesEndRef} />
             </div>
           ) : (
-            /* --- EMPTY STATE (TEAMS STYLE) --- */
             <div className="w-full max-w-4xl mx-auto pt-10 px-6 flex flex-col relative z-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="mb-8 border-b border-gray-100 pb-8">
-                <div className="flex items-center gap-2 text-[#464775] mb-2">
-                  <Sparkles size={18} fill="#464775" fillOpacity={0.2} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Contextual Assistance Center</span>
-                </div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Servex Copilot</h1>
-                <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">
-                  Learn processes, resolve platform questions, or analyze critical data. Synchronized with official 2026 documentation.
-                </p>
-              </div>
-
-        
-
+             <div className="w-full max-w-4xl mx-auto pt-4 px-6 flex flex-col relative z-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+  <div className="mb-3 w-[100%] border-b border-gray-100 pb-3">
+    <div className="flex items-center gap-1.5 text-[#464775] mb-1">
+      <Sparkles size={14} fill="#464775" fillOpacity={0.2} />
+      <span className="text-[9px] font-bold uppercase tracking-wider">Contextual Assistance Center</span>
+    </div>
+    <h1 className="text-xl font-bold text-gray-900 mb-0.5">Welcome to Servex Copilot</h1>
+    <p className="text-[12px] text-gray-500 max-w-2xl leading-snug">
+      Learn processes, resolve platform questions, or analyze critical data. Synchronized with official 2026 documentation.
+    </p>
+  </div>
+</div>
             </div>
           )}
         </div>
 
-        {/* --- INPUT BOX --- */}
-        <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6 z-30 transition-all duration-500 ${!isChatActive ? 'translate-y-0' : 'translate-y-0'}`}>
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6 z-30">
           <form onSubmit={handleSendMessage} className="bg-white border border-[#EDEBE9] rounded-xl shadow-2xl flex flex-col overflow-hidden focus-within:ring-1 focus-within:ring-[#464775]/20">
             
             <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100 relative">
               <button type="button" onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 text-[10px] font-bold text-gray-600 bg-white border border-gray-200 px-2 py-1 rounded hover:bg-gray-50">
-                <Database size={12} className="text-[#464775]" /> CONTEXT: {context} <ChevronDown size={10} />
+                <Database size={12} className="text-[#464775]" /> CONTEXT LESRO AI PROTOCOL <ChevronDown size={0} />
               </button>
-              {isDropdownOpen && (
-                <div className="absolute top-9 left-4 w-40 bg-white border border-gray-200 shadow-xl rounded z-50 py-1">
-                  {['Servex US', 'Servex LATAM'].map((ctx) => (
-                    <button key={ctx} type="button" onClick={() => {setContext(ctx); setIsDropdownOpen(false)}} className="w-full text-left px-3 py-2 text-[11px] hover:bg-gray-50 flex justify-between items-center">{ctx} {context === ctx && <Check size={10} className="text-[#464775]" />}</button>
-                  ))}
-                </div>
-              )}
+           
               <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-bold ml-auto"><Zap size={10} className="text-yellow-500 fill-yellow-500" /> SVX ENGINE READY</div>
             </div>
 
             <div className="px-4 pt-3">
+              {/* VISTA PREVIA DEL ARCHIVO CARGADO */}
+              {attachedFile && (
+                <div className="flex items-center gap-2 mb-2 bg-[#F3F2F1] w-fit px-2 py-1 rounded border border-[#EDEBE9]">
+                  <FileText size={14} className="text-[#464775]" />
+                  <span className="text-[11px] font-bold text-[#464775]">{attachedFile.name}</span>
+                  <button type="button" onClick={() => setAttachedFile(null)} className="hover:bg-gray-200 rounded-full p-0.5">
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+              
               <textarea 
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -187,15 +300,22 @@ const Viewport = () => {
 
             <div className="flex items-center justify-between px-3 py-2 bg-[#FAFBFC] border-t border-[#F3F2F1]">
               <div className="flex items-center gap-1">
-                <button type="button" className="p-2 text-gray-400 hover:text-[#464775] rounded-lg"><Paperclip size={18} /></button>
-                <button type="button" className="p-2 text-gray-400 hover:text-[#464775] rounded-lg"><Mic size={18} /></button>
+                <button type="button" onClick={() => fileInputRef.current.click()} className="p-2 text-gray-400 hover:text-[#464775] rounded-lg transition-colors">
+                  <Paperclip size={18} />
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleMicClick}
+                  className={`p-2 rounded-lg transition-all ${isListening ? 'text-red-500 bg-red-50 animate-pulse' : 'text-gray-400 hover:text-[#464775]'}`}
+                >
+                  <Mic size={18} />
+                </button>
               </div>
-              <button type="submit" disabled={!inputValue.trim()} className="bg-[#464775] text-white px-5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-[#3b3c63] transition-all disabled:opacity-40 shadow-sm">
-                SEND QUERY <SendHorizontal size={14} />
+              <button type="submit" disabled={(!inputValue.trim() && !attachedFile) || isLoading} className="bg-[#464775] text-white px-5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-[#3b3c63] transition-all disabled:opacity-40 shadow-sm">
+                {isLoading ? "SENDING..." : "SEND QUERY"} <SendHorizontal size={14} />
               </button>
             </div>
           </form>
-
         </div>
       </div>
     </main>

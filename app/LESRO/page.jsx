@@ -70,7 +70,7 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="h-screen w-full bg-[#fff] font-sans flex items-center justify-center relative">
+    <div className="h-screen w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
 
       {/* MICROSOFT TEAMS STYLE MODAL */}
       {showExitModal && (

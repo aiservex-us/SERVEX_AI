@@ -2,9 +2,8 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard,
-  SearchCode, // Icono mejorado para búsqueda
+  SearchCode,
   BarChart3,
-  Mail,
   Inbox,
   KanbanSquare,
   ListChecks,
@@ -13,22 +12,17 @@ import {
   ChevronLeft,
   X,
   LayoutTemplate,
-  Database,
-  FileDiff // Icono para comparación de archivos/catálogos
+  FileDiff
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'presentation', label: 'Executive Panel', icon: LayoutTemplate }, 
-  { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard },
-  { id: 'kanban', label: 'XML CET Data', icon: KanbanSquare },
-  { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox },
-  { id: 'notifications', label: 'Change Tracker', icon: FileDiff },
-  { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3 },
-  { id: 'Tasks', label: 'Synchronizer', icon: ListChecks },
- 
-
-
-
+  { id: 'presentation', label: 'Executive Panel', icon: LayoutTemplate, sub: 'Main View' }, 
+  { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard, sub: 'Analysis' },
+  { id: 'kanban', label: 'XML CET Data', icon: KanbanSquare, sub: 'Structure' },
+  { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox, sub: 'Visualization' },
+  { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
+  { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3, sub: 'Statistics' },
+  { id: 'Tasks', label: 'Synchronizer', icon: ListChecks, sub: 'Operations' },
 ];
 
 export default function MenuLateral({
@@ -50,17 +44,17 @@ export default function MenuLateral({
         border-r border-slate-100/80
         flex flex-col
         transition-all duration-[500ms] ease-[cubic-bezier(0.4,0,0.2,1)]
-        ${collapsed ? 'w-[58px]' : 'w-[210px]'}
+        ${collapsed ? 'w-[70px]' : 'w-[230px]'}
       `}
     >
       {/* HEADER: LOGO & TOGGLE */}
       <div className="h-16 flex items-center px-4 shrink-0 relative">
         <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
-          <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#6264A7]/30 transition-colors">
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors">
             <img
               src="/logosEmpresas/lesro.png"
               alt="Logo"
-              className="w-5 h-5 object-contain group-hover:scale-110 transition-transform"
+              className={`object-contain transition-all duration-300 ${collapsed ? 'w-4 h-4' : 'w-5 h-5'}`}
             />
           </div>
           
@@ -68,7 +62,7 @@ export default function MenuLateral({
             overflow-hidden transition-all duration-[400ms]
             ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
           `}>
-            <span className="font-bold text-[13px] tracking-tight text-slate-800 whitespace-nowrap">
+            <span className="font-bold text-[12px] tracking-tight text-slate-800 whitespace-nowrap uppercase">
               DATA LESRO
             </span>
           </div>
@@ -76,7 +70,7 @@ export default function MenuLateral({
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-100 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all z-50 text-slate-400 hover:text-[#6264A7]"
+          className="absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-100 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all z-50 text-slate-400 hover:text-[#464775]"
         >
           <ChevronLeft className={`w-3 h-3 transition-transform duration-500 ${collapsed ? 'rotate-180' : ''}`} />
         </button>
@@ -86,9 +80,9 @@ export default function MenuLateral({
       <div className="px-3 mb-4">
         <div className={`
           relative flex items-center transition-all duration-300
-          ${collapsed ? 'justify-center h-10' : 'h-9 bg-slate-50/50 border border-slate-100 rounded-lg px-2 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#6264A7]/10 focus-within:border-[#6264A7]/30'}
+          ${collapsed ? 'justify-center h-10' : 'h-8 bg-slate-50/50 border border-slate-100 rounded-lg px-2'}
         `}>
-          <SearchCode className={`shrink-0 transition-colors ${searchQuery ? 'text-[#6264A7]' : 'text-slate-400'} ${collapsed ? 'w-5 h-5' : 'w-3.5 h-3.5'}`} />
+          <SearchCode className={`shrink-0 transition-colors ${searchQuery ? 'text-[#464775]' : 'text-slate-400'} ${collapsed ? 'w-4 h-4' : 'w-3.5 h-3.5'}`} />
           
           <input
             type="text"
@@ -96,64 +90,48 @@ export default function MenuLateral({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={`
-              bg-transparent border-none focus:ring-0 text-[12px] w-full ml-2 placeholder:text-slate-400 text-slate-700
+              bg-transparent border-none focus:ring-0 text-[11px] w-full ml-2 placeholder:text-slate-400 text-slate-700
               transition-all duration-300
               ${collapsed ? 'w-0 opacity-0 p-0' : 'opacity-100'}
             `}
           />
-
-          {!collapsed && searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-slate-200/50 rounded-full transition-colors">
-              <X className="w-3 h-3 text-slate-400" />
-            </button>
-          )}
-
-          {collapsed && (
-            <div className="absolute inset-0 cursor-pointer" onClick={() => setCollapsed(false)} />
-          )}
         </div>
       </div>
 
-      {/* MENU PRINCIPAL */}
-      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto custom-scrollbar">
+      {/* MENU PRINCIPAL REPARTIDO CON ESTILO CARD */}
+      <nav className="flex-1 px-3 space-y-2.5 overflow-y-auto custom-scrollbar flex flex-col">
         {filteredItems.map(item => {
           const Icon = item.icon;
           const isActive = active === item.id;
-          const isSearching = searchQuery.length > 0;
-          const isMatch = isSearching && item.label.toLowerCase().includes(searchQuery.toLowerCase());
 
           return (
             <button
               key={item.id}
               onClick={() => setActive(item.id)}
               className={`
-                group relative w-full flex items-center rounded-lg transition-all duration-300
-                ${collapsed ? 'justify-center h-11' : 'px-3 py-2'}
+                group relative flex flex-col transition-all duration-300 w-full rounded-xl border
+                ${collapsed ? 'items-center justify-center py-3' : 'p-3'}
                 ${isActive 
-                  ? 'bg-[#6264A7]/5 text-[#6264A7]' 
-                  : isMatch 
-                    ? 'bg-slate-50 text-slate-900 shadow-[0_0_10px_rgba(98,100,167,0.1)] scale-[1.02]' 
-                    : 'text-slate-500 hover:bg-slate-50/80 hover:text-slate-900'}
+                  ? 'bg-[#464775]/5 border-[#464775]/30 shadow-sm' 
+                  : 'bg-white border-slate-100 shadow-sm hover:border-slate-200 hover:bg-slate-50/30'}
               `}
             >
-              <div className={`
-                absolute left-0 w-[2.5px] bg-[#6264A7] rounded-r-full transition-all duration-300
-                ${isActive ? 'h-5 opacity-100' : 'h-0 opacity-0'}
-              `} />
-              
-              <Icon className={`
-                w-[17px] h-[17px] shrink-0 transition-all duration-300
-                ${isActive ? 'scale-110 stroke-[2.5px]' : 'group-hover:scale-110'}
-                ${isMatch ? 'text-[#6264A7] drop-shadow-[0_0_3px_rgba(98,100,167,0.4)]' : ''}
-              `} />
-              
-              <div className={`
-                overflow-hidden transition-all duration-[400ms] flex items-center
-                ${collapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
-              `}>
-                <span className={`text-[12px] whitespace-nowrap transition-all ${isActive || isMatch ? 'font-semibold' : 'font-medium'}`}>
-                  {item.label}
-                </span>
+              <div className={`flex items-center w-full ${collapsed ? 'justify-center' : 'gap-3'}`}>
+                <div className={`${isActive ? 'text-[#464775]' : 'text-slate-400'} transition-all duration-300`}>
+                  {/* ICONO REDUCIDO: 15px colapsado, 17px abierto */}
+                  <Icon size={collapsed ? 15 : 17} strokeWidth={isActive ? 2.5 : 2} />
+                </div>
+                
+                {!collapsed && (
+                  <div className="flex flex-col items-start overflow-hidden text-left">
+                    <span className={`text-[10px] uppercase tracking-wider leading-none ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'}`}>
+                      {item.label}
+                    </span>
+                    <span className="text-[8px] text-slate-400 font-medium mt-1 uppercase tracking-tighter">
+                      {item.sub}
+                    </span>
+                  </div>
+                )}
               </div>
             </button>
           );
@@ -161,7 +139,7 @@ export default function MenuLateral({
       </nav>
 
       {/* FOOTER */}
-      <div className="p-3 border-t border-slate-50 bg-white/50 space-y-1">
+      <div className="p-3 border-t border-slate-50 bg-white/50 space-y-2">
         {[
           { label: 'Support', icon: Headphones },
           { label: 'Settings', icon: Settings },
@@ -171,16 +149,16 @@ export default function MenuLateral({
             <button
               key={item.label}
               className={`
-                w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200
+                w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-[#464775] transition-all duration-200
                 ${collapsed ? 'justify-center h-10' : 'px-3 py-2'}
               `}
             >
-              <Icon className="w-[16px] h-[16px] shrink-0" />
+              <Icon size={collapsed ? 14 : 16} className="shrink-0" />
               <div className={`
                 overflow-hidden transition-all duration-[400ms]
                 ${collapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
               `}>
-                <span className="text-[11px] font-medium whitespace-nowrap">{item.label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">{item.label}</span>
               </div>
             </button>
           );
@@ -188,30 +166,29 @@ export default function MenuLateral({
 
         {/* TARJETA SVX COPILOT */}
         <div className={`
-          mt-3 flex items-center rounded-xl transition-all duration-300
-          ${collapsed ? 'justify-center h-12' : 'p-2 bg-[#6264A7]/5 border border-[#6264A7]/10'}
+          mt-2 flex items-center rounded-xl transition-all duration-300
+          ${collapsed ? 'justify-center h-10' : 'p-2 bg-[#464775] text-white shadow-lg shadow-[#464775]/20'}
         `}>
           <div className="relative shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center p-1 shadow-sm">
+            <div className={`rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-sm transition-all duration-300 ${collapsed ? 'w-6 h-6 p-1' : 'w-7 h-7 p-1.5'}`}>
               <img
                 src="/logo2.png" 
                 alt="Svx"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain brightness-200"
               />
             </div>
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#6264A7] rounded-full animate-pulse border border-white"></div>
           </div>
           
           <div className={`
             overflow-hidden transition-all duration-[400ms]
             ${collapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
           `}>
-            <div className="flex flex-col leading-tight">
-              <p className="text-[11px] font-black text-slate-800 tracking-tight uppercase">
-                Svx <span className="text-[#6264A7]">Copilot</span>
+            <div className="flex flex-col leading-tight text-white">
+              <p className="text-[10px] font-black tracking-tight uppercase">
+                Svx Copilot
               </p>
-              <p className="text-[9px] text-slate-500 font-medium whitespace-nowrap">
-                Next-gen Servex Intelligence
+              <p className="text-[7.5px] opacity-70 font-medium whitespace-nowrap">
+                Next-gen Intelligence
               </p>
             </div>
           </div>
@@ -219,20 +196,12 @@ export default function MenuLateral({
 
         {/* LEYENDA GLYNNE */}
         <div className={`
-          transition-all duration-[400ms] overflow-hidden pt-2
+          transition-all duration-[400ms] overflow-hidden pt-1
           ${collapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
         `}>
-          <a
-            href="https://glynneai.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group block px-1"
-          >
-            <p className="text-[8px] text-slate-400 group-hover:text-[#6264A7] transition-colors leading-tight tracking-tight">
-              © 2025 GLYNNE S.A.S — <br />
-              <span className="italic font-medium">Architecting the future of work.</span>
-            </p>
-          </a>
+          <p className="text-[7px] text-slate-400 leading-tight tracking-tight px-1 uppercase font-medium">
+            © 2025 GLYNNE S.A.S
+          </p>
         </div>
       </div>
     </aside>
