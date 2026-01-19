@@ -8,8 +8,9 @@ import Viewport from './compnents/Viewport';
 import SidebarRight from './compnents/SidebarRight';
 
 const AIReporting = () => {
-  const [isLeftOpen, setIsLeftOpen] = useState(false);
-  const [isRightOpen, setIsRightOpen] = useState(false);
+  // CAMBIO CLAVE: Cambiamos false por true para que inicien abiertos
+  const [isLeftOpen, setIsLeftOpen] = useState(true);
+  const [isRightOpen, setIsRightOpen] = useState(true);
 
   return (
     <div className="flex h-[98%] w-[100%] bg-[#FFF] text-[#242424] font-sans overflow-hidden relative">
@@ -24,7 +25,7 @@ const AIReporting = () => {
         </button>
       </div>
 
-      {/* BOTÓN DE CONTROL DERECHO (Se mueve con el panel) */}
+      {/* BOTÓN DE CONTROL DERECHO */}
       <div className={`absolute top-4 z-[60] transition-all mt-[-12px] duration-300 ${isRightOpen ? "right-[270px]" : "right-4"}`}>
         <button 
           onClick={() => setIsRightOpen(!isRightOpen)}
@@ -48,18 +49,18 @@ const AIReporting = () => {
         <SidebarLeft />
       </div>
 
-      {/* --- Viewport Central (Se ajusta automáticamente) --- */}
+      {/* --- Viewport Central --- */}
       <main className="flex-1 h-full min-w-0 overflow-hidden">
         <Viewport />
       </main>
 
-      {/* --- Sidebar Derecho (Responsive similar al izquierdo) --- */}
-      <AnimatePresence initial={false}>
+      {/* --- Sidebar Derecho --- */}
+      <AnimatePresence initial={true}> {/* Cambiado a true para que respete el estado inicial abierto */}
         {isRightOpen && (
           <motion.div 
-            initial={{ width: 0, opacity: 0, x: 260 }} // Añadimos x para el slide en móvil
+            initial={{ width: 0, opacity: 0, x: 260 }}
             animate={{ 
-              width: window.innerWidth < 1024 ? "auto" : 260, 
+              width: typeof window !== 'undefined' && window.innerWidth < 1024 ? "auto" : 260, 
               opacity: 1, 
               x: 0 
             }}
@@ -71,14 +72,14 @@ const AIReporting = () => {
               h-full
             `}
           >
-            <div className="w-[260px] h-full"> {/* Contenedor interno para mantener el ancho */}
+            <div className="w-[260px] h-full"> 
               <SidebarRight />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Overlay para cerrar menús al tocar fuera en móvil (Opcional pero recomendado) */}
+      {/* Overlay para móvil */}
       {(isLeftOpen || isRightOpen) && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/20 z-40"
