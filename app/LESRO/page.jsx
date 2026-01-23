@@ -23,7 +23,7 @@ export default function MenuInicial() {
 
   const router = useRouter();
 
-
+{/*
   // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -31,7 +31,7 @@ export default function MenuInicial() {
         router.replace('/login');
       }
     }); 
-  }, [router]); 
+  }, [router]); */}
 
   // --- EXIT ATTEMPT DETECTION LOGIC ---
   useEffect(() => {

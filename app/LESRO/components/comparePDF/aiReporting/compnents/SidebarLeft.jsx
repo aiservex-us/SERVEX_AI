@@ -114,32 +114,24 @@ const SidebarLeft = () => {
               <div className="space-y-3 pb-4">
                 <StatItem
                   icon={<Microscope />}
-                  label="Explorer Context"
+                  label="Let me explain how it works"
                   description="Deep exploration and pattern discovery across the product catalog."
                 />
 
-                <StatItem
-                  icon={<ShieldCheck />}
-                  label="Built Auditor"
-                  description="Automated validation and consistency auditing."
-                />
+             
 
-                <StatItem
-                  icon={<Boxes />}
-                  label="Initial Context"
-                  description="Base understanding for new or unknown catalogs."
-                />
+             
 
                 <StatItem
                   icon={<Info />}
-                  label="Interactive Tutorial"
-                  description="Guided learning and assisted catalog navigation."
+                  label="Explore the catalog now."
+                  description="Explore and analyze catalog data."
                 />
 
                 <StatItem
                   icon={<Cpu />}
-                  label="AI Specialist"
-                  description="Advanced reasoning and decision support."
+                  label="Build your audit"
+                  description="Create and manage structured data audits"
                 />
               </div>
             </>
