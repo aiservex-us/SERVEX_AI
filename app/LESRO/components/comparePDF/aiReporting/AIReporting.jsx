@@ -1,16 +1,24 @@
 "use client";
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // Aseguramos AnimatePresence
 import { Menu, X, PanelRightOpen, PanelRightClose } from 'lucide-react'; 
 import SidebarLeft from './compnents/SidebarLeft';
 import Viewport from './compnents/Viewport';
+import Viewport2 from './compnents/Viewport2';
 import SidebarRight from './compnents/SidebarRight';
 
 const AIReporting = () => {
-  // CAMBIO CLAVE: Cambiamos false por true para que inicien abiertos
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
+  const [activeViewport, setActiveViewport] = useState('explorer');
+
+  // Definimos las variantes de la animación para los Viewports
+  const viewportVariants = {
+    initial: { opacity: 0, scale: 0.98, y: 5 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 1.02, y: -5 },
+  };
 
   return (
     <div className="flex h-[98%] w-[100%] bg-[#FFF] text-[#242424] font-sans overflow-hidden relative">
@@ -46,16 +54,36 @@ const AIReporting = () => {
           lg:flex h-full
         `}
       >
-        <SidebarLeft />
+        <SidebarLeft 
+          setActiveViewport={setActiveViewport} 
+          activeViewport={activeViewport} 
+        />
       </div>
 
-      {/* --- Viewport Central --- */}
-      <main className="flex-1 h-full min-w-0 overflow-hidden">
-        <Viewport />
+      {/* --- Viewport Central con ANIMACIÓN --- */}
+      <main className="flex-1 h-full min-w-0 overflow-hidden relative">
+        <AnimatePresence mode="wait"> 
+          {/* 'mode="wait"' hace que el viejo desaparezca antes de que el nuevo aparezca */}
+          <motion.div
+            key={activeViewport} // La 'key' es vital para que Framer detecte el cambio
+            variants={viewportVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="w-full h-full"
+          >
+            {activeViewport === 'explainer' ? (
+              <Viewport2 />
+            ) : (
+              <Viewport />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* --- Sidebar Derecho --- */}
-      <AnimatePresence initial={true}> {/* Cambiado a true para que respete el estado inicial abierto */}
+      <AnimatePresence initial={true}>
         {isRightOpen && (
           <motion.div 
             initial={{ width: 0, opacity: 0, x: 260 }}
@@ -79,7 +107,6 @@ const AIReporting = () => {
         )}
       </AnimatePresence>
 
-      {/* Overlay para móvil */}
       {(isLeftOpen || isRightOpen) && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/20 z-40"

@@ -254,11 +254,11 @@ const Viewport = () => {
   <div className="mb-3 w-[100%] border-b border-gray-100 pb-3">
     <div className="flex items-center gap-1.5 text-[#464775] mb-1">
       <Sparkles size={14} fill="#464775" fillOpacity={0.2} />
-      <span className="text-[9px] font-bold uppercase tracking-wider">Contextual Assistance Center</span>
+      <span className="text-[9px] font-bold uppercase tracking-wider">Explorer Analizer Center</span>
     </div>
-    <h1 className="text-xl font-bold text-gray-900 mb-0.5">Welcome to Servex Copilot</h1>
+    <h1 className="text-xl font-bold text-gray-900 mb-0.5">Welcome to Servex explorer Copilot</h1>
     <p className="text-[12px] text-gray-500 max-w-2xl leading-snug">
-      Learn processes, resolve platform questions, or analyze critical data. Synchronized with official 2026 documentation.
+    Here you can explore and understand everything related to the ESRO catalog data.
     </p>
   </div>
 </div>

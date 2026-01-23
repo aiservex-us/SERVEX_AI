@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import * as PH from "@phosphor-icons/react";
-import { ChevronRight, Cpu, Boxes, Microscope, ShieldCheck, Play, Info } from 'lucide-react';
+import { ChevronRight, Cpu, Microscope, Play, Info } from 'lucide-react';
 
-// --- SUBCOMPONENTE: STAT ITEM (YA NO ES ACORDEÓN, SIEMPRE ABIERTO) ---
-const StatItem = ({ icon, label, description }) => (
-  <div className="bg-[#FFF] px-2.5 py-3 rounded-lg shadow-sm border border-[#464775]/20 transition-all">
+// --- SUBCOMPONENTE: STAT ITEM CON ESTILO NEGATIVO ---
+const StatItem = ({ icon, label, description, onClick, isActive }) => (
+  <div className={`px-2.5 py-3 rounded-lg shadow-sm border transition-all ${isActive ? 'border-[#464775] bg-[#f8f8fd]' : 'border-[#464775]/20 bg-[#FFF]'}`}>
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center gap-2">
         <div className="text-[#464775]">
@@ -16,26 +16,32 @@ const StatItem = ({ icon, label, description }) => (
           {label}
         </span>
       </div>
-      {/* Chevron fijo hacia abajo indicando que está expandido */}
-      <ChevronRight size={12} className="rotate-90 text-[#464775]/50" />
+      <ChevronRight size={12} className={`rotate-90 transition-colors ${isActive ? 'text-[#464775]' : 'text-[#464775]/50'}`} />
     </div>
     
     <div className="opacity-100">
       <p className="text-[10px] text-slate-500 leading-snug border-t pt-2 border-slate-200 italic">
         {description}
       </p>
-      <button className="w-full mt-3 bg-[#464775] text-white text-[9px] font-bold py-1.5 rounded flex items-center justify-center gap-1 hover:bg-[#3b3c63] transition-colors shadow-sm">
-        <Play size={10} fill="currentColor" /> START MODE
+      
+      {/* BOTÓN CON ESTILO NEGATIVO CUANDO ESTÁ ACTIVO */}
+      <button 
+        onClick={onClick}
+        className={`w-full mt-3 text-[9px] font-bold py-1.5 rounded flex items-center justify-center gap-1 transition-all shadow-sm border ${
+          isActive 
+            ? 'bg-white text-[#464775] border-[#464775]' // Estilo Negativo
+            : 'bg-[#464775] text-white border-transparent hover:bg-[#3b3c63]' // Estilo Default
+        }`}
+      >
+        <Play size={10} fill="currentColor" /> {isActive ? "ACTIVE MODE" : "START MODE"}
       </button>
     </div>
   </div>
 );
 
-const SidebarLeft = () => {
+const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
   const [view, setView] = useState("process");
   const [activeModal, setActiveModal] = useState(null);
-
-  const closeModal = () => setActiveModal(null);
 
   const historyItems = [
     { id: 1, title: "Mascot Project v1.2", date: "Today", preview: "Processed 45 SKUs from PDF..." },
@@ -116,22 +122,24 @@ const SidebarLeft = () => {
                   icon={<Microscope />}
                   label="Let me explain how it works"
                   description="Deep exploration and pattern discovery across the product catalog."
+                  isActive={activeViewport === "explainer"}
+                  onClick={() => setActiveViewport("explainer")}
                 />
-
-             
-
-             
 
                 <StatItem
                   icon={<Info />}
                   label="Explore the catalog now."
                   description="Explore and analyze catalog data."
+                  isActive={activeViewport === "explorer"}
+                  onClick={() => setActiveViewport("explorer")}
                 />
 
                 <StatItem
                   icon={<Cpu />}
                   label="Build your audit"
                   description="Create and manage structured data audits"
+                  isActive={activeViewport === "audit"}
+                  onClick={() => setActiveViewport("audit")}
                 />
               </div>
             </>
@@ -171,11 +179,11 @@ const SidebarLeft = () => {
       {activeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
           <div className="bg-white w-[90%] h-[90%] rounded-2xl shadow-2xl border border-[#EDEBE9] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#EDEBE9] bg-[#FAF9F8]">
-             
-            </div>
             <div className="flex-1 overflow-auto bg-white p-6">
               <ModalContent title={activeModal} />
+              <button onClick={() => setActiveModal(null)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full">
+                <PH.X size={20} />
+              </button>
             </div>
           </div>
         </div>
