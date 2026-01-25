@@ -1,14 +1,16 @@
+'use client';
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiUploadCloud, FiCheck, FiZap, FiShield, FiCpu, FiX, FiSearch, 
   FiAlertTriangle, FiArrowRight, FiCheckCircle, FiInfo, FiXCircle 
 } from 'react-icons/fi';
-import { BsFileEarmarkArrowUp, BsDatabaseFillCheck, BsCpuFill } from 'react-icons/bs';
+import { BsFileEarmarkArrowUp, BsCpuFill } from 'react-icons/bs';
 import { supabase } from '../../lib/supabaseClient';
 
-const SVXUnifiedAuditSystem = () => {
-  // --- Estados de Auditoría (CSV) ---
+const SVXIntegratorSystem = () => {
+  // --- Estados de Auditoría (Lógica Componente 1) ---
   const [data, setData] = useState([]); 
   const [masterDataRows, setMasterDataRows] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -17,24 +19,24 @@ const SVXUnifiedAuditSystem = () => {
   const [matchStatus, setMatchStatus] = useState(null); 
   const [alert, setAlert] = useState({ show: false, message: '', type: 'info' });
 
-  // --- Estados de Catálogo (XML / PIM) ---
+  // --- Estados de XML / PIM (Lógica Componente 2) ---
   const [xmlDoc, setXmlDoc] = useState(null);
-  const [productsList, setProductsList] = useState([]);
+  const [products, setProducts] = useState([]);
   const [selectedSKU, setSelectedSKU] = useState("");
   const [selectedConfigs, setSelectedConfigs] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [expandedIndex, setExpandedIndex] = useState(null);
-  const [loadingPIM, setLoadingPIM] = useState(true);
+  const [loading, setLoading] = useState(true);
   
   const dropdownRef = useRef(null);
 
   // ============================
-  // 1. CARGA INICIAL (PIM XML)
+  // ✅ CARGA INICIAL XML (PIM)
   // ============================
   useEffect(() => {
-    const fetchPIMData = async () => {
+    const fetchXMLFromSupabase = async () => {
       try {
-        setLoadingPIM(true);
+        setLoading(true);
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
@@ -46,6 +48,8 @@ const SVXUnifiedAuditSystem = () => {
           .limit(1)
           .single();
 
+        if (error) throw error;
+
         if (data?.xml_raw) {
           const parser = new DOMParser();
           const doc = parser.parseFromString(data.xml_raw, "text/xml");
@@ -53,22 +57,23 @@ const SVXUnifiedAuditSystem = () => {
           const codes = [...doc.getElementsByTagName("Product")].map(p => 
             p.getElementsByTagName("Code")[0]?.textContent
           ).filter(Boolean);
-          setProductsList(codes);
+          setProducts(codes);
         }
       } catch (err) {
-        console.error("Error PIM:", err);
+        console.error("Error cargando PIM:", err);
       } finally {
-        setLoadingPIM(false);
+        setLoading(false);
       }
     };
-    fetchPIMData();
+    fetchXMLFromSupabase();
   }, []);
 
   // ============================
-  // 2. LÓGICA DE BÚSQUEDA XML
+  // ✅ MOTOR DE BÚSQUEDA XML (Lógica Pura Cmp 2)
   // ============================
-  const handleSearchXML = (sku) => {
+  const handleSearchXML = useCallback((sku) => {
     if (!xmlDoc || !sku) return;
+    // Evitar duplicados en la lista derecha
     if (selectedConfigs.find(c => c.sku === sku)) return;
 
     const productNode = [...xmlDoc.getElementsByTagName("Product")].find(
@@ -77,94 +82,116 @@ const SVXUnifiedAuditSystem = () => {
 
     if (!productNode) return;
 
-    const resolveFeatures = () => {
-      const featureNodes = [...productNode.getElementsByTagName("Feature")];
-      const featureRefs = [...productNode.getElementsByTagName("FeatureRef")];
-      const all = [...featureNodes.map(f => ({ node: f, type: 'direct' })), 
-                   ...featureRefs.map(r => ({ code: r.textContent.trim(), type: 'ref' }))];
+    const featureNodes = [...productNode.getElementsByTagName("Feature")];
+    const featureRefs = [...productNode.getElementsByTagName("FeatureRef")];
+    const allFeatures = [
+      ...featureNodes.map(f => ({ node: f, type: 'direct' })), 
+      ...featureRefs.map(r => ({ code: r.textContent.trim(), type: 'ref' }))
+    ];
 
-      return all.map(item => {
-        let fDetail = item.type === 'ref' 
-          ? [...xmlDoc.getElementsByTagName("Feature")].find(f => f.getElementsByTagName("Code")[0]?.textContent === item.code)
-          : item.node;
+    const resolvedFeatures = allFeatures.map(item => {
+      let fDetail = item.type === 'ref' 
+        ? [...xmlDoc.getElementsByTagName("Feature")].find(f => f.getElementsByTagName("Code")[0]?.textContent === item.code)
+        : item.node;
 
-        if (!fDetail) return null;
-        const options = [...fDetail.getElementsByTagName("Option")].map(o => ({
-          code: o.getElementsByTagName("Code")[0]?.textContent,
-          desc: o.querySelector("Description")?.textContent || "Opción",
-          price: parseFloat(o.querySelector("OptionPrice > Value")?.textContent || 0)
-        })).filter(opt => opt.price > 0);
+      if (!fDetail) return null;
 
-        return options.length > 0 ? { 
-          id: fDetail.getElementsByTagName("Code")[0]?.textContent, 
-          name: fDetail.querySelector("Description")?.textContent || "Feature", 
-          options 
-        } : null;
-      }).filter(Boolean);
-    };
+      const fCode = fDetail.getElementsByTagName("Code")[0]?.textContent;
+      const fName = fDetail.querySelector("Description")?.textContent || fCode;
+      
+      const options = [...fDetail.getElementsByTagName("Option")].map(o => ({
+        code: o.getElementsByTagName("Code")[0]?.textContent,
+        desc: o.querySelector("Description")?.textContent || "Opción",
+        price: parseFloat(o.querySelector("OptionPrice > Value")?.textContent || 0)
+      })).filter(opt => opt.price > 0);
+
+      return options.length > 0 ? { id: fCode, name: fName, options } : null;
+    }).filter(Boolean);
 
     const newConfig = {
       sku: sku,
-      name: productNode.querySelector("Description")?.textContent || "Modelo",
+      name: productNode.querySelector("Description")?.textContent || "Modelo Detectado",
       basePrice: parseFloat(productNode.querySelector("Price > Value")?.textContent || 0),
       selections: {},
-      features: resolveFeatures()
+      features: resolvedFeatures
     };
 
     setSelectedConfigs(prev => [newConfig, ...prev]);
     setExpandedIndex(0);
-    setShowDropdown(false);
-    setSelectedSKU("");
-  };
+  }, [xmlDoc, selectedConfigs]);
 
   // ============================
-  // 3. LÓGICA DE AUDITORÍA CSV
+  // ✅ LOGICA DE AUDITORÍA Y CRUCE
   // ============================
   const processCSV = (text) => {
     const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+    if (lines.length === 0) return;
     const delimiter = lines[0].includes(';') ? ';' : ',';
     const matrix = lines.map(line => line.split(delimiter).map(cell => cell.trim()));
+
     setData(matrix);
     setMatchStatus(null);
-    showAlert("CSV Cargado", "success");
+    setMasterDataRows([]);
+    showAlert("CSV Cargado Correctamente", "success");
   };
 
   const handleAnalyze = async () => {
     if (data.length === 0) return;
     setIsAnalyzing(true);
     try {
-      const { data: dbRows } = await supabase.from('ClientsSERVEX').select('csv_raw').limit(1);
-      if (!dbRows?.[0]) throw new Error("No master data");
+      const { data: dbRows } = await supabase
+        .from('ClientsSERVEX')
+        .select('csv_raw')
+        .not('csv_raw', 'is', null)
+        .limit(1);
+
+      if (!dbRows?.[0]) {
+        showAlert("No hay registro maestro en Supabase", "error");
+        return;
+      }
 
       const dbLines = dbRows[0].csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
-      const dbMatrix = dbLines.map(line => line.split(dbLines[0].includes(';') ? ';' : ',').map(c => c.trim()));
+      const dbDelimiter = dbLines[0].includes(';') ? ';' : ',';
+      const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
 
       const header = data[0];
-      const skuColIndex = header.findIndex(h => h.toUpperCase().includes('ID') || h.toUpperCase().includes('SKU') || h.toUpperCase().includes('CODE'));
+      // Identificamos en qué columna está el SKU (ID o Product)
+      const skuIndex = header.findIndex(h => h.toUpperCase().includes('ID') || h.toUpperCase().includes('PRODUCT') || h.toUpperCase().includes('CODE'));
+      
+      const currentRows = data.slice(1);
+      const masterRowsOnly = dbMatrix.slice(1);
 
       const discrepancies = [];
-      data.slice(1).forEach((row, idx) => {
-        const mRow = dbMatrix[idx + 1] || [];
-        if (JSON.stringify(row) !== JSON.stringify(mRow)) {
+      const skusToLoad = [];
+
+      currentRows.forEach((row, idx) => {
+        const mRow = masterRowsOnly[idx] || [];
+        const isDifferent = JSON.stringify(row) !== JSON.stringify(mRow);
+        
+        if (isDifferent) {
           discrepancies.push({ row, mRow });
-          // Sincronización automática: Si detecta error y hay SKU, cargar en PIM
-          if (skuColIndex !== -1 && row[skuColIndex]) {
-            handleSearchXML(row[skuColIndex]);
+          // Extraemos el SKU de la fila con error para el XML
+          if (skuIndex !== -1 && row[skuIndex]) {
+            skusToLoad.push(row[skuIndex]);
           }
         }
       });
 
       if (discrepancies.length === 0) {
         setMatchStatus('match');
-        showAlert("Integridad Total", "success");
+        showAlert("Integridad Total Confirmada", "success");
       } else {
         setMatchStatus('mismatch');
         setMasterDataRows(discrepancies.map(d => d.mRow));
         setData([header, ...discrepancies.map(d => d.row)]);
-        showAlert(`${discrepancies.length} Discrepancias encontradas`, "warning");
+        
+        // 🚀 AUTOMATIZACIÓN: Cargar cada SKU discrepante en el panel derecho
+        skusToLoad.forEach(sku => handleSearchXML(sku));
+        
+        showAlert(`Se detectaron ${discrepancies.length} cambios. Sincronizando con PIM...`, "warning");
       }
     } catch (err) {
-      showAlert("Error en análisis", "error");
+      showAlert("Error en comunicación con SVX Cloud", "error");
     } finally {
       setIsAnalyzing(false);
     }
@@ -172,113 +199,144 @@ const SVXUnifiedAuditSystem = () => {
 
   const showAlert = (message, type) => {
     setAlert({ show: true, message, type });
-    setTimeout(() => setAlert(prev => ({ ...prev, show: false })), 4000);
+    setTimeout(() => setAlert(prev => ({ ...prev, show: false })), 5000);
   };
 
-  return (
-    <div className="flex h-screen w-full bg-[#F6F6F7] font-sans overflow-hidden">
-      
-      {/* ALERTAS */}
-      <AnimatePresence>
-        {alert.show && (
-          <motion.div initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }}
-            className="fixed top-6 right-6 z-[999] flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl bg-white border border-[#EDEBE9]">
-            <div className={`p-2 rounded-lg text-white ${alert.type === 'success' ? 'bg-[#237B4B]' : 'bg-[#A4262C]'}`}>
-              {alert.type === 'success' ? <FiCheckCircle /> : <FiAlertTriangle />}
-            </div>
-            <p className="text-xs font-bold text-[#242424]">{alert.message}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center bg-white font-sans text-[#464775]">
+      <div className="animate-spin mr-3 text-xl">●</div> Sincronizando Ecosistema ServeX...
+    </div>
+  );
 
-      {/* COLUMNA IZQUIERDA: AUDITORÍA (65%) */}
-      <section className="w-[65%] flex flex-col border-r border-[#EDEBE9] bg-white">
-        <div className="p-4 border-b flex justify-between items-center bg-[#FAF9F8]">
+  return (
+    <div className="flex h-screen w-full bg-white overflow-hidden font-sans text-[#242424]">
+      
+      {/* SECCIÓN IZQUIERDA: AUDITORÍA (65%) */}
+      <section className="w-[65%] h-full border-r border-[#EDEBE9] flex flex-col bg-white">
+        
+        {/* Header Consola */}
+        <div className="p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#464775] rounded-lg text-white"><FiCpu size={16}/></div>
-            <h1 className="text-sm font-black text-[#464775] uppercase tracking-tighter">SVX Audit Engine</h1>
+            <FiCpu className="text-[#464775]" size={18} />
+            <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">SVX Audit Engine</h2>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => { setData([]); setMatchStatus(null); setSelectedConfigs([]); }} className="text-[10px] font-bold px-3 py-1 hover:bg-gray-100 rounded">RESETEAR</button>
-            <button onClick={handleAnalyze} disabled={data.length === 0} className="bg-[#464775] text-white text-[10px] font-bold px-4 py-1.5 rounded-lg shadow-lg hover:brightness-110 disabled:opacity-50">EJECUTAR AUDITORÍA</button>
+            <button 
+              onClick={() => { setData([]); setMatchStatus(null); setSelectedConfigs([]); setFileName(""); }}
+              className="px-3 py-1.5 text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase"
+            >
+              Resetear
+            </button>
+            <button 
+              onClick={handleAnalyze}
+              disabled={data.length === 0 || isAnalyzing}
+              className="px-4 py-1.5 bg-[#464775] text-white rounded-md text-[10px] font-black shadow-lg flex items-center gap-2 hover:brightness-110 disabled:opacity-30 transition-all"
+            >
+              {isAnalyzing ? "PROCESANDO..." : "EJECUTAR ANÁLISIS"} <FiZap size={12} />
+            </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden p-6">
-          {data.length === 0 ? (
-            <div 
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault(); setIsDragging(false);
-                const file = e.dataTransfer.files[0];
-                if (file?.name.endsWith('.csv')) {
-                  setFileName(file.name);
-                  const reader = new FileReader();
-                  reader.onload = (ev) => processCSV(ev.target.result);
-                  reader.readAsText(file);
-                }
-              }}
-              className={`h-full border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-all ${isDragging ? 'border-[#464775] bg-[#F3F2F1]' : 'border-[#EDEBE9] bg-[#FAF9F8]'}`}
-            >
-              <FiUploadCloud size={48} className="text-[#464775] mb-4 opacity-20" />
-              <p className="text-sm font-bold text-[#464775]">Arrastre su reporte CSV aquí</p>
-              <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-bold">Protocolo de sincronización activa</p>
-            </div>
-          ) : (
-            <div className="h-full flex flex-col overflow-hidden border rounded-xl shadow-sm">
-              <div className="overflow-auto bg-white flex-1">
-                <table className="w-full text-[10px]">
-                  <thead className="sticky top-0 bg-[#FAF9F8] border-b z-10">
-                    <tr>
-                      {data[0].map((h, i) => (
-                        <th key={i} className="p-3 text-left font-black text-[#464775] uppercase">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.slice(1).map((row, ri) => (
-                      <tr key={ri} className="border-b hover:bg-gray-50">
-                        {row.map((cell, ci) => {
-                          const mCell = masterDataRows[ri]?.[ci];
-                          const diff = mCell !== undefined && mCell !== cell;
-                          return (
-                            <td key={ci} className={`p-3 border-r last:border-0 ${diff ? 'bg-red-50/50' : ''}`}>
-                              {diff ? (
-                                <div className="flex flex-col">
-                                  <span className="text-red-400 line-through text-[9px]">{mCell}</span>
-                                  <span className="text-[#237B4B] font-bold flex items-center gap-1"><FiArrowRight size={8}/>{cell}</span>
-                                </div>
-                              ) : <span className="text-gray-600">{cell}</span>}
-                            </td>
-                          );
-                        })}
+        {/* Área de Datos */}
+        <div className="flex-1 overflow-hidden p-4">
+          <AnimatePresence mode="wait">
+            {data.length === 0 ? (
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault(); setIsDragging(false);
+                  const file = e.dataTransfer.files[0];
+                  if (file?.name.endsWith('.csv')) {
+                    setFileName(file.name);
+                    const reader = new FileReader();
+                    reader.onload = (ev) => processCSV(ev.target.result);
+                    reader.readAsText(file);
+                  }
+                }}
+                className={`h-full border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}
+              >
+                <FiUploadCloud size={40} className="text-[#464775] mb-4 opacity-20" />
+                <p className="text-[11px] font-black text-[#464775]">ARRASTRE EL REPORTE CSV PARA AUDITORÍA</p>
+                <p className="text-[9px] text-gray-400 mt-2 uppercase tracking-tighter">Comparación automática contra base de datos</p>
+              </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="h-full flex flex-col">
+                <div className="overflow-auto border border-[#EDEBE9] rounded-lg h-full shadow-sm bg-white">
+                  <table className="w-full text-left text-[10px]">
+                    <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b border-[#EDEBE9]">
+                      <tr>
+                        {data[0].map((h, i) => (
+                          <th key={i} className="p-3 font-black text-[#464775] uppercase whitespace-nowrap">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                    </thead>
+                    <tbody>
+                      {data.slice(1).map((row, ri) => (
+                        <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors">
+                          {row.map((cell, ci) => {
+                            const masterCell = masterDataRows[ri]?.[ci];
+                            const isDiff = masterCell !== undefined && cell !== masterCell;
+                            return (
+                              <td key={ci} className={`p-3 border-r border-[#F3F2F1] last:border-0 ${isDiff ? 'bg-red-50/30' : ''}`}>
+                                {isDiff ? (
+                                  <div className="flex flex-col">
+                                    <span className="text-red-400 line-through font-medium text-[9px]">{masterCell || '(vacante)'}</span>
+                                    <div className="flex items-center gap-1 text-[#237B4B] font-bold">
+                                      <FiArrowRight size={10} /><span>{cell}</span>
+                                    </div>
+                                  </div>
+                                ) : <span className="text-[#616161]">{cell}</span>}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+
+        {/* Alerta flotante interna */}
+        <AnimatePresence>
+          {alert.show && (
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+              className="absolute bottom-6 left-6 flex items-center gap-3 px-4 py-3 rounded-lg shadow-2xl bg-white border border-[#EDEBE9] z-[100]"
+            >
+              <div className={`p-2 rounded-full text-white ${alert.type === 'success' ? 'bg-[#237B4B]' : 'bg-[#D83B01]'}`}>
+                {alert.type === 'success' ? <FiCheckCircle size={14}/> : <FiAlertTriangle size={14}/>}
+              </div>
+              <span className="text-[10px] font-bold uppercase">{alert.message}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
-      {/* COLUMNA DERECHA: PIM SYNC (35%) */}
-      <section className="w-[35%] flex flex-col bg-[#F9F9F9]">
-        <div className="p-4 border-b bg-white" ref={dropdownRef}>
-          <label className="text-[9px] font-black text-[#464775] uppercase mb-2 block tracking-widest">Buscador PIM Engine</label>
+      {/* SECCIÓN DERECHA: PIM XML (35%) */}
+      <section className="w-[35%] h-full flex flex-col bg-[#F9F9F9] shadow-inner">
+        
+        {/* Buscador PIM manual */}
+        <div className="p-4 bg-white border-b border-[#EDEBE9]" ref={dropdownRef}>
           <div className="relative">
-            <input 
-              type="text"
-              className="w-full p-2.5 bg-[#FAF9F8] border rounded-lg text-xs font-bold focus:outline-none focus:border-[#464775] transition-all"
-              placeholder="Escriba SKU para inspeccionar..."
-              value={selectedSKU}
-              onChange={(e) => { setSelectedSKU(e.target.value.toUpperCase()); setShowDropdown(true); }}
-            />
+            <div className="flex items-center bg-white rounded border-b-2 border-[#464775]/20 focus-within:border-[#464775] px-3 transition-all">
+              <FiSearch size={14} className="text-gray-300 mr-2" />
+              <input 
+                type="text"
+                className="w-full py-3 bg-transparent outline-none text-[11px] font-bold uppercase"
+                placeholder="BUSCAR SKU EN XML PIM..."
+                value={selectedSKU}
+                onChange={(e) => { setSelectedSKU(e.target.value.toUpperCase()); setShowDropdown(true); }}
+              />
+            </div>
             {showDropdown && selectedSKU && (
-              <div className="absolute w-full mt-1 bg-white shadow-2xl rounded-lg border z-[100] max-h-48 overflow-auto">
-                {productsList.filter(p => p.includes(selectedSKU)).slice(0, 8).map(p => (
-                  <div key={p} onClick={() => handleSearchXML(p)} className="p-3 hover:bg-[#F3F2F1] cursor-pointer text-[10px] font-bold border-b last:border-0">
+              <div className="absolute w-full bg-white shadow-2xl rounded-b-xl border border-[#EDEBE9] z-50 max-h-48 overflow-auto mt-1">
+                {products.filter(p => p.includes(selectedSKU)).slice(0, 10).map(p => (
+                  <div key={p} onClick={() => { handleSearchXML(p); setSelectedSKU(""); setShowDropdown(false); }} 
+                    className="px-4 py-3 hover:bg-[#FAF9F8] cursor-pointer text-[10px] font-black border-b last:border-none text-[#464775]">
                     {p}
                   </div>
                 ))}
@@ -287,29 +345,42 @@ const SVXUnifiedAuditSystem = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {/* Contenido Dinámico de Productos XML */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
           {selectedConfigs.length > 0 ? (
             selectedConfigs.map((config, pIdx) => (
-              <div key={pIdx} className="bg-white border rounded-xl shadow-sm overflow-hidden">
+              <motion.div 
+                key={`${config.sku}-${pIdx}`} 
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                className="bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden"
+              >
                 <div 
+                  className={`p-4 flex justify-between items-center cursor-pointer transition-all ${expandedIndex === pIdx ? 'bg-[#464775] text-white shadow-lg' : 'bg-white text-[#242424] hover:bg-[#F3F2F1]'}`}
                   onClick={() => setExpandedIndex(expandedIndex === pIdx ? null : pIdx)}
-                  className={`p-4 cursor-pointer flex justify-between items-center transition-all ${expandedIndex === pIdx ? 'bg-[#464775] text-white' : 'hover:bg-gray-50'}`}
                 >
-                  <div>
-                    <p className="text-[11px] font-black">{config.sku}</p>
-                    <p className={`text-[9px] ${expandedIndex === pIdx ? 'text-white/70' : 'text-[#464775] font-bold'}`}>
-                      Total: ${(config.basePrice + Object.values(config.selections).reduce((a, b) => a + b.price, 0)).toLocaleString()}
-                    </p>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-black tracking-tight flex items-center gap-2">
+                      <FiShield size={10} className={expandedIndex === pIdx ? "text-white" : "text-[#464775]"} />
+                      {config.sku}
+                    </span>
+                    <span className={`text-[10px] mt-1 font-bold ${expandedIndex === pIdx ? 'text-white/80' : 'text-[#237B4B]'}`}>
+                      ${ (config.basePrice + Object.values(config.selections).reduce((a, b) => a + b.price, 0)).toLocaleString() }
+                    </span>
                   </div>
-                  <button onClick={(e) => { e.stopPropagation(); setSelectedConfigs(prev => prev.filter((_, i) => i !== pIdx)); }} className="text-xs opacity-50 hover:opacity-100">✕</button>
+                  <div className="flex items-center gap-3">
+                    <button 
+                       onClick={(e) => { e.stopPropagation(); setSelectedConfigs(prev => prev.filter((_, i) => i !== pIdx)); }}
+                       className="p-1 hover:bg-black/10 rounded-full"
+                    ><FiX size={12} /></button>
+                  </div>
                 </div>
-                
+
                 {expandedIndex === pIdx && (
-                  <div className="p-4 bg-white space-y-4">
+                  <div className="p-4 space-y-5 bg-white border-t border-[#EDEBE9]">
                     {config.features.map((feat) => (
-                      <div key={feat.id}>
-                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter">{feat.name}</span>
-                        <div className="mt-2 space-y-1">
+                      <div key={feat.id} className="space-y-2">
+                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">{feat.name}</span>
+                        <div className="grid grid-cols-1 gap-1.5">
                           {feat.options.map((opt, i) => (
                             <button
                               key={i}
@@ -318,10 +389,14 @@ const SVXUnifiedAuditSystem = () => {
                                 newConfigs[pIdx].selections[feat.id] = opt;
                                 setSelectedConfigs(newConfigs);
                               }}
-                              className={`w-full p-2.5 rounded-lg border text-[10px] flex justify-between items-center transition-all ${config.selections[feat.id]?.code === opt.code ? 'border-[#464775] bg-[#F3F2F1] font-bold' : 'border-gray-100 hover:bg-gray-50'}`}
+                              className={`w-full p-3 rounded-md flex justify-between items-center text-[10px] border transition-all ${
+                                config.selections[feat.id]?.code === opt.code 
+                                ? "bg-[#F3F2F1] border-[#464775] font-black shadow-sm" 
+                                : "bg-white border-[#EDEBE9] hover:bg-gray-50"
+                              }`}
                             >
-                              <span>{opt.desc}</span>
-                              <span className="text-[#464775] font-black">+$ {opt.price}</span>
+                              <span className="text-left leading-tight pr-4">{opt.desc}</span>
+                              <span className="text-[#464775] font-black whitespace-nowrap">+$ {opt.price}</span>
                             </button>
                           ))}
                         </div>
@@ -329,25 +404,46 @@ const SVXUnifiedAuditSystem = () => {
                     ))}
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 opacity-40">
-              <BsCpuFill size={40} className="mb-4 text-[#464775]" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em]">Esperando Datos de Auditoría</p>
-              <p className="text-[9px] mt-2 leading-relaxed">Las discrepancias del CSV aparecerán aquí automáticamente para validación XML.</p>
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center">
+               <div className="w-full bg-white border border-[#464775]/10 rounded-2xl p-10 shadow-sm relative overflow-hidden flex flex-col items-center">
+                  <div className="absolute top-0 right-0 p-4 opacity-5"><FiCpu size={80} /></div>
+                  <BsCpuFill size={40} className="text-[#464775] mb-4 opacity-20" />
+                  <h3 className="text-[#464775] font-black text-xs uppercase tracking-[0.2em] mb-3">Sincronización PIM</h3>
+                  <p className="text-[#616161] text-[10px] leading-relaxed font-medium">
+                    Ejecute el análisis del CSV para cargar automáticamente las discrepancias aquí, o busque un SKU manualmente.
+                  </p>
+                  <div className="mt-6 flex items-center gap-2 bg-[#FAF9F8] px-4 py-2 rounded-full border">
+                    <span className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                    <span className="text-[9px] text-gray-500 font-bold uppercase">Ready for Sync</span>
+                  </div>
+               </div>
             </div>
           )}
         </div>
 
+        {/* Resumen Global Inferior */}
         {selectedConfigs.length > 0 && (
-          <div className="p-4 bg-white border-t">
-            <button className="w-full bg-[#237B4B] text-white py-2 rounded-lg text-[10px] font-black shadow-lg">FINALIZAR ACTUALIZACIÓN PIM</button>
-          </div>
+          <motion.div initial={{ y: 50 }} animate={{ y: 0 }} className="bg-[#464775] p-4 text-white shadow-2xl">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-[9px] font-black opacity-60 uppercase tracking-widest">Productos Sincronizados</p>
+                <p className="text-sm font-black">{selectedConfigs.length} Items en Proceso</p>
+              </div>
+              <button 
+                className="bg-white text-[#464775] px-4 py-2 rounded-md text-[10px] font-black uppercase shadow-lg hover:bg-gray-100"
+                onClick={() => setSelectedConfigs([])}
+              >
+                Limpiar
+              </button>
+            </div>
+          </motion.div>
         )}
       </section>
     </div>
   );
 };
 
-export default SVXUnifiedAuditSystem;
+export default SVXIntegratorSystem;
