@@ -5,7 +5,7 @@ import {
   FiCheck, 
   FiZap, 
   FiShield, 
-  FiCpu, // <--- Importado correctamente ahora
+  FiCpu, 
   FiX, 
   FiSearch, 
   FiAlertTriangle, 
@@ -142,7 +142,6 @@ const SVXUnifiedEnterprise = () => {
         setMasterDataRows(discrepancies.map(d => d.mRow));
         setData([header, ...discrepancies.map(d => d.row)]);
         
-        // SINCRONIZACIÓN AUTOMÁTICA
         if (skuColIndex !== -1) {
           discrepancies.forEach(d => {
             const skuToSearch = d.row[skuColIndex];
@@ -157,7 +156,6 @@ const SVXUnifiedEnterprise = () => {
 
   const handleSearch = (sku, isAuto = false) => {
     if (!xmlDoc || !sku) return;
-    // Evitar duplicados
     setSelectedConfigs(prev => {
         if (prev.find(c => c.sku === sku)) return prev;
 
@@ -213,12 +211,12 @@ const SVXUnifiedEnterprise = () => {
     return config.basePrice + selectionsTotal;
   };
 
-  if (loadingXML) return <div className="h-[100%] flex items-center justify-center bg-[#FDFDFD] text-[10px] font-bold text-[#464775]">CARGANDO ECOSISTEMA SVX...</div>;
+  if (loadingXML) return <div className="h-screen flex items-center justify-center bg-[#FDFDFD] text-[10px] font-bold text-[#464775]">CARGANDO ECOSISTEMA SVX...</div>;
 
   return (
-    <div className="flex flex-col lg:flex-row h-[100%] bg-[#FDFDFD] font-sans text-[#242424] overflow-hidden">
+    // AJUSTE: h-screen y w-screen con overflow-hidden
+    <div className="flex flex-col lg:flex-row h-screen w-[100%] bg-[#FDFDFD] font-sans text-[#242424] overflow-hidden">
       
-      {/* ALERTAS DINÁMICAS */}
       <AnimatePresence>
         {alert.show && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
@@ -233,8 +231,8 @@ const SVXUnifiedEnterprise = () => {
       </AnimatePresence>
 
       {/* SECCIÓN CSV (65%) */}
-      <div className="flex-[0.65] flex flex-col border-r border-[#EDEBE9] overflow-hidden">
-        <div className="p-4 border-b bg-[#FAF9F8] flex justify-between items-center">
+      <div className="flex-[0.65] flex flex-col border-r border-[#EDEBE9] overflow-hidden h-full">
+        <div className="p-4 border-b bg-[#FAF9F8] flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2">
             <div className="bg-[#464775] p-1.5 rounded text-white"><FiCpu size={14}/></div>
             <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">Auditoría Maestro</h2>
@@ -245,7 +243,7 @@ const SVXUnifiedEnterprise = () => {
           </div>
         </div>
 
-        <div className="flex-grow p-4 overflow-hidden flex flex-col">
+        <div className="flex-grow p-4 overflow-hidden flex flex-col min-h-0">
           {data.length === 0 ? (
             <div onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}
@@ -254,8 +252,9 @@ const SVXUnifiedEnterprise = () => {
               <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR</p>
             </div>
           ) : (
-            <div className="flex-grow overflow-auto border rounded-lg bg-white">
-              <table className="w-[100%] text-[10px]">
+            // AJUSTE: w-full y overflow-auto para scroll de tabla
+            <div className="flex-grow overflow-auto border rounded-lg bg-white w-full">
+              <table className="min-w-full text-[10px]">
                 <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b">
                   <tr>
                     {data[0].map((h, i) => (
@@ -270,7 +269,7 @@ const SVXUnifiedEnterprise = () => {
                         const mCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                         const isDiff = mCell !== null && cell !== mCell;
                         return (
-                          <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isDiff ? 'bg-orange-50/50' : ''}`}>
+                          <td key={ci} className={`p-3 border-r border-[#F3F2F1] whitespace-nowrap ${isDiff ? 'bg-orange-50/50' : ''}`}>
                             {isDiff ? (
                               <div className="flex flex-col">
                                 <span className="text-red-400 line-through text-[8px] opacity-70">{mCell || '(vacío)'}</span>
@@ -288,7 +287,7 @@ const SVXUnifiedEnterprise = () => {
           )}
         </div>
 
-        <div className="p-4 border-t bg-white flex justify-end gap-3">
+        <div className="p-4 border-t bg-white flex justify-end gap-3 shrink-0">
           <button onClick={() => { setData([]); setMatchStatus(null); setSelectedConfigs([]); }} 
             className="px-4 py-2 text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase">Reset</button>
           <button onClick={handleAnalyze} disabled={data.length === 0 || isAnalyzing}
@@ -299,8 +298,9 @@ const SVXUnifiedEnterprise = () => {
       </div>
 
       {/* SECCIÓN XML (35%) */}
-      <div className="flex-[0.35] bg-[#F9F9F9] flex flex-col shadow-2xl border-l border-[#EDEBE9]">
-        <div className="p-4 bg-white border-b" ref={dropdownRef}>
+      {/* AJUSTE: h-full y overflow-hidden para scroll interno de productos */}
+      <div className="flex-[0.35] h-full bg-[#F9F9F9] flex flex-col shadow-2xl border-l border-[#EDEBE9] overflow-hidden">
+        <div className="p-4 bg-white border-b shrink-0" ref={dropdownRef}>
           <div className="relative">
             <div className="flex items-center bg-[#F3F2F1] rounded px-3 border-b-2 border-transparent focus-within:border-[#464775] transition-all">
               <FiSearch className="text-gray-400" size={14}/>
@@ -308,7 +308,7 @@ const SVXUnifiedEnterprise = () => {
                 value={selectedSKU} onChange={(e) => { setSelectedSKU(e.target.value.toUpperCase()); setShowDropdown(true); }} />
             </div>
             {showDropdown && selectedSKU && (
-              <div className="absolute w-[100%] mt-1 bg-white shadow-2xl rounded border z-50 max-h-60 overflow-auto border-[#EDEBE9]">
+              <div className="absolute w-full mt-1 bg-white shadow-2xl rounded border z-50 max-h-60 overflow-auto border-[#EDEBE9]">
                 {products.filter(p => p.includes(selectedSKU)).slice(0, 8).map(p => (
                   <div key={p} onClick={() => handleSearch(p)} className="p-3 hover:bg-[#F3F2F1] cursor-pointer text-[10px] font-black border-b last:border-none text-[#464775]">
                     {p}
@@ -371,7 +371,6 @@ const SVXUnifiedEnterprise = () => {
   );
 };
 
-// Componente de pasos visuales
 const Step = ({ icon, title, active, isLast }) => (
   <div className="flex items-center gap-2">
     <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${active ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-gray-200 text-gray-300'}`}>
