@@ -1,9 +1,6 @@
 'use client';
-
 import { useState, useEffect, useRef } from "react";
 import UploadFileCmpare from "./comparePDF/UploadFileCmpare";
-// Importamos el cliente de supabase
-import { supabase } from '@/app/lib/supabaseClient';
 
 export default function PriceProduct2() {
   const [xmlDoc, setXmlDoc] = useState(null);
@@ -16,58 +13,25 @@ export default function PriceProduct2() {
   
   const dropdownRef = useRef(null);
 
-  // ============================
-  // ✅ LOGICA DE CARGA DESDE SUPABASE
-  // ============================
   useEffect(() => {
-    const fetchXMLFromSupabase = async () => {
-      try {
-        setLoading(true);
-        // 1. Obtener el usuario actual
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          console.error("No hay usuario autenticado");
-          setLoading(false);
-          return;
-        }
-
-        // 2. Consultar el campo xml_raw de la tabla ClientsSERVEX
-        const { data, error } = await supabase
-          .from('ClientsSERVEX')
-          .select('xml_raw')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (error) throw error;
-
-        if (data && data.xml_raw) {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(data.xml_raw, "text/xml");
-          
-          setXmlDoc(doc);
-
-          // Extraer códigos de productos para el buscador
-          const codes = [...doc.getElementsByTagName("Product")].map(p => 
-            p.getElementsByTagName("Code")[0]?.textContent
-          ).filter(Boolean);
-
-          setProducts(codes);
-        }
-      } catch (err) {
-        console.error("Error cargando catálogo desde Supabase:", err);
-      } finally {
+    fetch('/LES-012626.xml')
+      .then(res => res.text())
+      .then(data => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data, "text/xml");
+        setXmlDoc(doc);
+        const codes = [...doc.getElementsByTagName("Product")].map(p => 
+          p.getElementsByTagName("Code")[0]?.textContent
+        ).filter(Boolean);
+        setProducts(codes);
         setLoading(false);
-      }
-    };
-
-    fetchXMLFromSupabase();
+      })
+      .catch(err => {
+        console.error("Error cargando catálogo:", err);
+        setLoading(false);
+      });
   }, []);
 
-  // ============================
-  // FUNCIONALIDAD ORIGINAL (SIN CAMBIOS)
-  // ============================
   const handleSearch = (sku) => {
     if (!xmlDoc || !sku) return;
     if (selectedConfigs.find(c => c.sku === sku)) {
@@ -138,7 +102,7 @@ export default function PriceProduct2() {
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-[#F5F5F5] font-['Segoe_UI'] text-[#464775]">
-      <div className="animate-spin mr-2">●</div> Cargando Catálogo desde Supabase...
+      <div className="animate-spin mr-2">●</div> Cargando Entorno ServeX...
     </div>
   );
 
@@ -239,28 +203,42 @@ export default function PriceProduct2() {
               </div>
             ))
           ) : (
-            /* BANNER PUBLICITARIO */
+            /* BANNER PUBLICITARIO - FONDO BLANCO, DETALLES MORADOS (#464775) */
             <div className="h-full flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
               <div className="w-full bg-white border border-[#464775]/20 rounded-xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group flex flex-col items-center text-center">
+                
+                {/* Decoración de fondo */}
                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#464775]/5 rounded-full blur-3xl group-hover:bg-[#464775]/10 transition-all"></div>
+                
                 <div className="relative z-10 flex flex-col items-center">
+                  {/* LOGO CENTRADO Y GRANDE */}
                   <div className="w-32 h-32 mb-6 drop-shadow-sm transition-transform duration-500 group-hover:scale-105">
-                    <img src="/logo.png" alt="ServeX Logo" className="w-full h-full object-contain" />
+                    <img 
+                      src="/logo.png" 
+                      alt="ServeX Logo" 
+                      className="w-full h-full object-contain"
+                    />
                   </div>
+                  
                   <h3 className="text-[#464775] font-black text-base leading-tight mb-3 tracking-tighter">
                     OPTIMIZA TU COTIZACIÓN CON PIM ENGINE
                   </h3>
+                  
                   <p className="text-[#616161] text-[11px] leading-relaxed mb-6 font-medium max-w-[240px]">
                     Compara múltiples configuraciones de productos en tiempo real. Selecciona un SKU en el buscador superior para desbloquear las opciones.
                   </p>
+                  
                   <div className="flex items-center gap-3 bg-[#464775]/5 px-4 py-1.5 rounded-full border border-[#464775]/10">
                     <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
                     <span className="text-[10px] text-[#464775] font-black uppercase tracking-widest">Sincronización Activa</span>
                   </div>
                 </div>
               </div>
+              
               <div className="mt-8 opacity-40">
-                <p className="text-[10px] text-gray-500 font-bold tracking-[0.2em] uppercase">ServeX Ecosystem</p>
+                <p className="text-[10px] text-gray-500 font-bold tracking-[0.2em] uppercase">
+                  ServeX Ecosystem
+                </p>
               </div>
             </div>
           )}
