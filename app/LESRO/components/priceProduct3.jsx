@@ -5,7 +5,7 @@ import {
   FiCheck, 
   FiZap, 
   FiShield, 
-  FiCpu, // <--- Importado correctamente ahora
+  FiCpu, 
   FiX, 
   FiSearch, 
   FiAlertTriangle, 
@@ -213,10 +213,10 @@ const SVXUnifiedEnterprise = () => {
     return config.basePrice + selectionsTotal;
   };
 
-  if (loadingXML) return <div className="h-screen flex items-center justify-center bg-[#FDFDFD] text-[10px] font-bold text-[#464775]">CARGANDO ECOSISTEMA SVX...</div>;
+  if (loadingXML) return <div className="h-[100%] flex items-center justify-center bg-[#FDFDFD] text-[10px] font-bold text-[#464775]">CARGANDO ECOSISTEMA SVX...</div>;
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-[#FDFDFD] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-screen w-full bg-[#FDFDFD] font-sans text-[#242424] overflow-hidden">
       
       {/* ALERTAS DINÁMICAS */}
       <AnimatePresence>
@@ -233,7 +233,7 @@ const SVXUnifiedEnterprise = () => {
       </AnimatePresence>
 
       {/* SECCIÓN CSV (65%) */}
-      <div className="flex-[0.65] flex flex-col border-r border-[#EDEBE9] overflow-hidden">
+      <div className="flex-[0.65] flex flex-col border-r border-[#EDEBE9] overflow-hidden min-w-0">
         <div className="p-4 border-b bg-[#FAF9F8] flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="bg-[#464775] p-1.5 rounded text-white"><FiCpu size={14}/></div>
@@ -254,12 +254,12 @@ const SVXUnifiedEnterprise = () => {
               <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR</p>
             </div>
           ) : (
-            <div className="flex-grow overflow-auto border rounded-lg bg-white">
-              <table className="w-full text-[10px]">
+            <div className="flex-grow overflow-auto border rounded-lg bg-white relative">
+              <table className="w-full text-[10px] table-auto min-w-max border-collapse">
                 <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b">
                   <tr>
                     {data[0].map((h, i) => (
-                      <th key={i} className="p-3 text-left font-black text-[#464775] uppercase whitespace-nowrap">{h}</th>
+                      <th key={i} className="p-3 text-left font-black text-[#464775] uppercase whitespace-nowrap border-b border-[#EDEBE9] bg-[#FAF9F8]">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -270,13 +270,13 @@ const SVXUnifiedEnterprise = () => {
                         const mCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                         const isDiff = mCell !== null && cell !== mCell;
                         return (
-                          <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isDiff ? 'bg-orange-50/50' : ''}`}>
+                          <td key={ci} className={`p-3 border-r border-[#F3F2F1] max-w-[200px] truncate ${isDiff ? 'bg-orange-50/50' : ''}`}>
                             {isDiff ? (
-                              <div className="flex flex-col">
-                                <span className="text-red-400 line-through text-[8px] opacity-70">{mCell || '(vacío)'}</span>
-                                <span className="text-[#237B4B] font-bold flex items-center gap-1"><FiArrowRight size={8}/>{cell}</span>
+                              <div className="flex flex-col overflow-hidden">
+                                <span className="text-red-400 line-through text-[8px] opacity-70 truncate">{mCell || '(vacío)'}</span>
+                                <span className="text-[#237B4B] font-bold flex items-center gap-1 truncate"><FiArrowRight size={8} className="flex-shrink-0"/>{cell}</span>
                               </div>
-                            ) : <span className="text-gray-600">{cell}</span>}
+                            ) : <span className="text-gray-600 truncate block">{cell}</span>}
                           </td>
                         );
                       })}
@@ -299,7 +299,7 @@ const SVXUnifiedEnterprise = () => {
       </div>
 
       {/* SECCIÓN XML (35%) */}
-      <div className="flex-[0.35] bg-[#F9F9F9] flex flex-col shadow-2xl border-l border-[#EDEBE9]">
+      <div className="flex-[0.35] bg-[#F9F9F9] flex flex-col shadow-2xl border-l border-[#EDEBE9] min-w-0">
         <div className="p-4 bg-white border-b" ref={dropdownRef}>
           <div className="relative">
             <div className="flex items-center bg-[#F3F2F1] rounded px-3 border-b-2 border-transparent focus-within:border-[#464775] transition-all">
@@ -325,13 +325,13 @@ const SVXUnifiedEnterprise = () => {
               <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} key={pIdx} className="bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden">
                 <div onClick={() => setExpandedIndex(expandedIndex === pIdx ? null : pIdx)}
                   className={`p-3 flex justify-between items-center cursor-pointer transition-colors ${expandedIndex === pIdx ? 'bg-[#464775] text-white' : 'hover:bg-gray-50'}`}>
-                  <div>
-                    <p className="text-[10px] font-black leading-none">{config.sku}</p>
+                  <div className="overflow-hidden">
+                    <p className="text-[10px] font-black leading-none truncate">{config.sku}</p>
                     <p className={`text-[9px] mt-1 font-bold ${expandedIndex === pIdx ? 'text-white/70' : 'text-[#464775]'}`}>
                       ${calculateProductTotal(config).toLocaleString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <button onClick={(e) => { e.stopPropagation(); setSelectedConfigs(prev => prev.filter((_, i) => i !== pIdx)); }} className="p-1 hover:bg-black/10 rounded"><FiX size={12}/></button>
                   </div>
                 </div>
@@ -339,7 +339,7 @@ const SVXUnifiedEnterprise = () => {
                   <div className="p-3 space-y-4 border-t border-[#EDEBE9] bg-white">
                     {config.features.map(feat => (
                       <div key={feat.id} className="space-y-1">
-                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">{feat.name}</span>
+                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter block">{feat.name}</span>
                         <div className="grid gap-1">
                           {feat.options.map((opt, i) => (
                             <button key={i} onClick={() => {
@@ -347,8 +347,8 @@ const SVXUnifiedEnterprise = () => {
                               nc[pIdx].selections[feat.id] = opt;
                               setSelectedConfigs(nc);
                             }} className={`p-2.5 text-left text-[9px] rounded border transition-all flex justify-between items-center ${config.selections[feat.id]?.code === opt.code ? 'border-[#464775] bg-[#F3F2F1] font-bold shadow-sm' : 'border-[#F0F0F0] hover:bg-gray-50'}`}>
-                              <span className="pr-2">{opt.desc}</span>
-                              <span className="text-[#464775] font-black">+$ {opt.price}</span>
+                              <span className="pr-2 truncate">{opt.desc}</span>
+                              <span className="text-[#464775] font-black flex-shrink-0">+$ {opt.price}</span>
                             </button>
                           ))}
                         </div>
@@ -371,7 +371,6 @@ const SVXUnifiedEnterprise = () => {
   );
 };
 
-// Componente de pasos visuales
 const Step = ({ icon, title, active, isLast }) => (
   <div className="flex items-center gap-2">
     <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${active ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-gray-200 text-gray-300'}`}>
