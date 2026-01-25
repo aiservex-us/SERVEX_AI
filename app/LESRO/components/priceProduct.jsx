@@ -8,16 +8,12 @@ const PanelMenur = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [catalogInfo, setCatalogInfo] = useState({ date: '', currency: '' });
-  
-  // ESTADO DE PAGINACIÓN POR CATEGORÍA
-  const [categoryPages, setCategoryPages] = useState({});
 
-  // ESTADOS DE FILTRADO
+  const [categoryPages, setCategoryPages] = useState({});
   const [priceFilter, setPriceFilter] = useState("All");
-  const [dimensionFilter, setDimensionFilter] = useState("All"); // Cambiado de categoryFilter a dimensionFilter
+  const [dimensionFilter, setDimensionFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("List");
 
-  // ESTADOS PARA EL MODAL DE EDICIÓN
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editFormData, setEditFormData] = useState({
@@ -28,16 +24,53 @@ const PanelMenur = () => {
   });
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // EXPORT
   const [isExportOpen, setIsExportOpen] = useState(false);
   const exportRef = useRef(null);
 
-  // 1. OBTENER XML DE SUPABASE
+  // ============================
+  // ✅ FUNCIÓN CENTRAL DE PRECIOS
+  // ============================
+  const extractPrices = (productNode) => {
+    let basePrice = 0;
+    const grades = [];
+
+    const baseNode = productNode.getElementsByTagName("Price")[0];
+    if (baseNode) {
+      basePrice = parseFloat(
+        baseNode.getElementsByTagName("Value")[0]?.textContent || "0"
+      );
+    }
+
+    const options = productNode.getElementsByTagName("Option");
+
+    for (let i = 0; i < options.length; i++) {
+      const opt = options[i];
+      const desc = opt.getElementsByTagName("Description")[0]?.textContent || "";
+      const valNode = opt.getElementsByTagName("OptionPrice")[0];
+      const value = parseFloat(
+        valNode?.getElementsByTagName("Value")[0]?.textContent || "0"
+      );
+
+      if (desc.toLowerCase().includes("grade")) {
+        grades.push({
+          label: desc,
+          value: basePrice + value
+        });
+      }
+    }
+
+    return { basePrice, grades };
+  };
+
+  // ============================
+  // FETCH XML
+  // ============================
   const fetchXMLFromSupabase = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
       const { data } = await supabase
         .from('ClientsSERVEX')
         .select('xml_raw')
@@ -45,6 +78,7 @@ const PanelMenur = () => {
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
+
       if (data) setXmlString(data.xml_raw);
     } catch (err) {
       console.error("Error fetching:", err);
@@ -57,49 +91,36 @@ const PanelMenur = () => {
     fetchXMLFromSupabase();
   }, []);
 
-  // 2. PARSEAR XML
+  // ============================
+  // PARSEO XML (CORREGIDO)
+  // ============================
   useEffect(() => {
     if (!xmlString) return;
+
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
     const effectiveDate = xmlDoc.getElementsByTagName("EffectiveDate")[0]?.textContent || "N/A";
     const currency = xmlDoc.getElementsByTagName("Currency")[0]?.textContent || "USD";
     setCatalogInfo({ date: effectiveDate, currency });
 
     const productNodes = xmlDoc.getElementsByTagName("Product");
     const extracted = [];
+
     for (let i = 0; i < productNodes.length; i++) {
       const product = productNodes[i];
+
       const code = product.getElementsByTagName("Code")[0]?.textContent || "N/A";
       const description = product.getElementsByTagName("Description")[0]?.textContent || "Sin descripción";
-      
-      // PRECIO BASE
-      const priceNode = product.getElementsByTagName("Price")[0];
-      const basePrice = parseFloat(priceNode ? priceNode.getElementsByTagName("Value")[0]?.textContent : "0") || 0;
-      
-      // --- LÓGICA DE MÚLTIPLES PRECIOS (GRADOS) ---
-      const extraPrices = [];
-      const options = product.getElementsByTagName("Option");
-      
-      for (let j = 0; j < options.length; j++) {
-        const opt = options[j];
-        const optDesc = opt.getElementsByTagName("Description")[0]?.textContent;
-        const optPriceNode = opt.getElementsByTagName("OptionPrice")[0];
-        const optVal = parseFloat(optPriceNode ? optPriceNode.getElementsByTagName("Value")[0]?.textContent : "0") || 0;
-        
-        if (optDesc && optDesc.toLowerCase().includes("grade")) {
-          extraPrices.push({
-            label: optDesc,
-            value: basePrice + optVal
-          });
-        }
-      }
+
+      // ✅ NUEVA LÓGICA
+      const { basePrice, grades } = extractPrices(product);
 
       const xVal = product.getElementsByTagName("X")[0]?.textContent || "";
       const yVal = product.getElementsByTagName("Y")[0]?.textContent || "";
       const zVal = product.getElementsByTagName("Z")[0]?.textContent || "";
-      let dimensions = xVal || yVal || zVal ? `${xVal}x${yVal}x${zVal}` : "N/A";
-      
+      const dimensions = xVal || yVal || zVal ? `${xVal}x${yVal}x${zVal}` : "N/A";
+
       const category = product.getElementsByTagName("ClassificationRef")[0]?.textContent || "General";
 
       let priority = "Normal";
@@ -110,13 +131,14 @@ const PanelMenur = () => {
         code,
         description,
         price: basePrice,
-        extraPrices,
+        extraPrices: grades,
         dimensions,
         category,
         priority,
         tag: `Sprint ${Math.floor(Math.random() * 50) + 1}`
       });
     }
+
     setProducts(extracted);
   }, [xmlString]);
 
