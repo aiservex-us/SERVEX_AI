@@ -255,7 +255,7 @@ const SVXUnifiedEnterprise = () => {
             </div>
           ) : (
             <div className="flex-grow overflow-auto border rounded-lg bg-white">
-              <table className="w-full text-[10px]">
+              <table className="w-[100%] text-[10px]">
                 <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b">
                   <tr>
                     {data[0].map((h, i) => (
@@ -308,7 +308,7 @@ const SVXUnifiedEnterprise = () => {
                 value={selectedSKU} onChange={(e) => { setSelectedSKU(e.target.value.toUpperCase()); setShowDropdown(true); }} />
             </div>
             {showDropdown && selectedSKU && (
-              <div className="absolute w-full mt-1 bg-white shadow-2xl rounded border z-50 max-h-60 overflow-auto border-[#EDEBE9]">
+              <div className="absolute w-[100%] mt-1 bg-white shadow-2xl rounded border z-50 max-h-60 overflow-auto border-[#EDEBE9]">
                 {products.filter(p => p.includes(selectedSKU)).slice(0, 8).map(p => (
                   <div key={p} onClick={() => handleSearch(p)} className="p-3 hover:bg-[#F3F2F1] cursor-pointer text-[10px] font-black border-b last:border-none text-[#464775]">
                     {p}
