@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { FiUploadCloud, FiZap, FiCpu, FiArrowRight, FiCheck } from 'react-icons/fi';
 import { supabase } from '../../../lib/supabaseClient';
 
+// Componente para los pasos del Header
 const Step = ({ icon, title, active, isLast }) => (
     <div className="flex items-center gap-2">
         <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${active ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-gray-200 text-gray-300'}`}>
@@ -31,7 +32,8 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
     };
 
     const handleDrop = useCallback((e) => {
-        e.preventDefault(); setIsDragging(false);
+        e.preventDefault(); 
+        setIsDragging(false);
         const file = e.dataTransfer.files[0];
         if (file?.name.endsWith('.csv')) {
             const reader = new FileReader();
@@ -89,8 +91,11 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
                     showAlert(`Detectadas ${discrepancies.length} discrepancias`, "warning");
                 }
             }
-        } catch (err) { showAlert("Error en auditoría", "error"); }
-        finally { setIsAnalyzing(false); }
+        } catch (err) { 
+            showAlert("Error en auditoría", "error"); 
+        } finally { 
+            setIsAnalyzing(false); 
+        }
     };
 
     const resetLocal = () => {
@@ -101,7 +106,10 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
     };
 
     return (
-        <div className="flex flex-col border-r border-[#EDEBE9] overflow-hidden h-full">
+        /* CONTENEDOR PRINCIPAL: w-[70vw] FIJO. overflow-hidden para evitar que el componente se estire */
+        <div className="flex flex-col border border-[#EDEBE9] bg-white rounded-xl h-full w-[70vw] max-w-[45vw] overflow-hidden shadow-sm mx-auto">
+            
+            {/* Header: shrink-0 para que no se comprima */}
             <div className="p-4 border-b bg-[#FAF9F8] flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="bg-[#464775] p-1.5 rounded text-white"><FiCpu size={14} /></div>
@@ -113,27 +121,33 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
                 </div>
             </div>
 
-            <div className="flex-grow p-4 overflow-hidden flex flex-col min-h-0">
+            {/* Zona de Contenido: min-h-0 es clave para que el scroll funcione en flexbox */}
+            <div className="flex-grow flex flex-col min-h-0 overflow-hidden">
                 {data.length === 0 ? (
-                    <div onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                        onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}
-                        className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}>
-                        <FiUploadCloud size={40} className="text-[#464775] mb-4 opacity-20" />
-                        <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR</p>
+                    <div className="p-8 h-full">
+                        <div onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                            onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}
+                            className={`h-full border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}>
+                            <FiUploadCloud size={40} className="text-[#464775] mb-4 opacity-20" />
+                            <p className="text-[10px] font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR (MAX 70VW)</p>
+                        </div>
                     </div>
                 ) : (
-                    <div className="flex-grow overflow-auto border rounded-lg bg-white w-full">
-                        <table className="min-w-full text-[10px]">
-                            <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b">
+                    /* CONTENEDOR DE SCROLL: Aquí se genera el movimiento si el CSV es muy grande */
+                    <div className="flex-grow overflow-auto bg-white">
+                        <table className="w-full text-[10px] table-auto border-collapse">
+                            <thead className="bg-[#FAF9F8] sticky top-0 z-20 shadow-sm">
                                 <tr>
                                     {data[0].map((h, i) => (
-                                        <th key={i} className="p-3 text-left font-black text-[#464775] uppercase whitespace-nowrap">{h}</th>
+                                        <th key={i} className="p-3 text-left font-black text-[#464775] uppercase whitespace-nowrap border-b border-[#EDEBE9] bg-[#FAF9F8]">
+                                            {h}
+                                        </th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-[#F3F2F1]">
                                 {data.slice(1).map((row, ri) => (
-                                    <tr key={ri} className="border-b hover:bg-gray-50 transition-colors">
+                                    <tr key={ri} className="hover:bg-gray-50 transition-colors">
                                         {row.map((cell, ci) => {
                                             const mCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                                             const isDiff = mCell !== null && cell !== mCell;
@@ -156,7 +170,8 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
                 )}
             </div>
 
-            <div className="p-4 border-t bg-white flex justify-end gap-3 shrink-0">
+            {/* Footer: Fijo en la parte inferior */}
+            <div className="p-4 border-t bg-[#FAF9F8] flex justify-end gap-3 shrink-0">
                 <button onClick={resetLocal} className="px-4 py-2 text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase">Reset</button>
                 <button onClick={handleAnalyze} disabled={data.length === 0 || isAnalyzing}
                     className={`px-6 py-2 rounded-md text-[10px] font-black flex items-center gap-2 transition-all shadow-lg ${data.length > 0 ? 'bg-[#464775] text-white hover:brightness-110' : 'bg-gray-100 text-gray-300'}`}>
