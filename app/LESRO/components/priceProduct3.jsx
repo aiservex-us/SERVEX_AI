@@ -42,7 +42,7 @@ const parseXMLtoPIM = (xmlString) => {
     );
 
     /* ================= PRICE GRADES ================= */
-    const gradeMap = {};
+    const gradeIncrementMap = {};
 
     [...productNode.getElementsByTagName('FeatureRef')].forEach(ref => {
       const feature = featureIndex[ref.textContent.trim()];
@@ -52,21 +52,24 @@ const parseXMLtoPIM = (xmlString) => {
 
       if (/G\d{2}/.test(featureCode)) {
         [...feature.getElementsByTagName('Option')].forEach(opt => {
-          const price = parseFloat(
+          const increment = parseFloat(
             opt.querySelector('OptionPrice > Value')?.textContent || 0
           );
-          if (price > 0) {
-            gradeMap[featureCode] = price;
+          if (increment > 0) {
+            gradeIncrementMap[featureCode] = increment;
           }
         });
       }
     });
 
     const priceGrades = Array.from({ length: 12 }, (_, i) => {
-      const g = `G${String(i + 2).padStart(2, '0')}`;
+      const grade = `G${String(i + 2).padStart(2, '0')}`;
+      const increment = gradeIncrementMap[grade] || 0;
+
       return {
-        grade: g,
-        price: gradeMap[g] || basePrice
+        grade,
+        increment,
+        finalPrice: basePrice + increment
       };
     });
 
@@ -178,10 +181,20 @@ const PanelPIM = () => {
                   {product.priceGrades.map(g => (
                     <div
                       key={g.grade}
-                      className="border rounded p-2 text-[10px] flex justify-between"
+                      className="border rounded p-2 text-[10px] flex justify-between items-center"
                     >
                       <span>{g.grade}</span>
-                      <span className="font-bold">${g.price}</span>
+
+                      <div className="text-right">
+                        <div className="font-bold">
+                          ${g.finalPrice.toLocaleString()}
+                        </div>
+                        {g.increment > 0 && (
+                          <div className="text-[9px] text-gray-400">
+                            +${g.increment.toLocaleString()}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -202,7 +215,9 @@ const PanelPIM = () => {
                             className="border rounded p-2 text-[10px] flex justify-between"
                           >
                             <span>{o.desc}</span>
-                            <span className="font-bold">+${o.price}</span>
+                            <span className="font-bold">
+                              +${o.price.toLocaleString()}
+                            </span>
                           </div>
                         ))}
                       </div>
