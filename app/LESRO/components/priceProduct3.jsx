@@ -4,12 +4,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 
 /* ======================================================
-   🔧 PARSER XML → PRODUCT + GRADES + OPTIONALS
+   🔧 PARSER XML → SKU + GRADES + OPTIONALS
 ====================================================== */
 const parseXMLtoPIM = (xmlString) => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
 
+  /* ================= FEATURE INDEX ================= */
   const featureIndex = {};
   [...xmlDoc.getElementsByTagName('Feature')].forEach(f => {
     const code = f.querySelector('Code')?.textContent;
@@ -19,7 +20,15 @@ const parseXMLtoPIM = (xmlString) => {
   const products = [...xmlDoc.getElementsByTagName('Product')];
 
   return products.map((productNode) => {
-    const code = productNode.querySelector('ProductCode')?.textContent || 'N/A';
+
+    /* ================= SKU REAL ================= */
+    const code =
+      productNode.querySelector('MirrorProductRef')?.textContent ||
+      productNode.querySelector('ProductCode')?.textContent ||
+      productNode.querySelector('ProductRef')?.textContent ||
+      productNode.querySelector('Code')?.textContent ||
+      'N/A';
+
     const description =
       productNode.querySelector('SelectionDescription')?.textContent ||
       productNode.querySelector('Description')?.textContent ||
@@ -41,7 +50,6 @@ const parseXMLtoPIM = (xmlString) => {
 
       const featureCode = feature.querySelector('Code')?.textContent || '';
 
-      // Detectar grades (ej: G02, G03, etc)
       if (/G\d{2}/.test(featureCode)) {
         [...feature.getElementsByTagName('Option')].forEach(opt => {
           const price = parseFloat(
@@ -54,7 +62,6 @@ const parseXMLtoPIM = (xmlString) => {
       }
     });
 
-    // Normalizar 13 grades fijos
     const priceGrades = Array.from({ length: 12 }, (_, i) => {
       const g = `G${String(i + 2).padStart(2, '0')}`;
       return {
@@ -63,7 +70,7 @@ const parseXMLtoPIM = (xmlString) => {
       };
     });
 
-    /* ================= OPTIONAL FEATURES ================= */
+    /* ================= OPTIONALS ================= */
     const optionals = [];
 
     [...productNode.getElementsByTagName('FeatureRef')].forEach(ref => {
@@ -95,8 +102,7 @@ const parseXMLtoPIM = (xmlString) => {
       category,
       basePrice,
       priceGrades,
-      optionals,
-      selections: {}
+      optionals
     };
   });
 };
@@ -182,26 +188,28 @@ const PanelPIM = () => {
               </div>
 
               {/* OPTIONALS */}
-              <div className="p-4 space-y-4">
-                {product.optionals.map((opt, i) => (
-                  <div key={i}>
-                    <p className="text-[10px] font-black uppercase text-gray-400">
-                      {opt.name}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      {opt.options.map(o => (
-                        <div
-                          key={o.code}
-                          className="border rounded p-2 text-[10px] flex justify-between"
-                        >
-                          <span>{o.desc}</span>
-                          <span className="font-bold">+${o.price}</span>
-                        </div>
-                      ))}
+              {product.optionals.length > 0 && (
+                <div className="p-4 space-y-4">
+                  {product.optionals.map((opt, i) => (
+                    <div key={i}>
+                      <p className="text-[10px] font-black uppercase text-gray-400">
+                        {opt.name}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        {opt.options.map(o => (
+                          <div
+                            key={o.code}
+                            className="border rounded p-2 text-[10px] flex justify-between"
+                          >
+                            <span>{o.desc}</span>
+                            <span className="font-bold">+${o.price}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
             </div>
           ))}
