@@ -4,75 +4,110 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 
 /* ======================================================
-   🔧 PARSER PIM REAL (Feature + FeatureRef)
+   🔧 PARSER XML → PRODUCT + GRADES + OPTIONALS
 ====================================================== */
 const parseXMLtoPIM = (xmlString) => {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
 
+  const featureIndex = {};
+  [...xmlDoc.getElementsByTagName('Feature')].forEach(f => {
+    const code = f.querySelector('Code')?.textContent;
+    if (code) featureIndex[code] = f;
+  });
+
   const products = [...xmlDoc.getElementsByTagName('Product')];
 
   return products.map((productNode) => {
-    const code = productNode.querySelector('Code')?.textContent || 'N/A';
-    const description = productNode.querySelector('Description')?.textContent || 'Sin descripción';
-    const category = productNode.querySelector('ClassificationRef')?.textContent || 'General';
-    const basePrice = parseFloat(productNode.querySelector('Price > Value')?.textContent || 0);
+    const code = productNode.querySelector('ProductCode')?.textContent || 'N/A';
+    const description =
+      productNode.querySelector('SelectionDescription')?.textContent ||
+      productNode.querySelector('Description')?.textContent ||
+      'Sin descripción';
 
-    // ---- FEATURES DIRECTOS + REFERENCIADOS
-    const directFeatures = [...productNode.getElementsByTagName('Feature')];
-    const featureRefs = [...productNode.getElementsByTagName('FeatureRef')];
+    const category =
+      productNode.querySelector('ClassificationRef')?.textContent || 'General';
 
-    const allFeatures = [
-      ...directFeatures.map(f => f),
-      ...featureRefs.map(ref =>
-        [...xmlDoc.getElementsByTagName('Feature')]
-          .find(f => f.querySelector('Code')?.textContent === ref.textContent.trim())
-      )
-    ].filter(Boolean);
+    const basePrice = parseFloat(
+      productNode.querySelector('Price > Value')?.textContent || 0
+    );
 
-    const features = allFeatures.map(f => {
-      const id = f.querySelector('Code')?.textContent;
-      const name = f.querySelector('Description')?.textContent || id;
+    /* ================= PRICE GRADES ================= */
+    const gradeMap = {};
 
-      const options = [...f.getElementsByTagName('Option')]
+    [...productNode.getElementsByTagName('FeatureRef')].forEach(ref => {
+      const feature = featureIndex[ref.textContent.trim()];
+      if (!feature) return;
+
+      const featureCode = feature.querySelector('Code')?.textContent || '';
+
+      // Detectar grades (ej: G02, G03, etc)
+      if (/G\d{2}/.test(featureCode)) {
+        [...feature.getElementsByTagName('Option')].forEach(opt => {
+          const price = parseFloat(
+            opt.querySelector('OptionPrice > Value')?.textContent || 0
+          );
+          if (price > 0) {
+            gradeMap[featureCode] = price;
+          }
+        });
+      }
+    });
+
+    // Normalizar 13 grades fijos
+    const priceGrades = Array.from({ length: 12 }, (_, i) => {
+      const g = `G${String(i + 2).padStart(2, '0')}`;
+      return {
+        grade: g,
+        price: gradeMap[g] || basePrice
+      };
+    });
+
+    /* ================= OPTIONAL FEATURES ================= */
+    const optionals = [];
+
+    [...productNode.getElementsByTagName('FeatureRef')].forEach(ref => {
+      const feature = featureIndex[ref.textContent.trim()];
+      if (!feature) return;
+
+      const name =
+        feature.querySelector('Description')?.textContent ||
+        feature.querySelector('Code')?.textContent;
+
+      const options = [...feature.getElementsByTagName('Option')]
         .map(o => ({
           code: o.querySelector('Code')?.textContent,
-          desc: o.querySelector('Description')?.textContent || 'Opción',
-          price: parseFloat(o.querySelector('OptionPrice > Value')?.textContent || 0)
+          desc: o.querySelector('Description')?.textContent || 'Option',
+          price: parseFloat(
+            o.querySelector('OptionPrice > Value')?.textContent || 0
+          )
         }))
         .filter(o => o.price > 0);
 
-      return options.length ? { id, name, options } : null;
-    }).filter(Boolean);
+      if (options.length) {
+        optionals.push({ name, options });
+      }
+    });
 
     return {
       code,
       description,
       category,
       basePrice,
-      features,
+      priceGrades,
+      optionals,
       selections: {}
     };
   });
 };
 
 /* ======================================================
-   💰 PRECIO TOTAL
-====================================================== */
-const calculateTotal = (product) => {
-  return product.basePrice +
-    Object.values(product.selections).reduce((sum, o) => sum + o.price, 0);
-};
-
-/* ======================================================
    🧩 COMPONENTE PRINCIPAL
 ====================================================== */
 const PanelPIM = () => {
-  const [xmlRaw, setXmlRaw] = useState('');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  /* ================= FETCH XML ================= */
   useEffect(() => {
     const fetchXML = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -87,7 +122,6 @@ const PanelPIM = () => {
         .single();
 
       if (data?.xml_raw) {
-        setXmlRaw(data.xml_raw);
         setProducts(parseXMLtoPIM(data.xml_raw));
       }
       setLoading(false);
@@ -95,15 +129,17 @@ const PanelPIM = () => {
     fetchXML();
   }, []);
 
-  /* ================= AGRUPAR POR CATEGORÍA ================= */
-  const categories = useMemo(() => {
-    return [...new Set(products.map(p => p.category))];
-  }, [products]);
+  const categories = useMemo(
+    () => [...new Set(products.map(p => p.category))],
+    [products]
+  );
 
-  if (loading) return <div className="p-10 text-xs font-bold">Cargando PIM...</div>;
+  if (loading) {
+    return <div className="p-10 text-xs font-bold">Cargando PIM...</div>;
+  }
 
   return (
-    <div className="p-6 space-y-8 bg-white">
+    <div className="p-6 space-y-10 bg-white">
       {categories.map(cat => (
         <section key={cat} className="space-y-4">
           <h2 className="text-xs font-black uppercase text-[#464775]">
@@ -112,51 +148,55 @@ const PanelPIM = () => {
 
           {products.filter(p => p.category === cat).map((product, idx) => (
             <div key={idx} className="border rounded-lg shadow-sm">
-              
-              {/* HEADER PRODUCTO */}
-              <div className="p-4 flex justify-between items-center bg-[#F3F2F1]">
+
+              {/* HEADER */}
+              <div className="p-4 flex justify-between bg-[#F3F2F1]">
                 <div>
                   <p className="text-[10px] font-black">{product.code}</p>
                   <p className="text-sm font-semibold">{product.description}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-bold text-[#464775]">
-                    $ {calculateTotal(product).toLocaleString()}
-                  </p>
-                  <p className="text-[9px] text-gray-500">
-                    Base: $ {product.basePrice}
+                    Base: ${product.basePrice.toLocaleString()}
                   </p>
                 </div>
               </div>
 
-              {/* FEATURES / GRADOS */}
-              <div className="p-4 space-y-4">
-                {product.features.map(feat => (
-                  <div key={feat.id}>
-                    <p className="text-[9px] font-black uppercase text-gray-400">
-                      {feat.name}
-                    </p>
+              {/* PRICE GRADES */}
+              <div className="p-4">
+                <p className="text-[10px] font-black uppercase text-gray-400 mb-2">
+                  Price Grades
+                </p>
 
+                <div className="grid grid-cols-4 gap-2">
+                  {product.priceGrades.map(g => (
+                    <div
+                      key={g.grade}
+                      className="border rounded p-2 text-[10px] flex justify-between"
+                    >
+                      <span>{g.grade}</span>
+                      <span className="font-bold">${g.price}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* OPTIONALS */}
+              <div className="p-4 space-y-4">
+                {product.optionals.map((opt, i) => (
+                  <div key={i}>
+                    <p className="text-[10px] font-black uppercase text-gray-400">
+                      {opt.name}
+                    </p>
                     <div className="grid grid-cols-2 gap-2 mt-2">
-                      {feat.options.map(opt => (
-                        <button
-                          key={opt.code}
-                          onClick={() => {
-                            const updated = [...products];
-                            updated[idx].selections[feat.id] = opt;
-                            setProducts(updated);
-                          }}
-                          className={`p-2 text-[10px] rounded border flex justify-between ${
-                            product.selections[feat.id]?.code === opt.code
-                              ? 'border-[#464775] bg-[#F3F2F1] font-bold'
-                              : 'border-[#EDEBE9]'
-                          }`}
+                      {opt.options.map(o => (
+                        <div
+                          key={o.code}
+                          className="border rounded p-2 text-[10px] flex justify-between"
                         >
-                          <span>{opt.desc}</span>
-                          <span className="font-black text-[#464775]">
-                            +$ {opt.price}
-                          </span>
-                        </button>
+                          <span>{o.desc}</span>
+                          <span className="font-bold">+${o.price}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
