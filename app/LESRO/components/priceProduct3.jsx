@@ -1,238 +1,163 @@
-'use client';
+import React, { useState, useEffect, useMemo } from 'react';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
-
-/* ======================================================
-    🔧 PARSER XML → SKU + GRADES + OPTIONALS
-====================================================== */
-const parseXMLtoPIM = (xmlString) => {
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-
-  // 1. Crear índice de Features para búsqueda rápida
-  const featureIndex = {};
-  [...xmlDoc.getElementsByTagName('Feature')].forEach(f => {
-    const code = f.querySelector('Code')?.textContent;
-    if (code) featureIndex[code] = f;
-  });
-
-  const products = [...xmlDoc.getElementsByTagName('Product')];
-
-  return products.map((productNode) => {
-    // Identificadores básicos
-    const code =
-      productNode.querySelector('MirrorProductRef')?.textContent ||
-      productNode.querySelector('ProductCode')?.textContent ||
-      productNode.querySelector('ProductRef')?.textContent ||
-      productNode.querySelector('Code')?.textContent ||
-      'N/A';
-
-    const description =
-      productNode.querySelector('SelectionDescription')?.textContent ||
-      productNode.querySelector('Description')?.textContent ||
-      'Sin descripción';
-
-    const category =
-      productNode.querySelector('ClassificationRef')?.textContent || 'General';
-
-    const basePrice = parseFloat(
-      productNode.querySelector('Price > Value')?.textContent || 0
-    );
-
-    /* ================= LÓGICA DE GRADES MEJORADA ================= */
-    let priceGrades = [];
-    const optionals = [];
-
-    [...productNode.getElementsByTagName('FeatureRef')].forEach(ref => {
-      const featureCode = ref.textContent.trim();
-      const feature = featureIndex[featureCode];
-      if (!feature) return;
-
-      const featureName = feature.querySelector('Description')?.textContent || featureCode;
-      const options = [...feature.getElementsByTagName('Option')];
-
-      // Detectar si esta Feature es de "Grades" (Tapicería)
-      // Buscamos palabras clave en el código o descripción del Feature
-      const isGradeFeature = /GRADE|UPH|GRD/i.test(featureCode) || /Grade/i.test(featureName);
-
-      if (isGradeFeature) {
-        options.forEach(opt => {
-          const optCode = opt.querySelector('Code')?.textContent || '';
-          const optDesc = opt.querySelector('Description')?.textContent || '';
-          const increment = parseFloat(opt.querySelector('OptionPrice > Value')?.textContent || 0);
-
-          // Si el código o la descripción sugieren un Grado (ej: GRD2, GRADE3S, Grade 4)
-          if (/GRADE|GRD|COM/i.test(optCode) || /Grade/i.test(optDesc)) {
-            priceGrades.push({
-              grade: optDesc, // Usamos la descripción "Grade 2" para que se vea bien
-              increment: increment,
-              finalPrice: basePrice + increment
-            });
-          }
-        });
-      } else {
-        // Si no es un Grade, es un opcional normal (Brazos, Patas, etc.)
-        const validOptions = options.map(o => ({
-          code: o.querySelector('Code')?.textContent,
-          desc: o.querySelector('Description')?.textContent || 'Opción',
-          price: parseFloat(o.querySelector('OptionPrice > Value')?.textContent || 0)
-        })).filter(o => o.price > 0);
-
-        if (validOptions.length > 0) {
-          optionals.push({ name: featureName, options: validOptions });
-        }
-      }
-    });
-
-    // Ordenar los grados numéricamente si es posible
-    priceGrades.sort((a, b) => {
-        const numA = parseInt(a.grade.replace(/\D/g, '')) || 0;
-        const numB = parseInt(b.grade.replace(/\D/g, '')) || 0;
-        return numA - numB;
-    });
-
-    return {
-      code,
-      description,
-      category,
-      basePrice,
-      priceGrades,
-      optionals
-    };
-  });
-};
-
-/* ======================================================
-    🧩 COMPONENTE PRINCIPAL
-====================================================== */
-const PanelPIM = () => {
-  const [products, setProducts] = useState([]);
+const CatalogoLesro = () => {
+  const [xmlDoc, setXmlDoc] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  // 1. Cargar el XML desde la carpeta public
   useEffect(() => {
-    const fetchXML = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data, error } = await supabase
-          .from('ClientsSERVEX')
-          .select('xml_raw')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (data?.xml_raw) {
-          setProducts(parseXMLtoPIM(data.xml_raw));
-        }
-      } catch (err) {
-        console.error("Error cargando XML:", err);
-      } finally {
+    fetch('/LES-012626.xml')
+      .then(response => {
+        if (!response.ok) throw new Error("No se pudo cargar el archivo XML");
+        return response.text();
+      })
+      .then(data => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(data, "text/xml");
+        setXmlDoc(xml);
         setLoading(false);
-      }
-    };
-    fetchXML();
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
   }, []);
 
-  const categories = useMemo(
-    () => [...new Set(products.map(p => p.category))],
-    [products]
+  // 2. Procesar y Organizar la información por Productos
+  const catalogoOrganizado = useMemo(() => {
+    if (!xmlDoc) return [];
+
+    // Diccionario de Features para búsqueda rápida
+    const featuresDict = {};
+    const allFeatures = xmlDoc.getElementsByTagName("Feature");
+    
+    for (let f of allFeatures) {
+      const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+      const fDesc = f.getElementsByTagName("Description")[0]?.textContent;
+      
+      const options = Array.from(f.getElementsByTagName("Option")).map(opt => {
+        // Extraer precio del nodo <Value> dentro de <OptionPrice>
+        const priceVal = opt.getElementsByTagName("Value")[0]?.textContent || "0";
+        return {
+          optCode: opt.getElementsByTagName("Code")[0]?.textContent,
+          optDesc: opt.getElementsByTagName("Description")[0]?.textContent,
+          upcharge: parseFloat(priceVal).toFixed(2)
+        };
+      });
+
+      featuresDict[fCode] = { description: fDesc, options: options };
+    }
+
+    // Mapear Productos vinculando sus referencias
+    const allProducts = xmlDoc.getElementsByTagName("Product");
+    const result = [];
+
+    for (let p of allProducts) {
+      const pCode = p.getElementsByTagName("Code")[0]?.textContent;
+      const pName = p.getElementsByTagName("Name")[0]?.textContent || pCode;
+      const pDesc = p.getElementsByTagName("Description")[0]?.textContent;
+      const basePrice = p.getElementsByTagName("Value")[0]?.textContent || "0.00";
+
+      // Obtener las Features asociadas a este producto mediante <FeatureRef>
+      const featureRefs = Array.from(p.getElementsByTagName("FeatureRef")).map(ref => {
+        const code = ref.textContent;
+        return {
+          code: code,
+          ...(featuresDict[code] || { description: "Sin descripción", options: [] })
+        };
+      });
+
+      result.push({
+        code: pCode,
+        name: pName,
+        description: pDesc,
+        basePrice: parseFloat(basePrice).toFixed(2),
+        features: featureRefs
+      });
+    }
+
+    return result;
+  }, [xmlDoc]);
+
+  // Filtro de búsqueda
+  const productosFiltrados = catalogoOrganizado.filter(p => 
+    p.code?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="text-sm font-bold animate-pulse text-gray-500">PROCESANDO CATÁLOGO PIM...</div>
-      </div>
-    );
-  }
+  if (loading) return <div style={styles.center}>Cargando catálogo maestro...</div>;
+  if (error) return <div style={styles.error}>Error: {error}</div>;
 
   return (
-    <div className="p-8 bg-[#F9FAFB] min-h-screen space-y-12">
-      {categories.map(cat => (
-        <section key={cat} className="max-w-6xl mx-auto space-y-6">
-          <div className="border-b-2 border-[#464775] pb-2">
-            <h2 className="text-sm font-black uppercase text-[#464775] tracking-widest">
-              {cat}
-            </h2>
-          </div>
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <h1>LESRO Master Data Explorer</h1>
+        <p>Total de productos: {catalogoOrganizado.length}</p>
+        <input 
+          type="text" 
+          placeholder="Buscar por SKU o Descripción (ej: BL1101 o Belmont)..." 
+          style={styles.searchBar}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
 
-          <div className="grid gap-6">
-            {products.filter(p => p.category === cat).map((product, idx) => (
-              <div key={idx} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                
-                {/* HEADER PRODUCTO */}
-                <div className="p-5 flex justify-between items-start bg-gray-50 border-b">
-                  <div>
-                    <span className="inline-block px-2 py-1 bg-white border rounded text-[10px] font-bold text-gray-500 mb-2">
-                      SKU: {product.code}
-                    </span>
-                    <h3 className="text-lg font-bold text-gray-800">{product.description}</h3>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase font-bold text-gray-400 leading-none">Precio Base</p>
-                    <p className="text-xl font-black text-[#464775]">
-                      ${product.basePrice.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
+      <div style={styles.grid}>
+        {productosFiltrados.map((prod) => (
+          <div key={prod.code} style={styles.card}>
+            <div style={styles.productMain}>
+              <div style={styles.badge}>{prod.code}</div>
+              <h2 style={styles.title}>{prod.description}</h2>
+              <div style={styles.priceTag}>Precio Base: ${prod.basePrice}</div>
+            </div>
 
-                <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  
-                  {/* COLUMNA GRADOS */}
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-tighter">
-                      Variaciones de Tapicería (Grades)
-                    </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {product.priceGrades.map((g, i) => (
-                        <div key={i} className="bg-white border rounded-lg p-3 flex flex-col justify-center">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">{g.grade}</span>
-                          <span className="text-sm font-bold text-gray-900">${g.finalPrice.toLocaleString()}</span>
-                          {g.increment > 0 && (
-                            <span className="text-[9px] text-green-600 font-medium">+{g.increment.toLocaleString()}</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* COLUMNA OPCIONALES */}
-                  {product.optionals.length > 0 && (
-                    <div>
-                      <h4 className="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-tighter">
-                        Opciones de Configuración
-                      </h4>
-                      <div className="space-y-4">
-                        {product.optionals.map((opt, i) => (
-                          <div key={i} className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-[9px] font-black uppercase text-gray-500 mb-2 border-b border-gray-200 pb-1">
-                              {opt.name}
-                            </p>
-                            <div className="grid grid-cols-1 gap-1">
-                              {opt.options.map(o => (
-                                <div key={o.code} className="flex justify-between text-[11px] py-1">
-                                  <span className="text-gray-600">{o.desc}</span>
-                                  <span className="font-bold text-gray-800">+${o.price.toLocaleString()}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
+            <div style={styles.featuresSection}>
+              <h4 style={styles.sectionTitle}>Configuraciones y Opciones:</h4>
+              {prod.features.length > 0 ? prod.features.map((f, idx) => (
+                <details key={idx} style={styles.featureCollapse}>
+                  <summary style={styles.summary}>
+                    <strong>{f.code}</strong> - {f.description}
+                  </summary>
+                  <div style={styles.optionsList}>
+                    {f.options.map((opt, oIdx) => (
+                      <div key={oIdx} style={styles.optionRow}>
+                        <span>{opt.optCode} - {opt.optDesc}</span>
+                        <span style={styles.upcharge}>+ ${opt.upcharge}</span>
                       </div>
-                    </div>
-                  )}
-                </div>
-
-              </div>
-            ))}
+                    ))}
+                  </div>
+                </details>
+              )) : <p style={styles.noData}>No hay configuraciones adicionales.</p>}
+            </div>
           </div>
-        </section>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
 
-export default PanelPIM;
+// Estilos en línea para una implementación rápida
+const styles = {
+  container: { padding: '2rem', backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: 'Segoe UI, Roboto, sans-serif' },
+  header: { marginBottom: '2rem', textAlign: 'center' },
+  searchBar: { width: '100%', maxWidth: '600px', padding: '12px 20px', borderRadius: '25px', border: '1px solid #ddd', fontSize: '1rem', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
+  grid: { display: 'flex', flexDirection: 'column', gap: '20px' },
+  card: { backgroundColor: '#fff', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'hidden', border: '1px solid #e1e4e8' },
+  productMain: { padding: '20px', backgroundColor: '#ffffff', borderBottom: '1px solid #f0f0f0' },
+  badge: { display: 'inline-block', backgroundColor: '#0056b3', color: '#fff', padding: '4px 12px', borderRadius: '15px', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px' },
+  title: { margin: '0 0 10px 0', color: '#1a1a1a', fontSize: '1.4rem' },
+  priceTag: { color: '#28a745', fontWeight: 'bold', fontSize: '1.1rem' },
+  featuresSection: { padding: '15px 20px', backgroundColor: '#fafbfc' },
+  sectionTitle: { fontSize: '0.9rem', color: '#666', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' },
+  featureCollapse: { marginBottom: '8px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '5px' },
+  summary: { padding: '10px', cursor: 'pointer', outline: 'none', color: '#444' },
+  optionsList: { padding: '0 10px 10px 10px', fontSize: '0.9rem' },
+  optionRow: { display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f9f9f9' },
+  upcharge: { fontWeight: 'bold', color: '#d9534f' },
+  noData: { fontStyle: 'italic', color: '#999' },
+  center: { textAlign: 'center', padding: '50px' },
+  error: { color: 'red', textAlign: 'center', padding: '50px' }
+};
+
+export default CatalogoLesro;
