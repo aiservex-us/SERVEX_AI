@@ -46,30 +46,24 @@ export default function DataViewer() {
   const parseCSV = (csvString, type) => {
     if (!csvString || csvString === '---') return [];
     
-    if (type === 'csv_raw') {
-      const allLines = csvString.trim().split('\n');
-      if (allLines.length <= 2) return [];
-      
-      const headers = allLines[2].split(';').map(h => h.replace(/"/g, '').trim());
-      const dataLines = allLines.slice(3);
-      
-      return dataLines.map(line => {
-        const values = line.split(';').map(v => v.replace(/"/g, '').trim());
-        return headers.reduce((obj, header, i) => {
-          const key = header || `Col_${i}`;
-          obj[key] = values[i] || '';
-          return obj;
-        }, {});
-      });
-    }
-
+    // Normalizamos y dividimos el string por líneas
     const lines = csvString.trim().split('\n');
-    const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
+    if (lines.length < 1) return [];
+
+    // Determinamos el delimitador basándonos en el tipo de columna
+    const delimiter = type === 'csv_raw' ? ';' : ',';
     
-    return lines.slice(1).map(line => {
-      const values = line.split(',').map(v => v.replace(/"/g, ''));
+    // FILA 1 (Índice 0): Encabezados
+    const headers = lines[0].split(delimiter).map(h => h.replace(/"/g, '').trim());
+    
+    // FILA 2 EN ADELANTE (Índice 1): Datos
+    const dataLines = lines.slice(1);
+    
+    return dataLines.map(line => {
+      const values = line.split(delimiter).map(v => v.replace(/"/g, '').trim());
       return headers.reduce((obj, header, i) => {
-        obj[header] = values[i];
+        const key = header || `Col_${i}`;
+        obj[key] = values[i] || '';
         return obj;
       }, {});
     });
@@ -172,16 +166,10 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* ÁREA DE TABLA - CORRECCIÓN CLAVE AQUÍ */}
+      {/* ÁREA DE TABLA */}
       <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
         {filteredData.length > 0 ? (
-          /* overflow-auto permite el scroll tanto en X como en Y */
           <div className="flex-1 overflow-auto custom-scrollbar">
-            {/* IMPORTANTÍSIMO: 
-               1. Quitamos 'w-full' de la tabla.
-               2. Usamos 'min-w-full' para que si hay pocos datos llene el ancho, 
-                  pero permita crecer si hay muchos.
-            */}
             <table className="min-w-full border-separate border-spacing-0 text-[10px]">
               <thead>
                 <tr className="bg-[#FAF9F8]">
@@ -236,9 +224,6 @@ export default function DataViewer() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
         
-        /* FUERZA A LA TABLA A NO COLAPSAR: 
-           Esto hace que el scroll horizontal aparezca automáticamente.
-        */
         table { 
           table-layout: auto !important; 
           width: max-content !important; 
