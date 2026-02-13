@@ -8,11 +8,11 @@ import { createClient } from '@supabase/supabase-js';
 //
 
 // 🔹 Project URL (Tu URL de Supabase)
-const supabaseUrl = 'https://mdjalirluzzvanrcjead.supabase.co';
+const supabaseUrl = 'https://zotgxyupuiifnbuwwjkl.supabase.co';
 
 // 🔹 Publishable key (Tu Anon Key)
 const supabaseAnonKey =
-  'sb_publishable_I8pdJT2l9dXxMFwf0zEfpw_00Yo3vFC';
+  'sb_publishable_usgTKwhsIpmNIiGa_F4tiw_ah3THCTJ';
 
 // 🔹 Cliente Supabase
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
