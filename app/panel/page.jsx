@@ -12,7 +12,7 @@ import PanelMenur from './components/PaginaInicial/initPage';
 export default function PanelPage() {
   const router = useRouter();
 
-  // 🔒 PROTECCIÓN DE RUTA (MISMA LÓGICA)
+  {/*// 🔒 PROTECCIÓN DE RUTA (MISMA LÓGICA)
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
 
@@ -23,7 +23,7 @@ export default function PanelPage() {
     });
   
   }, [router]);  
-
+*/}
   return (
     /* Contenedor padre sin scroll y altura completa */
     <div className="h-screen w-full bg-[#f8fafc] font-sans overflow-hidden flex items-center justify-center">
