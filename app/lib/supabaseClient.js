@@ -26,7 +26,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // 🔐 Login con Microsoft Entra ID (Azure)
 export async function signInWithAzure() {
   const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'azure_oidc',
+    provider: 'azure',
   });
 
   if (error) {
