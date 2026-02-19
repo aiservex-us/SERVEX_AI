@@ -77,12 +77,13 @@ export default function Calendar() {
         />
 
         <CompanyCard
-          company="Berner"
+          company="WB"
           logo="/logosEmpresas/berner-air-curtains-logo-png_seeklogo-351590.png"
           role="Air Curtains & HVAC"
           tags={['Dashboards', 'Sales', 'Reports']}
           status="Active contract"
           location="United States"
+          onOpen={() => router.push('/WB')}
         />
 
         <CompanyCard
