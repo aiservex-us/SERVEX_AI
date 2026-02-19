@@ -16,13 +16,12 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'presentation', label: 'Executive Panel', icon: LayoutTemplate, sub: 'Main View' }, 
-  { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
   { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard, sub: 'Analysis' },
+  { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
   { id: 'kanban', label: 'XML CET Data', icon: KanbanSquare, sub: 'Structure' },
   { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox, sub: 'Visualization' },
   { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3, sub: 'Statistics' },
-  { id: 'Tasks', label: 'Synchronizer', icon: ListChecks, sub: 'Operations' },
+
 ];
 
 export default function MenuLateral({

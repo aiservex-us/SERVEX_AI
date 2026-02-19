@@ -12,12 +12,12 @@ import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
 import PrecentMain from './components/PrecentMain';
 // --- IMPORTACIÓN SOLICITADA ---
-import UploadFileCmpare from './components/comparePDF/UploadFileCmpare'; 
+import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
 import AIReporting from './components/comparePDF/aiReporting/AIReporting'
 
 
 export default function MenuInicial() {
-  const [active, setActive] = useState('presentation');
+  const [active, setActive] = useState('reporting');
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 

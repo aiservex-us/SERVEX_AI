@@ -126,21 +126,9 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
                   onClick={() => setActiveViewport("explainer")}
                 />
 
-                <StatItem
-                  icon={<Info />}
-                  label="Explore the catalog now."
-                  description="Explore and analyze catalog data."
-                  isActive={activeViewport === "explorer"}
-                  onClick={() => setActiveViewport("explorer")}
-                />
+           
 
-                <StatItem
-                  icon={<Cpu />}
-                  label="Build your audit"
-                  description="Create and manage structured data audits"
-                  isActive={activeViewport === "audit"}
-                  onClick={() => setActiveViewport("audit")}
-                />
+           
               </div>
             </>
           ) : (

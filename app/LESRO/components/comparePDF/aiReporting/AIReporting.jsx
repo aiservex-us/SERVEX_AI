@@ -11,7 +11,7 @@ import SidebarRight from './compnents/SidebarRight';
 const AIReporting = () => {
   const [isLeftOpen, setIsLeftOpen] = useState(true);
   const [isRightOpen, setIsRightOpen] = useState(true);
-  const [activeViewport, setActiveViewport] = useState('explorer');
+  const [activeViewport, setActiveViewport] = useState('explainer');
 
   // Definimos las variantes de la animación para los Viewports
   const viewportVariants = {
@@ -82,37 +82,7 @@ const AIReporting = () => {
         </AnimatePresence>
       </main>
 
-      {/* --- Sidebar Derecho --- */}
-      <AnimatePresence initial={true}>
-        {isRightOpen && (
-          <motion.div 
-            initial={{ width: 0, opacity: 0, x: 260 }}
-            animate={{ 
-              width: typeof window !== 'undefined' && window.innerWidth < 1024 ? "auto" : 260, 
-              opacity: 1, 
-              x: 0 
-            }}
-            exit={{ width: 0, opacity: 0, x: 260 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={`
-              fixed inset-y-0 right-0 z-50 bg-white border-l border-[#EDEBE9] shadow-xl
-              lg:relative lg:inset-auto lg:z-0 lg:shadow-none lg:flex-shrink-0 lg:overflow-hidden
-              h-full
-            `}
-          >
-            <div className="w-[260px] h-full"> 
-              <SidebarRight />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {(isLeftOpen || isRightOpen) && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/20 z-40"
-          onClick={() => { setIsLeftOpen(false); setIsRightOpen(false); }}
-        />
-      )}
+     
 
     </div>
   );

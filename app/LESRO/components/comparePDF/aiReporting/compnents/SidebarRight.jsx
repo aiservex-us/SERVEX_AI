@@ -141,12 +141,7 @@ const SidebarTeams = () => {
 
         {/* 2. INTERACTIVE STATS */}
         <div className="space-y-3">
-          <StatItem
-            icon={<Boxes />}
-            label="CET Creator"
-            value="Analyze · Structure"
-            description="AI model to analyze and bulk edit CET Designer content."
-          />
+      
           <StatItem
             icon={<Cpu />}
             label="Specialist"
