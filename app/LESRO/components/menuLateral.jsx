@@ -19,8 +19,8 @@ const menuItems = [
   { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard, sub: 'Analysis' },
   { id: 'compare', label: 'Visual Comparation', icon:  BarChart3, sub: 'Statistics' },
   { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
+  { id: 'inbox', label: 'Catalog Excel LESRO Preview', icon: Inbox, sub: 'Visualization' },
   { id: 'kanban', label: 'XML CET Data', icon: KanbanSquare, sub: 'Structure' },
-  { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox, sub: 'Visualization' },
   { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3, sub: 'Statistics' },
  
 ];
