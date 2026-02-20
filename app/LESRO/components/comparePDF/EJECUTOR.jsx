@@ -42,7 +42,7 @@ const AuditUploader = () => {
 
   const handleUpload = async () => {
     if (!file) {
-      setError("Seleccione un archivo CSV para continuar.");
+      setError("Please select a CSV file to continue.");
       return;
     }
 
@@ -61,7 +61,7 @@ const AuditUploader = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Error en el servidor de SERVEX_AI');
+        throw new Error(errorData.detail || 'SERVEX_AI Server Error');
       }
 
       const blob = await response.blob();
@@ -92,28 +92,28 @@ const AuditUploader = () => {
             <div className="bg-[#444791] px-4 py-2 text-white flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Zap size={14} className="text-yellow-400 fill-yellow-400" />
-                <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Módulo de Optimización</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization Module</span>
               </div>
               <button onClick={closeTutorial} className="hover:bg-white/20 p-0.5 rounded transition-colors">
                 <X size={16} />
               </button>
             </div>
             <div className="p-5">
-              <h2 className="text-sm font-bold text-[#242424] mb-2">Auditoría de Catálogo LESRO</h2>
+              <h2 className="text-sm font-bold text-[#242424] mb-2">LESRO Catalog Audit</h2>
               <p className="text-[12px] text-[#424242] leading-snug mb-4">
-                Sección optimizada para el <strong>análisis y comparación</strong> de actualizaciones de catálogo <strong>LESRO</strong>.
+                Section optimized for the <strong>analysis and comparison</strong> of <strong>LESRO</strong> catalog updates.
               </p>
               <div className="space-y-2">
                 <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#444791]">
                   <FileText className="text-[#444791] shrink-0" size={16} />
                   <p className="text-[11px] text-[#424242]">
-                    XML actualizado para integración en <strong>CET Designer</strong> y <strong>Catalog Creator</strong>.
+                    Updated XML for <strong>CET Designer</strong> and <strong>Catalog Creator</strong> integration.
                   </p>
                 </div>
                 <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#444791]">
                   <CheckCircle className="text-[#237b4b] shrink-0" size={16} />
                   <p className="text-[11px] text-[#424242]">
-                    Generación automática de cambios detectados en la comparación de catálogos.
+                    Automatic generation of changes detected during catalog comparison.
                   </p>
                 </div>
               </div>
@@ -121,7 +121,7 @@ const AuditUploader = () => {
                 onClick={closeTutorial}
                 className="w-full mt-5 bg-[#444791] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#3b3e7a] transition-all active:scale-[0.98]"
               >
-                Comenzar
+                Get Started
               </button>
             </div>
           </div>
@@ -142,7 +142,7 @@ const AuditUploader = () => {
               <div className="flex items-center gap-2 text-xs text-[#444791]">
                 <span className="hover:underline cursor-pointer">Files</span>
                 <ChevronRight size={12} />
-                <span className="font-semibold text-[#444791]]">Auditoría Lesro</span>
+                <span className="font-semibold text-[#444791]]">Lesro Audit</span>
               </div>
             </div>
           </div>
@@ -169,8 +169,8 @@ const AuditUploader = () => {
             <div className="w-16 h-16 bg-white border border-[#e1e1e1] rounded-full flex items-center justify-center shadow-sm mb-4 group-hover:text-[#5B5FC7] transition-colors">
               <DownloadCloud size={30} className="text-[#616161] group-hover:text-[#5B5FC7]" />
             </div>
-            <h3 className="text-base font-semibold text-[#242424]">Arrastra tu catálogo aquí o haz clic</h3>
-            <p className="text-sm text-[#616161] mt-1 text-center">Soporta archivos CSV con estructura de precios LESRO</p>
+            <h3 className="text-base font-semibold text-[#242424]">Drag your catalog here or click to browse</h3>
+            <p className="text-sm text-[#616161] mt-1 text-center">Supports CSV files with LESRO pricing structure</p>
             
             {file && (
               <div className="mt-6 flex items-center gap-3 bg-[#e8ebfa] text-[#5B5FC7] px-4 py-2 rounded-md font-medium border border-[#c5cbef] animate-in fade-in zoom-in-95">
@@ -192,12 +192,12 @@ const AuditUploader = () => {
               }`}
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : <Package size={18} />}
-              {loading ? "Procesando..." : "Sincronizar y Exportar"}
+              {loading ? "Processing..." : "Sync and Export"}
             </button>
 
             {success && (
               <div className="mt-4 flex items-center gap-2 text-[#237b4b] text-sm font-semibold animate-in fade-in slide-in-from-top-1">
-                <CheckCircle size={16} /> Paquete generado exitosamente
+                <CheckCircle size={16} /> Package generated successfully
               </div>
             )}
 
@@ -212,8 +212,8 @@ const AuditUploader = () => {
           {/* Package details cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
             {[
-              { title: "JSON Auditoría", color: "#5B5FC7" },
-              { title: "XML Maestro", color: "#5B5FC7" },
+              { title: "Audit JSON", color: "#5B5FC7" },
+              { title: "Master XML", color: "#5B5FC7" },
               { title: "CSV Backup", color: "#5B5FC7" }
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3 p-3 bg-[#f5f5f5] rounded-sm border-l-4 border-[#444791] hover:bg-[#edebe9] transition-colors cursor-default">
