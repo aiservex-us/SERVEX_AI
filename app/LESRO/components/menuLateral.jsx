@@ -18,10 +18,11 @@ import {
 const menuItems = [
   { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard, sub: 'Analysis' },
   { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
+  { id: 'compare', label: 'Visual Comparation', icon:  BarChart3, sub: 'Statistics' },
   { id: 'kanban', label: 'XML CET Data', icon: KanbanSquare, sub: 'Structure' },
   { id: 'inbox', label: 'Catalog LESRO Preview', icon: Inbox, sub: 'Visualization' },
   { id: 'dashboard', label: 'Dashboard XML', icon:  BarChart3, sub: 'Statistics' },
-
+ 
 ];
 
 export default function MenuLateral({

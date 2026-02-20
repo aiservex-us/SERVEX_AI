@@ -14,7 +14,7 @@ import PrecentMain from './components/PrecentMain';
 // --- IMPORTACIÓN SOLICITADA ---
 import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
 import AIReporting from './components/comparePDF/aiReporting/AIReporting'
-
+import Compare from './components/comparePDF/UploadFileCmpare'
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
@@ -64,6 +64,7 @@ export default function MenuInicial() {
       // --- RENDERIZADO DEL COMPONENTE DE COMPARACIÓN ---
       case 'notifications': return <UploadFileCmpare />; 
       case 'reporting': return <AIReporting />; 
+      case 'compare': return <Compare />
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
     }

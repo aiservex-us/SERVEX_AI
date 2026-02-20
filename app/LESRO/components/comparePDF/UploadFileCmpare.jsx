@@ -5,7 +5,6 @@ import {
   FiCheck, 
   FiZap, 
   FiShield, 
-  FiCpu,
   FiX,
   FiSearch,
   FiAlertTriangle,
@@ -121,7 +120,7 @@ const SVXCopilotEnterprise = () => {
   };
 
   return (
-    <div className="flex flex-col items-center bg-[#FDFDFD] p-2 md:p-4 font-sans text-[#242424] w-full max-w-5xl mx-auto">
+    <div className="flex flex-col items-center justify-center bg-[#FDFDFD] p-4 font-sans text-[#242424] w-full max-w-[95vw] mx-auto h-[90vh]">
       
       <AnimatePresence>
         {alert.show && (
@@ -143,34 +142,32 @@ const SVXCopilotEnterprise = () => {
         )}
       </AnimatePresence>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full space-y-3">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full flex flex-col">
         
-   
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
           
           {/* LADO IZQUIERDO */}
-          <div className="lg:col-span-3 bg-white border border-[#EDEBE9] rounded-lg overflow-hidden flex flex-col shadow-sm h-fit">
-              <div className="bg-[#FAF9F8] p-2 border-b border-[#EDEBE9]">
-                <h3 className="text-[9px] font-black text-[#464775] uppercase tracking-wider text-center">Protocolo</h3>
+          <div className="lg:col-span-3 bg-white border border-[#EDEBE9] rounded-lg overflow-hidden flex flex-col shadow-sm h-full">
+              <div className="bg-[#FAF9F8] p-3 border-b border-[#EDEBE9]">
+                <h3 className="text-[10px] font-black text-[#464775] uppercase tracking-wider text-center">Protocolo</h3>
               </div>
               
-              <div className="p-3">
-                <div className="flex flex-col">
-                  <Step icon={<FiCheck size={12}/>} title="Archivo" desc={fileName || "Pendiente"} active={data.length > 0} />
-                  <Step icon={<FiSearch size={12}/>} title="Mapeo" desc="SVX Cloud" active={isAnalyzing || matchStatus} />
-                  <Step icon={<FiShield size={12}/>} title="Delta" desc={matchStatus ? "Finalizado" : "En espera"} active={matchStatus} isLast />
+              <div className="p-4 flex-grow">
+                <div className="flex flex-col h-full justify-start space-y-4">
+                  <Step icon={<FiCheck size={14}/>} title="Archivo" desc={fileName || "Pendiente"} active={data.length > 0} />
+                  <Step icon={<FiSearch size={14}/>} title="Mapeo" desc="SVX Cloud" active={isAnalyzing || matchStatus} />
+                  <Step icon={<FiShield size={14}/>} title="Delta" desc={matchStatus ? "Finalizado" : "En espera"} active={matchStatus} isLast />
                 </div>
                 
                 {matchStatus === 'mismatch' && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 p-2 bg-[#FFF4F4] rounded border border-red-500/10">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-red-500 rounded-px" />
-                      <span className="text-[8px] font-black text-red-800 uppercase">DB Master</span>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 p-3 bg-[#FFF4F4] rounded border border-red-500/10">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-px" />
+                      <span className="text-[10px] font-black text-red-800 uppercase">DB Master</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-[#237B4B] rounded-px" />
-                      <span className="text-[8px] font-black text-[#237B4B] uppercase">CSV Nuevo</span>
+                      <div className="w-3 h-3 bg-[#237B4B] rounded-px" />
+                      <span className="text-[10px] font-black text-[#237B4B] uppercase">CSV Nuevo</span>
                     </div>
                   </motion.div>
                 )}
@@ -178,10 +175,10 @@ const SVXCopilotEnterprise = () => {
           </div>
 
           {/* CONSOLA */}
-          <div className="lg:col-span-9 bg-white border border-[#EDEBE9] rounded-lg p-4 shadow-sm flex flex-col min-h-[400px]">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-xs font-bold">Consola de Análisis</h2>
-              <BsFileEarmarkArrowUp size={18} className={data.length > 0 ? "text-[#464775]" : "text-[#EDEBE9]"} />
+          <div className="lg:col-span-9 bg-white border border-[#EDEBE9] rounded-lg p-6 shadow-sm flex flex-col h-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-sm font-bold">Consola de Análisis</h2>
+              <BsFileEarmarkArrowUp size={22} className={data.length > 0 ? "text-[#464775]" : "text-[#EDEBE9]"} />
             </div>
 
             <AnimatePresence mode="wait">
@@ -190,35 +187,36 @@ const SVXCopilotEnterprise = () => {
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
-                  className={`flex-grow border border-dashed rounded-lg flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}
+                  className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}
                 >
-                  <FiUploadCloud size={24} className="text-[#464775] mb-2" />
-                  <p className="text-[10px] font-bold">Suelte el CSV aquí</p>
+                  <FiUploadCloud size={48} className="text-[#464775] mb-4" />
+                  <p className="text-xs font-bold text-[#464775]">Arrastre y suelte el archivo CSV aquí</p>
+                  <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-tighter">Soporte nativo para arquitectura SERVEX_AI</p>
                 </div>
               ) : (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-grow overflow-hidden flex flex-col">
-                  <div className="overflow-auto border rounded-md max-h-[300px]">
-                    <table className="w-full text-left text-[9px]">
+                  <div className="overflow-auto border rounded-md h-full bg-[#FAF9F8]/30">
+                    <table className="w-full text-left text-[10px]">
                       <thead className="bg-[#FAF9F8] sticky top-0 z-20">
                         <tr>
                           {data[0].map((h, i) => (
-                            <th key={i} className="p-2 font-black border-b text-[#464775] uppercase whitespace-nowrap">{h}</th>
+                            <th key={i} className="p-3 font-black border-b text-[#464775] uppercase whitespace-nowrap">{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {data.slice(1).map((row, ri) => (
-                          <tr key={ri} className="border-b hover:bg-gray-50 transition-colors">
+                          <tr key={ri} className="border-b bg-white hover:bg-gray-50 transition-colors">
                             {row.map((cell, ci) => {
                               const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                               const isCellDiff = masterCell !== null && cell !== masterCell;
                               return (
-                                <td key={ci} className={`p-2 border-r border-[#F3F2F1] last:border-0 ${isCellDiff ? 'bg-orange-50/30' : ''}`}>
+                                <td key={ci} className={`p-3 border-r border-[#F3F2F1] last:border-0 ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
                                   {isCellDiff ? (
                                     <div className="flex flex-col">
                                       <span className="text-red-500 line-through font-medium opacity-70">{masterCell || '(null)'}</span>
                                       <div className="flex items-center gap-1 text-[#237B4B] font-bold">
-                                        <FiArrowRight size={8} /><span>{cell}</span>
+                                        <FiArrowRight size={10} /><span>{cell}</span>
                                       </div>
                                     </div>
                                   ) : <span className="text-[#616161]">{cell}</span>}
@@ -234,15 +232,15 @@ const SVXCopilotEnterprise = () => {
               )}
             </AnimatePresence>
 
-            <div className="mt-4 flex justify-end gap-2 pt-3 border-t">
-               <button onClick={() => { setData([]); setMatchStatus(null); setFileName(""); setMasterDataRows([]); }} className="px-3 py-1.5 border rounded-md text-[9px] font-bold text-gray-500 hover:bg-gray-50 uppercase tracking-tighter">
+            <div className="mt-4 flex justify-end gap-3 pt-4 border-t">
+               <button onClick={() => { setData([]); setMatchStatus(null); setFileName(""); setMasterDataRows([]); }} className="px-6 py-2 border rounded-md text-[10px] font-bold text-gray-500 hover:bg-gray-50 uppercase tracking-widest transition-all">
                  Reset
                </button>
                <button 
                 onClick={handleAnalyze} disabled={data.length === 0 || isAnalyzing}
-                className={`px-4 py-1.5 rounded-md text-[9px] font-black shadow-md flex items-center gap-2 transition-all ${data.length > 0 ? 'bg-[#464775] text-white hover:brightness-110' : 'bg-gray-100 text-gray-400'}`}
+                className={`px-8 py-2 rounded-md text-[10px] font-black shadow-lg flex items-center gap-2 transition-all ${data.length > 0 ? 'bg-[#464775] text-white hover:scale-[1.02] active:scale-95' : 'bg-gray-100 text-gray-400'}`}
                >
-                 {isAnalyzing ? "AUDITANDO..." : "EJECUTAR"} <FiZap size={10} />
+                 {isAnalyzing ? "PROCESANDO PIPELINE..." : "EJECUTAR AUDITORÍA"} <FiZap size={12} />
                </button>
             </div>
           </div>
@@ -253,16 +251,16 @@ const SVXCopilotEnterprise = () => {
 };
 
 const Step = ({ icon, title, desc, active, isLast }) => (
-  <div className="flex gap-3 relative">
+  <div className="flex gap-4 relative">
     <div className="flex flex-col items-center">
-      <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${active ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>
+      <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${active ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>
         {icon}
       </div>
-      {!isLast && <div className={`w-[1px] h-full my-0.5 ${active ? 'bg-[#464775]' : 'bg-[#F3F2F1]'}`} />}
+      {!isLast && <div className={`w-[2px] h-12 my-1 ${active ? 'bg-[#464775]' : 'bg-[#F3F2F1]'}`} />}
     </div>
-    <div className={`pb-4 ${!active && 'opacity-40'}`}>
-      <h4 className="text-[10px] font-black leading-none mb-0.5">{title}</h4>
-      <p className="text-[8px] text-[#616161] font-medium truncate w-20">{desc}</p>
+    <div className={`pt-1 ${!active && 'opacity-40'}`}>
+      <h4 className="text-[11px] font-black leading-none mb-1 text-[#464775] uppercase">{title}</h4>
+      <p className="text-[10px] text-[#616161] font-medium truncate w-32">{desc}</p>
     </div>
   </div>
 );
