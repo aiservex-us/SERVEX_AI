@@ -169,7 +169,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-6">
+    <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-6">
       
       {/* HEADER INTEGRADO */}
       <header className="flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">

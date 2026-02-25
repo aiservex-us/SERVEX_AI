@@ -17,7 +17,6 @@ import {
 
 const menuItems = [
   { id: 'reporting', label: 'AI Reporting', icon: LayoutDashboard, sub: 'Analysis' },
-  { id: 'compare', label: 'Visual Comparation', icon:  BarChart3, sub: 'Statistics' },
   { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
   { id: 'inbox', label: 'Excel Preview', icon: Inbox, sub: 'Visualization' },
   { id: 'kanban', label: 'XML Preview', icon: KanbanSquare, sub: 'Structure' },
