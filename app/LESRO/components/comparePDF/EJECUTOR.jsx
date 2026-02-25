@@ -225,7 +225,7 @@ const SVXUnifiedPlatform = () => {
             <div className="flex gap-4">
               {matchStatus === 'mismatch' && (
                 <div className="flex items-center gap-2 text-orange-600 text-[10px] font-bold">
-                  <FiAlertTriangle /> {diffCount} DIFERENCIAS ENCONTRADAS
+                  <FiAlertTriangle /> {diffCount} DIFERENCIAS - ENCONTRADAS
                 </div>
               )}
             </div>
