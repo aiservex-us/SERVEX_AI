@@ -54,7 +54,7 @@ const SVXUnifiedPlatform = () => {
     try {
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
-        .select('audit_report_json, xml_actualizer_raw')
+        .select('audit_report_json, xml_actualizer_raw, csv_raw')
         .eq('company_name', 'LESRO')
         .maybeSingle();
       
@@ -68,6 +68,35 @@ const SVXUnifiedPlatform = () => {
 
         setAuditReportJson(report);
         setXmlActualizerRaw(dbData.xml_actualizer_raw);
+
+        // LÓGICA DE COMPARACIÓN VISUAL (Extraída del segundo código)
+        if (dbData.csv_raw && data.length > 0) {
+            const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
+            const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
+            const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
+
+            const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product'));
+            const header = data[headerIndex] || data[0];
+            const currentRows = data.slice(headerIndex + 1);
+            const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
+
+            const auditResults = currentRows.map((row, idx) => {
+              const mRow = masterRowsOnly[idx] || [];
+              const isDifferent = JSON.stringify(row) !== JSON.stringify(mRow);
+              return { row, mRow, isDifferent };
+            });
+
+            const discrepancies = auditResults.filter(item => item.isDifferent);
+
+            if (discrepancies.length > 0) {
+              setMatchStatus('mismatch');
+              setDiffCount(discrepancies.length);
+              setMasterDataRows(discrepancies.map(d => d.mRow));
+              setData([header, ...discrepancies.map(d => d.row)]);
+            } else {
+              setMatchStatus('match');
+            }
+        }
       }
     } catch (err) {
       console.error("Error fetching cloud data:", err);
@@ -91,6 +120,8 @@ const SVXUnifiedPlatform = () => {
       const delimiter = sampleLine && sampleLine.includes(';') ? ';' : ',';
       const matrix = lines.map(line => line.split(delimiter).map(cell => cell.trim()));
       setData(matrix);
+      setMatchStatus(null);
+      setMasterDataRows([]);
       showAlert("Archivo vinculado", "success");
     };
     reader.readAsText(selectedFile);
@@ -145,6 +176,7 @@ const SVXUnifiedPlatform = () => {
   const handleFullReset = () => {
     setData([]); setFile(null); setFileName(""); setMatchStatus(null);
     setBackendSuccess(false); setAuditReportJson(null); setXmlActualizerRaw("");
+    setMasterDataRows([]);
   };
 
   return (
@@ -211,6 +243,18 @@ const SVXUnifiedPlatform = () => {
               <motion.div key="console" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full">
                 <div className="p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
                   <h2 className="text-xs font-black text-[#464775] uppercase">Visor de Comparación Local</h2>
+                  {matchStatus === 'mismatch' && (
+                    <div className="flex gap-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full" />
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Cloud Master</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-[#237B4B] rounded-full" />
+                          <span className="text-[9px] font-bold text-[#237B4B] uppercase">Nuevo Cambio</span>
+                        </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-grow overflow-auto">
                    {!file ? (
@@ -222,13 +266,31 @@ const SVXUnifiedPlatform = () => {
                      </div>
                    ) : (
                      <table className="w-full text-left text-[10px]">
-                        <thead className="bg-[#FAF9F8] sticky top-0">
+                        <thead className="bg-[#FAF9F8] sticky top-0 z-20">
                           <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h}</th>)}</tr>
                         </thead>
                         <tbody>
-                          {data.slice(1, 50).map((row, ri) => (
-                            <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50">
-                              {row.map((cell, ci) => <td key={ci} className="p-3 border-r border-[#F3F2F1]">{cell}</td>)}
+                          {data.slice(1).map((row, ri) => (
+                            <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
+                              {row.map((cell, ci) => {
+                                const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
+                                const isCellDiff = masterCell !== null && cell !== masterCell;
+                                
+                                return (
+                                  <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
+                                    {isCellDiff ? (
+                                      <div className="flex flex-col">
+                                        <span className="text-red-500 line-through font-medium opacity-60">{masterCell || '(null)'}</span>
+                                        <div className="flex items-center gap-1 text-[#237B4B] font-bold">
+                                          <FiArrowRight size={10} /><span>{cell}</span>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-600">{cell}</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           ))}
                         </tbody>
