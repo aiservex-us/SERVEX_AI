@@ -37,15 +37,27 @@ const SVXUnifiedPlatform = () => {
 
   // Lógica para obtener datos frescos de Supabase tras el proceso
   const fetchCloudData = async () => {
-    const { data: dbData, error } = await supabase
-      .from('ClientsSERVEX')
-      .select('audit_report_json, xml_actualizer_raw')
-      .eq('company_name', 'LESRO')
-      .single();
-    
-    if (!error && dbData) {
-      setAuditReportJson(dbData.audit_report_json);
-      setXmlActualizerRaw(dbData.xml_actualizer_raw);
+    try {
+      const { data: dbData, error } = await supabase
+        .from('ClientsSERVEX')
+        .select('audit_report_json, xml_actualizer_raw')
+        .eq('company_name', 'LESRO')
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (dbData) {
+        // Aseguramos que el JSON se maneje correctamente si viene como string
+        const report = typeof dbData.audit_report_json === 'string' 
+          ? JSON.parse(dbData.audit_report_json) 
+          : dbData.audit_report_json;
+
+        setAuditReportJson(report);
+        setXmlActualizerRaw(dbData.xml_actualizer_raw);
+      }
+    } catch (err) {
+      console.error("Error fetching cloud data:", err);
+      showAlert("Error al sincronizar datos de la nube", "error");
     }
   };
 
@@ -74,6 +86,10 @@ const SVXUnifiedPlatform = () => {
     if (!file) { showAlert("Primero cargue un archivo CSV", "warning"); return; }
     setIsProcessing(true);
     setBackendError(null);
+    
+    // Limpiamos estados previos para asegurar que el usuario vea la nueva data
+    setAuditReportJson(null);
+    setXmlActualizerRaw("");
 
     try {
       const formData = new FormData();
@@ -91,10 +107,13 @@ const SVXUnifiedPlatform = () => {
 
       const result = await response.json();
       setBackendSuccess(true);
-      showAlert("Sincronización con Supabase exitosa", "success");
       
+      // Breve espera para asegurar que la escritura en Supabase sea consistente
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       // Obtener los datos actualizados de las columnas
       await fetchCloudData();
+      showAlert("Sincronización con Supabase exitosa", "success");
 
     } catch (err) {
       setBackendError(err.message);
@@ -209,7 +228,13 @@ const SVXUnifiedPlatform = () => {
               <motion.div key="json" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
                 <h2 className="text-xs font-black text-[#464775] uppercase mb-4">Columna: audit_report_json</h2>
                 <div className="bg-[#1E1E1E] text-[#D4D4D4] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow shadow-inner">
-                  {auditReportJson ? <pre>{JSON.stringify(auditReportJson, null, 2)}</pre> : <p className="opacity-50">// Sin datos procesados en la nube aún...</p>}
+                  {isProcessing ? (
+                    <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin" /></div>
+                  ) : auditReportJson ? (
+                    <pre>{JSON.stringify(auditReportJson, null, 2)}</pre>
+                  ) : (
+                    <p className="opacity-50">// Sin datos procesados en la nube aún...</p>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -218,7 +243,9 @@ const SVXUnifiedPlatform = () => {
               <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
                 <h2 className="text-xs font-black text-[#464775] uppercase mb-4">Columna: xml_actualizer_raw</h2>
                 <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner">
-                  {xmlActualizerRaw || ""}
+                  {isProcessing ? (
+                     <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin text-[#444791]" /></div>
+                  ) : xmlActualizerRaw || ""}
                 </div>
               </motion.div>
             )}
