@@ -35,6 +35,20 @@ const SVXUnifiedPlatform = () => {
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [backendError, setBackendError] = useState(null);
 
+  // Lógica manual para descargar el XML
+  const handleDownloadXML = () => {
+    if (!xmlActualizerRaw) return;
+    const blob = new Blob([xmlActualizerRaw], { type: 'text/xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `SERIVEX_ACTUALIZER_${new Date().getTime()}.xml`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Lógica para obtener datos frescos de Supabase tras el proceso
   const fetchCloudData = async () => {
     try {
@@ -241,11 +255,31 @@ const SVXUnifiedPlatform = () => {
 
             {activeTab === 'xml_view' && (
               <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
-                <h2 className="text-xs font-black text-[#464775] uppercase mb-4">Columna: xml_actualizer_raw</h2>
-                <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xs font-black text-[#464775] uppercase">Columna: xml_actualizer_raw</h2>
+                  {xmlActualizerRaw && !isProcessing && (
+                    <button 
+                      onClick={handleDownloadXML}
+                      className="flex items-center gap-2 bg-[#444791] text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-[#363975] transition-all shadow-sm"
+                    >
+                      <DownloadCloud size={14} /> DESCARGAR XML
+                    </button>
+                  )}
+                </div>
+                
+                <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner relative">
                   {isProcessing ? (
-                     <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin text-[#444791]" /></div>
-                  ) : xmlActualizerRaw || ""}
+                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-10">
+                       <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
+                       <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">Generando XML...</span>
+                     </div>
+                  ) : xmlActualizerRaw ? (
+                    xmlActualizerRaw
+                  ) : (
+                    <div className="h-full flex items-center justify-center opacity-30 italic">
+                      // Esperando sincronización de datos...
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
