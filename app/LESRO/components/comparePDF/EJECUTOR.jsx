@@ -213,13 +213,13 @@ const SVXUnifiedPlatform = () => {
                 Section optimized for the <strong>analysis and comparison</strong> of <strong>LESRO</strong> catalog updates.
               </p>
               <div className="space-y-2">
-                <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#444791]">
+                <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#464775]">
                   <FileText className="text-[#444791] shrink-0" size={16} />
-                  <p className="text-[11px] text-[#424242]">
+                  <p className="text-[11px] text-[#464775]">
                     Updated XML for <strong>CET Designer</strong> and <strong>Catalog Creator</strong> integration.
                   </p>
                 </div>
-                <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#444791]">
+                <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#464775]">
                   <CheckCircle className="text-[#237b4b] shrink-0" size={16} />
                   <p className="text-[11px] text-[#424242]">
                     Automatic generation of changes detected during catalog comparison.
@@ -228,7 +228,7 @@ const SVXUnifiedPlatform = () => {
               </div>
               <button 
                 onClick={closeTutorial}
-                className="w-full mt-5 bg-[#444791] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#3b3e7a] transition-all active:scale-[0.98]"
+                className="w-full mt-5 bg-[#464775] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#3b3e7a] transition-all active:scale-[0.98]"
               >
                 Get Started
               </button>
@@ -240,7 +240,7 @@ const SVXUnifiedPlatform = () => {
       {/* HEADER INTEGRATED */}
       <header className="flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#444791] rounded flex items-center justify-center text-white font-bold">SVX</div>
+          <div className="w-10 h-10 bg-[#464775]rounded flex items-center justify-center text-white font-bold">SVX</div>
           <div>
             <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
             <p className="text-[10px] text-gray-500 font-medium">Centralized Data Engineering Control</p>
@@ -273,7 +273,7 @@ const SVXUnifiedPlatform = () => {
             </div>
           </div>
 
-          <div className="bg-[#444791] text-white rounded-lg p-5 shadow-lg">
+          <div className="bg-[#464775] text-white rounded-lg p-5 shadow-lg">
             <div className="flex items-center gap-2 mb-3">
               <Zap size={16} className="text-yellow-400" />
               <h4 className="text-xs font-bold uppercase">Platform Actions</h4>
