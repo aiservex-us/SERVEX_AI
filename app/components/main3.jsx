@@ -55,7 +55,7 @@ export default function TutorialBanner() {
 
             <div>
               <p className="text-gray-400 text-xs uppercase">Scope</p>
-              <p className="mt-1 font-medium">End-to-End Ops</p>
+              <p className="mt-1 font-medium">End-to-End  Ops</p>
             </div>
 
             <div>
