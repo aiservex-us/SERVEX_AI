@@ -198,7 +198,7 @@ const SVXUnifiedPlatform = () => {
       {showTutorial && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-[2px] animate-in fade-in duration-200">
           <div className="bg-white w-[380px] rounded shadow-xl border border-[#d1d1d1] overflow-hidden transform animate-in zoom-in-95 duration-200">
-            <div className="bg-[#444791] px-4 py-2 text-white flex justify-between items-center">
+            <div className="bg-[#464775] px-4 py-2 text-white flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Zap size={14} className="text-yellow-400 fill-yellow-400" />
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization Module</span>
@@ -377,7 +377,7 @@ const SVXUnifiedPlatform = () => {
                   {xmlActualizerRaw && !isProcessing && (
                     <button 
                       onClick={handleDownloadXML}
-                      className="flex items-center gap-2 bg-[#444791] text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-[#363975] transition-all shadow-sm"
+                      className="flex items-center gap-2 bg-[#464775] text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-[#363975] transition-all shadow-sm"
                     >
                       <DownloadCloud size={14} /> DOWNLOAD XML
                     </button>
@@ -419,7 +419,7 @@ const TabButton = ({ active, onClick, icon, label }) => (
 const Step = ({ icon, title, desc, active, isLast }) => (
   <div className="flex gap-4 relative">
     <div className="flex flex-col items-center">
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${active ? 'bg-[#444791] border-[#444791] text-white shadow-lg' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>{icon}</div>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${active ? 'bg-[#464775] border-[#444791] text-white shadow-lg' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>{icon}</div>
       {!isLast && <div className={`w-[2px] h-10 my-1 ${active ? 'bg-[#444791]' : 'bg-[#EDEBE9]'}`} />}
     </div>
     <div className={`pt-1 ${!active && 'opacity-40'}`}>

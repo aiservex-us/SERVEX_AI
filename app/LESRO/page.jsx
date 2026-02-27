@@ -13,7 +13,7 @@ import Csvs from './components/comparePDF/csvs';
 import PrecentMain from './components/PrecentMain';
 // --- IMPORTACIÓN SOLICITADA ---
 import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
-import AIReporting from './components/comparePDF/aiReporting/AIReporting'
+import AIReporting from './components/comparePDF/presentation_LESRO'
 import Compare from './components/comparePDF/UploadFileCmpare'
 
 export default function MenuInicial() {
@@ -71,7 +71,7 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="h-screen w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+    <div className="h-[90vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
 
       {/* MICROSOFT TEAMS STYLE MODAL */}
       {showExitModal && (
