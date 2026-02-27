@@ -71,7 +71,7 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="h-[90vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+    <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
 
       {/* MICROSOFT TEAMS STYLE MODAL */}
       {showExitModal && (

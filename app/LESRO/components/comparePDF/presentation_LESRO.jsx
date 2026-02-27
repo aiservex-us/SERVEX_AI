@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 const LesroAdminHero = () => {
   return (
-    <div className="relative h-[90vh] w-full font-sans overflow-hidden bg-white flex">
+    <div className="relative h-[94vh] w-full font-sans overflow-hidden bg-white flex">
       
       {/* Left Side (White) - Main Content */}
       <div className="w-full lg:w-[65%] h-full bg-white flex flex-col p-8 sm:p-12 lg:p-20">
