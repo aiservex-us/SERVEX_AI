@@ -198,7 +198,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   return (
-    <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative">
+    <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
       
       {/* Pop-up Tutorial INTEGRATED */}
       {showTutorial && (
@@ -244,7 +244,7 @@ const SVXUnifiedPlatform = () => {
       )}
 
       {/* HEADER INTEGRATED */}
-      <header className="flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
+      <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-[#464775] rounded flex items-center justify-center text-white font-bold">SVX</div>
           <div>
@@ -268,9 +268,9 @@ const SVXUnifiedPlatform = () => {
         </div>
       </header>
 
-      <div className="grid grid-cols-12 gap-6 h-[72vh]">
+      <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
         {/* LEFT PANEL: PROTOCOL */}
-        <aside className="col-span-3 flex flex-col gap-4">
+        <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">
           <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
             <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
             <div className="space-y-6">
@@ -298,14 +298,14 @@ const SVXUnifiedPlatform = () => {
         </aside>
 
         {/* RIGHT CONTENT: SPLIT BETWEEN MAIN VIEW AND CONSOLE */}
-        <div className="col-span-9 flex flex-col gap-4 h-full">
+        <div className="col-span-9 flex flex-col gap-4 h-full min-h-0">
           
           {/* CENTRAL PANEL: DYNAMIC CONTENT (TOP 50%) */}
-          <main className="flex-[1] bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col overflow-hidden">
+          <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden">
             <AnimatePresence mode="wait">
               {activeTab === 'console' && (
-                <motion.div key="console" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full">
-                  <div className="p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
+                <motion.div key="console" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full overflow-hidden">
+                  <div className="flex-shrink-0 p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
                     <h2 className="text-xs font-black text-[#464775] uppercase">Local Comparison Viewer</h2>
                     {matchStatus === 'mismatch' && (
                       <div className="flex gap-4">
@@ -365,8 +365,8 @@ const SVXUnifiedPlatform = () => {
               )}
 
               {activeTab === 'audit_json' && (
-                <motion.div key="json" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
-                  <h2 className="text-xs font-black text-[#464775] uppercase mb-4">Column: audit_report_json</h2>
+                <motion.div key="json" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
+                  <h2 className="flex-shrink-0 text-xs font-black text-[#464775] uppercase mb-4">Column: audit_report_json</h2>
                   <div className="bg-[#1E1E1E] text-[#D4D4D4] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow shadow-inner">
                     {isProcessing ? (
                       <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin" /></div>
@@ -380,8 +380,8 @@ const SVXUnifiedPlatform = () => {
               )}
 
               {activeTab === 'xml_view' && (
-                <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
-                  <div className="flex justify-between items-center mb-4">
+                <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
+                  <div className="flex-shrink-0 flex justify-between items-center mb-4">
                     <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_actualizer_raw</h2>
                     {xmlActualizerRaw && !isProcessing && (
                       <button 
@@ -413,59 +413,59 @@ const SVXUnifiedPlatform = () => {
           </main>
 
           {/* LOWER PANEL: SYSTEM CONSOLE (BOTTOM 50%) */}
-<section className="flex-[1] bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden flex flex-col font-mono">
-  {/* Console Header - Teams Style */}
-  <div className="bg-[#F3F2F1] px-4 py-2 border-b border-[#EDEBE9] flex items-center justify-between">
-    <div className="flex items-center gap-2">
-      <Terminal size={12} className="text-[#464775]" />
-      <span className="text-[10px] font-black text-[#464775] uppercase tracking-wider">
-        Live Execution Console
-      </span>
-    </div>
-    <div className="flex gap-2">
-      <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-      <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-      <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-    </div>
-  </div>
+          <section className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden flex flex-col font-mono min-h-0">
+            {/* Console Header - Teams Style */}
+            <div className="flex-shrink-0 bg-[#F3F2F1] px-4 py-2 border-b border-[#EDEBE9] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Terminal size={12} className="text-[#464775]" />
+                <span className="text-[10px] font-black text-[#464775] uppercase tracking-wider">
+                  Live Execution Console
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
+              </div>
+            </div>
 
-  {/* Console Body - Light Theme */}
-  <div className="flex-grow p-4 overflow-auto text-[11px] space-y-1.5 bg-[#FAF9F8] custom-scrollbar">
-    {terminalLogs.map((log) => (
-      <div key={log.id} className="flex gap-3 items-start border-l-2 border-transparent hover:border-[#464775] pl-1 transition-colors">
-        <span className="text-[#828282] shrink-0 font-medium">
-          [{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
-        </span>
-        <span className={`font-bold shrink-0 ${
-          log.type === 'system' ? 'text-[#464775]' : 'text-[#005FB8]'
-        }`}>
-          {log.type === 'system' ? '>>' : 'INF'}
-        </span>
-        <span className="text-[#242424] leading-relaxed">{log.msg}</span>
-      </div>
-    ))}
+            {/* Console Body - Light Theme */}
+            <div className="flex-grow p-4 overflow-auto text-[11px] space-y-1.5 bg-[#FAF9F8] custom-scrollbar">
+              {terminalLogs.map((log) => (
+                <div key={log.id} className="flex gap-3 items-start border-l-2 border-transparent hover:border-[#464775] pl-1 transition-colors">
+                  <span className="text-[#828282] shrink-0 font-medium">
+                    [{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
+                  </span>
+                  <span className={`font-bold shrink-0 ${
+                    log.type === 'system' ? 'text-[#464775]' : 'text-[#005FB8]'
+                  }`}>
+                    {log.type === 'system' ? '>>' : 'INF'}
+                  </span>
+                  <span className="text-[#242424] leading-relaxed">{log.msg}</span>
+                </div>
+              ))}
 
-    {isProcessing && (
-      <div className="flex gap-3 animate-pulse pl-1 border-l-2 border-[#464775]">
-         <span className="text-[#828282]">[{new Date().toLocaleTimeString()}]</span>
-         <span className="text-[#915608] font-bold">PRC</span>
-         <span className="text-[#915608] italic">Executing cloud pipelines and AI analysis...</span>
-      </div>
-    )}
-    
-    <div className="pt-2 flex items-center gap-1 pl-1">
-      <span className="text-[#464775] font-bold font-sans">SERVEX_AI</span>
-      <span className="text-[#464775] animate-bounce text-lg leading-none">.</span>
-    </div>
-  </div>
+              {isProcessing && (
+                <div className="flex gap-3 animate-pulse pl-1 border-l-2 border-[#464775]">
+                   <span className="text-[#828282]">[{new Date().toLocaleTimeString()}]</span>
+                   <span className="text-[#915608] font-bold">PRC</span>
+                   <span className="text-[#915608] italic">Executing cloud pipelines and AI analysis...</span>
+                </div>
+              )}
+              
+              <div className="pt-2 flex items-center gap-1 pl-1">
+                <span className="text-[#464775] font-bold font-sans">SERVEX_AI</span>
+                <span className="text-[#464775] animate-bounce text-lg leading-none">.</span>
+              </div>
+            </div>
 
-  {/* Optional Footer/Status bar for console */}
-  <div className="px-4 py-1 bg-white border-t border-[#EDEBE9] flex justify-end">
-    <span className="text-[8px] text-[#616161] font-bold uppercase tracking-widest">
-      System Ready
-    </span>
-  </div>
-</section>
+            {/* Optional Footer/Status bar for console */}
+            <div className="flex-shrink-0 px-4 py-1 bg-white border-t border-[#EDEBE9] flex justify-end">
+              <span className="text-[8px] text-[#616161] font-bold uppercase tracking-widest">
+                System Ready
+              </span>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -474,11 +474,14 @@ const SVXUnifiedPlatform = () => {
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #1A1A1A;
+          background: #F3F2F1;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #333;
+          background: #C8C6C4;
           border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #A19F9D;
         }
       `}</style>
     </div>
