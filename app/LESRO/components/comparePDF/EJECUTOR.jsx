@@ -51,6 +51,12 @@ const SVXUnifiedPlatform = () => {
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [backendError, setBackendError] = useState(null);
 
+  // --- NEW TERMINAL STATE ---
+  const [terminalLogs, setTerminalLogs] = useState([
+    { id: 1, type: 'system', msg: 'SERVEX_AI System Initialized...' },
+    { id: 2, type: 'info', msg: 'Awaiting data stream connection...' }
+  ]);
+
   // Manual logic to download XML
   const handleDownloadXML = () => {
     if (!xmlActualizerRaw) return;
@@ -240,7 +246,7 @@ const SVXUnifiedPlatform = () => {
       {/* HEADER INTEGRATED */}
       <header className="flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#464775]rounded flex items-center justify-center text-white font-bold">SVX</div>
+          <div className="w-10 h-10 bg-[#464775] rounded flex items-center justify-center text-white font-bold">SVX</div>
           <div>
             <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
             <p className="text-[10px] text-gray-500 font-medium">Centralized Data Engineering Control</p>
@@ -291,118 +297,190 @@ const SVXUnifiedPlatform = () => {
           </div>
         </aside>
 
-        {/* CENTRAL PANEL: DYNAMIC CONTENT */}
-        <main className="col-span-9 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col overflow-hidden">
-          <AnimatePresence mode="wait">
-            {activeTab === 'console' && (
-              <motion.div key="console" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full">
-                <div className="p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
-                  <h2 className="text-xs font-black text-[#464775] uppercase">Local Comparison Viewer</h2>
-                  {matchStatus === 'mismatch' && (
-                    <div className="flex gap-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-red-500 rounded-full" />
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Cloud Master</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-[#237B4B] rounded-full" />
-                          <span className="text-[9px] font-bold text-[#237B4B] uppercase">New Change</span>
-                        </div>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-grow overflow-auto">
-                   {!file ? (
-                     <div className="h-full flex flex-col items-center justify-center opacity-40">
-                       <DownloadCloud size={40} />
-                       <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
-                       <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
-                       <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
-                     </div>
-                   ) : (
-                     <table className="w-full text-left text-[10px]">
-                        <thead className="bg-[#FAF9F8] sticky top-0 z-20">
-                          <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h}</th>)}</tr>
-                        </thead>
-                        <tbody>
-                          {data.slice(1).map((row, ri) => (
-                            <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
-                              {row.map((cell, ci) => {
-                                const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
-                                const isCellDiff = masterCell !== null && cell !== masterCell;
-                                
-                                return (
-                                  <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
-                                    {isCellDiff ? (
-                                      <div className="flex flex-col">
-                                        <span className="text-red-500 line-through font-medium opacity-60">{masterCell || '(null)'}</span>
-                                        <div className="flex items-center gap-1 text-[#237B4B] font-bold">
-                                          <FiArrowRight size={10} /><span>{cell}</span>
+        {/* RIGHT CONTENT: SPLIT BETWEEN MAIN VIEW AND CONSOLE */}
+        <div className="col-span-9 flex flex-col gap-4 h-full">
+          
+          {/* CENTRAL PANEL: DYNAMIC CONTENT (TOP 50%) */}
+          <main className="flex-[1] bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col overflow-hidden">
+            <AnimatePresence mode="wait">
+              {activeTab === 'console' && (
+                <motion.div key="console" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full">
+                  <div className="p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
+                    <h2 className="text-xs font-black text-[#464775] uppercase">Local Comparison Viewer</h2>
+                    {matchStatus === 'mismatch' && (
+                      <div className="flex gap-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-red-500 rounded-full" />
+                            <span className="text-[9px] font-bold text-gray-400 uppercase">Cloud Master</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-[#237B4B] rounded-full" />
+                            <span className="text-[9px] font-bold text-[#237B4B] uppercase">New Change</span>
+                          </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-grow overflow-auto">
+                    {!file ? (
+                      <div className="h-full flex flex-col items-center justify-center opacity-40">
+                        <DownloadCloud size={40} />
+                        <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
+                        <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
+                        <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
+                      </div>
+                    ) : (
+                      <table className="w-full text-left text-[10px]">
+                          <thead className="bg-[#FAF9F8] sticky top-0 z-20">
+                            <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h}</th>)}</tr>
+                          </thead>
+                          <tbody>
+                            {data.slice(1).map((row, ri) => (
+                              <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
+                                {row.map((cell, ci) => {
+                                  const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
+                                  const isCellDiff = masterCell !== null && cell !== masterCell;
+                                  
+                                  return (
+                                    <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
+                                      {isCellDiff ? (
+                                        <div className="flex flex-col">
+                                          <span className="text-red-500 line-through font-medium opacity-60">{masterCell || '(null)'}</span>
+                                          <div className="flex items-center gap-1 text-[#237B4B] font-bold">
+                                            <FiArrowRight size={10} /><span>{cell}</span>
+                                          </div>
                                         </div>
-                                      </div>
-                                    ) : (
-                                      <span className="text-gray-600">{cell}</span>
-                                    )}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          ))}
-                        </tbody>
-                     </table>
-                   )}
-                </div>
-              </motion.div>
-            )}
+                                      ) : (
+                                        <span className="text-gray-600">{cell}</span>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                      </table>
+                    )}
+                  </div>
+                </motion.div>
+              )}
 
-            {activeTab === 'audit_json' && (
-              <motion.div key="json" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
-                <h2 className="text-xs font-black text-[#464775] uppercase mb-4">Column: audit_report_json</h2>
-                <div className="bg-[#1E1E1E] text-[#D4D4D4] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow shadow-inner">
-                  {isProcessing ? (
-                    <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin" /></div>
-                  ) : auditReportJson ? (
-                    <pre>{JSON.stringify(auditReportJson, null, 2)}</pre>
-                  ) : (
-                    <p className="opacity-50">// No data processed in cloud yet...</p>
-                  )}
-                </div>
-              </motion.div>
-            )}
+              {activeTab === 'audit_json' && (
+                <motion.div key="json" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
+                  <h2 className="text-xs font-black text-[#464775] uppercase mb-4">Column: audit_report_json</h2>
+                  <div className="bg-[#1E1E1E] text-[#D4D4D4] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow shadow-inner">
+                    {isProcessing ? (
+                      <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin" /></div>
+                    ) : auditReportJson ? (
+                      <pre>{JSON.stringify(auditReportJson, null, 2)}</pre>
+                    ) : (
+                      <p className="opacity-50">// No data processed in cloud yet...</p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
 
-            {activeTab === 'xml_view' && (
-              <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_actualizer_raw</h2>
-                  {xmlActualizerRaw && !isProcessing && (
-                    <button 
-                      onClick={handleDownloadXML}
-                      className="flex items-center gap-2 bg-[#464775] text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-[#363975] transition-all shadow-sm"
-                    >
-                      <DownloadCloud size={14} /> DOWNLOAD XML
-                    </button>
-                  )}
-                </div>
-                
-                <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner relative">
-                  {isProcessing ? (
-                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-10">
-                       <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
-                       <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">Generating XML...</span>
-                     </div>
-                  ) : xmlActualizerRaw ? (
-                    xmlActualizerRaw
-                  ) : (
-                    <div className="h-full flex items-center justify-center opacity-30 italic">
-                      // Waiting for data synchronization...
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </main>
+              {activeTab === 'xml_view' && (
+                <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_actualizer_raw</h2>
+                    {xmlActualizerRaw && !isProcessing && (
+                      <button 
+                        onClick={handleDownloadXML}
+                        className="flex items-center gap-2 bg-[#464775] text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-[#363975] transition-all shadow-sm"
+                      >
+                        <DownloadCloud size={14} /> DOWNLOAD XML
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner relative">
+                    {isProcessing ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-10">
+                        <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
+                        <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">Generating XML...</span>
+                      </div>
+                    ) : xmlActualizerRaw ? (
+                      xmlActualizerRaw
+                    ) : (
+                      <div className="h-full flex items-center justify-center opacity-30 italic">
+                        // Waiting for data synchronization...
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </main>
+
+          {/* LOWER PANEL: SYSTEM CONSOLE (BOTTOM 50%) */}
+<section className="flex-[1] bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden flex flex-col font-mono">
+  {/* Console Header - Teams Style */}
+  <div className="bg-[#F3F2F1] px-4 py-2 border-b border-[#EDEBE9] flex items-center justify-between">
+    <div className="flex items-center gap-2">
+      <Terminal size={12} className="text-[#464775]" />
+      <span className="text-[10px] font-black text-[#464775] uppercase tracking-wider">
+        Live Execution Console
+      </span>
+    </div>
+    <div className="flex gap-2">
+      <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
+      <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
+      <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
+    </div>
+  </div>
+
+  {/* Console Body - Light Theme */}
+  <div className="flex-grow p-4 overflow-auto text-[11px] space-y-1.5 bg-[#FAF9F8] custom-scrollbar">
+    {terminalLogs.map((log) => (
+      <div key={log.id} className="flex gap-3 items-start border-l-2 border-transparent hover:border-[#464775] pl-1 transition-colors">
+        <span className="text-[#828282] shrink-0 font-medium">
+          [{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
+        </span>
+        <span className={`font-bold shrink-0 ${
+          log.type === 'system' ? 'text-[#464775]' : 'text-[#005FB8]'
+        }`}>
+          {log.type === 'system' ? '>>' : 'INF'}
+        </span>
+        <span className="text-[#242424] leading-relaxed">{log.msg}</span>
       </div>
+    ))}
+
+    {isProcessing && (
+      <div className="flex gap-3 animate-pulse pl-1 border-l-2 border-[#464775]">
+         <span className="text-[#828282]">[{new Date().toLocaleTimeString()}]</span>
+         <span className="text-[#915608] font-bold">PRC</span>
+         <span className="text-[#915608] italic">Executing cloud pipelines and AI analysis...</span>
+      </div>
+    )}
+    
+    <div className="pt-2 flex items-center gap-1 pl-1">
+      <span className="text-[#464775] font-bold font-sans">SERVEX_AI</span>
+      <span className="text-[#464775] animate-bounce text-lg leading-none">.</span>
+    </div>
+  </div>
+
+  {/* Optional Footer/Status bar for console */}
+  <div className="px-4 py-1 bg-white border-t border-[#EDEBE9] flex justify-end">
+    <span className="text-[8px] text-[#616161] font-bold uppercase tracking-widest">
+      System Ready
+    </span>
+  </div>
+</section>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #1A1A1A;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #333;
+          border-radius: 10px;
+        }
+      `}</style>
     </div>
   );
 };
