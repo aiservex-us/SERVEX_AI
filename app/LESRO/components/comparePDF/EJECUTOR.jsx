@@ -9,12 +9,15 @@ import {
   FileText, CheckCircle, AlertCircle, Loader2, Package, 
   ChevronRight, DownloadCloud, X, Zap, Terminal
 } from 'lucide-react';
+
 import { supabase } from '../../../lib/supabaseClient';
 
 const SVXUnifiedPlatform = () => {
-  // --- TUTORIAL ALERT STATE ---
+  // --- TUTORIAL ALERT STATE (FROM EXAMPLE) ---
   const [showTutorial, setShowTutorial] = useState(false);
+
   useEffect(() => {
+    // Logic to show only once per session/tab
     const hasSeenTutorial = sessionStorage.getItem('servex_audit_tutorial_seen');
     if (!hasSeenTutorial) {
       setShowTutorial(true);
@@ -27,7 +30,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   // --- NAVIGATION STATES ---
-  const [activeTab, setActiveTab] = useState('console'); 
+  const [activeTab, setActiveTab] = useState('console'); // console, audit_json, xml_view
 
   // --- UNIFIED STATES ---
   const [file, setFile] = useState(null);
@@ -38,7 +41,6 @@ const SVXUnifiedPlatform = () => {
   // --- SUPABASE STATES (RESULTS) ---
   const [auditReportJson, setAuditReportJson] = useState(null);
   const [xmlActualizerRaw, setXmlActualizerRaw] = useState("");
-  const [auditNarrative, setAuditNarrative] = useState(""); // NUEVO: Para la respuesta del agente
 
   // --- CONTROL STATES ---
   const [isDragging, setIsDragging] = useState(false);
@@ -55,6 +57,7 @@ const SVXUnifiedPlatform = () => {
     { id: 2, type: 'info', msg: 'Awaiting data stream connection...' }
   ]);
 
+  // Manual logic to download XML
   const handleDownloadXML = () => {
     if (!xmlActualizerRaw) return;
     const blob = new Blob([xmlActualizerRaw], { type: 'text/xml' });
@@ -68,11 +71,12 @@ const SVXUnifiedPlatform = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Logic to fetch fresh data from Supabase after process
   const fetchCloudData = async () => {
     try {
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
-        .select('audit_report_json, xml_actualizer_raw, csv_raw, audit_narrative_report')
+        .select('audit_report_json, xml_actualizer_raw, csv_raw')
         .eq('company_name', 'LESRO')
         .maybeSingle();
       
@@ -82,24 +86,29 @@ const SVXUnifiedPlatform = () => {
         const report = typeof dbData.audit_report_json === 'string' 
           ? JSON.parse(dbData.audit_report_json) 
           : dbData.audit_report_json;
+
         setAuditReportJson(report);
         setXmlActualizerRaw(dbData.xml_actualizer_raw);
-        setAuditNarrative(dbData.audit_narrative_report); // Capturamos la narrativa del agente
 
+        // VISUAL COMPARISON LOGIC
         if (dbData.csv_raw && data.length > 0) {
             const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
             const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
             const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
+
             const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product'));
             const header = data[headerIndex] || data[0];
             const currentRows = data.slice(headerIndex + 1);
             const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
+
             const auditResults = currentRows.map((row, idx) => {
               const mRow = masterRowsOnly[idx] || [];
               const isDifferent = JSON.stringify(row) !== JSON.stringify(mRow);
               return { row, mRow, isDifferent };
             });
+
             const discrepancies = auditResults.filter(item => item.isDifferent);
+
             if (discrepancies.length > 0) {
               setMatchStatus('mismatch');
               setDiffCount(discrepancies.length);
@@ -143,32 +152,32 @@ const SVXUnifiedPlatform = () => {
     if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
     setIsProcessing(true);
     setBackendError(null);
+    
     setAuditReportJson(null);
     setXmlActualizerRaw("");
-    setAuditNarrative(""); // Reset narrativa al procesar nuevo
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
+
       const response = await fetch('http://localhost:8000/audit-process', {
         method: 'POST',
         body: formData,
       });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'SERVEX_AI Error');
       }
+
       const result = await response.json();
       setBackendSuccess(true);
       
-      // La narrativa ya viene en el response.data.auditoria_narrativa
-      if (result.data?.auditoria_narrativa) {
-          setAuditNarrative(result.data.auditoria_narrativa);
-      }
-
       await new Promise(resolve => setTimeout(resolve, 200));
+
       await fetchCloudData();
       showAlert("Cloud synchronization successful", "success");
+
     } catch (err) {
       setBackendError(err.message);
       showAlert(err.message, "error");
@@ -185,13 +194,13 @@ const SVXUnifiedPlatform = () => {
   const handleFullReset = () => {
     setData([]); setFile(null); setFileName(""); setMatchStatus(null);
     setBackendSuccess(false); setAuditReportJson(null); setXmlActualizerRaw("");
-    setMasterDataRows([]); setAuditNarrative("");
+    setMasterDataRows([]);
   };
 
   return (
     <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
       
-      {/* Pop-up Tutorial */}
+      {/* Pop-up Tutorial INTEGRATED */}
       {showTutorial && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-[2px] animate-in fade-in duration-200">
           <div className="bg-white w-[380px] rounded shadow-xl border border-[#d1d1d1] overflow-hidden transform animate-in zoom-in-95 duration-200">
@@ -234,7 +243,7 @@ const SVXUnifiedPlatform = () => {
         </div>
       )}
 
-      {/* HEADER */}
+      {/* HEADER INTEGRATED */}
       <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-[#464775] rounded flex items-center justify-center text-white font-bold">SVX</div>
@@ -243,11 +252,14 @@ const SVXUnifiedPlatform = () => {
             <p className="text-[10px] text-gray-500 font-medium">Centralized Data Engineering Control</p>
           </div>
         </div>
+
+        {/* TOP NAVIGATION MENU */}
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
           <TabButton active={activeTab === 'console'} onClick={() => setActiveTab('console')} icon={<Terminal size={12}/>} label="Console" />
           <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON (Cloud)" />
           <TabButton active={activeTab === 'xml_view'} onClick={() => setActiveTab('xml_view')} icon={<FiCode size={12}/>} label="XML Actualizer" />
         </nav>
+
         <div className="flex gap-2">
             {file && <span className="text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold flex items-center gap-1">
               <FiCheck size={10}/> {fileName}
@@ -257,7 +269,7 @@ const SVXUnifiedPlatform = () => {
       </header>
 
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
-        {/* LEFT PANEL */}
+        {/* LEFT PANEL: PROTOCOL */}
         <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">
           <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
             <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
@@ -266,6 +278,7 @@ const SVXUnifiedPlatform = () => {
               <Step icon={<FiZap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />
             </div>
           </div>
+
           <div className="bg-[#464775] text-white rounded-lg p-5 shadow-lg">
             <div className="flex items-center gap-2 mb-3">
               <Zap size={16} className="text-yellow-400" />
@@ -284,10 +297,10 @@ const SVXUnifiedPlatform = () => {
           </div>
         </aside>
 
-        {/* RIGHT CONTENT */}
+        {/* RIGHT CONTENT: SPLIT BETWEEN MAIN VIEW AND CONSOLE */}
         <div className="col-span-9 flex flex-col gap-4 h-full min-h-0">
           
-          {/* CENTRAL PANEL (TOP 50%) */}
+          {/* CENTRAL PANEL: DYNAMIC CONTENT (TOP 50%) */}
           <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden">
             <AnimatePresence mode="wait">
               {activeTab === 'console' && (
@@ -326,6 +339,7 @@ const SVXUnifiedPlatform = () => {
                                 {row.map((cell, ci) => {
                                   const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                                   const isCellDiff = masterCell !== null && cell !== masterCell;
+                                  
                                   return (
                                     <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
                                       {isCellDiff ? (
@@ -349,6 +363,7 @@ const SVXUnifiedPlatform = () => {
                   </div>
                 </motion.div>
               )}
+
               {activeTab === 'audit_json' && (
                 <motion.div key="json" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
                   <h2 className="flex-shrink-0 text-xs font-black text-[#464775] uppercase mb-4">Column: audit_report_json</h2>
@@ -363,6 +378,7 @@ const SVXUnifiedPlatform = () => {
                   </div>
                 </motion.div>
               )}
+
               {activeTab === 'xml_view' && (
                 <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
                   <div className="flex-shrink-0 flex justify-between items-center mb-4">
@@ -376,6 +392,7 @@ const SVXUnifiedPlatform = () => {
                       </button>
                     )}
                   </div>
+                  
                   <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner relative">
                     {isProcessing ? (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-10">
@@ -395,8 +412,9 @@ const SVXUnifiedPlatform = () => {
             </AnimatePresence>
           </main>
 
-          {/* LOWER PANEL: SYSTEM CONSOLE (BOTTOM 50%) - AJUSTADO PARA RESPUESTA AGENTE */}
+          {/* LOWER PANEL: SYSTEM CONSOLE (BOTTOM 50%) */}
           <section className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden flex flex-col font-mono min-h-0">
+            {/* Console Header - Teams Style */}
             <div className="flex-shrink-0 bg-[#F3F2F1] px-4 py-2 border-b border-[#EDEBE9] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Terminal size={12} className="text-[#464775]" />
@@ -410,18 +428,20 @@ const SVXUnifiedPlatform = () => {
                 <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
               </div>
             </div>
-            
-            <div className="flex-grow p-4 overflow-auto text-[11px] space-y-3 bg-[#FAF9F8] custom-scrollbar">
-              {/* Logs iniciales del sistema */}
+
+            {/* Console Body - Light Theme */}
+            <div className="flex-grow p-4 overflow-auto text-[11px] space-y-1.5 bg-[#FAF9F8] custom-scrollbar">
               {terminalLogs.map((log) => (
                 <div key={log.id} className="flex gap-3 items-start border-l-2 border-transparent hover:border-[#464775] pl-1 transition-colors">
                   <span className="text-[#828282] shrink-0 font-medium">
                     [{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
                   </span>
-                  <span className={`font-bold shrink-0 ${log.type === 'system' ? 'text-[#464775]' : 'text-[#005FB8]'}`}>
+                  <span className={`font-bold shrink-0 ${
+                    log.type === 'system' ? 'text-[#464775]' : 'text-[#005FB8]'
+                  }`}>
                     {log.type === 'system' ? '>>' : 'INF'}
                   </span>
-                  <span className="text-[#242424] opacity-70 leading-relaxed">{log.msg}</span>
+                  <span className="text-[#242424] leading-relaxed">{log.msg}</span>
                 </div>
               ))}
 
@@ -432,23 +452,6 @@ const SVXUnifiedPlatform = () => {
                    <span className="text-[#915608] italic">Executing cloud pipelines and AI analysis...</span>
                 </div>
               )}
-
-              {/* MUESTRA LA RESPUESTA DEL AGENTE AQUÍ */}
-              {auditNarrative && !isProcessing && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }} 
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 bg-white border border-[#464775]/20 rounded-md shadow-sm border-l-4 border-l-[#464775]"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap size={12} className="text-[#464775] fill-[#464775]" />
-                    <span className="font-bold text-[#464775] uppercase tracking-widest text-[10px]">Agente Auditor Informativo</span>
-                  </div>
-                  <div className="text-[#242424] leading-relaxed whitespace-pre-wrap font-sans text-[12px]">
-                    {auditNarrative}
-                  </div>
-                </motion.div>
-              )}
               
               <div className="pt-2 flex items-center gap-1 pl-1">
                 <span className="text-[#464775] font-bold font-sans">SERVEX_AI</span>
@@ -456,14 +459,16 @@ const SVXUnifiedPlatform = () => {
               </div>
             </div>
 
+            {/* Optional Footer/Status bar for console */}
             <div className="flex-shrink-0 px-4 py-1 bg-white border-t border-[#EDEBE9] flex justify-end">
               <span className="text-[8px] text-[#616161] font-bold uppercase tracking-widest">
-                {isProcessing ? 'Processing...' : 'System Ready'}
+                System Ready
               </span>
             </div>
           </section>
         </div>
       </div>
+
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
