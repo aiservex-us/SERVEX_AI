@@ -146,62 +146,39 @@ const SVXUnifiedPlatform = () => {
     };
     reader.readAsText(selectedFile);
   };
-// ... dentro del componente SVXUnifiedPlatform ...
 
-const handleUnifiedProcess = async () => {
-  if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
-  setIsProcessing(true);
-  setBackendError(null);
-  setAuditReportJson(null);
-  setXmlActualizerRaw("");
+  const handleUnifiedProcess = async () => {
+    if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
+    setIsProcessing(true);
+    setBackendError(null);
+    setAuditReportJson(null);
+    setXmlActualizerRaw("");
 
-  // Añadimos un log inicial a la consola
-  setTerminalLogs(prev => [
-    ...prev, 
-    { id: Date.now(), type: 'system', msg: 'Initiating SVX Engine & AI Audit...' }
-  ]);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch('http://localhost:8000/audit-process', {
+        method: 'POST',
+        body: formData,
+      });
 
-  try {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await fetch('http://localhost:8000/audit-process', {
-      method: 'POST',
-      body: formData,
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'SERVEX_AI Error');
+      }
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'SERVEX_AI Error');
+      const result = await response.json();
+      setBackendSuccess(true);
+      await new Promise(resolve => setTimeout(resolve, 200));
+      await fetchCloudData();
+      showAlert("Cloud synchronization successful", "success");
+    } catch (err) {
+      setBackendError(err.message);
+      showAlert(err.message, "error");
+    } finally {
+      setIsProcessing(false);
     }
-
-    const result = await response.json();
-    
-    // CAPTURAMOS LA RESPUESTA DEL AGENTE
-    const agentResponse = result.data.svx_copilot_notification;
-
-    setBackendSuccess(true);
-    
-    // Enviamos la respuesta del agente a la consola
-    setTerminalLogs(prev => [
-      ...prev,
-      { id: Date.now() + 1, type: 'info', msg: 'Cloud Sync Complete.' },
-      { id: Date.now() + 2, type: 'agent', msg: agentResponse } // Nuevo tipo 'agent'
-    ]);
-
-    await new Promise(resolve => setTimeout(resolve, 200));
-    await fetchCloudData();
-    showAlert("Cloud synchronization successful", "success");
-  } catch (err) {
-    setBackendError(err.message);
-    setTerminalLogs(prev => [
-      ...prev,
-      { id: Date.now(), type: 'error', msg: `CRITICAL_ERROR: ${err.message}` }
-    ]);
-    showAlert(err.message, "error");
-  } finally {
-    setIsProcessing(false);
-  }
-};
+  };
 
   const showAlert = (message, type = 'info') => {
     setAlert({ show: true, message, type });

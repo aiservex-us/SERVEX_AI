@@ -1,78 +1,77 @@
 import React from 'react';
-import { Terminal, Cpu } from 'lucide-react'; // Importamos Cpu para el icono del agente
+import { Bot, FileText, Sparkles } from 'lucide-react';
 
-const EjecutorAgente = ({ terminalLogs, isProcessing }) => {
+const EjecutorAgente = ({ reportText, isProcessing }) => {
   return (
-    <section className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden flex flex-col font-mono min-h-0">
-      {/* Console Header */}
+    <section className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden flex flex-col min-h-0">
+      {/* Header - SVX Copilot Style */}
       <div className="flex-shrink-0 bg-[#F3F2F1] px-4 py-2 border-b border-[#EDEBE9] flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Terminal size={12} className="text-[#464775]" />
+          <Bot size={16} className="text-[#464775]" />
           <span className="text-[10px] font-black text-[#464775] uppercase tracking-wider">
-            Live Execution Console
+            SVX Copilot - Informe de Auditoría
           </span>
         </div>
-        <div className="flex gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-          <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-          <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-        </div>
-      </div>
-
-      {/* Console Body */}
-      <div className="flex-grow p-4 overflow-auto text-[11px] space-y-1.5 bg-[#FFF] custom-scrollbar">
-        {terminalLogs.map((log) => (
-          <div key={log.id} className={`flex gap-3 items-start border-l-2 pl-1 transition-colors ${
-            log.type === 'agent' ? 'border-yellow-500 bg-yellow-50/30 p-2 rounded-r' : 'border-transparent hover:border-[#464775]'
-          }`}>
-            <span className="text-[#828282] shrink-0 font-medium">
-              [{new Date(log.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
-            </span>
-            
-            {/* Etiquetas dinámicas según el tipo de log */}
-            <span className={`font-bold shrink-0 ${
-              log.type === 'system' ? 'text-[#464775]' : 
-              log.type === 'agent' ? 'text-yellow-600' : 
-              log.type === 'error' ? 'text-red-600' : 'text-[#005FB8]'
-            }`}>
-              {log.type === 'system' ? '>>' : 
-               log.type === 'agent' ? 'SVX_COPILOT' : 
-               log.type === 'error' ? 'ERR' : 'INF'}
-            </span>
-
-            <span className={`leading-relaxed ${log.type === 'agent' ? 'text-[#242424] font-medium' : 'text-[#242424]'}`}>
-              {log.type === 'agent' && <Cpu size={10} className="inline mr-2 mb-0.5" />}
-              {log.msg}
-            </span>
-          </div>
-        ))}
-
         {isProcessing && (
-          <div className="flex gap-3 animate-pulse pl-1 border-l-2 border-[#464775]">
-             <span className="text-[#828282]">[{new Date().toLocaleTimeString()}]</span>
-             <span className="text-[#915608] font-bold">PRC</span>
-             <span className="text-[#915608] italic">Executing cloud pipelines and AI analysis...</span>
+          <div className="flex items-center gap-2 text-[#915608]">
+            <Sparkles size={12} className="animate-spin" />
+            <span className="text-[9px] font-bold">REDACTANDO...</span>
           </div>
         )}
-        
-        <div className="pt-2 flex items-center gap-1 pl-1">
-          <span className="text-[#464775] font-bold font-sans">SERVEX_AI</span>
-          <span className="text-[#464775] animate-bounce text-lg leading-none">.</span>
-        </div>
       </div>
 
-      {/* Status Bar */}
-      <div className="flex-shrink-0 px-4 py-1 bg-white border-t border-[#EDEBE9] flex justify-end">
-        <span className="text-[7.5px] text-[#616161] font-bold uppercase tracking-widest">
-          System GLYNNE
+      {/* Report Body */}
+      <div className="flex-grow p-6 overflow-auto bg-[#FFF] custom-scrollbar">
+        {isProcessing ? (
+          <div className="space-y-4 animate-pulse">
+            <div className="h-4 bg-[#F3F2F1] rounded w-3/4"></div>
+            <div className="h-4 bg-[#F3F2F1] rounded w-full"></div>
+            <div className="h-4 bg-[#F3F2F1] rounded w-5/6"></div>
+            <div className="h-32 bg-[#F3F2F1] rounded w-full border-2 border-dashed border-[#EDEBE9]"></div>
+          </div>
+        ) : reportText ? (
+          <div className="prose prose-sm max-w-none">
+            {/* Contenedor del Texto de la IA */}
+            <div className="flex gap-4 items-start mb-6 border-l-4 border-[#464775] pl-4 bg-[#F8F8F9] py-4 rounded-r-lg">
+              <FileText size={20} className="text-[#464775] mt-1 shrink-0" />
+              <div className="text-[#242424] text-[13px] leading-relaxed whitespace-pre-wrap font-sans">
+                {reportText}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center text-[#828282] space-y-2">
+            <Bot size={32} className="opacity-20" />
+            <p className="text-[11px] font-medium">Esperando ejecución del agente...</p>
+          </div>
+        )}
+      </div>
+
+      {/* Footer / Status Bar */}
+      <div className="flex-shrink-0 px-4 py-1.5 bg-[#F3F2F1] border-t border-[#EDEBE9] flex justify-between items-center">
+        <span className="text-[8px] text-[#616161] font-bold uppercase tracking-widest">
+          AI AGENT: LLAMA-3.1-8B-INSTANT
         </span>
+        <div className="flex items-center gap-1">
+            <div className={`w-1.5 h-1.5 rounded-full ${isProcessing ? 'bg-orange-400 animate-pulse' : 'bg-green-500'}`}></div>
+            <span className="text-[8px] text-[#616161] font-bold uppercase">System Active</span>
+        </div>
       </div>
 
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #F3F2F1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #C8C6C4; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #A19F9D; }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #F3F2F1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #C8C6C4;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #A19F9D;
+        }
       `}</style>
     </section>
   );
