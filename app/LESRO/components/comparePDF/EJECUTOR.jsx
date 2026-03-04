@@ -12,12 +12,14 @@ import {
 
 import { supabase } from '../../../lib/supabaseClient';
 
+// IMPORTACIÓN DEL COMPONENTE EXTERNO
+import EjecutorAgente from './EJECUTOR_agente';
+
 const SVXUnifiedPlatform = () => {
-  // --- TUTORIAL ALERT STATE (FROM EXAMPLE) ---
+  // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    // Logic to show only once per session/tab
     const hasSeenTutorial = sessionStorage.getItem('servex_audit_tutorial_seen');
     if (!hasSeenTutorial) {
       setShowTutorial(true);
@@ -30,7 +32,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   // --- NAVIGATION STATES ---
-  const [activeTab, setActiveTab] = useState('console'); // console, audit_json, xml_view
+  const [activeTab, setActiveTab] = useState('console'); 
 
   // --- UNIFIED STATES ---
   const [file, setFile] = useState(null);
@@ -38,7 +40,7 @@ const SVXUnifiedPlatform = () => {
   const [data, setData] = useState([]); 
   const [masterDataRows, setMasterDataRows] = useState([]);
   
-  // --- SUPABASE STATES (RESULTS) ---
+  // --- SUPABASE STATES ---
   const [auditReportJson, setAuditReportJson] = useState(null);
   const [xmlActualizerRaw, setXmlActualizerRaw] = useState("");
 
@@ -51,13 +53,12 @@ const SVXUnifiedPlatform = () => {
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [backendError, setBackendError] = useState(null);
 
-  // --- NEW TERMINAL STATE ---
+  // --- TERMINAL STATE ---
   const [terminalLogs, setTerminalLogs] = useState([
     { id: 1, type: 'system', msg: 'SERVEX_AI System Initialized...' },
     { id: 2, type: 'info', msg: 'Awaiting data stream connection...' }
   ]);
 
-  // Manual logic to download XML
   const handleDownloadXML = () => {
     if (!xmlActualizerRaw) return;
     const blob = new Blob([xmlActualizerRaw], { type: 'text/xml' });
@@ -71,7 +72,6 @@ const SVXUnifiedPlatform = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Logic to fetch fresh data from Supabase after process
   const fetchCloudData = async () => {
     try {
       const { data: dbData, error } = await supabase
@@ -90,7 +90,6 @@ const SVXUnifiedPlatform = () => {
         setAuditReportJson(report);
         setXmlActualizerRaw(dbData.xml_actualizer_raw);
 
-        // VISUAL COMPARISON LOGIC
         if (dbData.csv_raw && data.length > 0) {
             const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
             const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
@@ -147,44 +146,62 @@ const SVXUnifiedPlatform = () => {
     };
     reader.readAsText(selectedFile);
   };
+// ... dentro del componente SVXUnifiedPlatform ...
 
-  const handleUnifiedProcess = async () => {
-    if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
-    setIsProcessing(true);
-    setBackendError(null);
-    
-    setAuditReportJson(null);
-    setXmlActualizerRaw("");
+const handleUnifiedProcess = async () => {
+  if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
+  setIsProcessing(true);
+  setBackendError(null);
+  setAuditReportJson(null);
+  setXmlActualizerRaw("");
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+  // Añadimos un log inicial a la consola
+  setTerminalLogs(prev => [
+    ...prev, 
+    { id: Date.now(), type: 'system', msg: 'Initiating SVX Engine & AI Audit...' }
+  ]);
 
-      const response = await fetch('http://localhost:8000/audit-process', {
-        method: 'POST',
-        body: formData,
-      });
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch('http://localhost:8000/audit-process', {
+      method: 'POST',
+      body: formData,
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'SERVEX_AI Error');
-      }
-
-      const result = await response.json();
-      setBackendSuccess(true);
-      
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      await fetchCloudData();
-      showAlert("Cloud synchronization successful", "success");
-
-    } catch (err) {
-      setBackendError(err.message);
-      showAlert(err.message, "error");
-    } finally {
-      setIsProcessing(false);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'SERVEX_AI Error');
     }
-  };
+
+    const result = await response.json();
+    
+    // CAPTURAMOS LA RESPUESTA DEL AGENTE
+    const agentResponse = result.data.svx_copilot_notification;
+
+    setBackendSuccess(true);
+    
+    // Enviamos la respuesta del agente a la consola
+    setTerminalLogs(prev => [
+      ...prev,
+      { id: Date.now() + 1, type: 'info', msg: 'Cloud Sync Complete.' },
+      { id: Date.now() + 2, type: 'agent', msg: agentResponse } // Nuevo tipo 'agent'
+    ]);
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await fetchCloudData();
+    showAlert("Cloud synchronization successful", "success");
+  } catch (err) {
+    setBackendError(err.message);
+    setTerminalLogs(prev => [
+      ...prev,
+      { id: Date.now(), type: 'error', msg: `CRITICAL_ERROR: ${err.message}` }
+    ]);
+    showAlert(err.message, "error");
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   const showAlert = (message, type = 'info') => {
     setAlert({ show: true, message, type });
@@ -200,7 +217,6 @@ const SVXUnifiedPlatform = () => {
   return (
     <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
       
-      {/* Pop-up Tutorial INTEGRATED */}
       {showTutorial && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-[2px] animate-in fade-in duration-200">
           <div className="bg-white w-[380px] rounded shadow-xl border border-[#d1d1d1] overflow-hidden transform animate-in zoom-in-95 duration-200">
@@ -243,7 +259,6 @@ const SVXUnifiedPlatform = () => {
         </div>
       )}
 
-      {/* HEADER INTEGRATED */}
       <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-[#464775] rounded flex items-center justify-center text-white font-bold">SVX</div>
@@ -253,7 +268,6 @@ const SVXUnifiedPlatform = () => {
           </div>
         </div>
 
-        {/* TOP NAVIGATION MENU */}
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
           <TabButton active={activeTab === 'console'} onClick={() => setActiveTab('console')} icon={<Terminal size={12}/>} label="Console" />
           <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON (Cloud)" />
@@ -269,7 +283,6 @@ const SVXUnifiedPlatform = () => {
       </header>
 
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
-        {/* LEFT PANEL: PROTOCOL */}
         <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">
           <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
             <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
@@ -297,10 +310,8 @@ const SVXUnifiedPlatform = () => {
           </div>
         </aside>
 
-        {/* RIGHT CONTENT: SPLIT BETWEEN MAIN VIEW AND CONSOLE */}
         <div className="col-span-9 flex flex-col gap-4 h-full min-h-0">
           
-          {/* CENTRAL PANEL: DYNAMIC CONTENT (TOP 50%) */}
           <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden">
             <AnimatePresence mode="wait">
               {activeTab === 'console' && (
@@ -412,78 +423,13 @@ const SVXUnifiedPlatform = () => {
             </AnimatePresence>
           </main>
 
-          {/* LOWER PANEL: SYSTEM CONSOLE (BOTTOM 50%) */}
-          <section className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden flex flex-col font-mono min-h-0">
-            {/* Console Header - Teams Style */}
-            <div className="flex-shrink-0 bg-[#F3F2F1] px-4 py-2 border-b border-[#EDEBE9] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Terminal size={12} className="text-[#464775]" />
-                <span className="text-[10px] font-black text-[#464775] uppercase tracking-wider">
-                  Live Execution Console
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-[#D1D1D1]"></div>
-              </div>
-            </div>
-
-            {/* Console Body - Light Theme */}
-            <div className="flex-grow p-4 overflow-auto text-[11px] space-y-1.5 bg-[#FAF9F8] custom-scrollbar">
-              {terminalLogs.map((log) => (
-                <div key={log.id} className="flex gap-3 items-start border-l-2 border-transparent hover:border-[#464775] pl-1 transition-colors">
-                  <span className="text-[#828282] shrink-0 font-medium">
-                    [{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
-                  </span>
-                  <span className={`font-bold shrink-0 ${
-                    log.type === 'system' ? 'text-[#464775]' : 'text-[#005FB8]'
-                  }`}>
-                    {log.type === 'system' ? '>>' : 'INF'}
-                  </span>
-                  <span className="text-[#242424] leading-relaxed">{log.msg}</span>
-                </div>
-              ))}
-
-              {isProcessing && (
-                <div className="flex gap-3 animate-pulse pl-1 border-l-2 border-[#464775]">
-                   <span className="text-[#828282]">[{new Date().toLocaleTimeString()}]</span>
-                   <span className="text-[#915608] font-bold">PRC</span>
-                   <span className="text-[#915608] italic">Executing cloud pipelines and AI analysis...</span>
-                </div>
-              )}
-              
-              <div className="pt-2 flex items-center gap-1 pl-1">
-                <span className="text-[#464775] font-bold font-sans">SERVEX_AI</span>
-                <span className="text-[#464775] animate-bounce text-lg leading-none">.</span>
-              </div>
-            </div>
-
-            {/* Optional Footer/Status bar for console */}
-            <div className="flex-shrink-0 px-4 py-1 bg-white border-t border-[#EDEBE9] flex justify-end">
-              <span className="text-[8px] text-[#616161] font-bold uppercase tracking-widest">
-                System Ready
-              </span>
-            </div>
-          </section>
+          {/* LOWER PANEL: SYSTEM CONSOLE LLAMANDO AL NUEVO COMPONENTE */}
+          <EjecutorAgente 
+            terminalLogs={terminalLogs} 
+            isProcessing={isProcessing} 
+          />
         </div>
       </div>
-
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #F3F2F1;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #C8C6C4;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #A19F9D;
-        }
-      `}</style>
     </div>
   );
 };
