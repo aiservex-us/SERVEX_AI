@@ -53,6 +53,7 @@ const SVXUnifiedPlatform = () => {
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [backendError, setBackendError] = useState(null);
 
+  const [agentReport, setAgentReport] = useState("")
   // --- TERMINAL STATE ---
   const [terminalLogs, setTerminalLogs] = useState([
     { id: 1, type: 'system', msg: 'SERVEX_AI System Initialized...' },
@@ -74,40 +75,46 @@ const SVXUnifiedPlatform = () => {
 
   const fetchCloudData = async () => {
     try {
+      // 1. Incluimos 'informa_agent_raw' en el select
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
-        .select('audit_report_json, xml_actualizer_raw, csv_raw')
+        .select('audit_report_json, xml_actualizer_raw, csv_raw, informa_agent_raw')
         .eq('company_name', 'LESRO')
         .maybeSingle();
       
       if (error) throw error;
       
       if (dbData) {
+        // 2. Procesamiento del JSON de auditoría
         const report = typeof dbData.audit_report_json === 'string' 
           ? JSON.parse(dbData.audit_report_json) 
           : dbData.audit_report_json;
-
+  
         setAuditReportJson(report);
         setXmlActualizerRaw(dbData.xml_actualizer_raw);
-
+        
+        // 3. Seteamos el informe de texto para el componente EjecutorAgente
+        setAgentReport(dbData.informa_agent_raw || "");
+  
+        // 4. Lógica de comparación de CSV (Local vs Cloud)
         if (dbData.csv_raw && data.length > 0) {
             const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
             const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
             const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
-
+  
             const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product'));
             const header = data[headerIndex] || data[0];
             const currentRows = data.slice(headerIndex + 1);
             const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
-
+  
             const auditResults = currentRows.map((row, idx) => {
               const mRow = masterRowsOnly[idx] || [];
               const isDifferent = JSON.stringify(row) !== JSON.stringify(mRow);
               return { row, mRow, isDifferent };
             });
-
+  
             const discrepancies = auditResults.filter(item => item.isDifferent);
-
+  
             if (discrepancies.length > 0) {
               setMatchStatus('mismatch');
               setDiffCount(discrepancies.length);
@@ -401,10 +408,11 @@ const SVXUnifiedPlatform = () => {
           </main>
 
           {/* LOWER PANEL: SYSTEM CONSOLE LLAMANDO AL NUEVO COMPONENTE */}
-          <EjecutorAgente 
-            terminalLogs={terminalLogs} 
-            isProcessing={isProcessing} 
-          />
+          {/* LOWER PANEL: SYSTEM CONSOLE */}
+<EjecutorAgente 
+  reportText={agentReport} // Ahora pasa el texto real de Supabase
+  isProcessing={isProcessing} 
+/>
         </div>
       </div>
     </div>
