@@ -164,7 +164,7 @@ const SVXUnifiedPlatform = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const response = await fetch('http://localhost:8000/audit-process', {
+      const response = await fetch('https://servex-ai-back.onrender.com/audit-process', {
         method: 'POST',
         body: formData,
       });
