@@ -66,7 +66,7 @@ const SVXUnifiedPlatform = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `SERIVEX_ACTUALIZER_${new Date().getTime()}.xml`;
+    link.download = `LESRO_PRICING_MASTER_for_01_01_26(2026_Pricing_File_RWS).xml`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
