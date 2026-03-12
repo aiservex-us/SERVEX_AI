@@ -1,15 +1,22 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, FileText, Sparkles, Maximize2, X, Clipboard, Check, MessageSquare, Send, User } from 'lucide-react';
+import { 
+  Bot, Sparkles, Maximize2, X, Clipboard, Check, 
+  MessageSquare, Send, Database, ChevronDown, 
+  Zap, Plus, Mic, HelpCircle, ArrowRight, Layout,
+  BarChart3, Shield, Settings, FileText
+} from 'lucide-react';
 
 const EjecutorAgente = ({ reportText, isProcessing }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false); // Nuevo estado para el chat
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  
-  // Estados para la lógica del chat
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [context, setContext] = useState('Servex US');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
   const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -17,39 +24,30 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isChatOpen) scrollToBottom();
+  }, [messages, isTyping]);
 
-  // Lógica de formateo centralizada
   const formatReport = (text) => {
     if (!text) return null;
     return text.split('\n').map((line, index) => {
       const parts = line.split(/(\*\*.*?\*\*)/g);
       const formattedLine = parts.map((part, i) => {
         if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={i} className="font-bold text-[#242424]">{part.slice(2, -2)}</strong>;
+          return <strong key={i} className="font-bold text-gray-900">{part.slice(2, -2)}</strong>;
         }
         return part;
       });
-
       if (line.trim().startsWith('* ')) {
         return (
-          <li key={index} className="ml-6 mb-1 list-disc text-[#464775]">
-            <span className="text-[#242424]">{formattedLine.slice(1)}</span>
+          <li key={index} className="ml-5 mb-1 list-disc text-[#464775]">
+            <span className="text-gray-700 text-xs">{formattedLine.slice(1)}</span>
           </li>
         );
       }
-      return line.trim() === '' ? <br key={index} /> : <p key={index} className="mb-3">{formattedLine}</p>;
+      return line.trim() === '' ? <br key={index} /> : <p key={index} className="mb-2 text-xs text-gray-700">{formattedLine}</p>;
     });
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(reportText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // Función para enviar mensaje al endpoint /chat
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
@@ -68,184 +66,252 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Error al conectar con SVX Copilot." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Error de conexión con SVX Engine." }]);
     } finally {
       setIsTyping(false);
     }
   };
 
   return (
-    <>
-      <section className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden flex flex-col min-h-0">
-        {/* Header */}
-        <div className="flex-shrink-0 bg-[#F3F2F1] px-4 py-2 border-b border-[#EDEBE9] flex items-center justify-between">
+    <div className="w-full font-sans">
+      {/* --- PREVIEW CARD (ESTILO TEAMS) --- */}
+      <section className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-[#464775] px-4 py-2.5 flex items-center justify-between text-white">
           <div className="flex items-center gap-2">
-            <Bot size={16} className="text-[#464775]" />
-            <span className="text-[10px] font-black text-[#464775] uppercase tracking-wider">
-              SVX Copilot - Informe de Auditoría
-            </span>
+            <Sparkles size={14} className="text-white fill-white/20" />
+            <span className="text-[11px] font-bold uppercase tracking-wider">SVX Copilot Intelligence</span>
           </div>
-          
-          <div className="flex items-center gap-3">
-            {isProcessing && (
-              <div className="flex items-center gap-2 text-[#915608]">
-                <Sparkles size={12} className="animate-spin" />
-                <span className="text-[9px] font-bold">REDACTANDO...</span>
-              </div>
-            )}
-            {reportText && !isProcessing && (
-              <div className="flex gap-2">
-                {/* BOTÓN DE CHAT AGREGADO */}
-                <button 
-                  onClick={() => setIsChatOpen(true)}
-                  className="flex items-center gap-1.5 text-[#0078D4] hover:bg-white px-2 py-1 rounded transition-all border border-transparent hover:border-[#EDEBE9] shadow-sm bg-blue-50/50"
-                >
-                  <MessageSquare size={13} />
-                  <span className="text-[9px] font-bold uppercase">Chat con IA</span>
-                </button>
-
-                <button 
-                  onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-1.5 text-[#464775] hover:bg-white px-2 py-1 rounded transition-all border border-transparent hover:border-[#EDEBE9] shadow-sm"
-                >
-                  <Maximize2 size={13} />
-                  <span className="text-[9px] font-bold uppercase">Expandir</span>
-                </button>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-white/10 px-2 py-0.5 rounded text-[9px] font-medium border border-white/20">
+              <Zap size={10} className="text-yellow-400 fill-yellow-400" />
+              ENGINE v4.10
+            </div>
+            <button onClick={() => setIsChatOpen(true)} className="p-1 hover:bg-white/20 rounded transition-colors">
+              <MessageSquare size={14} />
+            </button>
           </div>
         </div>
 
-        {/* Mini Preview Body */}
-        <div className="flex-grow p-6 overflow-auto bg-[#FFF] custom-scrollbar">
-          {isProcessing ? (
-            <div className="space-y-4 animate-pulse">
-              <div className="h-4 bg-[#F3F2F1] rounded w-3/4"></div>
-              <div className="h-4 bg-[#F3F2F1] rounded w-full"></div>
-              <div className="h-24 bg-[#F3F2F1] rounded w-full"></div>
-            </div>
-          ) : reportText ? (
-            <div className="text-[#242424] text-[13px] leading-relaxed font-sans opacity-80">
-              {formatReport(reportText)}
-            </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-[#828282] space-y-2 opacity-40">
-              <Bot size={32} />
-              <p className="text-[11px] font-bold uppercase tracking-widest">Esperando reporte...</p>
-            </div>
-          )}
-        </div>
+        <div className="p-5">
+          <div className="flex items-center gap-2 text-[#464775] mb-3">
+            <Bot size={18} />
+            <h3 className="text-sm font-bold text-gray-900">Informe de Auditoría Ejecutiva</h3>
+          </div>
 
-        {/* Footer */}
-        <div className="flex-shrink-0 px-4 py-1.5 bg-[#F3F2F1] border-t border-[#EDEBE9] flex justify-between items-center text-[8px] font-bold text-[#616161]">
-          <span className="uppercase tracking-widest">LLAMA-3.1-8B-INSTANT</span>
-          <div className="flex items-center gap-1">
-            <div className={`w-1.5 h-1.5 rounded-full ${isProcessing ? 'bg-orange-400 animate-pulse' : 'bg-green-500'}`}></div>
-            <span>{isProcessing ? 'PROCESANDO' : 'LISTO'}</span>
+          <div className="bg-gray-50/50 border border-gray-100 rounded-md p-4 max-h-48 overflow-y-auto custom-scrollbar">
+            {isProcessing ? (
+              <div className="flex flex-col gap-2 animate-pulse">
+                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-full"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ) : reportText ? (
+              <div className="font-normal">{formatReport(reportText)}</div>
+            ) : (
+              <p className="text-xs text-gray-400 italic">No hay datos procesados actualmente.</p>
+            )}
+          </div>
+
+          <div className="mt-4 flex justify-end gap-2">
+            <button 
+              onClick={() => setIsChatOpen(true)}
+              disabled={!reportText || isProcessing}
+              className="flex items-center gap-2 px-4 py-1.5 bg-[#464775] text-white rounded text-[11px] font-bold hover:bg-[#3a3b61] transition-all disabled:opacity-50"
+            >
+              <span>Abrir Copilot Chat</span>
+              <ArrowRight size={12} />
+            </button>
           </div>
         </div>
       </section>
 
-      {/* --- MODAL DE CHAT AGREGADO --- */}
+      {/* --- FULL SCREEN CHAT MODAL (ESTILO TEAMS COPILOT) --- */}
       {isChatOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-[#242424]/40 backdrop-blur-sm" onClick={() => setIsChatOpen(false)} />
-          <div className="relative w-full max-w-lg h-[600px] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4">
-            <div className="bg-[#464775] text-white px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Bot size={20} />
-                <div>
-                  <h3 className="text-sm font-bold">SVX Copilot Chat</h3>
-                  <p className="text-[9px] opacity-70 uppercase tracking-tighter">Consultoría de Datos en Tiempo Real</p>
-                </div>
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in duration-200">
+          {/* Top Bar */}
+          <div className="h-12 bg-[#464775] w-full flex items-center justify-between px-4 text-white shadow-md">
+            <div className="flex items-center gap-4">
+              <div className="bg-white rounded p-0.5">
+                <Bot size={16} className="text-[#464775]" />
               </div>
-              <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/10 p-1 rounded-md"><X size={20} /></button>
+              <span className="text-sm font-semibold opacity-90 tracking-tight">SVX Copilot Intelligence</span>
             </div>
-
-            <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-[#FAF9F8] custom-scrollbar">
-              {messages.length === 0 && (
-                <div className="text-center py-10 opacity-40">
-                  <Bot size={40} className="mx-auto mb-2" />
-                  <p className="text-xs font-bold uppercase tracking-widest">¿En qué puedo ayudarte con este reporte?</p>
-                </div>
-              )}
-              {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] p-3 rounded-lg text-xs shadow-sm ${msg.role === 'user' ? 'bg-[#464775] text-white' : 'bg-white text-[#242424] border border-[#EDEBE9]'}`}>
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-white border border-[#EDEBE9] p-3 rounded-lg flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-[#EDEBE9] flex gap-2">
-              <input 
-                type="text" 
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Pregunta sobre un SKU o una discrepancia..."
-                className="flex-grow px-4 py-2 bg-[#F3F2F1] rounded text-xs focus:outline-none focus:ring-1 focus:ring-[#464775]"
-              />
-              <button type="submit" className="p-2 bg-[#464775] text-white rounded hover:bg-[#3b3c63] transition-all">
-                <Send size={16} />
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(reportText);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="text-[11px] font-medium bg-white/10 px-3 py-1 rounded border border-white/20 hover:bg-white/20 transition-all flex items-center gap-2"
+              >
+                {copied ? <Check size={12} /> : <Clipboard size={12} />}
+                Copy Report
               </button>
-            </form>
+              <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/10 p-1 rounded transition-colors">
+                <X size={20} />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* --- MODAL INMERSIVO ORIGINAL --- */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-[#242424]/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-4xl max-h-full bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="flex-shrink-0 bg-[#464775] text-white px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-lg"><FileText size={20} /></div>
+          <div className="flex-1 flex flex-col items-center p-6 overflow-hidden">
+            <div className="w-full max-w-4xl h-full flex flex-col">
+              
+              {/* Header Contextual */}
+              <div className="mb-6 border-b border-gray-200 pb-4 flex justify-between items-end">
                 <div>
-                  <h3 className="text-sm font-bold leading-none">Reporte Detallado de Auditoría</h3>
-                  <p className="text-[10px] text-white/70 mt-1 uppercase tracking-widest">Análisis asistido por SERVEX_AI</p>
+                  <div className="flex items-center gap-2 text-[#464775] mb-1">
+                    <Sparkles size={16} fill="#464775" fillOpacity={0.2} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Contextual Assistance Center</span>
+                  </div>
+                  <h1 className="text-xl font-bold text-gray-900 tracking-tight">Servex Intelligence Chat</h1>
+                </div>
+                <div className="flex gap-1 bg-gray-100 p-1 rounded-md mb-1">
+                  <span className="px-3 py-1 bg-white text-[#464775] shadow-sm rounded text-[10px] font-bold uppercase">Auditoría Activa</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button onClick={copyToClipboard} className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-md transition-colors text-xs font-medium">
-                  {copied ? <Check size={14} className="text-green-400" /> : <Clipboard size={14} />}
-                  {copied ? 'Copiado' : 'Copiar Texto'}
-                </button>
-                <button onClick={() => setIsModalOpen(false)} className="p-1.5 hover:bg-white/10 rounded-md transition-colors"><X size={20} /></button>
+
+              {/* Chat Messages Area */}
+              <div className="flex-1 overflow-y-auto mb-4 space-y-6 pr-2 custom-scrollbar">
+                {/* Mensaje Inicial (El Reporte) */}
+                <div className="flex gap-4 group">
+                  <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <Bot size={18} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">SVX Copilot • Auditoría Reciente</p>
+                    <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+                      <div className="prose prose-sm max-w-none">{formatReport(reportText)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mensajes del Chat */}
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-gray-100' : 'bg-[#464775]'}`}>
+                      {msg.role === 'user' ? <div className="text-[#464775] font-bold text-xs">U</div> : <Bot size={18} className="text-white" />}
+                    </div>
+                    <div className={`max-w-[80%] ${msg.role === 'user' ? 'text-right' : ''}`}>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">
+                        {msg.role === 'user' ? 'Tú' : 'SVX Copilot'}
+                      </p>
+                      <div className={`p-4 rounded-lg text-sm shadow-sm ${msg.role === 'user' ? 'bg-[#464775] text-white' : 'bg-white border border-gray-200 text-gray-800'}`}>
+                        {msg.content}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {isTyping && (
+                  <div className="flex gap-4 animate-pulse">
+                    <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center flex-shrink-0 opacity-50">
+                      <Bot size={18} className="text-white" />
+                    </div>
+                    <div className="bg-gray-100 rounded-lg p-4 w-24 flex gap-1 items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
               </div>
-            </div>
-            <div className="flex-grow p-8 md:p-12 overflow-auto bg-[#FAF9F8] custom-scrollbar">
-              <div className="max-w-2xl mx-auto bg-white p-8 md:p-12 shadow-sm border border-[#EDEBE9] rounded-sm min-h-full">
-                <div className="prose prose-slate max-w-none text-[#242424] text-sm leading-relaxed">{formatReport(reportText)}</div>
+
+              {/* Input Area (ESTILO TEAMS) */}
+              <div className="bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden focus-within:border-[#464775] focus-within:ring-1 focus-within:ring-[#464775]/30 transition-all">
+                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-200 relative">
+                  <button 
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 text-[10px] font-bold text-gray-600 bg-white border border-gray-300 px-2 py-1 rounded hover:bg-gray-50 transition-colors"
+                  >
+                    <Database size={10} className="text-[#464775]" />
+                    CONTEXT: {context}
+                    <ChevronDown size={10} className={isDropdownOpen ? 'rotate-180' : ''} />
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="absolute top-9 left-4 w-40 bg-white border border-gray-200 shadow-xl rounded z-50 py-1">
+                      {['Servex US', 'Servex LATAM'].map((ctx) => (
+                        <button 
+                          key={ctx}
+                          onClick={() => { setContext(ctx); setIsDropdownOpen(false); }}
+                          className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 flex justify-between items-center font-medium"
+                        >
+                          {ctx}
+                          {context === ctx && <Check size={10} className="text-[#464775]" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="h-4 w-[1px] bg-gray-300 mx-1" />
+                  <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-semibold tracking-tight uppercase">
+                    <Zap size={10} className="text-yellow-500 fill-yellow-500" />
+                    Ready for Data Analysis
+                  </div>
+                </div>
+
+                <div className="p-3">
+                  <textarea 
+                    className="w-full text-sm text-gray-700 border-none focus:ring-0 resize-none bg-transparent placeholder-gray-400 min-h-[80px]"
+                    placeholder="Haz una pregunta sobre los SKUs con discrepancias o el ahorro de tiempo..."
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e);
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="flex justify-between items-center px-4 py-2 border-t border-gray-100 bg-white">
+                  <div className="flex items-center gap-3 text-gray-400">
+                    <Plus size={18} className="cursor-pointer hover:text-[#464775]" />
+                    <Mic size={18} className="cursor-pointer hover:text-[#464775]" />
+                    <HelpCircle size={18} className="cursor-pointer hover:text-[#464775]" />
+                  </div>
+
+                  <button 
+                    onClick={handleSendMessage}
+                    disabled={!inputMessage.trim() || isTyping}
+                    className={`flex items-center gap-2 px-6 py-1.5 rounded-md font-bold text-xs transition-all
+                    ${inputMessage.trim() && !isTyping 
+                      ? 'bg-[#464775] text-white hover:bg-[#3a3b61]' 
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'}`}
+                  >
+                    <span>Send Query</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="flex-shrink-0 px-6 py-3 bg-[#F3F2F1] border-t border-[#EDEBE9] flex justify-end">
-              <button onClick={() => setIsModalOpen(false)} className="px-6 py-2 bg-[#464775] text-white text-xs font-bold rounded hover:bg-[#3b3c63] transition-all shadow-md">CERRAR VISTA</button>
+
+              {/* Suggestions */}
+              <div className="mt-4 flex flex-wrap gap-4 items-center">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter italic">Suggestions:</span>
+                {["Explícame los errores de precio", "Resumen de ahorro", "SKUs de Grado 2"].map((tip, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => setInputMessage(tip)}
+                    className="text-[10px] text-[#464775] hover:underline font-semibold"
+                  >
+                    {tip}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
 
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #F3F2F1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #C8C6C4; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #A19F9D; }
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes zoom-in-95 { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E1E1E1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C1C1C1; }
       `}</style>
-    </>
+    </div>
   );
 };
 
