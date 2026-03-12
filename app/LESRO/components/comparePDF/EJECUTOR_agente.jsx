@@ -5,7 +5,7 @@ import {
   Bot, Sparkles, Maximize2, X, Clipboard, Check, 
   MessageSquare, Send, Database, ChevronDown, 
   Zap, Plus, Mic, HelpCircle, ArrowRight, Layout,
-  BarChart3, Shield, Settings, FileText
+  FileText
 } from 'lucide-react';
 
 const EjecutorAgente = ({ reportText, isProcessing }) => {
@@ -40,11 +40,11 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
       if (line.trim().startsWith('* ')) {
         return (
           <li key={index} className="ml-5 mb-1 list-disc text-[#464775]">
-            <span className="text-gray-700 text-xs">{formattedLine.slice(1)}</span>
+            <span className="text-gray-700 text-[13px]">{formattedLine.slice(1)}</span>
           </li>
         );
       }
-      return line.trim() === '' ? <br key={index} /> : <p key={index} className="mb-2 text-xs text-gray-700">{formattedLine}</p>;
+      return line.trim() === '' ? <br key={index} /> : <p key={index} className="mb-2 text-[13px] text-gray-700">{formattedLine}</p>;
     });
   };
 
@@ -74,231 +74,160 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
 
   return (
     <div className="w-full font-sans">
-      {/* --- PREVIEW CARD (ESTILO TEAMS) --- */}
+      {/* --- PREVIEW CARD ORIGINAL --- */}
       <section className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
         <div className="bg-[#464775] px-4 py-2.5 flex items-center justify-between text-white">
           <div className="flex items-center gap-2">
             <Sparkles size={14} className="text-white fill-white/20" />
             <span className="text-[11px] font-bold uppercase tracking-wider">SVX Copilot Intelligence</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-white/10 px-2 py-0.5 rounded text-[9px] font-medium border border-white/20">
-              <Zap size={10} className="text-yellow-400 fill-yellow-400" />
-              ENGINE v4.10
-            </div>
-            <button onClick={() => setIsChatOpen(true)} className="p-1 hover:bg-white/20 rounded transition-colors">
-              <MessageSquare size={14} />
-            </button>
-          </div>
+          <button onClick={() => setIsChatOpen(true)} className="p-1 hover:bg-white/20 rounded transition-colors">
+            <MessageSquare size={14} />
+          </button>
         </div>
 
         <div className="p-5">
           <div className="flex items-center gap-2 text-[#464775] mb-3">
             <Bot size={18} />
-            <h3 className="text-sm font-bold text-gray-900">Informe de Auditoría Ejecutiva</h3>
+            <h3 className="text-sm font-bold text-gray-900 tracking-tight">Análisis de Auditoría</h3>
           </div>
-
-          <div className="bg-gray-50/50 border border-gray-100 rounded-md p-4 max-h-48 overflow-y-auto custom-scrollbar">
-            {isProcessing ? (
-              <div className="flex flex-col gap-2 animate-pulse">
-                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-full"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            ) : reportText ? (
-              <div className="font-normal">{formatReport(reportText)}</div>
-            ) : (
-              <p className="text-xs text-gray-400 italic">No hay datos procesados actualmente.</p>
-            )}
-          </div>
-
-          <div className="mt-4 flex justify-end gap-2">
-            <button 
-              onClick={() => setIsChatOpen(true)}
-              disabled={!reportText || isProcessing}
-              className="flex items-center gap-2 px-4 py-1.5 bg-[#464775] text-white rounded text-[11px] font-bold hover:bg-[#3a3b61] transition-all disabled:opacity-50"
-            >
-              <span>Abrir Copilot Chat</span>
-              <ArrowRight size={12} />
-            </button>
+          <div className="bg-gray-50/50 border border-gray-100 rounded p-4 max-h-32 overflow-hidden relative">
+            <div className="opacity-60 pointer-events-none">{formatReport(reportText?.substring(0, 200) + "...")}</div>
+            <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent flex items-end justify-center pb-2">
+               <button onClick={() => setIsChatOpen(true)} className="text-[10px] font-bold text-[#464775] hover:underline uppercase">Ver análisis completo y chatear</button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* --- FULL SCREEN CHAT MODAL (ESTILO TEAMS COPILOT) --- */}
+      {/* --- MODAL 90% CON BLUR --- */}
       {isChatOpen && (
-        <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in duration-200">
-          {/* Top Bar */}
-          <div className="h-12 bg-[#464775] w-full flex items-center justify-between px-4 text-white shadow-md">
-            <div className="flex items-center gap-4">
-              <div className="bg-white rounded p-0.5">
-                <Bot size={16} className="text-[#464775]" />
-              </div>
-              <span className="text-sm font-semibold opacity-90 tracking-tight">SVX Copilot Intelligence</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(reportText);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }}
-                className="text-[11px] font-medium bg-white/10 px-3 py-1 rounded border border-white/20 hover:bg-white/20 transition-all flex items-center gap-2"
-              >
-                {copied ? <Check size={12} /> : <Clipboard size={12} />}
-                Copy Report
-              </button>
-              <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/10 p-1 rounded transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex-1 flex flex-col items-center p-6 overflow-hidden">
-            <div className="w-full max-w-4xl h-full flex flex-col">
-              
-              {/* Header Contextual */}
-              <div className="mb-6 border-b border-gray-200 pb-4 flex justify-between items-end">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300">
+          {/* Backdrop con Blur intenso */}
+          <div 
+            className="absolute inset-0 bg-[#242424]/40 backdrop-blur-md"
+            onClick={() => setIsChatOpen(false)}
+          />
+          
+          {/* Contenedor del Modal (90% de ancho/alto aprox) */}
+          <div className="relative w-full h-full max-w-[95%] max-h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20">
+            
+            {/* Header Estilo Teams */}
+            <div className="h-14 bg-[#464775] w-full flex items-center justify-between px-6 text-white shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="bg-white rounded p-1">
+                  <Bot size={18} className="text-[#464775]" />
+                </div>
                 <div>
-                  <div className="flex items-center gap-2 text-[#464775] mb-1">
-                    <Sparkles size={16} fill="#464775" fillOpacity={0.2} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Contextual Assistance Center</span>
-                  </div>
-                  <h1 className="text-xl font-bold text-gray-900 tracking-tight">Servex Intelligence Chat</h1>
-                </div>
-                <div className="flex gap-1 bg-gray-100 p-1 rounded-md mb-1">
-                  <span className="px-3 py-1 bg-white text-[#464775] shadow-sm rounded text-[10px] font-bold uppercase">Auditoría Activa</span>
+                  <span className="text-sm font-bold tracking-tight block">SVX Copilot Intelligence</span>
+                  <span className="text-[9px] opacity-60 uppercase font-black tracking-widest">Enterprise Neural Engine</span>
                 </div>
               </div>
-
-              {/* Chat Messages Area */}
-              <div className="flex-1 overflow-y-auto mb-4 space-y-6 pr-2 custom-scrollbar">
-                {/* Mensaje Inicial (El Reporte) */}
-                <div className="flex gap-4 group">
-                  <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <Bot size={18} className="text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">SVX Copilot • Auditoría Reciente</p>
-                    <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
-                      <div className="prose prose-sm max-w-none">{formatReport(reportText)}</div>
-                    </div>
-                  </div>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold">
+                  <Zap size={12} className="text-yellow-400 fill-yellow-400" />
+                  CONTEXT: {context}
                 </div>
+                <button onClick={() => setIsChatOpen(false)} className="hover:bg-white/10 p-2 rounded-full transition-colors">
+                  <X size={22} />
+                </button>
+              </div>
+            </div>
 
-                {/* Mensajes del Chat */}
-                {messages.map((msg, i) => (
-                  <div key={i} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-gray-100' : 'bg-[#464775]'}`}>
-                      {msg.role === 'user' ? <div className="text-[#464775] font-bold text-xs">U</div> : <Bot size={18} className="text-white" />}
+            <div className="flex-1 flex overflow-hidden bg-[#FAF9F8]">
+              {/* Main Chat Area */}
+              <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full p-6">
+                
+                {/* Scrollable Messages */}
+                <div className="flex-1 overflow-y-auto mb-6 space-y-8 pr-4 custom-scrollbar">
+                  
+                  {/* Saludo y Reporte Inicial */}
+                  <div className="flex gap-5">
+                    <div className="w-10 h-10 rounded-xl bg-[#464775] flex items-center justify-center shrink-0 shadow-lg">
+                      <Sparkles size={20} className="text-white" />
                     </div>
-                    <div className={`max-w-[80%] ${msg.role === 'user' ? 'text-right' : ''}`}>
-                      <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">
-                        {msg.role === 'user' ? 'Tú' : 'SVX Copilot'}
-                      </p>
-                      <div className={`p-4 rounded-lg text-sm shadow-sm ${msg.role === 'user' ? 'bg-[#464775] text-white' : 'bg-white border border-gray-200 text-gray-800'}`}>
-                        {msg.content}
+                    <div className="flex-1">
+                      <h2 className="text-lg font-bold text-gray-900 mb-1">Análisis de Integridad LESRO</h2>
+                      <p className="text-xs text-gray-500 mb-4">Sincronizado con Supabase Real-time Auditor</p>
+                      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                        <div className="prose prose-sm max-w-none">
+                          {formatReport(reportText)}
+                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
 
-                {isTyping && (
-                  <div className="flex gap-4 animate-pulse">
-                    <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center flex-shrink-0 opacity-50">
-                      <Bot size={18} className="text-white" />
+                  {/* Burbujas de Chat */}
+                  {messages.map((msg, i) => (
+                    <div key={i} className={`flex gap-5 ${msg.role === 'user' ? 'flex-row-reverse' : ''} animate-in slide-in-from-bottom-2`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md ${msg.role === 'user' ? 'bg-white border border-gray-200' : 'bg-[#464775]'}`}>
+                        {msg.role === 'user' ? <div className="text-[#464775] font-black text-xs">U</div> : <Bot size={20} className="text-white" />}
+                      </div>
+                      <div className={`max-w-[75%] ${msg.role === 'user' ? 'text-right' : ''}`}>
+                        <div className={`p-4 rounded-2xl text-sm shadow-sm leading-relaxed ${msg.role === 'user' ? 'bg-[#464775] text-white' : 'bg-white border border-gray-100 text-gray-800'}`}>
+                          {msg.content}
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-gray-100 rounded-lg p-4 w-24 flex gap-1 items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-                    </div>
-                  </div>
-                )}
-                <div ref={chatEndRef} />
-              </div>
+                  ))}
 
-              {/* Input Area (ESTILO TEAMS) */}
-              <div className="bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden focus-within:border-[#464775] focus-within:ring-1 focus-within:ring-[#464775]/30 transition-all">
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-200 relative">
-                  <button 
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 text-[10px] font-bold text-gray-600 bg-white border border-gray-300 px-2 py-1 rounded hover:bg-gray-50 transition-colors"
-                  >
-                    <Database size={10} className="text-[#464775]" />
-                    CONTEXT: {context}
-                    <ChevronDown size={10} className={isDropdownOpen ? 'rotate-180' : ''} />
-                  </button>
-
-                  {isDropdownOpen && (
-                    <div className="absolute top-9 left-4 w-40 bg-white border border-gray-200 shadow-xl rounded z-50 py-1">
-                      {['Servex US', 'Servex LATAM'].map((ctx) => (
-                        <button 
-                          key={ctx}
-                          onClick={() => { setContext(ctx); setIsDropdownOpen(false); }}
-                          className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-gray-50 flex justify-between items-center font-medium"
-                        >
-                          {ctx}
-                          {context === ctx && <Check size={10} className="text-[#464775]" />}
-                        </button>
-                      ))}
+                  {isTyping && (
+                    <div className="flex gap-5 animate-pulse">
+                      <div className="w-10 h-10 rounded-xl bg-[#464775] flex items-center justify-center opacity-40">
+                        <Bot size={20} className="text-white" />
+                      </div>
+                      <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex gap-1.5 items-center">
+                        <div className="w-2 h-2 bg-[#464775]/40 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-[#464775]/40 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                        <div className="w-2 h-2 bg-[#464775]/40 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                      </div>
                     </div>
                   )}
-                  <div className="h-4 w-[1px] bg-gray-300 mx-1" />
-                  <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-semibold tracking-tight uppercase">
-                    <Zap size={10} className="text-yellow-500 fill-yellow-500" />
-                    Ready for Data Analysis
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Input Box Estilo Microsoft Copilot v2025 */}
+                <div className="shrink-0 bg-white border border-gray-300 rounded-2xl shadow-2xl focus-within:border-[#464775] focus-within:ring-2 focus-within:ring-[#464775]/10 transition-all overflow-hidden">
+                  <div className="px-4 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
+                      <Database size={12} />
+                      AUDIT DATA SOURCE: ClientsSERVEX
+                    </div>
                   </div>
-                </div>
-
-                <div className="p-3">
-                  <textarea 
-                    className="w-full text-sm text-gray-700 border-none focus:ring-0 resize-none bg-transparent placeholder-gray-400 min-h-[80px]"
-                    placeholder="Haz una pregunta sobre los SKUs con discrepancias o el ahorro de tiempo..."
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage(e);
-                      }
-                    }}
-                  />
-                </div>
-
-                <div className="flex justify-between items-center px-4 py-2 border-t border-gray-100 bg-white">
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <Plus size={18} className="cursor-pointer hover:text-[#464775]" />
-                    <Mic size={18} className="cursor-pointer hover:text-[#464775]" />
-                    <HelpCircle size={18} className="cursor-pointer hover:text-[#464775]" />
+                  
+                  <div className="p-4">
+                    <textarea 
+                      className="w-full text-sm text-gray-700 border-none focus:ring-0 resize-none bg-transparent placeholder-gray-400 min-h-[60px]"
+                      placeholder="Pregunta a SVX Copilot sobre variaciones de precios o SKUs específicos..."
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage(e);
+                        }
+                      }}
+                    />
                   </div>
 
-                  <button 
-                    onClick={handleSendMessage}
-                    disabled={!inputMessage.trim() || isTyping}
-                    className={`flex items-center gap-2 px-6 py-1.5 rounded-md font-bold text-xs transition-all
-                    ${inputMessage.trim() && !isTyping 
-                      ? 'bg-[#464775] text-white hover:bg-[#3a3b61]' 
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'}`}
-                  >
-                    <span>Send Query</span>
-                    <ArrowRight size={14} />
-                  </button>
+                  <div className="px-4 py-3 bg-white flex justify-between items-center border-t border-gray-50">
+                    <div className="flex items-center gap-4 text-gray-400">
+                      <Plus size={20} className="cursor-pointer hover:text-[#464775] transition-colors" />
+                      <Mic size={20} className="cursor-pointer hover:text-[#464775] transition-colors" />
+                    </div>
+                    <button 
+                      onClick={handleSendMessage}
+                      disabled={!inputMessage.trim() || isTyping}
+                      className={`flex items-center gap-2 px-6 py-2 rounded-xl font-bold text-xs transition-all
+                      ${inputMessage.trim() && !isTyping 
+                        ? 'bg-[#464775] text-white hover:bg-[#3a3b61] shadow-lg shadow-[#464775]/20' 
+                        : 'bg-gray-100 text-gray-300 cursor-not-allowed'}`}
+                    >
+                      <span>Enviar Consulta</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              {/* Suggestions */}
-              <div className="mt-4 flex flex-wrap gap-4 items-center">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter italic">Suggestions:</span>
-                {["Explícame los errores de precio", "Resumen de ahorro", "SKUs de Grado 2"].map((tip, i) => (
-                  <button 
-                    key={i}
-                    onClick={() => setInputMessage(tip)}
-                    className="text-[10px] text-[#464775] hover:underline font-semibold"
-                  >
-                    {tip}
-                  </button>
-                ))}
               </div>
             </div>
           </div>
@@ -306,10 +235,12 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
       )}
 
       <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E1E1E1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C1C1C1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E2E2; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #C8C8C8; }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoom-in-95 { from { transform: scale(0.98); opacity: 0; } to { transform: scale(1); opacity: 1; } }
       `}</style>
     </div>
   );
