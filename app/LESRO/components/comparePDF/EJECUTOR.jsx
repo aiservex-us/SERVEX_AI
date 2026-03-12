@@ -241,7 +241,11 @@ const SVXUnifiedPlatform = () => {
 
       <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#464775] rounded flex items-center justify-center text-white font-bold">SVX</div>
+        <img 
+  src="/logosEmpresas/lesro.webp" 
+  alt="SVX Logo" 
+  className="w-15 h-15 rounded object-contain" 
+/>
           <div>
             <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
             <p className="text-[10px] text-gray-500 font-medium">Centralized Data Engineering Control</p>
