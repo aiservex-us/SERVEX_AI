@@ -75,28 +75,24 @@ const SVXUnifiedPlatform = () => {
 
   const fetchCloudData = async () => {
     try {
-      // 1. Incluimos 'informa_agent_raw' en el select
+      // FILTRO ESTRICTO: Solo leer la fila donde company_name sea exactamente 'LESRO'
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
         .select('audit_report_json, xml_actualizer_raw, csv_raw, informa_agent_raw')
         .eq('company_name', 'LESRO')
-        .maybeSingle();
+        .single(); // .single() asegura que solo traiga esa fila específica
       
       if (error) throw error;
       
       if (dbData) {
-        // 2. Procesamiento del JSON de auditoría
         const report = typeof dbData.audit_report_json === 'string' 
           ? JSON.parse(dbData.audit_report_json) 
           : dbData.audit_report_json;
   
         setAuditReportJson(report);
         setXmlActualizerRaw(dbData.xml_actualizer_raw);
-        
-        // 3. Seteamos el informe de texto para el componente EjecutorAgente
         setAgentReport(dbData.informa_agent_raw || "");
   
-        // 4. Lógica de comparación de CSV (Local vs Cloud)
         if (dbData.csv_raw && data.length > 0) {
             const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
             const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
@@ -407,12 +403,10 @@ const SVXUnifiedPlatform = () => {
             </AnimatePresence>
           </main>
 
-          {/* LOWER PANEL: SYSTEM CONSOLE LLAMANDO AL NUEVO COMPONENTE */}
-          {/* LOWER PANEL: SYSTEM CONSOLE */}
-<EjecutorAgente 
-  reportText={agentReport} // Ahora pasa el texto real de Supabase
-  isProcessing={isProcessing} 
-/>
+          <EjecutorAgente 
+            reportText={agentReport} 
+            isProcessing={isProcessing} 
+          />
         </div>
       </div>
     </div>
