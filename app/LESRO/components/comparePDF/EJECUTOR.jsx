@@ -390,11 +390,9 @@ const SVXUnifiedPlatform = () => {
                   
                   <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner relative">
                     {isProcessing ? (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-95 z-50">
-                        <Loader2 className="animate-spin text-[#464775] mb-4" size={40} />
-                        <span className="text-[12px] font-bold text-[#464775] uppercase tracking-widest animate-pulse">
-                          Cargando nuevo XML actualizado al catálogo actual...
-                        </span>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-10">
+                        <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
+                        <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">Generating XML...</span>
                       </div>
                     ) : xmlActualizerRaw ? (
                       xmlActualizerRaw
