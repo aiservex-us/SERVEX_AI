@@ -50,13 +50,6 @@ const InitPage = () => {
           </div>
         );
 
-      case 'products':
-        return (
-          <div className="col-span-12 lg:col-span-8 space-y-6">
-            <Products />
-          </div>
-        );
-
       case 'settings':
         return (
           <div className="col-span-12 lg:col-span-8 space-y-6">

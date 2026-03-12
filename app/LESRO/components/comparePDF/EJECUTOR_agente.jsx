@@ -66,7 +66,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Error de conexión con SVX Engine." }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "⚠️ Connection error with SVX Engine." }]);
     } finally {
       setIsTyping(false);
     }
@@ -74,12 +74,12 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
 
   return (
     <div className="w-full font-sans">
-      {/* --- PREVIEW CARD (ESTILO TEAMS) --- */}
+      {/* --- PREVIEW CARD (TEAMS STYLE) --- */}
       <section className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
-        <div className="bg-[#464775] px-4 py-2.5 flex items-center justify-between text-white">
+        <div className="bg-gray-100 px-4 py-2.5 flex items-center justify-between text-gray-600">
           <div className="flex items-center gap-2">
             <Sparkles size={14} className="text-white fill-white/20" />
-            <span className="text-[11px] font-bold uppercase tracking-wider">SVX Copilot Intelligence</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider">Intelligence</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 bg-white/10 px-2 py-0.5 rounded text-[9px] font-medium border border-white/20">
@@ -95,7 +95,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
         <div className="p-5">
           <div className="flex items-center gap-2 text-[#464775] mb-3">
             <Bot size={18} />
-            <h3 className="text-sm font-bold text-gray-900">Informe de Auditoría Ejecutiva</h3>
+            <h3 className="text-sm font-bold text-gray-900">Executive Audit Report</h3>
           </div>
 
           <div className="bg-gray-50/50 border border-gray-100 rounded-md p-4 max-h-48 overflow-y-auto custom-scrollbar">
@@ -108,7 +108,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
             ) : reportText ? (
               <div className="font-normal">{formatReport(reportText)}</div>
             ) : (
-              <p className="text-xs text-gray-400 italic">No hay datos procesados actualmente.</p>
+              <p className="text-xs text-gray-400 italic">No data currently processed.</p>
             )}
           </div>
 
@@ -118,14 +118,14 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
               disabled={!reportText || isProcessing}
               className="flex items-center gap-2 px-4 py-1.5 bg-[#464775] text-white rounded text-[11px] font-bold hover:bg-[#3a3b61] transition-all disabled:opacity-50"
             >
-              <span>Abrir Copilot Chat</span>
+              <span>Open Copilot Chat</span>
               <ArrowRight size={12} />
             </button>
           </div>
         </div>
       </section>
 
-      {/* --- FULL SCREEN CHAT MODAL (ESTILO TEAMS COPILOT) --- */}
+      {/* --- FULL SCREEN CHAT MODAL (TEAMS COPILOT STYLE) --- */}
       {isChatOpen && (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in duration-200">
           {/* Top Bar */}
@@ -157,7 +157,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
           <div className="flex-1 flex flex-col items-center p-6 overflow-hidden">
             <div className="w-full max-w-4xl h-full flex flex-col">
               
-              {/* Header Contextual */}
+              {/* Contextual Header */}
               <div className="mb-6 border-b border-gray-200 pb-4 flex justify-between items-end">
                 <div>
                   <div className="flex items-center gap-2 text-[#464775] mb-1">
@@ -167,26 +167,26 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
                   <h1 className="text-xl font-bold text-gray-900 tracking-tight">Servex Intelligence Chat</h1>
                 </div>
                 <div className="flex gap-1 bg-gray-100 p-1 rounded-md mb-1">
-                  <span className="px-3 py-1 bg-white text-[#464775] shadow-sm rounded text-[10px] font-bold uppercase">Auditoría Activa</span>
+                  <span className="px-3 py-1 bg-white text-[#464775] shadow-sm rounded text-[10px] font-bold uppercase">Active Audit</span>
                 </div>
               </div>
 
               {/* Chat Messages Area */}
               <div className="flex-1 overflow-y-auto mb-4 space-y-6 pr-2 custom-scrollbar">
-                {/* Mensaje Inicial (El Reporte) */}
+                {/* Initial Message (The Report) */}
                 <div className="flex gap-4 group">
                   <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center flex-shrink-0 shadow-sm">
                     <Bot size={18} className="text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">SVX Copilot • Auditoría Reciente</p>
+                    <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">SVX Copilot • Recent Audit</p>
                     <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
                       <div className="prose prose-sm max-w-none">{formatReport(reportText)}</div>
                     </div>
                   </div>
                 </div>
 
-                {/* Mensajes del Chat */}
+                {/* Chat Messages */}
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                     <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 shadow-sm ${msg.role === 'user' ? 'bg-gray-100' : 'bg-[#464775]'}`}>
@@ -194,7 +194,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
                     </div>
                     <div className={`max-w-[80%] ${msg.role === 'user' ? 'text-right' : ''}`}>
                       <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">
-                        {msg.role === 'user' ? 'Tú' : 'SVX Copilot'}
+                        {msg.role === 'user' ? 'You' : 'SVX Copilot'}
                       </p>
                       <div className={`p-4 rounded-lg text-sm shadow-sm ${msg.role === 'user' ? 'bg-[#464775] text-white' : 'bg-white border border-gray-200 text-gray-800'}`}>
                         {msg.content}
@@ -218,7 +218,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Input Area (ESTILO TEAMS) */}
+              {/* Input Area (TEAMS STYLE) */}
               <div className="bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden focus-within:border-[#464775] focus-within:ring-1 focus-within:ring-[#464775]/30 transition-all">
                 <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-200 relative">
                   <button 
@@ -254,7 +254,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
                 <div className="p-3">
                   <textarea 
                     className="w-full text-sm text-gray-700 border-none focus:ring-0 resize-none bg-transparent placeholder-gray-400 min-h-[80px]"
-                    placeholder="Haz una pregunta sobre los SKUs con discrepancias o el ahorro de tiempo..."
+                    placeholder="Ask a question about SKU discrepancies or time savings..."
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyDown={(e) => {
@@ -290,7 +290,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
               {/* Suggestions */}
               <div className="mt-4 flex flex-wrap gap-4 items-center">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter italic">Suggestions:</span>
-                {["Explícame los errores de precio", "Resumen de ahorro", "SKUs de Grado 2"].map((tip, i) => (
+                {["Explain price errors", "Savings summary", "Grade 2 SKUs"].map((tip, i) => (
                   <button 
                     key={i}
                     onClick={() => setInputMessage(tip)}
