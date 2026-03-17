@@ -154,9 +154,6 @@ const SVXUnifiedEnterprise = () => {
     finally { setIsAnalyzing(false); }
   };
 
-  // ============================
-  // 3. LÓGICA DE EXTRACCIÓN XML (PIM)
-  // ============================
   const handleSearch = (sku, isAuto = false) => {
     if (!xmlDoc || !sku) return;
     setSelectedConfigs(prev => {
@@ -168,43 +165,27 @@ const SVXUnifiedEnterprise = () => {
 
         if (!productNode) return prev;
 
-        // --- Extracción de Dimensiones ---
-        const dimensions = {
-          x: productNode.querySelector("X")?.textContent || "N/A",
-          y: productNode.querySelector("Y")?.textContent || "N/A",
-          z: productNode.querySelector("Z")?.textContent || "N/A"
-        };
-
-        // --- Extracción de Categoría/Clasificación ---
-        const classifications = [...productNode.getElementsByTagName("ClassificationRef")].map(c => c.textContent);
-
-        // --- Extracción de Features y Opciones (Recursivo) ---
         const featureNodes = [...productNode.getElementsByTagName("Feature")];
         const featureRefs = [...productNode.getElementsByTagName("FeatureRef")];
-        
-        const allFeatureElements = [
+        const allFeatures = [
             ...featureNodes.map(f => ({ node: f, type: 'direct' })), 
             ...featureRefs.map(r => ({ code: r.textContent.trim(), type: 'ref' }))
         ];
 
-        const resolvedFeatures = allFeatureElements.map(item => {
+        const resolvedFeatures = allFeatures.map(item => {
             let fDetail = item.type === 'ref' 
             ? [...xmlDoc.getElementsByTagName("Feature")].find(f => f.getElementsByTagName("Code")[0]?.textContent === item.code)
             : item.node;
-            
             if (!fDetail) return null;
 
             const fCode = fDetail.getElementsByTagName("Code")[0]?.textContent;
             const fName = fDetail.querySelector("Description")?.textContent || fCode;
-            
             const options = [...fDetail.getElementsByTagName("Option")].map(o => ({
-                code: o.getElementsByTagName("Code")[0]?.textContent,
-                desc: o.querySelector("Description")?.textContent || "Opción",
-                // Basado en tu análisis: el precio real está en OptionPrice > Value
-                price: parseFloat(o.querySelector("OptionPrice > Value")?.textContent || 0)
-            }));
+            code: o.getElementsByTagName("Code")[0]?.textContent,
+            desc: o.querySelector("Description")?.textContent || "Opción",
+            price: parseFloat(o.querySelector("OptionPrice > Value")?.textContent || 0)
+            })).filter(opt => opt.price > 0);
 
-            // Solo mostrar features que tengan opciones con precio o significado comercial
             return options.length > 0 ? { id: fCode, name: fName, options } : null;
         }).filter(Boolean);
 
@@ -212,11 +193,8 @@ const SVXUnifiedEnterprise = () => {
             sku,
             name: productNode.querySelector("Description")?.textContent || "Modelo",
             basePrice: parseFloat(productNode.querySelector("Price > Value")?.textContent || 0),
-            dimensions,
-            classifications,
             selections: {},
-            features: resolvedFeatures,
-            currency: xmlDoc.querySelector("Currency")?.textContent || "USD"
+            features: resolvedFeatures
         };
 
         if (!isAuto) {
@@ -236,6 +214,7 @@ const SVXUnifiedEnterprise = () => {
   if (loadingXML) return <div className="h-screen flex items-center justify-center bg-[#FDFDFD] text-[10px] font-bold text-[#464775]">CARGANDO ECOSISTEMA SVX...</div>;
 
   return (
+    // AJUSTE: h-screen y w-screen con overflow-hidden
     <div className="flex flex-col lg:flex-row h-screen w-[100%] bg-[#FDFDFD] font-sans text-[#242424] overflow-hidden">
       
       <AnimatePresence>
@@ -273,7 +252,8 @@ const SVXUnifiedEnterprise = () => {
               <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR</p>
             </div>
           ) : (
-            <div className="flex-grow overflow-auto border rounded-lg bg-white w-full shadow-inner">
+            // AJUSTE: w-full y overflow-auto para scroll de tabla
+            <div className="flex-grow overflow-auto border rounded-lg bg-white w-full">
               <table className="min-w-full text-[10px]">
                 <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b">
                   <tr>
@@ -317,13 +297,14 @@ const SVXUnifiedEnterprise = () => {
         </div>
       </div>
 
-      {/* SECCIÓN XML (35%) - PIM PANEL */}
+      {/* SECCIÓN XML (35%) */}
+      {/* AJUSTE: h-full y overflow-hidden para scroll interno de productos */}
       <div className="flex-[0.35] h-full bg-[#F9F9F9] flex flex-col shadow-2xl border-l border-[#EDEBE9] overflow-hidden">
         <div className="p-4 bg-white border-b shrink-0" ref={dropdownRef}>
           <div className="relative">
             <div className="flex items-center bg-[#F3F2F1] rounded px-3 border-b-2 border-transparent focus-within:border-[#464775] transition-all">
               <FiSearch className="text-gray-400" size={14}/>
-              <input type="text" placeholder="BUSCAR EN CATÁLOGO XML..." className="w-full p-2.5 bg-transparent outline-none text-[11px] font-bold uppercase"
+              <input type="text" placeholder="AÑADIR SKU..." className="w-full p-2.5 bg-transparent outline-none text-[11px] font-bold uppercase"
                 value={selectedSKU} onChange={(e) => { setSelectedSKU(e.target.value.toUpperCase()); setShowDropdown(true); }} />
             </div>
             {showDropdown && selectedSKU && (
@@ -344,42 +325,21 @@ const SVXUnifiedEnterprise = () => {
               <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} key={pIdx} className="bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden">
                 <div onClick={() => setExpandedIndex(expandedIndex === pIdx ? null : pIdx)}
                   className={`p-3 flex justify-between items-center cursor-pointer transition-colors ${expandedIndex === pIdx ? 'bg-[#464775] text-white' : 'hover:bg-gray-50'}`}>
-                  <div className="flex-grow">
+                  <div>
                     <p className="text-[10px] font-black leading-none">{config.sku}</p>
-                    <p className={`text-[8px] mt-1 font-medium truncate max-w-[200px] ${expandedIndex === pIdx ? 'text-white/70' : 'text-gray-400'}`}>
-                      {config.name}
-                    </p>
-                    <p className={`text-[10px] mt-1 font-black ${expandedIndex === pIdx ? 'text-white' : 'text-[#464775]'}`}>
-                      ${calculateProductTotal(config).toLocaleString()} {config.currency}
+                    <p className={`text-[9px] mt-1 font-bold ${expandedIndex === pIdx ? 'text-white/70' : 'text-[#464775]'}`}>
+                      ${calculateProductTotal(config).toLocaleString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={(e) => { e.stopPropagation(); setSelectedConfigs(prev => prev.filter((_, i) => i !== pIdx)); }} className="p-1 hover:bg-black/10 rounded"><FiX size={12}/></button>
                   </div>
                 </div>
-                
                 {expandedIndex === pIdx && (
-                  <div className="p-3 space-y-4 border-t border-[#EDEBE9] bg-white animate-in fade-in slide-in-from-top-2">
-                    
-                    {/* INFO TÉCNICA DEL XML */}
-                    <div className="grid grid-cols-2 gap-2 pb-3 border-b border-[#F3F2F1]">
-                        <div>
-                            <p className="text-[7px] font-black text-gray-400 uppercase">Dimensiones</p>
-                            <p className="text-[9px] font-bold text-gray-600">{config.dimensions.x}"x{config.dimensions.y}"x{config.dimensions.z}"</p>
-                        </div>
-                        <div>
-                            <p className="text-[7px] font-black text-gray-400 uppercase">Categoría</p>
-                            <p className="text-[9px] font-bold text-gray-600 truncate">{config.classifications[0] || 'General'}</p>
-                        </div>
-                    </div>
-
-                    {/* CONFIGURADOR DE FEATURES */}
+                  <div className="p-3 space-y-4 border-t border-[#EDEBE9] bg-white">
                     {config.features.map(feat => (
-                      <div key={feat.id} className="space-y-1.5">
-                        <div className="flex justify-between items-center">
-                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">{feat.name}</span>
-                            <span className="text-[7px] font-mono text-gray-300">{feat.id}</span>
-                        </div>
+                      <div key={feat.id} className="space-y-1">
+                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">{feat.name}</span>
                         <div className="grid gap-1">
                           {feat.options.map((opt, i) => (
                             <button key={i} onClick={() => {
@@ -387,13 +347,8 @@ const SVXUnifiedEnterprise = () => {
                               nc[pIdx].selections[feat.id] = opt;
                               setSelectedConfigs(nc);
                             }} className={`p-2.5 text-left text-[9px] rounded border transition-all flex justify-between items-center ${config.selections[feat.id]?.code === opt.code ? 'border-[#464775] bg-[#F3F2F1] font-bold shadow-sm' : 'border-[#F0F0F0] hover:bg-gray-50'}`}>
-                              <div className="flex flex-col">
-                                <span className="pr-2">{opt.desc}</span>
-                                <span className="text-[7px] text-gray-300 uppercase">{opt.code}</span>
-                              </div>
-                              <span className="text-[#464775] font-black">
-                                {opt.price > 0 ? `+$${opt.price}` : 'Incl.'}
-                              </span>
+                              <span className="pr-2">{opt.desc}</span>
+                              <span className="text-[#464775] font-black">+$ {opt.price}</span>
                             </button>
                           ))}
                         </div>
@@ -402,12 +357,12 @@ const SVXUnifiedEnterprise = () => {
                   </div>
                 )}
               </motion.div>
-            ))s
+            ))
           ) : (
             <div className="h-full flex flex-col items-center justify-center opacity-30 text-center p-10">
               <FiShield size={40} className="mb-4 text-[#464775]" />
               <p className="text-[10px] font-black uppercase tracking-widest text-[#464775]">Panel PIM Vacío</p>
-              <p className="text-[9px] mt-2 font-medium">Las discrepancias del CSV aparecerán aquí para ser re-configuradas con datos maestros.</p>
+              <p className="text-[9px] mt-2 font-medium">Las discrepancias del CSV aparecerán aquí para ser re-configuradas.</p>
             </div>
           )}
         </div>

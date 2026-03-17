@@ -28,38 +28,57 @@ const PanelMenur = () => {
   const exportRef = useRef(null);
 
   // ============================
-  // ✅ FUNCIÓN CENTRAL DE PRECIOS
+  // ✅ FUNCIÓN CENTRAL DE PRECIOS (EDITADA PARA LESRO)
   // ============================
   const extractPrices = (productNode) => {
     let basePrice = 0;
     const grades = [];
+    const optionals = {
+      armPoly: 0,
+      armSolid: 0,
+      casters: 0,
+      tablet: 0
+    };
 
     const baseNode = productNode.getElementsByTagName("Price")[0];
     if (baseNode) {
-      basePrice = parseFloat(
-        baseNode.getElementsByTagName("Value")[0]?.textContent || "0"
-      );
+      basePrice = parseFloat(baseNode.getElementsByTagName("Value")[0]?.textContent || "0");
     }
 
     const options = productNode.getElementsByTagName("Option");
 
     for (let i = 0; i < options.length; i++) {
       const opt = options[i];
+      const code = opt.getElementsByTagName("Code")[0]?.textContent || "";
       const desc = opt.getElementsByTagName("Description")[0]?.textContent || "";
       const valNode = opt.getElementsByTagName("OptionPrice")[0];
-      const value = parseFloat(
-        valNode?.getElementsByTagName("Value")[0]?.textContent || "0"
-      );
+      const diffValue = parseFloat(valNode?.getElementsByTagName("Value")[0]?.textContent || "0");
 
-      if (desc.toLowerCase().includes("grade")) {
-        grades.push({
-          label: desc,
-          value: basePrice + value
-        });
+      const searchText = (code + " " + desc).toLowerCase();
+
+      // Mapeo de Grados 02-13
+      if (searchText.includes("grade")) {
+        const match = searchText.match(/grade\s*(\d+)/);
+        if (match) {
+          const gradeNum = match[1].padStart(2, '0');
+          // Grade 02 es el base en Lesro, no sumamos diferencial si es 0
+          const finalPrice = gradeNum === '02' ? basePrice : basePrice + diffValue;
+          grades.push({ label: `G${gradeNum}`, value: finalPrice });
+        }
+      } 
+      // Mapeo de Opcionales específicos
+      else if (searchText.includes("armpad") || searchText.includes("armcap")) {
+        if (searchText.includes("solid")) optionals.armSolid = diffValue;
+        else optionals.armPoly = diffValue;
       }
+      else if (searchText.includes("caster")) optionals.casters = diffValue;
+      else if (searchText.includes("tablet")) optionals.tablet = diffValue;
     }
 
-    return { basePrice, grades };
+    // Ordenar grados numéricamente
+    grades.sort((a, b) => a.label.localeCompare(b.label));
+
+    return { basePrice, grades, optionals };
   };
 
   // ============================
@@ -92,7 +111,7 @@ const PanelMenur = () => {
   }, []);
 
   // ============================
-  // PARSEO XML (CORREGIDO)
+  // PARSEO XML
   // ============================
   useEffect(() => {
     if (!xmlString) return;
@@ -113,8 +132,8 @@ const PanelMenur = () => {
       const code = product.getElementsByTagName("Code")[0]?.textContent || "N/A";
       const description = product.getElementsByTagName("Description")[0]?.textContent || "Sin descripción";
 
-      // ✅ NUEVA LÓGICA
-      const { basePrice, grades } = extractPrices(product);
+      // ✅ EXTRACCIÓN CON LA NUEVA LÓGICA
+      const { basePrice, grades, optionals } = extractPrices(product);
 
       const xVal = product.getElementsByTagName("X")[0]?.textContent || "";
       const yVal = product.getElementsByTagName("Y")[0]?.textContent || "";
@@ -132,6 +151,7 @@ const PanelMenur = () => {
         description,
         price: basePrice,
         extraPrices: grades,
+        optionals,
         dimensions,
         category,
         priority,
@@ -146,14 +166,12 @@ const PanelMenur = () => {
     return [...new Set(products.map(p => p.category))];
   }, [products]);
 
-  // 3. LÓGICA DE FILTRADO (MODIFICADA PARA DIMENSIONES)
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = 
         p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Filtrado por dimensión
       let matchesDim = true;
       if (dimensionFilter === "with") matchesDim = p.dimensions !== "N/A";
       if (dimensionFilter === "without") matchesDim = p.dimensions === "N/A";
@@ -167,7 +185,6 @@ const PanelMenur = () => {
     });
   }, [searchTerm, products, priceFilter, dimensionFilter]);
 
-  // ABRIR MODAL CON DATOS
   const handleOpenEdit = (product) => {
     setEditingProduct(product);
     setEditFormData({
@@ -179,7 +196,6 @@ const PanelMenur = () => {
     setIsModalOpen(true);
   };
 
-  // ACTUALIZAR XML COMPLETO
   const handleUpdateXML = async () => {
     try {
       setIsUpdating(true);
@@ -237,7 +253,6 @@ const PanelMenur = () => {
     <div className="flex h-[100%] w-full bg-[#FFF] text-[#242424] font-sans overflow-hidden">
       <main className="flex-1 flex flex-col overflow-hidden">
         
-        {/* TOP NAV - Teams Style (Light) */}
         <header className="h-12 border-b border-[#EDEBE9] bg-white flex items-center justify-between px-6 shrink-0 shadow-sm">
           <div className="flex items-center gap-2 text-xs text-[#605E5C]">
             <span>Tasks</span> <span className="text-[#BEBBB8]">/</span> 
@@ -261,7 +276,6 @@ const PanelMenur = () => {
           </div>
         </header>
   
-        {/* SUB-HEADER FILTERS - Teams Tabs */}
         <div className="bg-white border-b border-[#EDEBE9] px-6 flex items-center gap-4 shrink-0">
           {['List', 'Kanban', 'Gantt', 'Calendar', 'Dashboard'].map(view => (
             <button 
@@ -285,7 +299,6 @@ const PanelMenur = () => {
           </select>
         </div>
   
-        {/* TABLE CONTENT */}
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-full mx-auto space-y-6">
             {loading ? (
@@ -319,10 +332,10 @@ const PanelMenur = () => {
                         <thead>
                           <tr className="bg-[#FAF9F8] border-b border-[#EDEBE9] text-[11px] text-[#605E5C] font-semibold">
                             <th className="px-4 py-2.5 font-semibold">Name / Code</th>
-                            <th className="px-4 py-2.5 font-semibold">Priority</th>
+                            <th className="px-4 py-2.5 font-semibold">Grades (02-13)</th>
+                            <th className="px-4 py-2.5 font-semibold">Optionals (Upcharges)</th>
                             <th className="px-4 py-2.5 font-semibold">Dimensions</th>
-                            <th className="px-4 py-2.5 font-semibold">Tag</th>
-                            <th className="px-4 py-2.5 font-semibold text-right">Price ({catalogInfo.currency})</th>
+                            <th className="px-4 py-2.5 font-semibold text-right">Base Price ({catalogInfo.currency})</th>
                             <th className="px-4 py-2.5 font-semibold text-center">Actions</th>
                           </tr>
                         </thead>
@@ -336,37 +349,30 @@ const PanelMenur = () => {
                                 </div>
                               </td>
                               <td className="px-4 py-3">
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-[2px] ${
-                                  product.priority === 'High' ? 'bg-[#FDE7E9] text-[#A4262C]' : 
-                                  product.priority === 'Normal' ? 'bg-[#E1DFDD] text-[#323130]' : 'bg-[#F3F2F1] text-[#605E5C]'
-                                }`}>
-                                  {product.priority}
-                                </span>
+                                <div className="grid grid-cols-3 gap-x-4 gap-y-1">
+                                  {product.extraPrices.map((ep, i) => (
+                                    <div key={i} className="text-[9px] flex items-center gap-1">
+                                      <span className="text-[#605E5C] font-bold">{ep.label}:</span>
+                                      <span className="text-[#242424] font-semibold">${Math.round(ep.value)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex flex-col gap-0.5">
+                                  {product.optionals.armPoly > 0 && <span className="text-[9px] text-[#A4262C] font-semibold">Arm Poly: +${product.optionals.armPoly}</span>}
+                                  {product.optionals.armSolid > 0 && <span className="text-[9px] text-[#A4262C] font-semibold">Arm Solid: +${product.optionals.armSolid}</span>}
+                                  {product.optionals.casters > 0 && <span className="text-[9px] text-[#0078D4] font-semibold">Casters: +${product.optionals.casters}</span>}
+                                  {product.optionals.tablet > 0 && <span className="text-[9px] text-[#0078D4] font-semibold">Tablet: +${product.optionals.tablet}</span>}
+                                </div>
                               </td>
                               <td className="px-4 py-3 text-xs text-[#605E5C]">
                                 {product.dimensions}
                               </td>
-                              <td className="px-4 py-3">
-                                <span className="text-[11px] text-[#605E5C] flex items-center gap-1.5">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                                  {product.tag}
-                                </span>
-                              </td>
                               <td className="px-4 py-3 text-right">
-                                {product.extraPrices.length > 0 ? (
-                                  <div className="flex flex-col gap-0.5">
-                                    {product.extraPrices.map((ep, i) => (
-                                      <div key={i} className="text-[10px] flex justify-end gap-2">
-                                        <span className="text-[#605E5C] font-semibold uppercase">{ep.label}:</span>
-                                        <span className="font-bold text-[#242424]">${ep.value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <span className="text-[13px] font-bold text-[#242424]">
-                                    {product.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                                  </span>
-                                )}
+                                <span className="text-[13px] font-bold text-[#242424]">
+                                  ${product.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </span>
                               </td>
                               <td className="px-4 py-3 text-center">
                                   <button 
@@ -413,7 +419,6 @@ const PanelMenur = () => {
         </div>
       </main>
   
-      {/* MODAL - Teams Fluent Dialog */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-md shadow-[0_20px_40px_rgba(0,0,0,0.2)] w-full max-w-md border border-[#EDEBE9] overflow-hidden">
@@ -480,7 +485,6 @@ const PanelMenur = () => {
         </div>
       )}
   
-      {/* DROPDOWN EXPORT - Teams Style */}
       {isExportOpen && (
         <div className="absolute top-12 right-24 mt-1 w-48 bg-white border border-[#EDEBE9] rounded-sm shadow-xl z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-100">
           <button onClick={() => downloadFile(xmlString, 'catalog.xml', 'application/xml')} className="w-full px-4 py-2 text-left text-xs font-semibold hover:bg-[#F3F2F1] flex items-center gap-3">
@@ -493,6 +497,6 @@ const PanelMenur = () => {
       )}
     </div>
   );
-      }
+};
 
 export default PanelMenur;
