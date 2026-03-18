@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { createPortal } from 'react-dom'; // Para el Popup
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiUploadCloud, FiCheck, FiZap, FiShield, FiX, FiSearch, 
   FiAlertTriangle, FiArrowRight, FiCheckCircle, FiInfo, FiXCircle, FiCode, FiDatabase,
-  FiMaximize2 // Icono para el botón de expandir
+  FiMaximize2, FiLayers, FiPackage
 } from 'react-icons/fi';
 import { BsFileEarmarkArrowUp } from 'react-icons/bs';
 import { 
@@ -14,8 +14,9 @@ import {
 
 import { supabase } from '../../../lib/supabaseClient';
 
-// IMPORTACIÓN DEL COMPONENTE EXTERNO
+// IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EjecutorAgente from './EJECUTOR_agente';
+import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; // Nuevo componente visualizador
 
 const SVXUnifiedPlatform = () => {
   // --- TUTORIAL ALERT STATE ---
@@ -47,7 +48,6 @@ const SVXUnifiedPlatform = () => {
   const [xmlActualizerRaw, setXmlActualizerRaw] = useState("");
 
   // --- CONTROL STATES ---
-  const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [matchStatus, setMatchStatus] = useState(null); 
   const [diffCount, setDiffCount] = useState(0);
@@ -56,12 +56,7 @@ const SVXUnifiedPlatform = () => {
   const [backendError, setBackendError] = useState(null);
 
   const [agentReport, setAgentReport] = useState("")
-  // --- TERMINAL STATE ---
-  const [terminalLogs, setTerminalLogs] = useState([
-    { id: 1, type: 'system', msg: 'SERVEX_AI System Initialized...' },
-    { id: 2, type: 'info', msg: 'Awaiting data stream connection...' }
-  ]);
-
+  
   // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
 
@@ -71,7 +66,7 @@ const SVXUnifiedPlatform = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `LESRO_PRICING_MASTER_for_01_01_26(2026_Pricing_File_RWS).xml`;
+    link.download = `LESRO_PRICING_MASTER_AUDIT_${new Date().getFullYear()}.xml`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -80,12 +75,11 @@ const SVXUnifiedPlatform = () => {
 
   const fetchCloudData = async () => {
     try {
-      // FILTRO ESTRICTO: Solo leer la fila donde company_name sea exactamente 'LESRO'
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
         .select('audit_report_json, xml_actualizer_raw, csv_raw, informa_agent_raw')
         .eq('company_name', 'LESRO')
-        .single(); // .single() asegura que solo traiga esa fila específica
+        .single();
       
       if (error) throw error;
       
@@ -175,7 +169,6 @@ const SVXUnifiedPlatform = () => {
         throw new Error(errorData.detail || 'SERVEX_AI Error');
       }
 
-      const result = await response.json();
       setBackendSuccess(true);
       await new Promise(resolve => setTimeout(resolve, 200));
       await fetchCloudData();
@@ -199,7 +192,7 @@ const SVXUnifiedPlatform = () => {
     setMasterDataRows([]);
   };
 
-  // --- FUNCIÓN DE RENDERIZADO PARA EVITAR REPETIR CÓDIGO ---
+  // --- RENDERIZADO DE CONTENIDO SEGÚN TAB ACTIVA ---
   const renderVisualizerContent = () => (
     <AnimatePresence mode="wait">
       {activeTab === 'console' && (
@@ -238,7 +231,6 @@ const SVXUnifiedPlatform = () => {
                         {row.map((cell, ci) => {
                           const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                           const isCellDiff = masterCell !== null && cell !== masterCell;
-                          
                           return (
                             <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
                               {isCellDiff ? (
@@ -281,7 +273,7 @@ const SVXUnifiedPlatform = () => {
       {activeTab === 'xml_view' && (
         <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
           <div className="flex-shrink-0 flex justify-between items-center mb-4">
-            <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_actualizer_raw</h2>
+            <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_actualizer_raw (Raw Code)</h2>
             {xmlActualizerRaw && !isProcessing && (
               <button 
                 onClick={handleDownloadXML}
@@ -291,7 +283,6 @@ const SVXUnifiedPlatform = () => {
               </button>
             )}
           </div>
-          
           <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner relative">
             {isProcessing ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-10">
@@ -301,11 +292,23 @@ const SVXUnifiedPlatform = () => {
             ) : xmlActualizerRaw ? (
               xmlActualizerRaw
             ) : (
-              <div className="h-full flex items-center justify-center opacity-30 italic">
-                // Waiting for data synchronization...
-              </div>
+              <div className="h-full flex items-center justify-center opacity-30 italic">// Waiting for data synchronization...</div>
             )}
           </div>
+        </motion.div>
+      )}
+
+      {/* NUEVA OPCIÓN: VISUALIZADOR DE PRODUCTOS XML */}
+      {activeTab === 'xml_inspector' && (
+        <motion.div key="inspector" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full overflow-hidden">
+          {isProcessing ? (
+            <div className="h-full flex flex-col items-center justify-center">
+              <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
+              <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">Parsing Catalog Structure...</span>
+            </div>
+          ) : (
+            <XML_EJECUTADO_VEW xmlString={xmlActualizerRaw} />
+          )}
         </motion.div>
       )}
     </AnimatePresence>
@@ -322,35 +325,18 @@ const SVXUnifiedPlatform = () => {
                 <Zap size={14} className="text-yellow-400 fill-yellow-400" />
                 <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization Module</span>
               </div>
-              <button onClick={closeTutorial} className="hover:bg-white/20 p-0.5 rounded transition-colors">
-                <X size={16} />
-              </button>
+              <button onClick={closeTutorial} className="hover:bg-white/20 p-0.5 rounded transition-colors"><X size={16} /></button>
             </div>
             <div className="p-5">
               <h2 className="text-sm font-bold text-[#242424] mb-2">LESRO Catalog Audit</h2>
-              <p className="text-[12px] text-[#424242] leading-snug mb-4">
-                Section optimized for the <strong>analysis and comparison</strong> of <strong>LESRO</strong> catalog updates.
-              </p>
+              <p className="text-[12px] text-[#424242] leading-snug mb-4">Section optimized for the analysis and comparison of LESRO catalog updates.</p>
               <div className="space-y-2">
                 <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#464775]">
                   <FileText className="text-[#444791] shrink-0" size={16} />
-                  <p className="text-[11px] text-[#464775]">
-                    Updated XML for <strong>CET Designer</strong> and <strong>Catalog Creator</strong> integration.
-                  </p>
-                </div>
-                <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#464775]">
-                  <CheckCircle className="text-[#237b4b] shrink-0" size={16} />
-                  <p className="text-[11px] text-[#424242]">
-                    Automatic generation of changes detected during catalog comparison.
-                  </p>
+                  <p className="text-[11px] text-[#464775]">Updated XML for <strong>CET Designer</strong> and <strong>Catalog Creator</strong>.</p>
                 </div>
               </div>
-              <button 
-                onClick={closeTutorial}
-                className="w-full mt-5 bg-[#464775] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#3b3e7a] transition-all active:scale-[0.98]"
-              >
-                Get Started
-              </button>
+              <button onClick={closeTutorial} className="w-full mt-5 bg-[#464775] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#3b3e7a] transition-all">Get Started</button>
             </div>
           </div>
         </div>
@@ -358,27 +344,23 @@ const SVXUnifiedPlatform = () => {
 
       <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
-        <img 
-          src="/logosEmpresas/lesro.webp" 
-          alt="SVX Logo" 
-          className="w-15 h-15 rounded object-contain" 
-        />
+          <img src="/logosEmpresas/lesro.webp" alt="LESRO" className="w-15 h-15 rounded object-contain" />
           <div>
             <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
-            <p className="text-[10px] text-gray-500 font-medium">Centralized Data Engineering Control</p>
+            <p className="text-[10px] text-gray-500 font-medium">LESRO Strategic Control</p>
           </div>
         </div>
 
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
           <TabButton active={activeTab === 'console'} onClick={() => setActiveTab('console')} icon={<Terminal size={12}/>} label="Console" />
-          <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON (Cloud)" />
-          <TabButton active={activeTab === 'xml_view'} onClick={() => setActiveTab('xml_view')} icon={<FiCode size={12}/>} label="XML Actualizer" />
+          <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON" />
+          <TabButton active={activeTab === 'xml_view'} onClick={() => setActiveTab('xml_view')} icon={<FiCode size={12}/>} label="XML Code" />
+          {/* BOTÓN NUEVO AGREGADO AL MENÚ */}
+          <TabButton active={activeTab === 'xml_inspector'} onClick={() => setActiveTab('xml_inspector')} icon={<FiPackage size={12}/>} label="XML Inspector (Visual)" />
         </nav>
 
         <div className="flex gap-2">
-            {file && <span className="text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold flex items-center gap-1">
-              <FiCheck size={10}/> {fileName}
-            </span>}
+            {file && <span className="text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold flex items-center gap-1"><FiCheck size={10}/> {fileName}</span>}
             <div className={`w-3 h-3 rounded-full ${isProcessing ? 'bg-yellow-400 animate-pulse' : 'bg-green-500'}`}></div>
         </div>
       </header>
@@ -394,11 +376,7 @@ const SVXUnifiedPlatform = () => {
           </div>
 
           <div className="bg-[#464775] text-white rounded-lg p-5 shadow-lg">
-            <div className="flex items-center gap-2 mb-3">
-              <Zap size={16} className="text-yellow-400" />
-              <h4 className="text-xs font-bold uppercase">Platform Actions</h4>
-            </div>
-            <p className="text-[11px] opacity-80 mb-4">Processes the file and automatically updates audit columns in Supabase.</p>
+            <div className="flex items-center gap-2 mb-3"><Zap size={16} className="text-yellow-400" /><h4 className="text-xs font-bold uppercase">Platform Actions</h4></div>
             <button 
               onClick={handleUnifiedProcess}
               disabled={!file || isProcessing}
@@ -412,49 +390,31 @@ const SVXUnifiedPlatform = () => {
         </aside>
 
         <div className="col-span-9 flex flex-col gap-4 h-full min-h-0">
-          
           <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden relative group">
-            {/* BOTÓN PARA ABRIR POPUP */}
             <button 
               onClick={() => setIsMaximized(true)}
               className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-[#464775] hover:text-white border border-[#EDEBE9] rounded shadow-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-[10px] font-bold"
             >
               <FiMaximize2 size={12} /> EXPAND VIEW
             </button>
-
             {renderVisualizerContent()}
           </main>
 
-          <EjecutorAgente 
-            reportText={agentReport} 
-            isProcessing={isProcessing} 
-          />
+          <EjecutorAgente reportText={agentReport} isProcessing={isProcessing} />
         </div>
       </div>
 
-      {/* POPUP MAXIMIZADO USANDO PORTAL */}
       {isMaximized && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-md p-10 animate-in fade-in duration-300">
-          <motion.div 
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white w-[90vw] h-[90vh] rounded-xl shadow-2xl border border-white/20 flex flex-col overflow-hidden"
-          >
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white w-[95vw] h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
             <div className="flex-shrink-0 bg-[#464775] p-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-3">
                 <Terminal size={18} />
-                <span className="text-sm font-black uppercase tracking-widest">Inspection Mode: {activeTab.toUpperCase()}</span>
+                <span className="text-sm font-black uppercase tracking-widest">Inspection Mode: {activeTab.replace('_', ' ').toUpperCase()}</span>
               </div>
-              <button 
-                onClick={() => setIsMaximized(false)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <FiX size={24} />
-              </button>
+              <button onClick={() => setIsMaximized(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors"><FiX size={24} /></button>
             </div>
-            <div className="flex-grow overflow-hidden bg-white">
-              {renderVisualizerContent()}
-            </div>
+            <div className="flex-grow overflow-hidden bg-white">{renderVisualizerContent()}</div>
           </motion.div>
         </div>,
         document.body
