@@ -98,20 +98,23 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
             <h3 className="text-sm font-bold text-gray-900">Executive Audit Report</h3>
           </div>
 
-          <div className="bg-gray-50/50 border border-gray-100 rounded-md p-4 max-h-48 overflow-y-auto custom-scrollbar">
-            {isProcessing ? (
-              <div className="flex flex-col gap-2 animate-pulse">
-                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-full"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            ) : reportText ? (
-              <div className="font-normal">{formatReport(reportText)}</div>
-            ) : (
-              <p className="text-xs text-gray-400 italic">No data currently processed.</p>
-            )}
-          </div>
-
+          {/* --- CAMBIO AQUÍ: De max-h-48 a h-48 para fijar la altura --- */}
+<div className="bg-gray-50/50 border border-gray-100 rounded-md p-4 h-48 overflow-y-auto custom-scrollbar">
+  {isProcessing ? (
+    <div className="flex flex-col gap-2 animate-pulse">
+      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-3 bg-gray-200 rounded w-full"></div>
+      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+    </div>
+  ) : reportText ? (
+    <div className="font-normal">{formatReport(reportText)}</div>
+  ) : (
+    // Agregamos flex y items-center para que el texto de "No data" se vea bien centrado en el espacio fijo
+    <div className="h-full flex items-center justify-center">
+      <p className="text-xs text-gray-400 italic">No data currently processed.</p>
+    </div>
+  )}
+</div>
           <div className="mt-4 flex justify-end gap-2">
             <button 
               onClick={() => setIsChatOpen(true)}
