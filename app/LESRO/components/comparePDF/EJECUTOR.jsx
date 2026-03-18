@@ -359,10 +359,7 @@ const SVXUnifiedPlatform = () => {
           <TabButton active={activeTab === 'xml_inspector'} onClick={() => setActiveTab('xml_inspector')} icon={<FiPackage size={12}/>} label="XML Inspector (Visual)" />
         </nav>
 
-        <div className="flex gap-2">
-            {file && <span className="text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold flex items-center gap-1"><FiCheck size={10}/> {fileName}</span>}
-            <div className={`w-3 h-3 rounded-full ${isProcessing ? 'bg-yellow-400 animate-pulse' : 'bg-green-500'}`}></div>
-        </div>
+     
       </header>
 
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
