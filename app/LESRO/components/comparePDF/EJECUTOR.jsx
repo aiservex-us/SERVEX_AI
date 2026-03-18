@@ -49,6 +49,7 @@ const SVXUnifiedPlatform = () => {
 
   // --- CONTROL STATES ---
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isXmlLoading, setIsXmlLoading] = useState(false); // NUEVO: Estado para carga de XML pesado
   const [matchStatus, setMatchStatus] = useState(null); 
   const [diffCount, setDiffCount] = useState(0);
   const [alert, setAlert] = useState({ show: false, message: '', type: 'info' });
@@ -59,6 +60,17 @@ const SVXUnifiedPlatform = () => {
   
   // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
+
+  // NUEVA FUNCIÓN: Maneja el cambio a la pestaña XML con loading
+  const handleTabChangeToXml = () => {
+    setIsXmlLoading(true);
+    setActiveTab('xml_view');
+    // Usamos un pequeño timeout para permitir que React renderice el spinner 
+    // antes de que el hilo principal se bloquee procesando el XML pesado.
+    setTimeout(() => {
+      setIsXmlLoading(false);
+    }, 100);
+  };
 
   const handleDownloadXML = () => {
     if (!xmlActualizerRaw) return;
@@ -274,7 +286,7 @@ const SVXUnifiedPlatform = () => {
         <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
           <div className="flex-shrink-0 flex justify-between items-center mb-4">
             <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_actualizer_raw (Raw Code)</h2>
-            {xmlActualizerRaw && !isProcessing && (
+            {xmlActualizerRaw && !isProcessing && !isXmlLoading && (
               <button 
                 onClick={handleDownloadXML}
                 className="flex items-center gap-2 bg-[#464775] text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-[#363975] transition-all shadow-sm"
@@ -284,10 +296,12 @@ const SVXUnifiedPlatform = () => {
             )}
           </div>
           <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner relative">
-            {isProcessing ? (
+            {(isProcessing || isXmlLoading) ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-10">
                 <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
-                <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">Generating XML...</span>
+                <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">
+                  {isProcessing ? "Generating XML..." : "Rendering heavy XML data..."}
+                </span>
               </div>
             ) : xmlActualizerRaw ? (
               xmlActualizerRaw
@@ -354,9 +368,9 @@ const SVXUnifiedPlatform = () => {
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
           <TabButton active={activeTab === 'console'} onClick={() => setActiveTab('console')} icon={<Terminal size={12}/>} label="Console" />
           <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON" />
-          <TabButton active={activeTab === 'xml_view'} onClick={() => setActiveTab('xml_view')} icon={<FiCode size={12}/>} label="XML Code" />
-          {/* BOTÓN NUEVO AGREGADO AL MENÚ */}
           <TabButton active={activeTab === 'xml_inspector'} onClick={() => setActiveTab('xml_inspector')} icon={<FiPackage size={12}/>} label="XML Inspector (Visual)" />
+          <TabButton active={activeTab === 'xml_view'} onClick={handleTabChangeToXml} icon={<FiCode size={12}/>} label="XML Code" />
+          
         </nav>
 
      

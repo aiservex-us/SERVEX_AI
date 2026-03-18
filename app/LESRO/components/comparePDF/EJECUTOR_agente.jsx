@@ -76,7 +76,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
     <div className="w-full font-sans">
       {/* --- PREVIEW CARD (TEAMS STYLE) --- */}
       <section className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
-        <div className="bg-gray-100 px-4 py-2.5 flex items-center justify-between text-gray-600">
+        <div className="bg-white px-4 py-2.5 flex items-center justify-between text-gray-600">
           <div className="flex items-center gap-2">
             <Sparkles size={14} className="text-white fill-white/20" />
             <span className="text-[11px] font-bold uppercase tracking-wider">Intelligence</span>
@@ -99,7 +99,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
           </div>
 
           {/* --- CAMBIO AQUÍ: De max-h-48 a h-48 para fijar la altura --- */}
-<div className="bg-gray-50/50 border border-gray-100 rounded-md p-4 h-30 overflow-y-auto custom-scrollbar">
+<div className="bg-white border border-gray-100 rounded-md p-4 h-30 overflow-y-auto custom-scrollbar">
   {isProcessing ? (
     <div className="flex flex-col gap-2 animate-pulse">
       <div className="h-3 bg-gray-200 rounded w-3/4"></div>
