@@ -99,7 +99,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
           </div>
 
           {/* --- CAMBIO AQUÍ: De max-h-48 a h-48 para fijar la altura --- */}
-<div className="bg-gray-50/50 border border-gray-100 rounded-md p-4 h-48 overflow-y-auto custom-scrollbar">
+<div className="bg-gray-50/50 border border-gray-100 rounded-md p-4 h-30 overflow-y-auto custom-scrollbar">
   {isProcessing ? (
     <div className="flex flex-col gap-2 animate-pulse">
       <div className="h-3 bg-gray-200 rounded w-3/4"></div>
