@@ -373,7 +373,7 @@ const SVXUnifiedPlatform = () => {
           </div>
 
           <div className="bg-[#464775] text-white rounded-lg p-5 shadow-lg">
-            <div className="flex items-center gap-2 mb-3"><Zap size={16} className="text-yellow-400" /><h4 className="text-xs font-bold uppercase">Platform Actions</h4></div>
+            <div className="flex items-center gap-2 mb-3"><Zap size={16} className="text-yellow-400" /><h4 className="text-xs font-bold uppercase">Platform Actions.</h4></div>
             <button 
               onClick={handleUnifiedProcess}
               disabled={!file || isProcessing}
