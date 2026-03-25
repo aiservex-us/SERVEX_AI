@@ -89,7 +89,7 @@ const SVXUnifiedPlatform = () => {
     try {
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
-        .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw, ')
+        .select('audit_report_json, xml_actualizer_raw, csv_raw, informa_agent_raw')
         .eq('company_name', 'LESRO')
         .single();
       
@@ -101,7 +101,7 @@ const SVXUnifiedPlatform = () => {
           : dbData.audit_report_json;
   
         setAuditReportJson(report);
-        setXmlActualizerRaw(dbData.xml_updated_raw);
+        setXmlActualizerRaw(dbData.xml_actualizer_raw);
         setAgentReport(dbData.informa_agent_raw || "");
   
         if (dbData.csv_raw && data.length > 0) {
