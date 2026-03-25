@@ -89,7 +89,7 @@ const SVXUnifiedPlatform = () => {
     try {
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
-        .select('audit_report_json, xml_actualizer_raw, csv_raw, informa_agent_raw')
+        .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') // Cambiado a xml_updated_raw
         .eq('company_name', 'LESRO')
         .single();
       
@@ -101,7 +101,7 @@ const SVXUnifiedPlatform = () => {
           : dbData.audit_report_json;
   
         setAuditReportJson(report);
-        setXmlActualizerRaw(dbData.xml_actualizer_raw);
+        setXmlActualizerRaw(dbData.xml_updated_raw); // Mapeado a la nueva columna
         setAgentReport(dbData.informa_agent_raw || "");
   
         if (dbData.csv_raw && data.length > 0) {
@@ -285,7 +285,7 @@ const SVXUnifiedPlatform = () => {
       {activeTab === 'xml_view' && (
         <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
           <div className="flex-shrink-0 flex justify-between items-center mb-4">
-            <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_actualizer_raw (Raw Code)</h2>
+            <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_updated_raw (Raw Code)</h2>
             {xmlActualizerRaw && !isProcessing && !isXmlLoading && (
               <button 
                 onClick={handleDownloadXML}
