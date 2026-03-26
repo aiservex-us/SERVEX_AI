@@ -1,10 +1,50 @@
 "use client";
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { FiSearch, FiCheckCircle, FiPackage, FiPlusCircle } from 'react-icons/fi';
 import { Database, Table as TableIcon } from "lucide-react";
+import { supabase } from '../../../lib/supabaseClient'; // Ajusta esta ruta según tu estructura
 
+// --- COMPONENTE CONTENEDOR INDEPENDIENTE ---
+const IndependentLESROVisualizer = () => {
+  const [xmlString, setXmlString] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchIndependentData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ClientsSERVEX')
+          .select('xml_updated_raw')
+          .eq('company_name', 'LESRO')
+          .single();
+
+        if (error) throw error;
+        if (data) setXmlString(data.xml_updated_raw);
+      } catch (err) {
+        console.error("Error fetching independent XML:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIndependentData();
+  }, []);
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-20 bg-white border border-slate-200 rounded-xl">
+      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#464775] mb-4">
+        <Database size={40} />
+      </motion.div>
+      <p className="text-slate-600 font-bold">Iniciando Auditoría de Precios Lesro...</p>
+    </div>
+  );
+
+  return <TeamsOFDAVisualizer xmlString={xmlString} />;
+};
+
+// --- TU CÓDIGO ORIGINAL (SIN CAMBIOS INTERNOS) ---
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(30);
@@ -44,20 +84,12 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           coo: "US"
         };
 
-        // --- CORRECCIÓN QUIRÚRGICA: LÓGICA DE HERENCIA ---
-        // Buscamos features específicos del SKU O globales (que no tienen el SKU en el nombre)
         const relatedFeatures = allFeatures.filter(f => {
           const fCode = (f.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
           const skuNorm = sku.toUpperCase();
-          
-          // Match 1: El feature es específico para este SKU (ej: ARMCAP-AS1101)
           const isSpecific = fCode.includes(skuNorm);
-          
-          // Match 2: El feature es global (ej: ARMCAP, CASTER, POWER)
-          // Estos son los que tu Script de Python actualiza para todos los productos
           const globalKeywords = ["ARMCAP", "ARMPAD", "CASTER", "TABLET", "POWER", "CHROME", "GANGING", "BEVEL", "SHELF"];
           const isGlobal = globalKeywords.some(kw => fCode === kw || fCode === `${kw}-STANDARD`);
-
           return isSpecific || isGlobal;
         });
 
@@ -73,22 +105,18 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
             if (upcharge === "N/A") return;
 
-            // Procesamiento de Grados de Tela
             const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
             if (gradeMatch) {
               const num = parseInt(gradeMatch[1]);
               if (num >= 2 && num <= 13) {
                 const key = `g${num.toString().padStart(2, '0')}`;
-                // Prioridad: Si ya tiene un valor específico del SKU, no lo sobrescribas con el global
                 if (!rowData.grades[key] || rowData.grades[key] === "N/A") {
                   rowData.grades[key] = upcharge;
                 }
               }
             }
 
-            // Procesamiento de Opcionales con normalización de nombres
             const fullText = `${featCode} ${optCode} ${optDesc}`;
-            
             if (fullText.includes("POLYURETHANE") || fullText.includes("APU")) {
               if (rowData.optionals.polyArm === "N/A") rowData.optionals.polyArm = upcharge;
             } else if (fullText.includes("SOLID SURFACE") || fullText.includes("ASS") || fullText.includes("CORIAN")) {
@@ -129,19 +157,10 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
   const handleLoadMore = () => setVisibleCount(prev => prev + 30);
 
-  if (!catalogData) return (
-    <div className="flex flex-col items-center justify-center p-20 bg-white border border-slate-200 rounded-xl">
-      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#464775] mb-4">
-        <Database size={40} />
-      </motion.div>
-      <p className="text-slate-600 font-bold">Iniciando Auditoría de Precios Lesro...</p>
-    </div>
-  );
+  if (!catalogData) return null;
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F3F2F1] text-[#242424] overflow-hidden font-sans">
-      
-      {/* HEADER */}
       <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center text-white">
@@ -172,7 +191,6 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         </div>
       </div>
 
-      {/* TABLE AREA */}
       <div className="flex-1 overflow-auto custom-scrollbar bg-white">
         <table className="w-full text-left border-collapse table-fixed min-w-[2200px]">
           <thead className="sticky top-0 z-20 shadow-sm">
@@ -272,4 +290,4 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
   );
 };
 
-export default TeamsOFDAVisualizer;
+export default IndependentLESROVisualizer;
