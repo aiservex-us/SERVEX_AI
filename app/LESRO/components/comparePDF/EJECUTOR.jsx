@@ -8,8 +8,16 @@ import {
 } from 'react-icons/fi';
 import { BsFileEarmarkArrowUp } from 'react-icons/bs';
 import { 
-  FileText, CheckCircle, AlertCircle, Loader2, Package, 
-  ChevronRight, DownloadCloud, X, Zap, Terminal
+  FileText, 
+  CheckCircle as LucideCheck, 
+  AlertCircle as LucideAlert, 
+  Loader2, 
+  Package as LucidePackage, 
+  ChevronRight, 
+  DownloadCloud, 
+  X, 
+  Zap, 
+  Terminal
 } from 'lucide-react';
 
 import { supabase } from '../../../lib/supabaseClient';
@@ -49,7 +57,7 @@ const SVXUnifiedPlatform = () => {
 
   // --- CONTROL STATES ---
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isXmlLoading, setIsXmlLoading] = useState(false); // NUEVO: Estado para carga de XML pesado
+  const [isXmlLoading, setIsXmlLoading] = useState(false); 
   const [matchStatus, setMatchStatus] = useState(null); 
   const [diffCount, setDiffCount] = useState(0);
   const [alert, setAlert] = useState({ show: false, message: '', type: 'info' });
@@ -61,12 +69,9 @@ const SVXUnifiedPlatform = () => {
   // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
 
-  // NUEVA FUNCIÓN: Maneja el cambio a la pestaña XML con loading
   const handleTabChangeToXml = () => {
     setIsXmlLoading(true);
     setActiveTab('xml_view');
-    // Usamos un pequeño timeout para permitir que React renderice el spinner 
-    // antes de que el hilo principal se bloquee procesando el XML pesado.
     setTimeout(() => {
       setIsXmlLoading(false);
     }, 100);
@@ -89,7 +94,7 @@ const SVXUnifiedPlatform = () => {
     try {
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
-        .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') // Cambiado a xml_updated_raw
+        .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
         .eq('company_name', 'LESRO')
         .single();
       
@@ -101,7 +106,7 @@ const SVXUnifiedPlatform = () => {
           : dbData.audit_report_json;
   
         setAuditReportJson(report);
-        setXmlActualizerRaw(dbData.xml_updated_raw); // Mapeado a la nueva columna
+        setXmlActualizerRaw(dbData.xml_updated_raw); 
         setAgentReport(dbData.informa_agent_raw || "");
   
         if (dbData.csv_raw && data.length > 0) {
@@ -204,7 +209,6 @@ const SVXUnifiedPlatform = () => {
     setMasterDataRows([]);
   };
 
-  // --- RENDERIZADO DE CONTENIDO SEGÚN TAB ACTIVA ---
   const renderVisualizerContent = () => (
     <AnimatePresence mode="wait">
       {activeTab === 'console' && (
@@ -312,7 +316,6 @@ const SVXUnifiedPlatform = () => {
         </motion.div>
       )}
 
-      {/* NUEVA OPCIÓN: VISUALIZADOR DE PRODUCTOS XML */}
       {activeTab === 'xml_inspector' && (
         <motion.div key="inspector" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full overflow-hidden">
           {isProcessing ? (
@@ -330,7 +333,6 @@ const SVXUnifiedPlatform = () => {
 
   return (
     <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
-      
       {showTutorial && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-[2px] animate-in fade-in duration-200">
           <div className="bg-white w-[380px] rounded shadow-xl border border-[#d1d1d1] overflow-hidden transform animate-in zoom-in-95 duration-200">
@@ -370,10 +372,7 @@ const SVXUnifiedPlatform = () => {
           <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON" />
           <TabButton active={activeTab === 'xml_inspector'} onClick={() => setActiveTab('xml_inspector')} icon={<FiPackage size={12}/>} label="XML Inspector (Visual)" />
           <TabButton active={activeTab === 'xml_view'} onClick={handleTabChangeToXml} icon={<FiCode size={12}/>} label="XML Code" />
-          
         </nav>
-
-     
       </header>
 
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
