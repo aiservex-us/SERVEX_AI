@@ -2,12 +2,12 @@
 
 import React, { useMemo, useState } from 'react';
 import { motion } from "framer-motion";
-import { FiSearch, FiActivity, FiCheckCircle, FiPackage, FiPlusCircle } from 'react-icons/fi';
-import { Database, Table as TableIcon, Box } from "lucide-react";
+import { FiSearch, FiCheckCircle, FiPackage, FiPlusCircle } from 'react-icons/fi';
+import { Database, Table as TableIcon } from "lucide-react";
 
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [visibleCount, setVisibleCount] = useState(30); // Control de renderizado paulatino
+  const [visibleCount, setVisibleCount] = useState(30);
 
   const catalogData = useMemo(() => {
     if (!xmlString) return null;
@@ -44,9 +44,21 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           coo: "US"
         };
 
+        // --- CORRECCIÓN QUIRÚRGICA: LÓGICA DE HERENCIA ---
+        // Buscamos features específicos del SKU O globales (que no tienen el SKU en el nombre)
         const relatedFeatures = allFeatures.filter(f => {
           const fCode = (f.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-          return fCode.includes(sku.toUpperCase());
+          const skuNorm = sku.toUpperCase();
+          
+          // Match 1: El feature es específico para este SKU (ej: ARMCAP-AS1101)
+          const isSpecific = fCode.includes(skuNorm);
+          
+          // Match 2: El feature es global (ej: ARMCAP, CASTER, POWER)
+          // Estos son los que tu Script de Python actualiza para todos los productos
+          const globalKeywords = ["ARMCAP", "ARMPAD", "CASTER", "TABLET", "POWER", "CHROME", "GANGING", "BEVEL", "SHELF"];
+          const isGlobal = globalKeywords.some(kw => fCode === kw || fCode === `${kw}-STANDARD`);
+
+          return isSpecific || isGlobal;
         });
 
         relatedFeatures.forEach(feat => {
@@ -61,36 +73,40 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
             if (upcharge === "N/A") return;
 
+            // Procesamiento de Grados de Tela
             const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
             if (gradeMatch) {
               const num = parseInt(gradeMatch[1]);
               if (num >= 2 && num <= 13) {
                 const key = `g${num.toString().padStart(2, '0')}`;
+                // Prioridad: Si ya tiene un valor específico del SKU, no lo sobrescribas con el global
                 if (!rowData.grades[key] || rowData.grades[key] === "N/A") {
                   rowData.grades[key] = upcharge;
                 }
               }
             }
 
+            // Procesamiento de Opcionales con normalización de nombres
             const fullText = `${featCode} ${optCode} ${optDesc}`;
+            
             if (fullText.includes("POLYURETHANE") || fullText.includes("APU")) {
-              rowData.optionals.polyArm = upcharge;
-            } else if (fullText.includes("SOLID SURFACE") || fullText.includes("ASS") || fullText.includes(" CORIAN")) {
-              rowData.optionals.solidArm = upcharge;
+              if (rowData.optionals.polyArm === "N/A") rowData.optionals.polyArm = upcharge;
+            } else if (fullText.includes("SOLID SURFACE") || fullText.includes("ASS") || fullText.includes("CORIAN")) {
+              if (rowData.optionals.solidArm === "N/A") rowData.optionals.solidArm = upcharge;
             } else if (fullText.includes("CASTER")) {
-              rowData.optionals.casters = upcharge;
+              if (rowData.optionals.casters === "N/A") rowData.optionals.casters = upcharge;
             } else if (fullText.includes("TABLET")) {
-              rowData.optionals.tablet = upcharge;
+              if (rowData.optionals.tablet === "N/A") rowData.optionals.tablet = upcharge;
             } else if (fullText.includes("CHROME")) {
-              rowData.optionals.chrome = upcharge;
+              if (rowData.optionals.chrome === "N/A") rowData.optionals.chrome = upcharge;
             } else if (fullText.includes("GANGING")) {
-              rowData.optionals.ganging = upcharge;
+              if (rowData.optionals.ganging === "N/A") rowData.optionals.ganging = upcharge;
             } else if (fullText.includes("POWER") || fullText.includes("UNIT")) {
-              rowData.optionals.power = upcharge;
+              if (rowData.optionals.power === "N/A") rowData.optionals.power = upcharge;
             } else if (fullText.includes("BEVEL")) {
-              rowData.optionals.bevel = upcharge;
+              if (rowData.optionals.bevel === "N/A") rowData.optionals.bevel = upcharge;
             } else if (fullText.includes("SHELF")) {
-              rowData.optionals.shelf = upcharge;
+              if (rowData.optionals.shelf === "N/A") rowData.optionals.shelf = upcharge;
             }
           });
         });
@@ -107,7 +123,6 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
     return catalogData?.filter(p => p.sku.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [catalogData, searchTerm]);
 
-  // Datos segmentados para evitar el "freeze" del navegador
   const displayData = useMemo(() => {
     return filteredData?.slice(0, visibleCount) || [];
   }, [filteredData, visibleCount]);
@@ -150,7 +165,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setVisibleCount(30); // Reiniciar conteo al buscar
+              setVisibleCount(30);
             }}
             className="pl-9 pr-4 py-1.5 bg-[#F3F2F1] border-transparent focus:bg-white focus:border-[#464775] rounded text-[11px] w-72 transition-all outline-none"
           />
@@ -227,7 +242,6 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           </tbody>
         </table>
 
-        {/* BOTÓN CARGAR MÁS */}
         {filteredData && visibleCount < filteredData.length && (
           <div className="p-6 flex justify-center bg-white">
             <button 
@@ -240,7 +254,6 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         )}
       </div>
 
-      {/* FOOTER */}
       <div className="h-10 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[10px] text-slate-400 font-bold">
         <div className="flex gap-4 uppercase">
           <span className="flex items-center gap-1"><FiPackage className="text-[#464775]" /> {filteredData?.length || 0} SKUs Catalogued</span>
