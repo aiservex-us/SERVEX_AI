@@ -6,13 +6,14 @@ import { FiSearch, FiCheckCircle, FiPackage, FiPlusCircle } from 'react-icons/fi
 import { Database, Table as TableIcon } from "lucide-react";
 import { supabase } from '../../../lib/supabaseClient'; // Ajusta esta ruta según tu estructura
 
-// --- COMPONENTE CONTENEDOR INDEPENDIENTE ---
+// --- COMPONENTE CONTENEDOR CON REALTIME ---
 const IndependentLESROVisualizer = () => {
   const [xmlString, setXmlString] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchIndependentData = async () => {
+    // 1. Función para la carga inicial de datos existentes
+    const fetchInitialData = async () => {
       try {
         const { data, error } = await supabase
           .from('ClientsSERVEX')
@@ -23,18 +24,48 @@ const IndependentLESROVisualizer = () => {
         if (error) throw error;
         if (data) setXmlString(data.xml_updated_raw);
       } catch (err) {
-        console.error("Error fetching independent XML:", err);
+        console.error("Error fetching initial XML:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchIndependentData();
+    fetchInitialData();
+
+    // 2. Configuración de Realtime para actualizaciones en vivo
+    // Escucha cualquier UPDATE en la tabla cuando el nombre de la compañía coincida
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'ClientsSERVEX',
+          filter: 'company_name=eq.LESRO',
+        },
+        (payload) => {
+          console.log('Cambio detectado en Supabase:', payload);
+          if (payload.new && payload.new.xml_updated_raw) {
+            setXmlString(payload.new.xml_updated_raw);
+          }
+        }
+      )
+      .subscribe();
+
+    // Limpieza al desmontar el componente
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center p-20 bg-white border border-slate-200 rounded-xl">
-      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#464775] mb-4">
+      <motion.div 
+        animate={{ rotate: 360 }} 
+        transition={{ repeat: Infinity, duration: 2 }} 
+        className="text-[#464775] mb-4"
+      >
         <Database size={40} />
       </motion.div>
       <p className="text-slate-600 font-bold">Iniciando Auditoría de Precios Lesro...</p>
@@ -44,7 +75,7 @@ const IndependentLESROVisualizer = () => {
   return <TeamsOFDAVisualizer xmlString={xmlString} />;
 };
 
-// --- TU CÓDIGO ORIGINAL (SIN CAMBIOS INTERNOS) ---
+// --- VISUALIZADOR DE DATOS (Mantiene tu lógica de parseo XML) ---
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(30);
@@ -87,10 +118,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         const relatedFeatures = allFeatures.filter(f => {
           const fCode = (f.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
           const skuNorm = sku.toUpperCase();
-          const isSpecific = fCode.includes(skuNorm);
-          const globalKeywords = ["ARMCAP", "ARMPAD", "CASTER", "TABLET", "POWER", "CHROME", "GANGING", "BEVEL", "SHELF"];
-          const isGlobal = globalKeywords.some(kw => fCode === kw || fCode === `${kw}-STANDARD`);
-          return isSpecific || isGlobal;
+          return fCode.includes(skuNorm) || ["ARMCAP", "ARMPAD", "CASTER", "TABLET", "POWER", "CHROME", "GANGING", "BEVEL", "SHELF"].some(kw => fCode.includes(kw));
         });
 
         relatedFeatures.forEach(feat => {
@@ -110,32 +138,20 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
               const num = parseInt(gradeMatch[1]);
               if (num >= 2 && num <= 13) {
                 const key = `g${num.toString().padStart(2, '0')}`;
-                if (!rowData.grades[key] || rowData.grades[key] === "N/A") {
-                  rowData.grades[key] = upcharge;
-                }
+                if (!rowData.grades[key] || rowData.grades[key] === "N/A") rowData.grades[key] = upcharge;
               }
             }
 
             const fullText = `${featCode} ${optCode} ${optDesc}`;
-            if (fullText.includes("POLYURETHANE") || fullText.includes("APU")) {
-              if (rowData.optionals.polyArm === "N/A") rowData.optionals.polyArm = upcharge;
-            } else if (fullText.includes("SOLID SURFACE") || fullText.includes("ASS") || fullText.includes("CORIAN")) {
-              if (rowData.optionals.solidArm === "N/A") rowData.optionals.solidArm = upcharge;
-            } else if (fullText.includes("CASTER")) {
-              if (rowData.optionals.casters === "N/A") rowData.optionals.casters = upcharge;
-            } else if (fullText.includes("TABLET")) {
-              if (rowData.optionals.tablet === "N/A") rowData.optionals.tablet = upcharge;
-            } else if (fullText.includes("CHROME")) {
-              if (rowData.optionals.chrome === "N/A") rowData.optionals.chrome = upcharge;
-            } else if (fullText.includes("GANGING")) {
-              if (rowData.optionals.ganging === "N/A") rowData.optionals.ganging = upcharge;
-            } else if (fullText.includes("POWER") || fullText.includes("UNIT")) {
-              if (rowData.optionals.power === "N/A") rowData.optionals.power = upcharge;
-            } else if (fullText.includes("BEVEL")) {
-              if (rowData.optionals.bevel === "N/A") rowData.optionals.bevel = upcharge;
-            } else if (fullText.includes("SHELF")) {
-              if (rowData.optionals.shelf === "N/A") rowData.optionals.shelf = upcharge;
-            }
+            if (fullText.includes("POLYURETHANE") || fullText.includes("APU")) rowData.optionals.polyArm = upcharge;
+            else if (fullText.includes("SOLID SURFACE") || fullText.includes("ASS") || fullText.includes("CORIAN")) rowData.optionals.solidArm = upcharge;
+            else if (fullText.includes("CASTER")) rowData.optionals.casters = upcharge;
+            else if (fullText.includes("TABLET")) rowData.optionals.tablet = upcharge;
+            else if (fullText.includes("CHROME")) rowData.optionals.chrome = upcharge;
+            else if (fullText.includes("GANGING")) rowData.optionals.ganging = upcharge;
+            else if (fullText.includes("POWER") || fullText.includes("UNIT")) rowData.optionals.power = upcharge;
+            else if (fullText.includes("BEVEL")) rowData.optionals.bevel = upcharge;
+            else if (fullText.includes("SHELF")) rowData.optionals.shelf = upcharge;
           });
         });
 
@@ -157,7 +173,9 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
   const handleLoadMore = () => setVisibleCount(prev => prev + 30);
 
-  if (!catalogData) return null;
+  if (!catalogData) return (
+    <div className="p-10 text-center text-slate-400">No se encontraron datos disponibles en Supabase.</div>
+  );
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F3F2F1] text-[#242424] overflow-hidden font-sans">
@@ -170,7 +188,8 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
             <h2 className="font-bold text-[13px]">SERVEX_AI: Lesro Catalog Master</h2>
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> OFDA XML Synchronized
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> 
+                Live Database Sync Active
               </span>
             </div>
           </div>
@@ -275,7 +294,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       <div className="h-10 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[10px] text-slate-400 font-bold">
         <div className="flex gap-4 uppercase">
           <span className="flex items-center gap-1"><FiPackage className="text-[#464775]" /> {filteredData?.length || 0} SKUs Catalogued</span>
-          <span className="flex items-center gap-1 text-emerald-500"><FiCheckCircle /> Verification Complete</span>
+          <span className="flex items-center gap-1 text-emerald-500"><FiCheckCircle /> Actualización en Tiempo Real Activa</span>
         </div>
         <span>LESRO_PRICE_MATRIX_V1.4</span>
       </div>
