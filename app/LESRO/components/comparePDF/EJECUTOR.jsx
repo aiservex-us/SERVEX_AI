@@ -43,7 +43,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   // --- NAVIGATION STATES ---
-  const [activeTab, setActiveTab] = useState('XML Inspector (Visual)'); 
+  const [activeTab, setActiveTab] = useState('xml_inspector'); 
 
   // --- UNIFIED STATES ---
   const [file, setFile] = useState(null);
@@ -280,7 +280,7 @@ const SVXUnifiedPlatform = () => {
             ) : auditReportJson ? (
               <pre>{JSON.stringify(auditReportJson, null, 2)}</pre>
             ) : (
-              <p className="opacity-50">// No data processed in cloud yet....</p>
+              <p className="opacity-50">// No data processed in cloud yet...</p>
             )}
           </div>
         </motion.div>
