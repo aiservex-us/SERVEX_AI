@@ -81,8 +81,8 @@ const PanelMenur = () => {
     return { basePrice, grades, optionals };
   };
 
-  // ============================
-  // FETCH XML
+// ============================
+  // FETCH XML (CORREGIDO PARA LESRO)
   // ============================
   const fetchXMLFromSupabase = async () => {
     try {
@@ -90,13 +90,19 @@ const PanelMenur = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('ClientsSERVEX')
         .select('xml_raw')
         .eq('user_id', user.id)
+        .eq('company_name', 'LESRO') // <--- FILTRO CRÍTICO AÑADIDO
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
+
+      if (error) {
+        console.warn("No se encontró catálogo para LESRO:", error.message);
+        return;
+      }
 
       if (data) setXmlString(data.xml_raw);
     } catch (err) {
@@ -105,11 +111,6 @@ const PanelMenur = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchXMLFromSupabase();
-  }, []);
-
   // ============================
   // PARSEO XML
   // ============================
