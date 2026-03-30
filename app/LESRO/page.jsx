@@ -11,7 +11,6 @@ import PriceProduct from './components/priceProduct';
 import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
 import PrecentMain from './components/PrecentMain';
-// --- IMPORTACIÓN SOLICITADA ---
 import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
 import AIReporting from './components/comparePDF/presentation_LESRO'
 import Compare from './components/comparePDF/UploadFileCmpare'
@@ -20,20 +19,24 @@ export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  
+  // Definimos la empresa objetivo para filtrar en los componentes hijos
+  const COMPANY_FILTER = "LESRO"; 
 
   const router = useRouter();
 
-{/*
-  // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
+  // Protección de ruta habilitada para asegurar la sesión
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
       if (!data?.user) {
         router.replace('/login');
       }
-    }); 
-  }, [router]); */}
+    };
+    checkUser();
+  }, [router]);
 
-  // --- EXIT ATTEMPT DETECTION LOGIC ---
+  // Lógica de detección de intento de salida
   useEffect(() => {
     window.history.pushState(null, null, window.location.pathname);
 
@@ -43,10 +46,7 @@ export default function MenuInicial() {
     };
 
     window.addEventListener('popstate', handlePopState);
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const handleConfirmExit = () => {
@@ -54,26 +54,38 @@ export default function MenuInicial() {
     router.push('/panel'); 
   };
 
+  // Renderizado inyectando la propiedad companyName a los componentes que la necesiten
   const renderContent = () => {
     switch (active) {
-      case 'dashboard': return <Dashboard />;
-      case 'kanban': return <PriceProduct />;
-      case 'Tasks': return <CatalogParser />;
-      case 'inbox': return <Csvs />;
-      case 'presentation': return <PrecentMain />;
-      // --- RENDERIZADO DEL COMPONENTE DE COMPARACIÓN ---
-      case 'notifications': return <UploadFileCmpare />; 
-      case 'reporting': return <AIReporting />; 
-      case 'compare': return <Compare />
+      case 'dashboard': 
+        return <Dashboard companyName={COMPANY_FILTER} />;
+      case 'kanban': 
+        return <PriceProduct companyName={COMPANY_FILTER} />;
+      case 'Tasks': 
+        return <CatalogParser companyName={COMPANY_FILTER} />;
+      case 'inbox': 
+        return <Csvs companyName={COMPANY_FILTER} />;
+      case 'presentation': 
+        return <PrecentMain companyName={COMPANY_FILTER} />;
+      case 'notifications': 
+        return <UploadFileCmpare companyName={COMPANY_FILTER} />; 
+      case 'reporting': 
+        return <AIReporting companyName={COMPANY_FILTER} />; 
+      case 'compare': 
+        return <Compare companyName={COMPANY_FILTER} />;
       default:
-        return <div className="p-6 text-gray-500">View under construction</div>;
+        return (
+          <div className="flex items-center justify-center h-full text-slate-400">
+            View under construction
+          </div>
+        );
     }
   };
 
   return (
-    <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+    <div className="h-[97vh] w-[99%] bg-white font-sans flex items-center justify-center relative">
 
-      {/* MICROSOFT TEAMS STYLE MODAL */}
+      {/* MODAL DE CONFIRMACIÓN (ESTILO TEAMS) */}
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
           <div 
@@ -98,7 +110,7 @@ export default function MenuInicial() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the LESRO management area. Any temporary changes in this view will be closed.
+                  You are about to leave the {COMPANY_FILTER} management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>
