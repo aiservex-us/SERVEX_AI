@@ -20,9 +20,7 @@ const IndependentLESROVisualizer = () => {
           .single();
 
         if (error) throw error;
-        if (data?.xml_updated_raw) {
-          setXmlString(data.xml_updated_raw);
-        }
+        if (data?.xml_updated_raw) setXmlString(data.xml_updated_raw);
       } catch (err) {
         console.error("Error fetching initial XML:", err);
       } finally {
@@ -43,7 +41,6 @@ const IndependentLESROVisualizer = () => {
           filter: 'company_name=eq.LESRO',
         },
         (payload) => {
-          console.log('🔄 Cambio en Supabase (LESRO):', payload);
           if (payload.new?.xml_updated_raw) {
             setXmlString(payload.new.xml_updated_raw);
           }
@@ -51,19 +48,13 @@ const IndependentLESROVisualizer = () => {
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, []);
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-20 bg-white border border-slate-200 rounded-xl">
-        <motion.div 
-          animate={{ rotate: 360 }} 
-          transition={{ repeat: Infinity, duration: 2 }} 
-          className="text-[#464775] mb-4"
-        >
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#464775] mb-4">
           <Database size={40} />
         </motion.div>
         <p className="text-slate-600 font-bold">Iniciando Auditoría de Precios Lesro...</p>
@@ -93,9 +84,9 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       return productNodes.map((prod, idx) => {
         const sku = prod.getElementsByTagName("Code")[0]?.textContent?.trim() || "N/A";
         const description = prod.getElementsByTagName("Description")[0]?.textContent?.trim() || "No Description";
-        
-        // Base Price
-        const basePriceNode = prod.querySelector("Price > Value") || prod.querySelector("BasePrice > Value");
+
+        // Base Price (Non-UPH)
+        const basePriceNode = prod.querySelector("Price > Value");
         const basePrice = parseFloat(basePriceNode?.textContent || "0");
 
         const rowData = {
@@ -118,71 +109,78 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           coo: "US"
         };
 
-        // ==================== LÓGICA MEJORADA PARA OPCIONES ====================
+        // ==================== PROCESAR TODAS LAS OPCIONES (ESTRUCTURA OFDA) ====================
         allOptions.forEach((opt) => {
           const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase().trim();
           const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase().trim();
-          
-          // Buscar el precio (más flexible)
-          let upchargeNode = opt.querySelector("OptionPrice > Value") || 
-                            opt.querySelector("Price > Value");
-          const upchargeStr = upchargeNode?.textContent?.trim() || "N/A";
-          const upcharge = parseFloat(upchargeStr);
 
-          if (!upcharge || isNaN(upcharge)) return;
+          const priceNode = opt.querySelector("OptionPrice > Value") || opt.querySelector("Price > Value");
+          const priceStr = priceNode?.textContent?.trim();
+          if (!priceStr) return;
 
-          const fullText = `${optCode} ${optDesc}`.trim();
+          const priceValue = parseFloat(priceStr);
+          if (isNaN(priceValue) || priceValue <= 0) return;
 
-          // Grades (mantengo tu lógica original porque funcionaba)
+          const fullText = `${optCode} ${optDesc}`;
+
+          // === GRADES → Precio TOTAL (como en tu CSV) ===
           const gradeMatch = optCode.match(/GR(?:ADE|D)?(\d+)/i);
           if (gradeMatch) {
             const num = parseInt(gradeMatch[1]);
             if (num >= 2 && num <= 13) {
               const key = `g${num.toString().padStart(2, '0')}`;
-              if (!rowData.grades[key]) {
-                rowData.grades[key] = upcharge.toFixed(2);
-              }
+              rowData.grades[key] = priceValue.toFixed(2);
             }
+            return;
           }
 
-          // ==================== OPCIONES ESPECÍFICAS ====================
-          if (fullText.includes("POLYURETHANE") || fullText.includes("APU") || 
-              (optCode.includes("ARMCAP") && fullText.includes("POLY"))) {
-            rowData.optionals.polyArm = upcharge.toFixed(2);
+          // === OPCIONES FIJAS (matching robusto según estructura OFDA) ===
+          if (
+            fullText.includes("POLY") ||
+            fullText.includes("URETHANE") ||
+            (fullText.includes("ARM") && fullText.includes("POLY"))
+          ) {
+            rowData.optionals.polyArm = priceValue.toFixed(2);
           }
-          else if (fullText.includes("SOLID SURFACE") || fullText.includes("CORIAN") || 
-                   fullText.includes("ASS") || 
-                   (optCode.includes("ARMCAP") && fullText.includes("SOLID"))) {
-            rowData.optionals.solidArm = upcharge.toFixed(2);
+          else if (
+            fullText.includes("SOLID") ||
+            fullText.includes("CORIAN") ||
+            fullText.includes("SURFACE") ||
+            (fullText.includes("ARM") && fullText.includes("SOLID"))
+          ) {
+            rowData.optionals.solidArm = priceValue.toFixed(2);
           }
           else if (fullText.includes("CASTER") || optCode.includes("CASTER")) {
-            rowData.optionals.casters = upcharge.toFixed(2);
+            rowData.optionals.casters = priceValue.toFixed(2);
           }
-          else if (fullText.includes("TABLET") || optCode.includes("TABLET") || 
-                   fullText.includes("SWIVEL TABLET")) {
-            rowData.optionals.tablet = upcharge.toFixed(2);
+          else if (
+            fullText.includes("TABLET") ||
+            fullText.includes("SWIVEL") ||
+            optCode.includes("TABLET")
+          ) {
+            rowData.optionals.tablet = priceValue.toFixed(2);
           }
           else if (fullText.includes("CHROME") || optCode.includes("CHROME")) {
-            rowData.optionals.chrome = upcharge.toFixed(2);
+            rowData.optionals.chrome = priceValue.toFixed(2);
           }
-          else if (fullText.includes("GANGING")) {
-            rowData.optionals.ganging = upcharge.toFixed(2);
-          }
-          else if (fullText.includes("POWER") || fullText.includes("UNIT")) {
-            rowData.optionals.power = upcharge.toFixed(2);
-          }
-          else if (fullText.includes("BEVEL")) {
-            rowData.optionals.bevel = upcharge.toFixed(2);
-          }
-          else if (fullText.includes("SHELF")) {
-            rowData.optionals.shelf = upcharge.toFixed(2);
-          }
+          else if (fullText.includes("GANGING")) rowData.optionals.ganging = priceValue.toFixed(2);
+          else if (fullText.includes("POWER") || fullText.includes("UNIT")) rowData.optionals.power = priceValue.toFixed(2);
+          else if (fullText.includes("BEVEL")) rowData.optionals.bevel = priceValue.toFixed(2);
+          else if (fullText.includes("SHELF")) rowData.optionals.shelf = priceValue.toFixed(2);
         });
 
-        // Depuración por SKU (descomenta si necesitas ver qué se está extrayendo)
-        // if (sku === "AS1101" || sku === "AF0020") {
-        //   console.log(`SKU: ${sku} | Poly: ${rowData.optionals.polyArm} | Solid: ${rowData.optionals.solidArm} | Casters: ${rowData.optionals.casters} | Tablet: ${rowData.optionals.tablet}`);
-        // }
+        // Debug específico para AS1101 (quítalo después si quieres)
+        if (sku === "AS1101") {
+          console.log("🔍 AS1101 PROCESADO:", {
+            basePrice: rowData.basePrice,
+            PolyArmpad: rowData.optionals.polyArm,
+            SolidSurface: rowData.optionals.solidArm,
+            Casters: rowData.optionals.casters,
+            Tablet: rowData.optionals.tablet,
+            Chrome: rowData.optionals.chrome,
+            Grades: rowData.grades
+          });
+        }
 
         return rowData;
       });
@@ -192,29 +190,25 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
     }
   }, [xmlString]);
 
-  const filteredData = useMemo(() => {
-    return catalogData.filter(p => 
-      p.sku.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [catalogData, searchTerm]);
+  const filteredData = useMemo(() => 
+    catalogData.filter(p => p.sku.toLowerCase().includes(searchTerm.toLowerCase())), 
+    [catalogData, searchTerm]
+  );
 
-  const displayData = useMemo(() => {
-    return filteredData.slice(0, visibleCount);
-  }, [filteredData, visibleCount]);
+  const displayData = useMemo(() => 
+    filteredData.slice(0, visibleCount), 
+    [filteredData, visibleCount]
+  );
 
   const handleLoadMore = () => setVisibleCount(prev => prev + 30);
 
   if (catalogData.length === 0) {
-    return (
-      <div className="p-10 text-center text-slate-400">
-        No se encontraron datos disponibles en Supabase.
-      </div>
-    );
+    return <div className="p-10 text-center text-slate-400">No se encontraron datos disponibles en Supabase.</div>;
   }
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F3F2F1] text-[#242424] overflow-hidden font-sans">
-      {/* Header */}
+      {/* Header igual que antes */}
       <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center text-white">
@@ -222,12 +216,9 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           </div>
           <div>
             <h2 className="font-bold text-[13px]">SERVEX_AI: Lesro Catalog Master</h2>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> 
-                Live Database Sync Active
-              </span>
-            </div>
+            <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Live Database Sync Active
+            </span>
           </div>
         </div>
 
@@ -237,27 +228,22 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
             type="text"
             placeholder="Filter by SKU (e.g. AS1101)..."
             value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setVisibleCount(30);
-            }}
+            onChange={(e) => { setSearchTerm(e.target.value); setVisibleCount(30); }}
             className="pl-9 pr-4 py-1.5 bg-[#F3F2F1] border-transparent focus:bg-white focus:border-[#464775] rounded text-[11px] w-72 transition-all outline-none"
           />
         </div>
       </div>
 
-      {/* Tabla */}
+      {/* Tabla con formato exacto al CSV */}
       <div className="flex-1 overflow-auto custom-scrollbar bg-white">
-        <table className="w-full text-left border-collapse table-fixed min-w-[2200px]">
+        <table className="w-full text-left border-collapse table-fixed min-w-[2400px]">
           <thead className="sticky top-0 z-20 shadow-sm">
             <tr className="bg-[#FAF9F8] text-[10px] text-[#464775] font-black uppercase tracking-wider border-b border-slate-200">
               <th className="p-3 w-32 sticky left-0 bg-[#FAF9F8] border-r border-slate-200">ID (SKU)</th>
               <th className="p-3 w-64 border-r border-slate-200">Description</th>
-              <th className="p-3 w-28 text-center border-r border-slate-200 bg-[#F1F3F9]">Base Price</th>
+              <th className="p-3 w-28 text-center border-r border-slate-200 bg-[#F1F3F9]">List Price (Non-UPH)</th>
               {Array.from({ length: 12 }, (_, i) => i + 2).map(g => (
-                <th key={g} className="p-3 w-24 text-center border-r border-slate-200">
-                  Grade {g.toString().padStart(2, '0')}
-                </th>
+                <th key={g} className="p-3 w-24 text-center border-r border-slate-200">Grade {g.toString().padStart(2, '0')}</th>
               ))}
               <th className="p-3 w-32 text-center border-r border-slate-200">Poly Armpad</th>
               <th className="p-3 w-32 text-center border-r border-slate-200">Solid Surface</th>
@@ -273,49 +259,31 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           <tbody className="text-[11px]">
             {displayData.map((p) => (
               <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors group">
-                <td className="p-3 font-black text-[#464775] sticky left-0 bg-white group-hover:bg-slate-50 border-r border-slate-200">
-                  {p.sku}
-                </td>
+                <td className="p-3 font-black text-[#464775] sticky left-0 bg-white group-hover:bg-slate-50 border-r border-slate-200">{p.sku}</td>
                 <td className="p-3 text-slate-500 border-r border-slate-200 truncate">{p.description}</td>
                 <td className="p-3 text-center border-r border-slate-200 font-bold bg-[#F1F3F9]/30">
-                  ${p.basePrice}
+                  {p.basePrice === "N/A" ? "N/A" : `$${p.basePrice}`}
                 </td>
 
-                {/* Grades */}
+                {/* Grades - Precios TOTALES */}
                 {Array.from({ length: 12 }, (_, i) => (i + 2).toString().padStart(2, '0')).map(num => {
                   const val = p.grades[`g${num}`];
                   return (
-                    <td key={num} className={`p-3 text-center border-r border-slate-200 font-mono ${val && val !== "0" ? 'text-emerald-600 font-bold' : 'text-slate-300'}`}>
-                      {val ? (val === "0" ? "Incl." : `+$${val}`) : "—"}
+                    <td key={num} className="p-3 text-center border-r border-slate-200 font-mono text-emerald-600 font-bold">
+                      {val ? `$${val}` : "—"}
                     </td>
                   );
                 })}
 
                 {/* Optionals */}
-                <td className="p-3 text-center border-r border-slate-200 font-mono text-blue-600 font-bold">
-                  {p.optionals.polyArm !== "N/A" ? `+$${p.optionals.polyArm}` : "—"}
-                </td>
-                <td className="p-3 text-center border-r border-slate-200 font-mono text-blue-600 font-bold">
-                  {p.optionals.solidArm !== "N/A" ? `+$${p.optionals.solidArm}` : "—"}
-                </td>
-                <td className="p-3 text-center border-r border-slate-200 font-mono">
-                  {p.optionals.casters !== "N/A" ? `+$${p.optionals.casters}` : "—"}
-                </td>
-                <td className="p-3 text-center border-r border-slate-200 font-mono">
-                  {p.optionals.tablet !== "N/A" ? `+$${p.optionals.tablet}` : "—"}
-                </td>
-                <td className="p-3 text-center border-r border-slate-200 font-mono">
-                  {p.optionals.chrome !== "N/A" ? `+$${p.optionals.chrome}` : "—"}
-                </td>
-                <td className="p-3 text-center border-r border-slate-200 font-mono">
-                  {p.optionals.power !== "N/A" ? `+$${p.optionals.power}` : "—"}
-                </td>
-                <td className="p-3 text-center border-r border-slate-200 font-mono">
-                  {p.optionals.bevel !== "N/A" ? `+$${p.optionals.bevel}` : "—"}
-                </td>
-                <td className="p-3 text-center border-r border-slate-200 font-mono">
-                  {p.optionals.shelf !== "N/A" ? `+$${p.optionals.shelf}` : "—"}
-                </td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono text-blue-600 font-bold">{p.optionals.polyArm !== "N/A" ? `$${p.optionals.polyArm}` : "N/A"}</td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono text-blue-600 font-bold">{p.optionals.solidArm !== "N/A" ? `$${p.optionals.solidArm}` : "N/A"}</td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">{p.optionals.casters !== "N/A" ? `$${p.optionals.casters}` : "N/A"}</td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">{p.optionals.tablet !== "N/A" ? `$${p.optionals.tablet}` : "N/A"}</td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">{p.optionals.chrome !== "N/A" ? `$${p.optionals.chrome}` : "N/A"}</td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">{p.optionals.power !== "N/A" ? `$${p.optionals.power}` : "N/A"}</td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">{p.optionals.bevel !== "N/A" ? `$${p.optionals.bevel}` : "N/A"}</td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">{p.optionals.shelf !== "N/A" ? `$${p.optionals.shelf}` : "N/A"}</td>
                 <td className="p-3 text-center text-slate-400 font-bold">{p.coo}</td>
               </tr>
             ))}
@@ -324,27 +292,19 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
         {filteredData.length > visibleCount && (
           <div className="p-6 flex justify-center bg-white">
-            <button 
-              onClick={handleLoadMore}
-              className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63] transition-all shadow-md"
-            >
+            <button onClick={handleLoadMore} className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63]">
               <FiPlusCircle /> Mostrar más items ({visibleCount} de {filteredData.length})
             </button>
           </div>
         )}
       </div>
 
-      {/* Footer */}
       <div className="h-10 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[10px] text-slate-400 font-bold">
         <div className="flex gap-4 uppercase">
-          <span className="flex items-center gap-1">
-            <FiPackage className="text-[#464775]" /> {filteredData.length} SKUs Catalogued
-          </span>
-          <span className="flex items-center gap-1 text-emerald-500">
-            <FiCheckCircle /> Actualización en Tiempo Real Activa
-          </span>
+          <span><FiPackage className="text-[#464775]" /> {filteredData.length} SKUs Catalogued</span>
+          <span className="text-emerald-500"><FiCheckCircle /> Actualización en Tiempo Real Activa</span>
         </div>
-        <span>LESRO_PRICE_MATRIX_V1.5</span>
+        <span>LESRO_PRICE_MATRIX_V1.6</span>
       </div>
 
       <style jsx global>{`
