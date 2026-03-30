@@ -50,11 +50,13 @@ const SVXUnifiedEnterprise = () => {
           .from('ClientsSERVEX')
           .select('xml_raw')
           .eq('user_id', user.id)
+          .eq('company_name', 'LESRO') // <--- CLAVE: Filtramos por la empresa específica
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
 
         if (error) throw error;
+        
         if (data?.xml_raw) {
           const parser = new DOMParser();
           const doc = parser.parseFromString(data.xml_raw, "text/xml");
@@ -64,8 +66,11 @@ const SVXUnifiedEnterprise = () => {
           ).filter(Boolean);
           setProducts(codes);
         }
-      } catch (err) { console.error("Error XML:", err); }
-      finally { setLoadingXML(false); }
+      } catch (err) { 
+        console.error("Error XML:", err); 
+      } finally { 
+        setLoadingXML(false); 
+      }
     };
     fetchXML();
   }, []);
