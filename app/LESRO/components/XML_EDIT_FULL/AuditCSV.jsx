@@ -44,15 +44,11 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
         if (data.length === 0) return;
         setIsAnalyzing(true);
         try {
-            // AJUSTE: Consulta filtrada exclusivamente por company_name LESRO
             const { data: dbRows, error } = await supabase
                 .from('ClientsSERVEX')
-                .select('csv_raw')
-                .eq('company_name', 'LESRO') // <--- Filtro estricto solicitado
-                .not('csv_raw', 'is', null)
-                .limit(1);
+                .select('csv_raw').not('csv_raw', 'is', null).limit(1);
 
-            if (error || !dbRows[0]) throw new Error("No master data found for LESRO");
+            if (error || !dbRows[0]) throw new Error("No master data");
 
             const dbLines = dbRows[0].csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
             const dbDelimiter = dbLines[0].includes(';') ? ';' : ',';
@@ -79,7 +75,7 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
 
             if (discrepancies.length === 0) {
                 setMatchStatus('match');
-                showAlert("Integridad Total Confirmada (LESRO)", "success");
+                showAlert("Integridad Total Confirmada", "success");
             } else {
                 setMatchStatus('mismatch');
                 setMasterDataRows(discrepancies.map(d => d.mRow));
@@ -90,13 +86,10 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
                         const skuToSearch = d.row[skuColIndex];
                         if (skuToSearch) onDiscrepancyFound(skuToSearch);
                     });
-                    showAlert(`Detectadas ${discrepancies.length} discrepancias contra maestro LESRO`, "warning");
+                    showAlert(`Detectadas ${discrepancies.length} discrepancias`, "warning");
                 }
             }
-        } catch (err) { 
-            console.error(err);
-            showAlert("Error en auditoría LESRO", "error"); 
-        }
+        } catch (err) { showAlert("Error en auditoría", "error"); }
         finally { setIsAnalyzing(false); }
     };
 
@@ -108,11 +101,11 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
     };
 
     return (
-        <div className="flex flex-col border-r border-[#EDEBE9] overflow-hidden h-full">
+        <div className="flex flex-col  border-r border-[#EDEBE9] overflow-hidden h-full">
             <div className="p-4 border-b bg-[#FAF9F8] flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="bg-[#464775] p-1.5 rounded text-white"><FiCpu size={14} /></div>
-                    <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">Auditoría Maestro LESRO</h2>
+                    <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">Auditoría Maestro</h2>
                 </div>
                 <div className="flex gap-4">
                     <Step icon={<FiCheck size={10} />} title="Data" active={data.length > 0} />
@@ -120,17 +113,17 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
                 </div>
             </div>
 
-            <div className="flex-grow p-4 overflow-hidden flex flex-col min-h-0">
+            <div className="flex-grow  p-4 overflow-hidden flex flex-col min-h-0">
                 {data.length === 0 ? (
                     <div onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                         onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}
                         className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}>
                         <FiUploadCloud size={40} className="text-[#464775] mb-4 opacity-20" />
-                        <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR CON LESRO</p>
+                        <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR</p>
                     </div>
                 ) : (
-                    <div className="flex-grow overflow-auto border rounded-lg bg-white">
-                        <table className="w-full text-[10px]">
+                    <div className="flex-grow overflow-auto border rounded-lg bg-white w-[20%]">
+                        <table className="w-scre text-[10px]">
                             <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b">
                                 <tr>
                                     {data[0].map((h, i) => (
@@ -140,7 +133,7 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
                             </thead>
                             <tbody>
                                 {data.slice(1).map((row, ri) => (
-                                    <tr key={ri} className="border-b hover:bg-gray-50 transition-colors">
+                                    <tr key={ri} className="border-b hover:bg-gray-50  w-[100%] transition-colors">
                                         {row.map((cell, ci) => {
                                             const mCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                                             const isDiff = mCell !== null && cell !== mCell;

@@ -1,48 +1,35 @@
 "use client";
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { FiSearch, FiCheckCircle, FiPackage, FiPlusCircle } from 'react-icons/fi';
 import { Database, Table as TableIcon } from "lucide-react";
-import { supabase } from '../../../lib/supabaseClient'; 
+import { supabase } from '../../../lib/supabaseClient'; // Ajusta esta ruta según tu estructura
 
-// --- COMPONENTE CONTENEDOR CON REALTIME ---
+// --- COMPONENTE CONTENEDOR INDEPENDIENTE ---
 const IndependentLESROVisualizer = () => {
   const [xmlString, setXmlString] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchIndependentData = async () => {
       try {
         const { data, error } = await supabase
           .from('ClientsSERVEX')
           .select('xml_updated_raw')
           .eq('company_name', 'LESRO')
           .single();
+
         if (error) throw error;
         if (data) setXmlString(data.xml_updated_raw);
       } catch (err) {
-        console.error("Error fetching initial XML:", err);
+        console.error("Error fetching independent XML:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInitialData();
-
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'ClientsSERVEX', filter: 'company_name=eq.LESRO' },
-        (payload) => {
-          if (payload.new && payload.new.xml_updated_raw) {
-            setXmlString(payload.new.xml_updated_raw);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    fetchIndependentData();
   }, []);
 
   if (loading) return (
@@ -50,14 +37,14 @@ const IndependentLESROVisualizer = () => {
       <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#464775] mb-4">
         <Database size={40} />
       </motion.div>
-      <p className="text-slate-600 font-bold">Sincronizando Catálogo Maestro Lesro...</p>
+      <p className="text-slate-600 font-bold">Iniciando Auditoría de Precios Lesro...</p>
     </div>
   );
 
   return <TeamsOFDAVisualizer xmlString={xmlString} />;
 };
 
-// --- VISUALIZADOR DE DATOS CORREGIDO ---
+// --- TU CÓDIGO ORIGINAL (SIN CAMBIOS INTERNOS) ---
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(30);
@@ -67,7 +54,9 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
     try {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+      
       const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
+      const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
 
       return productNodes.map((prod, idx) => {
         const sku = prod.getElementsByTagName("Code")[0]?.textContent || "N/A";
@@ -86,15 +75,25 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
             solidArm: "N/A",
             casters: "N/A",
             tablet: "N/A",
-            chrome: "N/A"
+            chrome: "N/A",
+            ganging: "N/A",
+            power: "N/A",
+            bevel: "N/A",
+            shelf: "N/A"
           },
           coo: "US"
         };
 
-        // Buscamos Features específicas de ESTE producto
-        const features = Array.from(prod.getElementsByTagName("Feature"));
+        const relatedFeatures = allFeatures.filter(f => {
+          const fCode = (f.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
+          const skuNorm = sku.toUpperCase();
+          const isSpecific = fCode.includes(skuNorm);
+          const globalKeywords = ["ARMCAP", "ARMPAD", "CASTER", "TABLET", "POWER", "CHROME", "GANGING", "BEVEL", "SHELF"];
+          const isGlobal = globalKeywords.some(kw => fCode === kw || fCode === `${kw}-STANDARD`);
+          return isSpecific || isGlobal;
+        });
 
-        features.forEach(feat => {
+        relatedFeatures.forEach(feat => {
           const featCode = (feat.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
           const options = Array.from(feat.getElementsByTagName("Option"));
 
@@ -106,30 +105,36 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
             if (upcharge === "N/A") return;
 
-            // 1. Detección de GRADES (Telas)
-            // Captura formatos como G2, GR02, GRADE 2, etc.
-            const gradeMatch = optCode.match(/G(?:RADE|D)?(\d+)/);
+            const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
             if (gradeMatch) {
               const num = parseInt(gradeMatch[1]);
               if (num >= 2 && num <= 13) {
                 const key = `g${num.toString().padStart(2, '0')}`;
-                rowData.grades[key] = upcharge;
+                if (!rowData.grades[key] || rowData.grades[key] === "N/A") {
+                  rowData.grades[key] = upcharge;
+                }
               }
             }
 
-            // 2. Detección de OPCIONALES por contexto (Feature + Option)
-            const context = `${featCode} ${optCode} ${optDesc}`;
-
-            if (context.includes("POLY") || context.includes("ARMPAD") || context.includes("APU")) {
-              rowData.optionals.polyArm = upcharge;
-            } else if (context.includes("SOLID SURFACE") || context.includes("ASS") || context.includes("CORIAN")) {
-              rowData.optionals.solidArm = upcharge;
-            } else if (context.includes("CASTER")) {
-              rowData.optionals.casters = upcharge;
-            } else if (context.includes("TABLET")) {
-              rowData.optionals.tablet = upcharge;
-            } else if (context.includes("CHROME")) {
-              rowData.optionals.chrome = upcharge;
+            const fullText = `${featCode} ${optCode} ${optDesc}`;
+            if (fullText.includes("POLYURETHANE") || fullText.includes("APU")) {
+              if (rowData.optionals.polyArm === "N/A") rowData.optionals.polyArm = upcharge;
+            } else if (fullText.includes("SOLID SURFACE") || fullText.includes("ASS") || fullText.includes("CORIAN")) {
+              if (rowData.optionals.solidArm === "N/A") rowData.optionals.solidArm = upcharge;
+            } else if (fullText.includes("CASTER")) {
+              if (rowData.optionals.casters === "N/A") rowData.optionals.casters = upcharge;
+            } else if (fullText.includes("TABLET")) {
+              if (rowData.optionals.tablet === "N/A") rowData.optionals.tablet = upcharge;
+            } else if (fullText.includes("CHROME")) {
+              if (rowData.optionals.chrome === "N/A") rowData.optionals.chrome = upcharge;
+            } else if (fullText.includes("GANGING")) {
+              if (rowData.optionals.ganging === "N/A") rowData.optionals.ganging = upcharge;
+            } else if (fullText.includes("POWER") || fullText.includes("UNIT")) {
+              if (rowData.optionals.power === "N/A") rowData.optionals.power = upcharge;
+            } else if (fullText.includes("BEVEL")) {
+              if (rowData.optionals.bevel === "N/A") rowData.optionals.bevel = upcharge;
+            } else if (fullText.includes("SHELF")) {
+              if (rowData.optionals.shelf === "N/A") rowData.optionals.shelf = upcharge;
             }
           });
         });
@@ -137,7 +142,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         return rowData;
       });
     } catch (err) {
-      console.error("XML Parsing Error:", err);
+      console.error("XML Engine Error:", err);
       return [];
     }
   }, [xmlString]);
@@ -150,11 +155,12 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
     return filteredData?.slice(0, visibleCount) || [];
   }, [filteredData, visibleCount]);
 
-  if (!catalogData) return <div className="p-10 text-center text-slate-400">No hay datos para procesar.</div>;
+  const handleLoadMore = () => setVisibleCount(prev => prev + 30);
+
+  if (!catalogData) return null;
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F3F2F1] text-[#242424] overflow-hidden font-sans">
-      {/* HEADER */}
       <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center text-white">
@@ -164,40 +170,45 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
             <h2 className="font-bold text-[13px]">SERVEX_AI: Lesro Catalog Master</h2>
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> 
-                Live Database Sync Active
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> OFDA XML Synchronized
               </span>
             </div>
           </div>
         </div>
+
         <div className="relative">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
           <input 
             type="text"
             placeholder="Filter by SKU (e.g. AS1101)..."
             value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setVisibleCount(30); }}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setVisibleCount(30);
+            }}
             className="pl-9 pr-4 py-1.5 bg-[#F3F2F1] border-transparent focus:bg-white focus:border-[#464775] rounded text-[11px] w-72 transition-all outline-none"
           />
         </div>
       </div>
 
-      {/* TABLE AREA */}
       <div className="flex-1 overflow-auto custom-scrollbar bg-white">
-        <table className="w-full text-left border-collapse table-fixed min-w-[2400px]">
+        <table className="w-full text-left border-collapse table-fixed min-w-[2200px]">
           <thead className="sticky top-0 z-20 shadow-sm">
             <tr className="bg-[#FAF9F8] text-[10px] text-[#464775] font-black uppercase tracking-wider border-b border-slate-200">
-              <th className="p-3 w-40 sticky left-0 bg-[#FAF9F8] border-r border-slate-200">ID (SKU)</th>
-              <th className="p-3 w-80 border-r border-slate-200">Description</th>
-              <th className="p-3 w-32 text-center border-r border-slate-200 bg-[#F1F3F9]">Price (Non UPH)</th>
+              <th className="p-3 w-32 sticky left-0 bg-[#FAF9F8] border-r border-slate-200">ID (SKU)</th>
+              <th className="p-3 w-64 border-r border-slate-200">Description</th>
+              <th className="p-3 w-28 text-center border-r border-slate-200 bg-[#F1F3F9]">Base Price</th>
               {Array.from({ length: 12 }, (_, i) => i + 2).map(g => (
-                <th key={g} className="p-3 w-28 text-center border-r border-slate-200">Price Grade {g.toString().padStart(2, '0')}</th>
+                <th key={g} className="p-3 w-24 text-center border-r border-slate-200">Grade {g.toString().padStart(2, '0')}</th>
               ))}
-              <th className="p-3 w-36 text-center border-r border-slate-200">Price Poly Armpad</th>
-              <th className="p-3 w-36 text-center border-r border-slate-200">Price Solid Surface</th>
-              <th className="p-3 w-32 text-center border-r border-slate-200">Price Casters</th>
-              <th className="p-3 w-32 text-center border-r border-slate-200">Price Swivel Tablet</th>
-              <th className="p-3 w-32 text-center border-r border-slate-200">Price Chrome</th>
+              <th className="p-3 w-32 text-center border-r border-slate-200">Poly Armpad</th>
+              <th className="p-3 w-32 text-center border-r border-slate-200">Solid Surface</th>
+              <th className="p-3 w-24 text-center border-r border-slate-200">Casters</th>
+              <th className="p-3 w-24 text-center border-r border-slate-200">Tablet</th>
+              <th className="p-3 w-24 text-center border-r border-slate-200">Chrome</th>
+              <th className="p-3 w-24 text-center border-r border-slate-200">Power</th>
+              <th className="p-3 w-24 text-center border-r border-slate-200">Bevel</th>
+              <th className="p-3 w-24 text-center border-r border-slate-200">Shelf</th>
               <th className="p-3 w-16 text-center">COO</th>
             </tr>
           </thead>
@@ -209,12 +220,12 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
                 </td>
                 <td className="p-3 text-slate-500 border-r border-slate-200 truncate">{p.description}</td>
                 <td className="p-3 text-center border-r border-slate-200 font-bold bg-[#F1F3F9]/30">
-                  {p.basePrice !== "N/A" ? `$${p.basePrice}` : "N/A"}
+                  ${p.basePrice}
                 </td>
                 {Array.from({ length: 12 }, (_, i) => (i + 2).toString().padStart(2, '0')).map(num => {
                   const val = p.grades[`g${num}`];
                   return (
-                    <td key={num} className={`p-3 text-center border-r border-slate-200 font-mono ${val ? 'text-emerald-600 font-bold' : 'text-slate-300'}`}>
+                    <td key={num} className={`p-3 text-center border-r border-slate-200 font-mono ${val && val !== "0" ? 'text-emerald-600 font-bold' : 'text-slate-300'}`}>
                       {val ? (val === "0" ? "Incl." : `+$${val}`) : "—"}
                     </td>
                   );
@@ -234,6 +245,15 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
                 <td className="p-3 text-center border-r border-slate-200 font-mono">
                   {p.optionals.chrome !== "N/A" ? `+$${p.optionals.chrome}` : "—"}
                 </td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">
+                  {p.optionals.power !== "N/A" ? `+$${p.optionals.power}` : "—"}
+                </td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">
+                  {p.optionals.bevel !== "N/A" ? `+$${p.optionals.bevel}` : "—"}
+                </td>
+                <td className="p-3 text-center border-r border-slate-200 font-mono">
+                  {p.optionals.shelf !== "N/A" ? `+$${p.optionals.shelf}` : "—"}
+                </td>
                 <td className="p-3 text-center text-slate-400 font-bold">{p.coo}</td>
               </tr>
             ))}
@@ -243,7 +263,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         {filteredData && visibleCount < filteredData.length && (
           <div className="p-6 flex justify-center bg-white">
             <button 
-              onClick={() => setVisibleCount(prev => prev + 30)}
+              onClick={handleLoadMore}
               className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63] transition-all shadow-md"
             >
               <FiPlusCircle /> Mostrar más items ({visibleCount} de {filteredData.length})
@@ -252,13 +272,12 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         )}
       </div>
 
-      {/* FOOTER */}
       <div className="h-10 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[10px] text-slate-400 font-bold">
         <div className="flex gap-4 uppercase">
           <span className="flex items-center gap-1"><FiPackage className="text-[#464775]" /> {filteredData?.length || 0} SKUs Catalogued</span>
-          <span className="flex items-center gap-1 text-emerald-500"><FiCheckCircle /> Matrix Synced with Supabase</span>
+          <span className="flex items-center gap-1 text-emerald-500"><FiCheckCircle /> Verification Complete</span>
         </div>
-        <span>LESRO_PRICE_SYSTEM_V1.5</span>
+        <span>LESRO_PRICE_MATRIX_V1.4</span>
       </div>
 
       <style jsx global>{`

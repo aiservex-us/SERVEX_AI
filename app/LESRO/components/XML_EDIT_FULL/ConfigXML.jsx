@@ -16,29 +16,18 @@ const ConfigXML = ({ externalSearchSKU }) => {
     useEffect(() => {
         const fetchXML = async () => {
             try {
-                // Ajuste directo para leer solo la fila de LESRO
-                const { data, error } = await supabase
-                    .from('ClientsSERVEX')
-                    .select('xml_raw')
-                    .eq('company_name', 'LESRO') // <--- Filtro por empresa LESRO
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
-
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return setLoadingXML(false);
+                const { data, error } = await supabase.from('ClientsSERVEX').select('xml_raw').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single();
                 if (error) throw error;
-                
                 if (data?.xml_raw) {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(data.xml_raw, "text/xml");
                     setXmlDoc(doc);
-                    const codes = [...doc.getElementsByTagName("Product")].map(p => 
-                        p.getElementsByTagName("Code")[0]?.textContent
-                    ).filter(Boolean);
+                    const codes = [...doc.getElementsByTagName("Product")].map(p => p.getElementsByTagName("Code")[0]?.textContent).filter(Boolean);
                     setProducts(codes);
                 }
-            } catch (err) { 
-                console.error("Error XML LESRO:", err); 
-            }
+            } catch (err) { console.error("Error XML:", err); }
             finally { setLoadingXML(false); }
         };
         fetchXML();
@@ -89,7 +78,7 @@ const ConfigXML = ({ externalSearchSKU }) => {
         return config.basePrice + Object.values(config.selections).reduce((a, b) => a + b.price, 0);
     };
 
-    if (loadingXML) return <div className="p-10 text-[10px] font-bold text-[#464775]">CARGANDO PIM LESRO...</div>;
+    if (loadingXML) return <div className="p-10 text-[10px] font-bold text-[#464775]">CARGANDO PIM...</div>;
 
     return (
         <div className="flex-grow h-full bg-[#F9F9F9] flex flex-col shadow-2xl overflow-hidden">
@@ -147,7 +136,6 @@ const ConfigXML = ({ externalSearchSKU }) => {
                     <div className="h-full flex flex-col items-center justify-center opacity-30 text-center p-10">
                         <FiShield size={40} className="mb-4 text-[#464775]" />
                         <p className="text-[10px] font-black uppercase tracking-widest text-[#464775]">Panel PIM Vacío</p>
-                        <p className="text-[9px] mt-2 font-medium">Buscando en el catálogo maestro de LESRO.</p>
                     </div>
                 )}
             </div>

@@ -38,16 +38,18 @@ const SVXUnifiedEnterprise = () => {
   const dropdownRef = useRef(null);
 
   // ============================
-  // 1. CARGA INICIAL DE CATÁLOGO XML (Filtrado por LESRO)
+  // 1. CARGA INICIAL DE CATÁLOGO XML
   // ============================
   useEffect(() => {
     const fetchXML = async () => {
       try {
-        // Filtramos directamente por company_name: LESRO
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return setLoadingXML(false);
+
         const { data, error } = await supabase
           .from('ClientsSERVEX')
           .select('xml_raw')
-          .eq('company_name', 'LESRO') // <--- FILTRO ÚNICO SOLICITADO
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
@@ -69,7 +71,7 @@ const SVXUnifiedEnterprise = () => {
   }, []);
 
   // ============================
-  // 2. LÓGICA DE AUDITORÍA CSV (Filtrado por LESRO)
+  // 2. LÓGICA DE AUDITORÍA CSV
   // ============================
   const showAlert = (message, type = 'info') => {
     setAlert({ show: true, message, type });
@@ -103,12 +105,9 @@ const SVXUnifiedEnterprise = () => {
     try {
       const { data: dbRows, error } = await supabase
         .from('ClientsSERVEX')
-        .select('csv_raw')
-        .eq('company_name', 'LESRO') // <--- FILTRO ÚNICO SOLICITADO
-        .not('csv_raw', 'is', null)
-        .limit(1);
+        .select('csv_raw').not('csv_raw', 'is', null).limit(1);
 
-      if (error || !dbRows[0]) throw new Error("No master data for LESRO");
+      if (error || !dbRows[0]) throw new Error("No master data");
 
       const dbLines = dbRows[0].csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
       const dbDelimiter = dbLines[0].includes(';') ? ';' : ',';
@@ -215,6 +214,7 @@ const SVXUnifiedEnterprise = () => {
   if (loadingXML) return <div className="h-screen flex items-center justify-center bg-[#FDFDFD] text-[10px] font-bold text-[#464775]">CARGANDO ECOSISTEMA SVX...</div>;
 
   return (
+    // AJUSTE: h-screen y w-screen con overflow-hidden
     <div className="flex flex-col lg:flex-row h-screen w-[100%] bg-[#FDFDFD] font-sans text-[#242424] overflow-hidden">
       
       <AnimatePresence>
@@ -230,11 +230,12 @@ const SVXUnifiedEnterprise = () => {
         )}
       </AnimatePresence>
 
+      {/* SECCIÓN CSV (65%) */}
       <div className="flex-[0.65] flex flex-col border-r border-[#EDEBE9] overflow-hidden h-full">
         <div className="p-4 border-b bg-[#FAF9F8] flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2">
             <div className="bg-[#464775] p-1.5 rounded text-white"><FiCpu size={14}/></div>
-            <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">Auditoría Maestro (LESRO)</h2>
+            <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">Auditoría Maestro</h2>
           </div>
           <div className="flex gap-4">
             <Step icon={<FiCheck size={10}/>} title="Data" active={data.length > 0} />
@@ -248,9 +249,10 @@ const SVXUnifiedEnterprise = () => {
               onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}
               className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}>
               <FiUploadCloud size={40} className="text-[#464775] mb-4 opacity-20" />
-              <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR CON MAESTRO LESRO</p>
+              <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR</p>
             </div>
           ) : (
+            // AJUSTE: w-full y overflow-auto para scroll de tabla
             <div className="flex-grow overflow-auto border rounded-lg bg-white w-full">
               <table className="min-w-full text-[10px]">
                 <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b">
@@ -295,6 +297,8 @@ const SVXUnifiedEnterprise = () => {
         </div>
       </div>
 
+      {/* SECCIÓN XML (35%) */}
+      {/* AJUSTE: h-full y overflow-hidden para scroll interno de productos */}
       <div className="flex-[0.35] h-full bg-[#F9F9F9] flex flex-col shadow-2xl border-l border-[#EDEBE9] overflow-hidden">
         <div className="p-4 bg-white border-b shrink-0" ref={dropdownRef}>
           <div className="relative">
@@ -358,7 +362,7 @@ const SVXUnifiedEnterprise = () => {
             <div className="h-full flex flex-col items-center justify-center opacity-30 text-center p-10">
               <FiShield size={40} className="mb-4 text-[#464775]" />
               <p className="text-[10px] font-black uppercase tracking-widest text-[#464775]">Panel PIM Vacío</p>
-              <p className="text-[9px] mt-2 font-medium">Las discrepancias del CSV aparecerán aquí para ser re-configuradas bajo el maestro LESRO.</p>
+              <p className="text-[9px] mt-2 font-medium">Las discrepancias del CSV aparecerán aquí para ser re-configuradas.</p>
             </div>
           )}
         </div>
