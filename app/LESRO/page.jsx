@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation'; // Importamos usePathname
 import { supabase } from '../lib/supabaseClient'; 
 import { X, AlertCircle } from 'lucide-react';
 
@@ -20,21 +20,12 @@ export default function MenuInicial() {
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   
-  // Definimos la empresa objetivo para filtrar en los componentes hijos
-  const COMPANY_FILTER = "LESRO"; 
-
   const router = useRouter();
+  const pathname = usePathname(); // Detecta la ruta actual (ej: /LESRO o /WB)
 
-  // Protección de ruta habilitada para asegurar la sesión
-{/*
-  // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data?.user) {
-        router.replace('/login');
-      }
-    }); 
-  }, [router]); */}
+  // 🔹 DINAMISMO: Extraemos el nombre de la empresa de la URL
+  // Si la ruta es /LESRO, COMPANY_FILTER será "LESRO"
+  const COMPANY_FILTER = pathname.split('/').pop()?.toUpperCase() || "LESRO"; 
 
   // Lógica de detección de intento de salida
   useEffect(() => {
@@ -54,7 +45,7 @@ export default function MenuInicial() {
     router.push('/panel'); 
   };
 
-  // Renderizado inyectando la propiedad companyName a los componentes que la necesiten
+  // Renderizado inyectando la propiedad companyName de forma DINÁMICA
   const renderContent = () => {
     switch (active) {
       case 'dashboard': 
