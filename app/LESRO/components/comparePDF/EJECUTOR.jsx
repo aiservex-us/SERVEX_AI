@@ -43,7 +43,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   // --- NAVIGATION STATES ---
-  const [activeTab, setActiveTab] = useState('xml_inspector'); 
+  const [activeTab, setActiveTab] = useState('console'); 
 
   // --- UNIFIED STATES ---
   const [file, setFile] = useState(null);
@@ -368,9 +368,9 @@ const SVXUnifiedPlatform = () => {
         </div>
 
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
-        <TabButton active={activeTab === 'xml_inspector'} onClick={() => setActiveTab('xml_inspector')} icon={<FiPackage size={12}/>} label="XML Inspector (Visual)" />
           <TabButton active={activeTab === 'console'} onClick={() => setActiveTab('console')} icon={<Terminal size={12}/>} label="Console" />
           <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON" />
+          <TabButton active={activeTab === 'xml_inspector'} onClick={() => setActiveTab('xml_inspector')} icon={<FiPackage size={12}/>} label="XML Inspector (Visual)" />
           <TabButton active={activeTab === 'xml_view'} onClick={handleTabChangeToXml} icon={<FiCode size={12}/>} label="XML Code" />
         </nav>
       </header>
