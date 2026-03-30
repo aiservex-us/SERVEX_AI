@@ -4,15 +4,13 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { FiSearch, FiCheckCircle, FiPackage, FiPlusCircle } from 'react-icons/fi';
 import { Database, Table as TableIcon } from "lucide-react";
-import { supabase } from '../../../lib/supabaseClient'; // Ajusta esta ruta según tu estructura
+import { supabase } from '../../../lib/supabaseClient';
 
-// --- COMPONENTE CONTENEDOR CON REALTIME ---
 const IndependentLESROVisualizer = () => {
   const [xmlString, setXmlString] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Función para la carga inicial de datos existentes
     const fetchInitialData = async () => {
       try {
         const { data, error } = await supabase
@@ -22,7 +20,9 @@ const IndependentLESROVisualizer = () => {
           .single();
 
         if (error) throw error;
-        if (data) setXmlString(data.xml_updated_raw);
+        if (data?.xml_updated_raw) {
+          setXmlString(data.xml_updated_raw);
+        }
       } catch (err) {
         console.error("Error fetching initial XML:", err);
       } finally {
@@ -32,10 +32,8 @@ const IndependentLESROVisualizer = () => {
 
     fetchInitialData();
 
-    // 2. Configuración de Realtime para actualizaciones en vivo
-    // Escucha cualquier UPDATE en la tabla cuando el nombre de la compañía coincida
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('lesro-realtime')
       .on(
         'postgres_changes',
         {
@@ -45,54 +43,59 @@ const IndependentLESROVisualizer = () => {
           filter: 'company_name=eq.LESRO',
         },
         (payload) => {
-          console.log('Cambio detectado en Supabase:', payload);
-          if (payload.new && payload.new.xml_updated_raw) {
+          console.log('🔄 Cambio en Supabase (LESRO):', payload);
+          if (payload.new?.xml_updated_raw) {
             setXmlString(payload.new.xml_updated_raw);
           }
         }
       )
       .subscribe();
 
-    // Limpieza al desmontar el componente
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
 
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center p-20 bg-white border border-slate-200 rounded-xl">
-      <motion.div 
-        animate={{ rotate: 360 }} 
-        transition={{ repeat: Infinity, duration: 2 }} 
-        className="text-[#464775] mb-4"
-      >
-        <Database size={40} />
-      </motion.div>
-      <p className="text-slate-600 font-bold">Iniciando Auditoría de Precios Lesro...</p>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20 bg-white border border-slate-200 rounded-xl">
+        <motion.div 
+          animate={{ rotate: 360 }} 
+          transition={{ repeat: Infinity, duration: 2 }} 
+          className="text-[#464775] mb-4"
+        >
+          <Database size={40} />
+        </motion.div>
+        <p className="text-slate-600 font-bold">Iniciando Auditoría de Precios Lesro...</p>
+      </div>
+    );
+  }
 
   return <TeamsOFDAVisualizer xmlString={xmlString} />;
 };
 
-// --- VISUALIZADOR DE DATOS (Mantiene tu lógica de parseo XML) ---
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(30);
 
   const catalogData = useMemo(() => {
-    if (!xmlString) return null;
+    if (!xmlString) return [];
+
     try {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-      
+
       const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
-      const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      const allOptions = Array.from(xmlDoc.getElementsByTagName("Option"));
+
+      console.log(`📊 Total Productos: ${productNodes.length} | Total Opciones: ${allOptions.length}`);
 
       return productNodes.map((prod, idx) => {
-        const sku = prod.getElementsByTagName("Code")[0]?.textContent || "N/A";
-        const description = prod.getElementsByTagName("Description")[0]?.textContent || "No Description";
-        const basePriceNode = prod.querySelector("Price > Value");
+        const sku = prod.getElementsByTagName("Code")[0]?.textContent?.trim() || "N/A";
+        const description = prod.getElementsByTagName("Description")[0]?.textContent?.trim() || "No Description";
+        
+        // Base Price
+        const basePriceNode = prod.querySelector("Price > Value") || prod.querySelector("BasePrice > Value");
         const basePrice = parseFloat(basePriceNode?.textContent || "0");
 
         const rowData = {
@@ -115,45 +118,71 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           coo: "US"
         };
 
-        const relatedFeatures = allFeatures.filter(f => {
-          const fCode = (f.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-          const skuNorm = sku.toUpperCase();
-          return fCode.includes(skuNorm) || ["ARMCAP", "ARMPAD", "CASTER", "TABLET", "POWER", "CHROME", "GANGING", "BEVEL", "SHELF"].some(kw => fCode.includes(kw));
-        });
+        // ==================== LÓGICA MEJORADA PARA OPCIONES ====================
+        allOptions.forEach((opt) => {
+          const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase().trim();
+          const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase().trim();
+          
+          // Buscar el precio (más flexible)
+          let upchargeNode = opt.querySelector("OptionPrice > Value") || 
+                            opt.querySelector("Price > Value");
+          const upchargeStr = upchargeNode?.textContent?.trim() || "N/A";
+          const upcharge = parseFloat(upchargeStr);
 
-        relatedFeatures.forEach(feat => {
-          const featCode = (feat.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-          const options = Array.from(feat.getElementsByTagName("Option"));
+          if (!upcharge || isNaN(upcharge)) return;
 
-          options.forEach(opt => {
-            const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-            const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase();
-            const valNode = opt.querySelector("OptionPrice > Value");
-            const upcharge = valNode ? valNode.textContent : "N/A";
+          const fullText = `${optCode} ${optDesc}`.trim();
 
-            if (upcharge === "N/A") return;
-
-            const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
-            if (gradeMatch) {
-              const num = parseInt(gradeMatch[1]);
-              if (num >= 2 && num <= 13) {
-                const key = `g${num.toString().padStart(2, '0')}`;
-                if (!rowData.grades[key] || rowData.grades[key] === "N/A") rowData.grades[key] = upcharge;
+          // Grades (mantengo tu lógica original porque funcionaba)
+          const gradeMatch = optCode.match(/GR(?:ADE|D)?(\d+)/i);
+          if (gradeMatch) {
+            const num = parseInt(gradeMatch[1]);
+            if (num >= 2 && num <= 13) {
+              const key = `g${num.toString().padStart(2, '0')}`;
+              if (!rowData.grades[key]) {
+                rowData.grades[key] = upcharge.toFixed(2);
               }
             }
+          }
 
-            const fullText = `${featCode} ${optCode} ${optDesc}`;
-            if (fullText.includes("POLYURETHANE") || fullText.includes("APU")) rowData.optionals.polyArm = upcharge;
-            else if (fullText.includes("SOLID SURFACE") || fullText.includes("ASS") || fullText.includes("CORIAN")) rowData.optionals.solidArm = upcharge;
-            else if (fullText.includes("CASTER")) rowData.optionals.casters = upcharge;
-            else if (fullText.includes("TABLET")) rowData.optionals.tablet = upcharge;
-            else if (fullText.includes("CHROME")) rowData.optionals.chrome = upcharge;
-            else if (fullText.includes("GANGING")) rowData.optionals.ganging = upcharge;
-            else if (fullText.includes("POWER") || fullText.includes("UNIT")) rowData.optionals.power = upcharge;
-            else if (fullText.includes("BEVEL")) rowData.optionals.bevel = upcharge;
-            else if (fullText.includes("SHELF")) rowData.optionals.shelf = upcharge;
-          });
+          // ==================== OPCIONES ESPECÍFICAS ====================
+          if (fullText.includes("POLYURETHANE") || fullText.includes("APU") || 
+              (optCode.includes("ARMCAP") && fullText.includes("POLY"))) {
+            rowData.optionals.polyArm = upcharge.toFixed(2);
+          }
+          else if (fullText.includes("SOLID SURFACE") || fullText.includes("CORIAN") || 
+                   fullText.includes("ASS") || 
+                   (optCode.includes("ARMCAP") && fullText.includes("SOLID"))) {
+            rowData.optionals.solidArm = upcharge.toFixed(2);
+          }
+          else if (fullText.includes("CASTER") || optCode.includes("CASTER")) {
+            rowData.optionals.casters = upcharge.toFixed(2);
+          }
+          else if (fullText.includes("TABLET") || optCode.includes("TABLET") || 
+                   fullText.includes("SWIVEL TABLET")) {
+            rowData.optionals.tablet = upcharge.toFixed(2);
+          }
+          else if (fullText.includes("CHROME") || optCode.includes("CHROME")) {
+            rowData.optionals.chrome = upcharge.toFixed(2);
+          }
+          else if (fullText.includes("GANGING")) {
+            rowData.optionals.ganging = upcharge.toFixed(2);
+          }
+          else if (fullText.includes("POWER") || fullText.includes("UNIT")) {
+            rowData.optionals.power = upcharge.toFixed(2);
+          }
+          else if (fullText.includes("BEVEL")) {
+            rowData.optionals.bevel = upcharge.toFixed(2);
+          }
+          else if (fullText.includes("SHELF")) {
+            rowData.optionals.shelf = upcharge.toFixed(2);
+          }
         });
+
+        // Depuración por SKU (descomenta si necesitas ver qué se está extrayendo)
+        // if (sku === "AS1101" || sku === "AF0020") {
+        //   console.log(`SKU: ${sku} | Poly: ${rowData.optionals.polyArm} | Solid: ${rowData.optionals.solidArm} | Casters: ${rowData.optionals.casters} | Tablet: ${rowData.optionals.tablet}`);
+        // }
 
         return rowData;
       });
@@ -164,21 +193,28 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
   }, [xmlString]);
 
   const filteredData = useMemo(() => {
-    return catalogData?.filter(p => p.sku.toLowerCase().includes(searchTerm.toLowerCase()));
+    return catalogData.filter(p => 
+      p.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   }, [catalogData, searchTerm]);
 
   const displayData = useMemo(() => {
-    return filteredData?.slice(0, visibleCount) || [];
+    return filteredData.slice(0, visibleCount);
   }, [filteredData, visibleCount]);
 
   const handleLoadMore = () => setVisibleCount(prev => prev + 30);
 
-  if (!catalogData) return (
-    <div className="p-10 text-center text-slate-400">No se encontraron datos disponibles en Supabase.</div>
-  );
+  if (catalogData.length === 0) {
+    return (
+      <div className="p-10 text-center text-slate-400">
+        No se encontraron datos disponibles en Supabase.
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F3F2F1] text-[#242424] overflow-hidden font-sans">
+      {/* Header */}
       <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center text-white">
@@ -210,6 +246,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         </div>
       </div>
 
+      {/* Tabla */}
       <div className="flex-1 overflow-auto custom-scrollbar bg-white">
         <table className="w-full text-left border-collapse table-fixed min-w-[2200px]">
           <thead className="sticky top-0 z-20 shadow-sm">
@@ -218,7 +255,9 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
               <th className="p-3 w-64 border-r border-slate-200">Description</th>
               <th className="p-3 w-28 text-center border-r border-slate-200 bg-[#F1F3F9]">Base Price</th>
               {Array.from({ length: 12 }, (_, i) => i + 2).map(g => (
-                <th key={g} className="p-3 w-24 text-center border-r border-slate-200">Grade {g.toString().padStart(2, '0')}</th>
+                <th key={g} className="p-3 w-24 text-center border-r border-slate-200">
+                  Grade {g.toString().padStart(2, '0')}
+                </th>
               ))}
               <th className="p-3 w-32 text-center border-r border-slate-200">Poly Armpad</th>
               <th className="p-3 w-32 text-center border-r border-slate-200">Solid Surface</th>
@@ -241,6 +280,8 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
                 <td className="p-3 text-center border-r border-slate-200 font-bold bg-[#F1F3F9]/30">
                   ${p.basePrice}
                 </td>
+
+                {/* Grades */}
                 {Array.from({ length: 12 }, (_, i) => (i + 2).toString().padStart(2, '0')).map(num => {
                   const val = p.grades[`g${num}`];
                   return (
@@ -249,6 +290,8 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
                     </td>
                   );
                 })}
+
+                {/* Optionals */}
                 <td className="p-3 text-center border-r border-slate-200 font-mono text-blue-600 font-bold">
                   {p.optionals.polyArm !== "N/A" ? `+$${p.optionals.polyArm}` : "—"}
                 </td>
@@ -279,7 +322,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           </tbody>
         </table>
 
-        {filteredData && visibleCount < filteredData.length && (
+        {filteredData.length > visibleCount && (
           <div className="p-6 flex justify-center bg-white">
             <button 
               onClick={handleLoadMore}
@@ -291,12 +334,17 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         )}
       </div>
 
+      {/* Footer */}
       <div className="h-10 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[10px] text-slate-400 font-bold">
         <div className="flex gap-4 uppercase">
-          <span className="flex items-center gap-1"><FiPackage className="text-[#464775]" /> {filteredData?.length || 0} SKUs Catalogued</span>
-          <span className="flex items-center gap-1 text-emerald-500"><FiCheckCircle /> Actualización en Tiempo Real Activa</span>
+          <span className="flex items-center gap-1">
+            <FiPackage className="text-[#464775]" /> {filteredData.length} SKUs Catalogued
+          </span>
+          <span className="flex items-center gap-1 text-emerald-500">
+            <FiCheckCircle /> Actualización en Tiempo Real Activa
+          </span>
         </div>
-        <span>LESRO_PRICE_MATRIX_V1.4</span>
+        <span>LESRO_PRICE_MATRIX_V1.5</span>
       </div>
 
       <style jsx global>{`
