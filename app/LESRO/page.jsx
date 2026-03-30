@@ -26,15 +26,15 @@ export default function MenuInicial() {
   const router = useRouter();
 
   // Protección de ruta habilitada para asegurar la sesión
+{/*
+  // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
   useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
+    supabase.auth.getUser().then(({ data }) => {
       if (!data?.user) {
         router.replace('/login');
       }
-    };
-    checkUser();
-  }, [router]);
+    }); 
+  }, [router]); */}
 
   // Lógica de detección de intento de salida
   useEffect(() => {
