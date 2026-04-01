@@ -288,29 +288,35 @@ const SVXUnifiedPlatform = () => {
 
       {activeTab === 'xml_view' && (
         <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
-          <div className="flex-shrink-0 flex justify-between items-center mb-4">
-            <h2 className="text-xs font-black text-[#464775] uppercase">Column: xml_updated_raw (Raw Code)</h2>
-            {xmlActualizerRaw && !isProcessing && !isXmlLoading && (
-              <button 
-                onClick={handleDownloadXML}
-                className="flex items-center gap-2 bg-[#464775] text-white px-3 py-1.5 rounded text-[10px] font-bold hover:bg-[#363975] transition-all shadow-sm"
-              >
-                <DownloadCloud size={14} /> DOWNLOAD XML
-              </button>
-            )}
-          </div>
-          <div className="bg-white border border-[#EDEBE9] text-[#242424] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow whitespace-pre shadow-inner relative">
+          <div className="bg-white border border-[#EDEBE9] rounded-lg flex-grow shadow-inner relative flex flex-col items-center justify-center text-center p-8">
             {(isProcessing || isXmlLoading) ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-80 z-10">
+              <div className="flex flex-col items-center justify-center">
                 <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
                 <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">
-                  {isProcessing ? "Generating XML..." : "Rendering heavy XML data..."}
+                  {isProcessing ? "Generating XML..." : "Preparing Download Link..."}
                 </span>
               </div>
             ) : xmlActualizerRaw ? (
-              xmlActualizerRaw
+              <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="w-16 h-16 bg-[#F3F2F1] rounded-full flex items-center justify-center mb-4">
+                  <FiCode size={30} className="text-[#464775]" />
+                </div>
+                <h2 className="text-sm font-black text-[#464775] uppercase mb-2">XML Ready for Export</h2>
+                <p className="text-[11px] text-gray-500 max-w-[300px] leading-relaxed mb-6">
+                  The updated catalog code has been successfully generated and is stored in the <strong>xml_updated_raw</strong> column.
+                </p>
+                <button 
+                  onClick={handleDownloadXML}
+                  className="flex items-center gap-3 bg-[#464775] text-white px-8 py-3 rounded-md text-[11px] font-bold hover:bg-[#363975] transition-all shadow-lg hover:scale-105 active:scale-95"
+                >
+                  <DownloadCloud size={18} /> DOWNLOAD XML FILE
+                </button>
+              </div>
             ) : (
-              <div className="h-full flex items-center justify-center opacity-30 italic">// Waiting for data synchronization...</div>
+              <div className="flex flex-col items-center opacity-30 italic">
+                <FiDatabase size={40} className="mb-2" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">// Waiting for data synchronization...</span>
+              </div>
             )}
           </div>
         </motion.div>
