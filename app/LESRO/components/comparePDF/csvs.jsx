@@ -46,17 +46,11 @@ export default function DataViewer() {
   const parseCSV = (csvString, type) => {
     if (!csvString || csvString === '---') return [];
     
-    // Normalizamos y dividimos el string por líneas
     const lines = csvString.trim().split('\n');
     if (lines.length < 1) return [];
 
-    // Determinamos el delimitador basándonos en el tipo de columna
     const delimiter = type === 'csv_raw' ? ';' : ',';
-    
-    // FILA 1 (Índice 0): Encabezados
     const headers = lines[0].split(delimiter).map(h => h.replace(/"/g, '').trim());
-    
-    // FILA 2 EN ADELANTE (Índice 1): Datos
     const dataLines = lines.slice(1);
     
     return dataLines.map(line => {
@@ -78,7 +72,7 @@ export default function DataViewer() {
   );
 
   if (loading) return (
-    <div className="flex h-[100%] w-[80%] flex-col items-center justify-center bg-[#FFF] p-6">
+    <div className="flex h-full w-full flex-col items-center justify-center bg-[#FFF] p-6">
       <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
       <span className="text-sm font-semibold text-[#242424]">Sincronizando con Teams...</span>
     </div>
@@ -89,7 +83,7 @@ export default function DataViewer() {
       <div className="max-w-sm w-full text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
         <AlertCircle className="mx-auto mb-4 text-[#C4314B]" size={48} />
         <h3 className="text-lg font-bold">Sin conexión a datos</h3>
-        <p className="text-sm text-[#616161] mt-2">No se han encontrado registros.</p>
+        <p className="text-sm text-[#616161] mt-2">No se han encontrado registros en la base de datos.</p>
       </div>
     </div>
   );
@@ -97,84 +91,88 @@ export default function DataViewer() {
   return (
     <div className="flex flex-col h-full w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
       
-      {/* HEADER */}
-      <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
+      {/* HEADER COMPACTO Y ALINEADO */}
+      <div className="bg-white px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md shrink-0">
-              <Database size={20} className="text-white" />
+            <div className="bg-[#5B5FC7] p-2.5 rounded-lg shadow-md shrink-0">
+              <Database size={18} className="text-white" />
             </div>
             <div className="truncate">
               <div className="flex items-center gap-2">
                 <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424] truncate">
                   {data.company_name}
                 </h2>
-                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase shrink-0">
+                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase shrink-0 border border-[#5B5FC7]/10">
                   Read Only
                 </span>
               </div>
-              <p className="text-[10px] text-[#616161] truncate">
-                Actualizado: {new Date(data.created_at).toLocaleDateString()}
+              <p className="text-[10px] text-[#616161] font-medium truncate">
+                Última actualización: {new Date(data.created_at).toLocaleDateString()}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-[#F0F0F0] p-1 rounded-lg shrink-0">
+          <div className="flex items-center gap-1 bg-[#F0F0F0] p-1 rounded-lg shrink-0 border border-[#EDEBE9]">
             <button
               onClick={() => setActiveTab('csv_raw')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161]'
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:text-[#5B5FC7]'
               }`}
             >
               <FileSpreadsheet size={12} />
-              <span>Manual</span>
+              <span>Manual Sync</span>
             </button>
             <button
               onClick={() => setActiveTab('csvpdf_raw')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161]'
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:text-[#5B5FC7]'
               }`}
             >
               <FileText size={12} />
-              <span>PDF Sync</span>
+              <span>PDF Intelligence</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* TOOLBAR */}
-      <div className="bg-white px-4 md:px-6 py-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-b border-[#EDEBE9] shrink-0 w-full">
+      {/* TOOLBAR REFINADO */}
+      <div className="bg-white px-6 py-2.5 flex items-center justify-between gap-4 border-b border-[#EDEBE9] shrink-0 w-full">
         <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={12} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={13} />
           <input 
             type="text"
-            placeholder="Buscar en tabla..."
-            className="w-full pl-9 pr-4 py-1.5 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-[11px] rounded-t-md"
+            placeholder="Buscar registros en la tabla..."
+            className="w-full pl-9 pr-4 py-2 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-[12px] rounded-t-md font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
-        <div className="flex items-center justify-end gap-2 shrink-0">
-            <button onClick={fetchLatestData} className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#616161]">
-                <RefreshCw size={14} />
+        <div className="flex items-center gap-2 shrink-0">
+            <button 
+              onClick={fetchLatestData} 
+              className="p-2 hover:bg-[#F0F0F0] rounded-full text-[#616161] transition-colors"
+              title="Refrescar datos"
+            >
+                <RefreshCw size={15} />
             </button>
-            <div className="h-6 w-[1px] bg-[#EDEBE9]"></div>
-            <button className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-semibold text-[#616161] border border-[#D1D1D1] rounded hover:bg-[#F5F5F5]">
-                <Download size={12} /> <span>Exportar</span>
+            <div className="h-6 w-[1px] bg-[#EDEBE9] mx-1"></div>
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold text-[#616161] border border-[#D1D1D1] rounded bg-white hover:bg-[#F5F5F5] transition-shadow shadow-sm">
+                <Download size={13} /> <span>Exportar CSV</span>
             </button>
         </div>
       </div>
 
-      {/* ÁREA DE TABLA */}
-      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
+      {/* ÁREA DE TABLA - ESTILO "MASTER" */}
+      <div className="flex-1 m-4 bg-white rounded-xl shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
         {filteredData.length > 0 ? (
           <div className="flex-1 overflow-auto custom-scrollbar">
-            <table className="min-w-full border-separate border-spacing-0 text-[10px]">
+            <table className="min-w-full border-separate border-spacing-0 text-[11px]">
               <thead>
                 <tr className="bg-[#FAF9F8]">
                   {Object.keys(currentCsvData[0]).map((header) => (
-                    <th key={header} className="px-4 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap border-b border-r border-[#EDEBE9]">
+                    <th key={header} className="px-4 py-2.5 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap border-b border-r border-[#EDEBE9]">
                       <div className="flex items-center gap-1.5 uppercase tracking-wider text-[9px]">
                         {header}
                         <Filter size={8} className="text-[#5B5FC7] opacity-40" />
@@ -187,11 +185,11 @@ export default function DataViewer() {
                 {filteredData.map((row, idx) => (
                   <tr key={idx} className="group hover:bg-[#F5F5F7] transition-colors">
                     {Object.values(row).map((val, i) => (
-                      <td key={i} className="px-4 py-2 text-[#424242] border-r border-[#F0F0F0]/50 last:border-none whitespace-nowrap">
+                      <td key={i} className="px-4 py-2.5 text-[#424242] border-r border-[#F0F0F0]/30 last:border-none whitespace-nowrap">
                         {val && val !== '---' ? (
                           <span className="font-medium">{val}</span>
                         ) : (
-                          <span className="text-[#BDBDBD] italic text-[9px]">N/A</span>
+                          <span className="text-[#BDBDBD] italic text-[10px]">N/A</span>
                         )}
                       </td>
                     ))}
@@ -201,27 +199,33 @@ export default function DataViewer() {
             </table>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center flex-1 py-10">
-            <TableIcon size={32} className="text-[#D1D1D1] mb-2" />
-            <p className="text-xs font-semibold text-[#616161]">No hay datos para mostrar</p>
+          <div className="flex flex-col items-center justify-center flex-1 py-12">
+            <TableIcon size={40} className="text-[#D1D1D1] mb-3" />
+            <p className="text-sm font-bold text-[#616161]">No se encontraron coincidencias</p>
+            <p className="text-xs text-[#919191]">Intenta con otros términos de búsqueda</p>
           </div>
         )}
       </div>
 
-      {/* FOOTER */}
-      <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161] shrink-0 w-full">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-          <span>{filteredData.length} registros</span>
+      {/* FOOTER REFINADO */}
+      <div className="px-6 py-2 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[10px] font-bold text-[#616161] shrink-0 w-full">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span className="uppercase tracking-tight">{filteredData.length} Registros Cargados</span>
+          </div>
         </div>
-        <div className="bg-[#5B5FC7]/10 px-2 py-0.5 rounded text-[#5B5FC7] font-bold uppercase text-[8px]">
-          {activeTab === 'csv_raw' ? 'Manual' : 'PDF Extraction'}
+        <div className="flex items-center gap-4">
+          <div className="bg-[#5B5FC7]/10 px-3 py-1 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
+            {activeTab === 'csv_raw' ? 'Source: ERP Manual' : 'Source: AI PDF Extraction'}
+          </div>
         </div>
       </div>
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #A1A1A1; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
         
         table { 
