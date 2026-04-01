@@ -44,13 +44,11 @@ const IndependentLESROVisualizer = () => {
   return <TeamsOFDAVisualizer xmlString={xmlString} />;
 };
 
-// --- VISUALIZADOR PRINCIPAL OPTIMIZADO ---
+// --- VISUALIZADOR PRINCIPAL ALTAMENTE OPTIMIZADO ---
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [visibleCount, setVisibleCount] = useState(4);
+  const [visibleCount, setVisibleCount] = useState(10); // Empezamos con un poco más
 
-  // OPTIMIZACIÓN 1: Procesar el XML COMPLETO solo una vez cuando xmlString cambia.
-  // Esto convierte el XML pesado en un array de objetos JS ligero.
   const fullCatalog = useMemo(() => {
     if (!xmlString) return [];
     try {
@@ -60,8 +58,23 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
       const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
 
+      // --- OPTIMIZACIÓN CLAVE: INDEXACIÓN ---
+      // Agrupamos las features por su código para no buscarlas una por una dentro del loop de productos.
+      const featuresMap = {};
+      const globalFeatures = [];
+
+      allFeatures.forEach(feat => {
+        const fCode = (feat.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
+        if (fCode.includes("GRADE") || fCode.includes("CASTER") || fCode.includes("POWER")) {
+          globalFeatures.push(feat);
+        }
+        if (!featuresMap[fCode]) featuresMap[fCode] = [];
+        featuresMap[fCode].push(feat);
+      });
+
       return productNodes.map((prod, idx) => {
         const sku = prod.getElementsByTagName("Code")[0]?.textContent || "N/A";
+        const skuNorm = sku.toUpperCase();
         const description = prod.getElementsByTagName("Description")[0]?.textContent || "No Description";
         const basePriceNode = prod.querySelector("Price > Value");
         const basePrice = parseFloat(basePriceNode?.textContent || "0");
@@ -80,43 +93,46 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           coo: "US"
         };
 
-        const skuNorm = sku.toUpperCase();
-        
-        // Procesamos las características una sola vez por producto aquí
-        allFeatures.forEach(feat => {
-          const fCode = (feat.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-          
-          if (fCode.includes(skuNorm) || fCode.includes("GRADE") || fCode.includes("CASTER") || fCode.includes("POWER")) {
-            const options = Array.from(feat.getElementsByTagName("Option"));
-            options.forEach(opt => {
-              const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-              const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase();
-              const valNode = opt.querySelector("OptionPrice > Value");
-              const upcharge = valNode ? valNode.textContent : "N/A";
+        // Función interna para procesar nodos de opciones de forma eficiente
+        const processFeat = (feat) => {
+          const options = Array.from(feat.getElementsByTagName("Option"));
+          options.forEach(opt => {
+            const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
+            const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase();
+            // Acceso directo al valor del precio
+            const valNode = opt.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0];
+            const upcharge = valNode ? valNode.textContent : "N/A";
 
-              if (upcharge === "N/A") return;
+            if (upcharge === "N/A") return;
 
-              const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
-              if (gradeMatch) {
-                const num = parseInt(gradeMatch[1]);
-                if (num >= 2 && num <= 13) {
-                  const key = `g${num.toString().padStart(2, '0')}`;
-                  if (!rowData.grades[key] || rowData.grades[key] === "N/A") rowData.grades[key] = upcharge;
-                }
+            const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
+            if (gradeMatch) {
+              const num = parseInt(gradeMatch[1]);
+              if (num >= 2 && num <= 13) {
+                const key = `g${num.toString().padStart(2, '0')}`;
+                if (!rowData.grades[key] || rowData.grades[key] === "N/A") rowData.grades[key] = upcharge;
               }
+            }
 
-              const fullText = `${optCode} ${optDesc}`;
-              if (fullText.includes("URETHANE") || optCode === "APU") rowData.optionals.polyArm = upcharge;
-              else if (fullText.includes("SOLID SURFACE") || optCode === "SS") rowData.optionals.solidArm = upcharge;
-              else if (fullText.includes("CASTER")) rowData.optionals.casters = upcharge;
-              else if (fullText.includes("TABLET")) rowData.optionals.tablet = upcharge;
-              else if (fullText.includes("POWER") || fullText.includes("UNIT")) rowData.optionals.power = upcharge;
-              else if (fullText.includes("CHROME")) rowData.optionals.chrome = upcharge;
-              else if (fullText.includes("BEVEL")) rowData.optionals.bevel = upcharge;
-              else if (fullText.includes("SHELF")) rowData.optionals.shelf = upcharge;
-            });
-          }
-        });
+            const fullText = `${optCode} ${optDesc}`;
+            if (fullText.includes("URETHANE") || optCode === "APU") rowData.optionals.polyArm = upcharge;
+            else if (fullText.includes("SOLID SURFACE") || optCode === "SS") rowData.optionals.solidArm = upcharge;
+            else if (fullText.includes("CASTER")) rowData.optionals.casters = upcharge;
+            else if (fullText.includes("TABLET")) rowData.optionals.tablet = upcharge;
+            else if (fullText.includes("POWER") || fullText.includes("UNIT")) rowData.optionals.power = upcharge;
+            else if (fullText.includes("CHROME")) rowData.optionals.chrome = upcharge;
+            else if (fullText.includes("BEVEL")) rowData.optionals.bevel = upcharge;
+            else if (fullText.includes("SHELF")) rowData.optionals.shelf = upcharge;
+          });
+        };
+
+        // 1. Procesar features que coinciden exactamente con el SKU
+        if (featuresMap[skuNorm]) {
+          featuresMap[skuNorm].forEach(processFeat);
+        }
+
+        // 2. Procesar features globales (Grados, Casters, etc)
+        globalFeatures.forEach(processFeat);
 
         return rowData;
       });
@@ -126,7 +142,6 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
     }
   }, [xmlString]);
 
-  // OPTIMIZACIÓN 2: El filtrado ahora es sobre objetos planos, es ultra rápido.
   const displayData = useMemo(() => {
     const filtered = fullCatalog.filter(p => 
       p.sku.toLowerCase().includes(searchTerm.toLowerCase())
@@ -134,11 +149,10 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
     return filtered.slice(0, visibleCount);
   }, [fullCatalog, searchTerm, visibleCount]);
 
-  const handleLoadMore = () => setVisibleCount(prev => prev + 20);
+  const handleLoadMore = () => setVisibleCount(prev => prev + 50);
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F3F2F1] text-[#242424] overflow-hidden font-sans">
-      {/* HEADER */}
       <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center text-white">
@@ -162,14 +176,13 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setVisibleCount(10); 
+              setVisibleCount(20); 
             }}
             className="pl-9 pr-4 py-1.5 bg-[#F3F2F1] border-transparent focus:bg-white focus:border-[#464775] rounded text-[11px] w-72 transition-all outline-none"
           />
         </div>
       </div>
 
-      {/* TABLE AREA */}
       <div className="flex-1 overflow-auto custom-scrollbar bg-white">
         <table className="w-full text-left border-collapse table-fixed min-w-[2200px]">
           <thead className="sticky top-0 z-20 shadow-sm">
@@ -247,7 +260,6 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         )}
       </div>
 
-      {/* FOOTER */}
       <div className="h-10 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[10px] text-slate-400 font-bold">
         <div className="flex gap-4 uppercase">
           <span className="flex items-center gap-1"><FiPackage className="text-[#464775]" /> Dynamic View Mode</span>
