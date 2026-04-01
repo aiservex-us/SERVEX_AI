@@ -422,7 +422,7 @@ const SVXUnifiedPlatform = () => {
       {isMaximized && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-md p-10 animate-in fade-in duration-300">
           <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white w-[95vw] h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
-            <div className="flex-shrink-0 bg-[#464775] p-4 flex justify-between items-center text-white">
+            <div className="flex-shrink-0 bg-[#ffffff] p-4 flex justify-between items-center text-black">
               <div className="flex items-center gap-3">
                 <Terminal size={18} />
                 <span className="text-sm font-black uppercase tracking-widest">Inspection Mode: {activeTab.replace('_', ' ').toUpperCase()}</span>
