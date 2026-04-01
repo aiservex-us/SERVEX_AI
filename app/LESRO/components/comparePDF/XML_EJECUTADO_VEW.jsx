@@ -47,7 +47,8 @@ const IndependentLESROVisualizer = () => {
 // --- VISUALIZADOR PRINCIPAL CON LÓGICA DE PARSEO CORREGIDA ---
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [visibleCount, setVisibleCount] = useState(30);
+  // CAMBIO CLAVE: Empezamos con 5 para carga instantánea
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const catalogData = useMemo(() => {
     if (!xmlString) return null;
@@ -58,7 +59,13 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
       const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
 
-      return productNodes.map((prod, idx) => {
+      // OPTIMIZACIÓN: Si no hay búsqueda, solo mapeamos los nodos que vamos a mostrar (visibleCount)
+      // Si hay búsqueda, tenemos que mapear todo para poder filtrar.
+      const nodesToProcess = searchTerm 
+        ? productNodes 
+        : productNodes.slice(0, visibleCount);
+
+      return nodesToProcess.map((prod, idx) => {
         const sku = prod.getElementsByTagName("Code")[0]?.textContent || "N/A";
         const description = prod.getElementsByTagName("Description")[0]?.textContent || "No Description";
         const basePriceNode = prod.querySelector("Price > Value");
@@ -83,8 +90,6 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           coo: "US"
         };
 
-        // Buscamos Features que contengan el SKU en su código (ej: ARMPAD-BK5101) 
-        // o que sean globales (ej: FABRIC-GRADE-02)
         const skuNorm = sku.toUpperCase();
         const relatedFeatures = allFeatures.filter(f => {
           const fCode = (f.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
@@ -105,20 +110,17 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
             if (upcharge === "N/A") return;
 
-            // 1. Lógica para Grados de Tela (Grades)
             const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
             if (gradeMatch) {
               const num = parseInt(gradeMatch[1]);
               if (num >= 2 && num <= 13) {
                 const key = `g${num.toString().padStart(2, '0')}`;
-                // Guardamos el precio si no existe o si es 0 y encontramos uno mayor
                 if (!rowData.grades[key] || rowData.grades[key] === "N/A") {
                   rowData.grades[key] = upcharge;
                 }
               }
             }
 
-            // 2. Lógica para Opcionales (Basado en la descripción y código de la Opción)
             const fullText = `${optCode} ${optDesc}`.toUpperCase();
             
             if (fullText.includes("URETHANE") || (optCode === "APU")) {
@@ -147,17 +149,17 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       console.error("XML Engine Error:", err);
       return [];
     }
-  }, [xmlString]);
+    // Añadimos visibleCount a las dependencias para que recalcule al cargar más
+  }, [xmlString, visibleCount, searchTerm]);
 
   const filteredData = useMemo(() => {
     return catalogData?.filter(p => p.sku.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [catalogData, searchTerm]);
 
-  const displayData = useMemo(() => {
-    return filteredData?.slice(0, visibleCount) || [];
-  }, [filteredData, visibleCount]);
+  // Aquí ya no hace falta el slice porque catalogData ya viene limitado
+  const displayData = filteredData || [];
 
-  const handleLoadMore = () => setVisibleCount(prev => prev + 30);
+  const handleLoadMore = () => setVisibleCount(prev => prev + 5);
 
   if (!catalogData) return null;
 
@@ -187,7 +189,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setVisibleCount(30);
+              setVisibleCount(5); // Reseteamos al buscar para no colapsar
             }}
             className="pl-9 pr-4 py-1.5 bg-[#F3F2F1] border-transparent focus:bg-white focus:border-[#464775] rounded text-[11px] w-72 transition-all outline-none"
           />
@@ -260,23 +262,21 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           </tbody>
         </table>
 
-        {filteredData && visibleCount < filteredData.length && (
-          <div className="p-6 flex justify-center bg-white">
-            <button 
-              onClick={handleLoadMore}
-              className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63] transition-all shadow-md"
-            >
-              <FiPlusCircle /> Mostrar más items ({visibleCount} de {filteredData.length})
-            </button>
-          </div>
-        )}
+        <div className="p-6 flex justify-center bg-white">
+          <button 
+            onClick={handleLoadMore}
+            className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63] transition-all shadow-md"
+          >
+            <FiPlusCircle /> Mostrar 5 más (Viendo {visibleCount})
+          </button>
+        </div>
       </div>
 
       {/* FOOTER */}
       <div className="h-10 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[10px] text-slate-400 font-bold">
         <div className="flex gap-4 uppercase">
-          <span className="flex items-center gap-1"><FiPackage className="text-[#464775]" /> {filteredData?.length || 0} SKUs Catalogued</span>
-          <span className="flex items-center gap-1 text-emerald-500"><FiCheckCircle /> Verification Complete</span>
+          <span className="flex items-center gap-1"><FiPackage className="text-[#464775]" /> Dynamic View Mode</span>
+          <span className="flex items-center gap-1 text-emerald-500"><FiCheckCircle /> optimized rendering</span>
         </div>
         <span>LESRO_PRICE_MATRIX_V1.5</span>
       </div>
