@@ -47,7 +47,7 @@ const IndependentLESROVisualizer = () => {
 // --- VISUALIZADOR PRINCIPAL OPTIMIZADO ---
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(4);
 
   // OPTIMIZACIÓN 1: Procesar el XML COMPLETO solo una vez cuando xmlString cambia.
   // Esto convierte el XML pesado en un array de objetos JS ligero.
