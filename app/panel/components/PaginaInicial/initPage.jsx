@@ -10,10 +10,10 @@ import Chart from './components/main/Chart';
 import DashboardRight from './components/main/Dashboard';
 
 // VISTAS ADICIONALES
-import Calendar from './components/Calendar';
+import Calendar from './components/menuEmpresas';
 import Products from './components/main/AccesAgent';
 import Settings from './components/Settings';
-import ClientS from './components/main/clientS'; // ✅ NUEVO
+
 import Footer from './components/main/footer';
 
 const InitPage = () => {
@@ -43,10 +43,10 @@ const InitPage = () => {
           </div>
         );
 
-      case 'clients': // ✅ ESTE ES EL FIX
+      case 'products':
         return (
           <div className="col-span-12 lg:col-span-8 space-y-6">
-            <ClientS />
+            <Products />
           </div>
         );
 

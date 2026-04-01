@@ -1,12 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+
 import { useRouter } from 'next/navigation';
 
-// COMPONENTES
-import IncertXML from './components/incertXML';
-import PanelHeader from './components/PanelHeader';
 import PanelMenur from './components/PaginaInicial/initPage';
 
 export default function PanelPage() {
