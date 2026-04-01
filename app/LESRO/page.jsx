@@ -6,8 +6,8 @@ import { supabase } from '../lib/supabaseClient';
 import { X, AlertCircle } from 'lucide-react';
 
 import MenuLateral from './components/menuLateral';
-import Dashboard from './components/dashboard';
-import PriceProduct from './components/perceo_XML_MASTER.jsx';
+import Dashboard from './components/perceo_XML_MASTER_post_prcess.jsx';
+import PriceProduct from './components/perceo_XML_MASTER_pre_prosses.jsx';
 import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
 import PrecentMain from './components/PrecentMain';
