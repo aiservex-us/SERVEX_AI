@@ -86,7 +86,7 @@ export default function DataViewer() {
 
   return (
     // CAMBIO CLAVE: w-full en lugar de w-screen y h-full para respetar el layout padre
-    <div className="flex flex-col h-full w-[100vw] bg-[#FAF9F8] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-full w-[80vvw] bg-[#FAF9F8] font-sans text-[#242424] overflow-hidden">
       
       {/* HEADER - shrink-0 evita que se colapse */}
       <header className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shrink-0">
