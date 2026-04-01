@@ -7,7 +7,7 @@ import { X, AlertCircle } from 'lucide-react';
 
 import MenuLateral from './components/menuLateral';
 import Dashboard from './components/dashboard';
-import PriceProduct from './components/perceo_XML_MASTER';
+import PriceProduct from './components/perceo_XML_MASTER.jsx';
 import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
 import PrecentMain from './components/PrecentMain';

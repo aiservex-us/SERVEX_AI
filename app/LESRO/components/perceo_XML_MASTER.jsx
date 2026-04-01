@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
+import { motion } from 'framer-motion';
 
 const LesroPricingMaster = () => {
   const [products, setProducts] = useState([]);
@@ -57,9 +58,6 @@ const LesroPricingMaster = () => {
           }
         };
 
-        // ==============================
-        // 🎯 1. GRADES (UPH-AVERAGE-SKU)
-        // ==============================
         const gradeFeature = features.find(f => {
           const code = f.querySelector("Code")?.textContent || "";
           return code === `UPH-AVERAGE-${sku}`;
@@ -75,15 +73,11 @@ const LesroPricingMaster = () => {
             if (code.startsWith("GRD")) {
               const num = code.replace("GRD", "").padStart(2, "0");
               const key = `G${num}`;
-
               row.grades[key] = basePrice + val;
             }
           });
         }
 
-        // ==============================
-        // 🎯 2. OPCIONES (FEATURE-SKU)
-        // ==============================
         const relatedFeatures = features.filter(f => {
           const code = f.querySelector("Code")?.textContent || "";
           return code.endsWith(`-${sku}`) && !code.includes("UPH-AVERAGE");
@@ -97,12 +91,9 @@ const LesroPricingMaster = () => {
             const optCode = opt.querySelector("Code")?.textContent?.toUpperCase() || "";
             const val = parseInt(opt.querySelector("Value")?.textContent || "0");
 
-            // Ignorar base
             if (["AXX", "NONE", "STANDARD", "PXX"].some(x => optCode.includes(x))) return;
-
             if (val <= 0) return;
 
-            // Mapping inteligente
             if (fCode.includes("armpad")) {
               if (optCode.includes("APU")) row.opts.poly = val;
               if (optCode.includes("SS")) row.opts.solid = val;
@@ -138,64 +129,111 @@ const LesroPricingMaster = () => {
     ),
   [products, searchTerm]);
 
+  const stats = {
+    total: products.length,
+    filtered: filtered.length,
+    avgPrice: Math.round(
+      products.reduce((acc, p) => acc + p.basePrice, 0) / (products.length || 1)
+    )
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="h-screen flex flex-col bg-[#F3F4F6]">
 
       {/* HEADER */}
-      <div className="p-4 border-b bg-[#FAF9F8] flex justify-between">
-        <h1 className="text-sm font-bold text-[#464775]">LESRO MASTER MATRIX</h1>
+      <div className="px-6 py-4 border-b bg-white flex items-center justify-between">
+        <div>
+          <h1 className="text-sm font-semibold text-[#242424]">
+            LESRO Pricing Matrix
+          </h1>
+          <p className="text-xs text-slate-500">
+            Structured pricing intelligence
+          </p>
+        </div>
+
         <input
           type="text"
-          placeholder="Search SKU..."
-          className="text-xs border px-3 py-2 w-80"
+          placeholder="Search SKU or product..."
+          className="text-xs border px-3 py-2 w-72 rounded-lg outline-none focus:ring-2 focus:ring-[#5B5FC7]"
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      {/* TABLE */}
-      <div className="flex-1 overflow-auto p-4">
-        <table className="w-full text-[11px] min-w-[2000px] border">
-          <thead className="bg-[#464775] text-white sticky top-0">
-            <tr>
-              {headers.map(h => (
-                <th key={h} className="px-2 py-2 border">{h}</th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={headers.length} className="text-center py-20">
-                  Loading XML...
-                </td>
-              </tr>
-            ) : filtered.map((p, i) => (
-              <tr key={i} className="hover:bg-gray-50">
-
-                <td>{p.sku}</td>
-                <td>{p.name}</td>
-                <td>{p.line}</td>
-                <td>${p.basePrice}</td>
-
-                {["G02","G03","G04","G05","G06","G07","G08","G09","G10"].map(g => (
-                  <td key={g}>
-                    {p.grades[g] ? `$${p.grades[g]}` : "—"}
-                  </td>
-                ))}
-
-                <td>{p.opts.poly ? `+$${p.opts.poly}` : "—"}</td>
-                <td>{p.opts.solid ? `+$${p.opts.solid}` : "—"}</td>
-                <td>{p.opts.casters ? `+$${p.opts.casters}` : "—"}</td>
-                <td>{p.opts.tablet ? `+$${p.opts.tablet}` : "—"}</td>
-                <td>{p.opts.chrome ? `+$${p.opts.chrome}` : "—"}</td>
-                <td>{p.opts.power ? `+$${p.opts.power}` : "—"}</td>
-
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* STATS */}
+      <div className="grid grid-cols-3 gap-4 p-4">
+        {[
+          { label: "Total Products", value: stats.total },
+          { label: "Filtered", value: stats.filtered },
+          { label: "Avg Price", value: `$${stats.avgPrice}` }
+        ].map((s, i) => (
+          <div key={i} className="bg-white border rounded-xl p-4 shadow-sm">
+            <p className="text-xs text-slate-500">{s.label}</p>
+            <p className="text-lg font-semibold text-[#242424]">{s.value}</p>
+          </div>
+        ))}
       </div>
+
+      {/* TABLE */}
+      <div className="flex-1 px-4 pb-4 min-h-0">
+        <div className="h-full bg-white border rounded-2xl overflow-hidden">
+
+          <div className="h-full overflow-auto">
+
+            <table className="w-full text-[12px] min-w-[1600px] border-collapse">
+
+              <thead className="bg-[#5B5FC7] text-white sticky top-0 z-10 text-[11px]">
+                <tr>
+                  {headers.map(h => (
+                    <th key={h} className="px-3 py-2 whitespace-nowrap font-medium">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {loading ? (
+                  [...Array(10)].map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td colSpan={headers.length} className="px-4 py-4">
+                        <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      </td>
+                    </tr>
+                  ))
+                ) : filtered.map((p, i) => (
+                  <motion.tr
+                    key={i}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="hover:bg-[#F9FAFB] transition"
+                  >
+                    <td className="px-3 py-2 font-medium text-[#333]">{p.sku}</td>
+                    <td className="px-3 py-2">{p.name}</td>
+                    <td className="px-3 py-2 text-slate-500">{p.line}</td>
+                    <td className="px-3 py-2 font-semibold">${p.basePrice}</td>
+
+                    {["G02","G03","G04","G05","G06","G07","G08","G09","G10"].map(g => (
+                      <td key={g} className="px-3 py-2">
+                        {p.grades[g] ? `$${p.grades[g]}` : "—"}
+                      </td>
+                    ))}
+
+                    {Object.values(p.opts).map((v, idx) => (
+                      <td key={idx} className="px-3 py-2 text-xs">
+                        {v ? `+$${v}` : "—"}
+                      </td>
+                    ))}
+
+                  </motion.tr>
+                ))}
+              </tbody>
+
+            </table>
+
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };
