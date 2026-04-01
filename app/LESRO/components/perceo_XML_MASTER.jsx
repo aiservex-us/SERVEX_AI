@@ -2,6 +2,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion } from 'framer-motion';
+import { 
+  Database, 
+  Search, 
+  RefreshCw, 
+  Table as TableIcon, 
+  Filter, 
+  Layout 
+} from 'lucide-react';
 
 const LesroPricingMaster = () => {
   const [products, setProducts] = useState([]);
@@ -17,7 +25,6 @@ const LesroPricingMaster = () => {
   const processXML = async () => {
     try {
       setLoading(true);
-
       const { data: { user } } = await supabase.auth.getUser();
 
       const { data } = await supabase
@@ -30,7 +37,6 @@ const LesroPricingMaster = () => {
 
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
-
       const features = Array.from(xmlDoc.getElementsByTagName("Feature"));
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
 
@@ -65,11 +71,9 @@ const LesroPricingMaster = () => {
 
         if (gradeFeature) {
           const options = Array.from(gradeFeature.getElementsByTagName("Option"));
-
           options.forEach(opt => {
             const code = opt.querySelector("Code")?.textContent || "";
             const val = parseInt(opt.querySelector("Value")?.textContent || "0");
-
             if (code.startsWith("GRD")) {
               const num = code.replace("GRD", "").padStart(2, "0");
               const key = `G${num}`;
@@ -86,31 +90,24 @@ const LesroPricingMaster = () => {
         relatedFeatures.forEach(f => {
           const fCode = f.querySelector("Code")?.textContent?.toLowerCase() || "";
           const options = Array.from(f.getElementsByTagName("Option"));
-
           options.forEach(opt => {
             const optCode = opt.querySelector("Code")?.textContent?.toUpperCase() || "";
             const val = parseInt(opt.querySelector("Value")?.textContent || "0");
-
             if (["AXX", "NONE", "STANDARD", "PXX"].some(x => optCode.includes(x))) return;
             if (val <= 0) return;
-
             if (fCode.includes("armpad")) {
               if (optCode.includes("APU")) row.opts.poly = val;
               if (optCode.includes("SS")) row.opts.solid = val;
             }
-
             if (fCode.includes("caster")) row.opts.casters = val;
             if (fCode.includes("tablet")) row.opts.tablet = val;
             if (fCode.includes("chrome")) row.opts.chrome = val;
             if (fCode.includes("power")) row.opts.power = val;
           });
         });
-
         extracted.push(row);
       }
-
       setProducts(extracted);
-
     } catch (err) {
       console.error("Error:", err);
     } finally {
@@ -137,103 +134,150 @@ const LesroPricingMaster = () => {
     )
   };
 
+  if (loading) return (
+    <div className="flex h-full w-full flex-col items-center justify-center bg-[#FFF] p-6">
+      <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
+      <span className="text-sm font-semibold text-[#242424]">Calculando matrices de precios...</span>
+    </div>
+  );
+
   return (
-    <div className="h-screen flex flex-col bg-[#F3F4F6]">
-
+    <div className="flex flex-col h-full w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
+      
       {/* HEADER */}
-      <div className="px-6 py-4 border-b bg-white flex items-center justify-between">
-        <div>
-          <h1 className="text-sm font-semibold text-[#242424]">
-            LESRO Pricing Matrix
-          </h1>
-          <p className="text-xs text-slate-500">
-            Structured pricing intelligence
-          </p>
-        </div>
-
-        <input
-          type="text"
-          placeholder="Search SKU or product..."
-          className="text-xs border px-3 py-2 w-72 rounded-lg outline-none focus:ring-2 focus:ring-[#5B5FC7]"
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      {/* STATS */}
-      <div className="grid grid-cols-3 gap-4 p-4">
-        {[
-          { label: "Total Products", value: stats.total },
-          { label: "Filtered", value: stats.filtered },
-          { label: "Avg Price", value: `$${stats.avgPrice}` }
-        ].map((s, i) => (
-          <div key={i} className="bg-white border rounded-xl p-4 shadow-sm">
-            <p className="text-xs text-slate-500">{s.label}</p>
-            <p className="text-lg font-semibold text-[#242424]">{s.value}</p>
+      <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md shrink-0">
+              <Layout size={20} className="text-white" />
+            </div>
+            <div className="truncate">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424] truncate">
+                  LESRO Pricing Master
+                </h2>
+                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase shrink-0">
+                  Matrix View
+                </span>
+              </div>
+              <p className="text-[10px] text-[#616161] truncate">
+                Intelligence Engine & Automated Quoting
+              </p>
+            </div>
           </div>
-        ))}
+
+          {/* STATS CAPSULES */}
+          <div className="flex items-center gap-2 shrink-0">
+            {[
+              { label: "Products", value: stats.total },
+              { label: "Avg Base", value: `$${stats.avgPrice}` }
+            ].map((s, i) => (
+              <div key={i} className="bg-[#F0F0F0] px-3 py-1 rounded-md border border-[#EDEBE9]">
+                <p className="text-[8px] uppercase font-bold text-[#616161] leading-none mb-1">{s.label}</p>
+                <p className="text-[11px] font-extrabold text-[#242424] leading-none">{s.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* TABLE */}
-      <div className="flex-1 px-4 pb-4 min-h-0">
-        <div className="h-full bg-white border rounded-2xl overflow-hidden">
+      {/* TOOLBAR */}
+      <div className="bg-white px-4 md:px-6 py-2 flex items-center justify-between gap-3 border-b border-[#EDEBE9] shrink-0 w-full">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={12} />
+          <input 
+            type="text"
+            placeholder="Search SKU or product name..."
+            className="w-full pl-9 pr-4 py-1.5 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-[11px] rounded-t-md"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex items-center gap-2 shrink-0">
+            <button onClick={processXML} className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#616161]">
+                <RefreshCw size={14} />
+            </button>
+        </div>
+      </div>
 
-          <div className="h-full overflow-auto">
-
-            <table className="w-full text-[12px] min-w-[1600px] border-collapse">
-
-              <thead className="bg-[#5B5FC7] text-white sticky top-0 z-10 text-[11px]">
-                <tr>
-                  {headers.map(h => (
-                    <th key={h} className="px-3 py-2 whitespace-nowrap font-medium">
-                      {h}
+      {/* TABLE AREA */}
+      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
+        {filtered.length > 0 ? (
+          <div className="flex-1 overflow-auto custom-scrollbar">
+            <table className="min-w-full border-separate border-spacing-0 text-[10px]">
+              <thead>
+                <tr className="bg-[#FAF9F8]">
+                  {headers.map((header) => (
+                    <th key={header} className="px-4 py-2 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap border-b border-r border-[#EDEBE9]">
+                      <div className="flex items-center gap-1.5 uppercase tracking-wider text-[9px]">
+                        {header}
+                        <Filter size={8} className="text-[#5B5FC7] opacity-40" />
+                      </div>
                     </th>
                   ))}
                 </tr>
               </thead>
-
-              <tbody>
-                {loading ? (
-                  [...Array(10)].map((_, i) => (
-                    <tr key={i} className="animate-pulse">
-                      <td colSpan={headers.length} className="px-4 py-4">
-                        <div className="h-3 bg-gray-200 rounded w-full"></div>
-                      </td>
-                    </tr>
-                  ))
-                ) : filtered.map((p, i) => (
-                  <motion.tr
-                    key={i}
+              <tbody className="divide-y divide-[#F0F0F0]">
+                {filtered.map((p, idx) => (
+                  <motion.tr 
+                    key={idx} 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="hover:bg-[#F9FAFB] transition"
+                    className="group hover:bg-[#F5F5F7] transition-colors"
                   >
-                    <td className="px-3 py-2 font-medium text-[#333]">{p.sku}</td>
-                    <td className="px-3 py-2">{p.name}</td>
-                    <td className="px-3 py-2 text-slate-500">{p.line}</td>
-                    <td className="px-3 py-2 font-semibold">${p.basePrice}</td>
+                    <td className="px-4 py-2 font-bold text-[#5B5FC7] border-r border-[#F0F0F0]/50 whitespace-nowrap">{p.sku}</td>
+                    <td className="px-4 py-2 text-[#242424] border-r border-[#F0F0F0]/50 whitespace-nowrap font-medium">{p.name}</td>
+                    <td className="px-4 py-2 text-[#616161] border-r border-[#F0F0F0]/50 whitespace-nowrap">{p.line}</td>
+                    <td className="px-4 py-2 font-extrabold text-[#242424] border-r border-[#F0F0F0]/50 bg-[#F9F9F9]/50">${p.basePrice}</td>
 
+                    {/* GRADES */}
                     {["G02","G03","G04","G05","G06","G07","G08","G09","G10"].map(g => (
-                      <td key={g} className="px-3 py-2">
-                        {p.grades[g] ? `$${p.grades[g]}` : "—"}
+                      <td key={g} className="px-4 py-2 text-[#424242] border-r border-[#F0F0F0]/50 whitespace-nowrap">
+                        {p.grades[g] ? <span className="font-semibold">${p.grades[g]}</span> : <span className="text-[#BDBDBD]">—</span>}
                       </td>
                     ))}
 
-                    {Object.values(p.opts).map((v, idx) => (
-                      <td key={idx} className="px-3 py-2 text-xs">
-                        {v ? `+$${v}` : "—"}
+                    {/* OPTIONS */}
+                    {Object.values(p.opts).map((v, i) => (
+                      <td key={i} className="px-4 py-2 text-[#424242] border-r border-[#F0F0F0]/50 last:border-none whitespace-nowrap">
+                        {v ? <span className="text-[#2D884D] font-bold">+${v}</span> : <span className="text-[#BDBDBD]">—</span>}
                       </td>
                     ))}
-
                   </motion.tr>
                 ))}
               </tbody>
-
             </table>
-
           </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center flex-1 py-10">
+            <TableIcon size={32} className="text-[#D1D1D1] mb-2" />
+            <p className="text-xs font-semibold text-[#616161]">No products matched your search</p>
+          </div>
+        )}
+      </div>
+
+      {/* FOOTER */}
+      <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161] shrink-0 w-full">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+          <span>Showing {filtered.length} of {products.length} Products</span>
+        </div>
+        <div className="bg-[#5B5FC7]/10 px-2 py-0.5 rounded text-[#5B5FC7] font-bold uppercase text-[8px]">
+          XML Live Engine
         </div>
       </div>
 
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
+        
+        table { 
+          table-layout: auto !important; 
+          width: max-content !important; 
+        }
+      `}</style>
     </div>
   );
 };
