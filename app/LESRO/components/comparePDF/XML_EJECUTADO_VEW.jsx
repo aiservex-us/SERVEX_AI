@@ -44,14 +44,15 @@ const IndependentLESROVisualizer = () => {
   return <TeamsOFDAVisualizer xmlString={xmlString} />;
 };
 
-// --- VISUALIZADOR PRINCIPAL CON LÓGICA DE PARSEO CORREGIDA ---
+// --- VISUALIZADOR PRINCIPAL OPTIMIZADO ---
 const TeamsOFDAVisualizer = ({ xmlString }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  // CAMBIO CLAVE: Empezamos con 5 para carga instantánea
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(10);
 
-  const catalogData = useMemo(() => {
-    if (!xmlString) return null;
+  // OPTIMIZACIÓN 1: Procesar el XML COMPLETO solo una vez cuando xmlString cambia.
+  // Esto convierte el XML pesado en un array de objetos JS ligero.
+  const fullCatalog = useMemo(() => {
+    if (!xmlString) return [];
     try {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "text/xml");
@@ -59,13 +60,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
       const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
 
-      // OPTIMIZACIÓN: Si no hay búsqueda, solo mapeamos los nodos que vamos a mostrar (visibleCount)
-      // Si hay búsqueda, tenemos que mapear todo para poder filtrar.
-      const nodesToProcess = searchTerm 
-        ? productNodes 
-        : productNodes.slice(0, visibleCount);
-
-      return nodesToProcess.map((prod, idx) => {
+      return productNodes.map((prod, idx) => {
         const sku = prod.getElementsByTagName("Code")[0]?.textContent || "N/A";
         const description = prod.getElementsByTagName("Description")[0]?.textContent || "No Description";
         const basePriceNode = prod.querySelector("Price > Value");
@@ -78,69 +73,49 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           basePrice: basePrice > 0 ? basePrice.toFixed(2) : "N/A",
           grades: {},
           optionals: {
-            polyArm: "N/A",
-            solidArm: "N/A",
-            casters: "N/A",
-            tablet: "N/A",
-            chrome: "N/A",
-            power: "N/A",
-            bevel: "N/A",
-            shelf: "N/A"
+            polyArm: "N/A", solidArm: "N/A", casters: "N/A",
+            tablet: "N/A", chrome: "N/A", power: "N/A",
+            bevel: "N/A", shelf: "N/A"
           },
           coo: "US"
         };
 
         const skuNorm = sku.toUpperCase();
-        const relatedFeatures = allFeatures.filter(f => {
-          const fCode = (f.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-          return fCode.includes(skuNorm) || 
-                 fCode.includes("GRADE") || 
-                 fCode.includes("CASTER") || 
-                 fCode.includes("POWER");
-        });
+        
+        // Procesamos las características una sola vez por producto aquí
+        allFeatures.forEach(feat => {
+          const fCode = (feat.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
+          
+          if (fCode.includes(skuNorm) || fCode.includes("GRADE") || fCode.includes("CASTER") || fCode.includes("POWER")) {
+            const options = Array.from(feat.getElementsByTagName("Option"));
+            options.forEach(opt => {
+              const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
+              const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase();
+              const valNode = opt.querySelector("OptionPrice > Value");
+              const upcharge = valNode ? valNode.textContent : "N/A";
 
-        relatedFeatures.forEach(feat => {
-          const options = Array.from(feat.getElementsByTagName("Option"));
+              if (upcharge === "N/A") return;
 
-          options.forEach(opt => {
-            const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-            const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase();
-            const valNode = opt.querySelector("OptionPrice > Value");
-            const upcharge = valNode ? valNode.textContent : "N/A";
-
-            if (upcharge === "N/A") return;
-
-            const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
-            if (gradeMatch) {
-              const num = parseInt(gradeMatch[1]);
-              if (num >= 2 && num <= 13) {
-                const key = `g${num.toString().padStart(2, '0')}`;
-                if (!rowData.grades[key] || rowData.grades[key] === "N/A") {
-                  rowData.grades[key] = upcharge;
+              const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
+              if (gradeMatch) {
+                const num = parseInt(gradeMatch[1]);
+                if (num >= 2 && num <= 13) {
+                  const key = `g${num.toString().padStart(2, '0')}`;
+                  if (!rowData.grades[key] || rowData.grades[key] === "N/A") rowData.grades[key] = upcharge;
                 }
               }
-            }
 
-            const fullText = `${optCode} ${optDesc}`.toUpperCase();
-            
-            if (fullText.includes("URETHANE") || (optCode === "APU")) {
-               rowData.optionals.polyArm = upcharge;
-            } else if (fullText.includes("SOLID SURFACE") || optCode === "SS") {
-               rowData.optionals.solidArm = upcharge;
-            } else if (fullText.includes("CASTER")) {
-               rowData.optionals.casters = upcharge;
-            } else if (fullText.includes("TABLET")) {
-               rowData.optionals.tablet = upcharge;
-            } else if (fullText.includes("POWER") || fullText.includes("UNIT")) {
-               rowData.optionals.power = upcharge;
-            } else if (fullText.includes("CHROME")) {
-               rowData.optionals.chrome = upcharge;
-            } else if (fullText.includes("BEVEL")) {
-               rowData.optionals.bevel = upcharge;
-            } else if (fullText.includes("SHELF")) {
-               rowData.optionals.shelf = upcharge;
-            }
-          });
+              const fullText = `${optCode} ${optDesc}`;
+              if (fullText.includes("URETHANE") || optCode === "APU") rowData.optionals.polyArm = upcharge;
+              else if (fullText.includes("SOLID SURFACE") || optCode === "SS") rowData.optionals.solidArm = upcharge;
+              else if (fullText.includes("CASTER")) rowData.optionals.casters = upcharge;
+              else if (fullText.includes("TABLET")) rowData.optionals.tablet = upcharge;
+              else if (fullText.includes("POWER") || fullText.includes("UNIT")) rowData.optionals.power = upcharge;
+              else if (fullText.includes("CHROME")) rowData.optionals.chrome = upcharge;
+              else if (fullText.includes("BEVEL")) rowData.optionals.bevel = upcharge;
+              else if (fullText.includes("SHELF")) rowData.optionals.shelf = upcharge;
+            });
+          }
         });
 
         return rowData;
@@ -149,19 +124,17 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       console.error("XML Engine Error:", err);
       return [];
     }
-    // Añadimos visibleCount a las dependencias para que recalcule al cargar más
-  }, [xmlString, visibleCount, searchTerm]);
+  }, [xmlString]);
 
-  const filteredData = useMemo(() => {
-    return catalogData?.filter(p => p.sku.toLowerCase().includes(searchTerm.toLowerCase()));
-  }, [catalogData, searchTerm]);
+  // OPTIMIZACIÓN 2: El filtrado ahora es sobre objetos planos, es ultra rápido.
+  const displayData = useMemo(() => {
+    const filtered = fullCatalog.filter(p => 
+      p.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    return filtered.slice(0, visibleCount);
+  }, [fullCatalog, searchTerm, visibleCount]);
 
-  // Aquí ya no hace falta el slice porque catalogData ya viene limitado
-  const displayData = filteredData || [];
-
-  const handleLoadMore = () => setVisibleCount(prev => prev + 5);
-
-  if (!catalogData) return null;
+  const handleLoadMore = () => setVisibleCount(prev => prev + 20);
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F3F2F1] text-[#242424] overflow-hidden font-sans">
@@ -189,7 +162,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setVisibleCount(5); // Reseteamos al buscar para no colapsar
+              setVisibleCount(10); 
             }}
             className="pl-9 pr-4 py-1.5 bg-[#F3F2F1] border-transparent focus:bg-white focus:border-[#464775] rounded text-[11px] w-72 transition-all outline-none"
           />
@@ -262,14 +235,16 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           </tbody>
         </table>
 
-        <div className="p-6 flex justify-center bg-white">
-          <button 
-            onClick={handleLoadMore}
-            className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63] transition-all shadow-md"
-          >
-            <FiPlusCircle /> Mostrar 5 más (Viendo {visibleCount})
-          </button>
-        </div>
+        {fullCatalog.length > visibleCount && (
+          <div className="p-6 flex justify-center bg-white">
+            <button 
+              onClick={handleLoadMore}
+              className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63] transition-all shadow-md"
+            >
+              <FiPlusCircle /> Mostrar más (Viendo {displayData.length})
+            </button>
+          </div>
+        )}
       </div>
 
       {/* FOOTER */}
