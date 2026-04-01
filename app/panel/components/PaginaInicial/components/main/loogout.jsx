@@ -11,7 +11,7 @@ const SidebarIcon = ({ icon, active, onClick }) => (
   <div
     onClick={onClick}
     className={`
-      w-10 h-10 min-[800px]:w-12 min-[800px]:h-12 
+      w-10 h-10 min-[800px]:w-12 min-[800px]:h-1z2 
       flex items-center justify-center rounded-xl cursor-pointer transition-all relative group
       ${active
         ? 'bg-white text-[#6264A7] shadow-sm'
@@ -68,12 +68,7 @@ export default function Sidebar({ activeView, setActiveView }) {
               onClick={() => setActiveView('calendar')}
             />
 
-            {/* SECCIÓN CLIENTES (ID: clients) - Justo debajo de Grid */}
-            <SidebarIcon
-              icon={<Users />}
-              active={activeView === 'clients'}
-              onClick={() => setActiveView('clients')}
-            />
+      
 
             <SidebarIcon
               icon={<Box />}

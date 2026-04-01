@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Sidebar from './components/main/Sidebar';
+import Sidebar from './components/main/loogout';
 import Header from './components/main/Header';
 
 // VISTAS / COMPONENTES
