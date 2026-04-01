@@ -78,7 +78,7 @@ export default function DataViewer() {
   );
 
   if (loading) return (
-    <div className="flex h-[80%] w-full flex-col items-center justify-center bg-[#FFF] p-6">
+    <div className="flex h-[70%] w-full flex-col items-center justify-center bg-[#FFF] p-6">
       <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
       <span className="text-sm font-semibold text-[#242424]">Sincronizando con Teams...</span>
     </div>
