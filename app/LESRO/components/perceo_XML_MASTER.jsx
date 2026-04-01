@@ -1,127 +1,163 @@
-import React, { useState, useMemo } from 'react';
+'use client';
+import React, { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/app/lib/supabaseClient';
 
-const CatalogPriceTable = ({ xmlData }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+const CatalogTable = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const tableData = useMemo(() => {
-    if (!xmlData) return [];
+  // Nombres de las columnas según tu requerimiento
+  const headers = [
+    "Price Guide Sequence", "Product Line", "Product Name", "SKU",
+    "Price (Non UPH)", "G02", "G03", "G04", "G05", "G06", "G07", "G08", "G09", "G10", "G11", "G12", "G13",
+    "Opt. Poly Arm", "Opt. Solid Arm", "Casters", "Swivel Tablet", "Chrome", "Ganging", "Power", "Bevel", "Shelf", "Origin"
+  ];
 
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlData, "text/xml");
-    const products = xmlDoc.getElementsByTagName("Product");
-    const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+  const fetchAndParseXML = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data } = await supabase.from('ClientsSERVEX').select('xml_raw').eq('user_id', user?.id).single();
 
-    return Array.from(products).map(product => {
-      const productCode = product.getElementsByTagName("Code")[0]?.textContent;
-      const productName = product.getElementsByTagName("Description")[0]?.textContent;
-      const basePrice = parseFloat(product.querySelector("Price > Value")?.textContent || "0");
+      if (!data?.xml_raw) return;
 
-      // Función auxiliar para buscar precios de opciones dentro de las Features del producto
-      const getOptionExtra = (featureKeyword, optionKeyword) => {
-        const productFeatureRefs = Array.from(product.getElementsByTagName("FeatureRef"))
-          .map(ref => ref.textContent);
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
+      
+      // Mapeo rápido de Features para búsqueda relacional
+      const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature")).reduce((acc, feat) => {
+        acc[feat.getElementsByTagName("Code")[0]?.textContent] = feat;
+        return acc;
+      }, {});
 
-        // Buscar la Feature que coincida con las del producto y tenga el keyword (ej: 'GRADE' o 'ARMPAD')
-        const targetFeature = allFeatures.find(f => 
-          productFeatureRefs.includes(f.getElementsByTagName("Code")[0]?.textContent) &&
-          f.getElementsByTagName("Code")[0]?.textContent.includes(featureKeyword)
-        );
+      const productNodes = xmlDoc.getElementsByTagName("Product");
+      const extracted = [];
 
-        if (!targetFeature) return 0;
+      for (let i = 0; i < productNodes.length; i++) {
+        const p = productNodes[i];
+        const code = p.getElementsByTagName("Code")[0]?.textContent || "";
+        const desc = p.getElementsByTagName("Description")[0]?.textContent || "";
+        const basePrice = parseFloat(p.getElementsByTagName("Value")[0]?.textContent || "0");
+        
+        // Inicializar objeto de fila
+        let row = {
+          sequence: i + 1,
+          line: p.getElementsByTagName("ClassificationRef")[0]?.textContent || "General",
+          name: desc,
+          sku: code,
+          nonUph: basePrice,
+          grades: {}, // G02-G13
+          options: { poly: 0, solid: 0, casters: 0, tablet: 0, chrome: 0, ganging: 0, power: 0, bevel: 0, shelf: 0 },
+          origin: "USA"
+        };
 
-        const options = Array.from(targetFeature.getElementsByTagName("Option"));
-        const targetOption = options.find(o => 
-          o.getElementsByTagName("Description")[0]?.textContent.toLowerCase().includes(optionKeyword.toLowerCase()) ||
-          o.getElementsByTagName("Code")[0]?.textContent.toLowerCase().includes(optionKeyword.toLowerCase())
-        );
+        // Buscar en las Features del producto
+        const pFeatures = p.getElementsByTagName("FeatureRef");
+        for (let f = 0; f < pFeatures.length; f++) {
+          const fRef = pFeatures[f].textContent;
+          const featureNode = allFeatures[fRef];
 
-        return parseFloat(targetOption?.querySelector("OptionPrice > Value")?.textContent || "0");
-      };
+          if (featureNode) {
+            const options = featureNode.getElementsByTagName("Option");
+            for (let o = 0; o < options.length; o++) {
+              const opt = options[o];
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent || "";
+              const optVal = parseFloat(opt.getElementsByTagName("Value")[0]?.textContent || "0");
 
-      // Mapeo de columnas solicitado
-      return {
-        id: productCode,
-        productName: productName,
-        basePrice: basePrice,
-        // Grados de Tela (Suma Base + Incremento de la Feature UPH-GRADE)
-        grade02: basePrice + getOptionExtra("GRADE", "GRADE2"),
-        grade03: basePrice + getOptionExtra("GRADE", "GRADE3"),
-        grade04: basePrice + getOptionExtra("GRADE", "GRADE4"),
-        grade05: basePrice + getOptionExtra("GRADE", "GRADE5"),
-        grade06: basePrice + getOptionExtra("GRADE", "GRADE6"),
-        grade07: basePrice + getOptionExtra("GRADE", "GRADE7"),
-        grade08: basePrice + getOptionExtra("GRADE", "GRADE8"),
-        grade09: basePrice + getOptionExtra("GRADE", "GRADE9"),
-        grade10: basePrice + getOptionExtra("GRADE", "GRADE10"),
-        // Opcionales (Solo el valor del incremento/upcharge)
-        armpadPoly: getOptionExtra("ARMPAD", "APU"), // APU = Urethane en tu XML
-        armpadSolid: getOptionExtra("ARMPAD", "SS"),  // SS = Solid Surface
-      };
-    });
-  }, [xmlData]);
+              // 1. Lógica de Grados (Suma al base price)
+              if (optCode.includes("GRADE")) {
+                const gradeNum = optCode.match(/\d+/)?.[0]?.padStart(2, '0');
+                if (gradeNum) row.grades[`G${gradeNum}`] = basePrice + optVal;
+              }
 
-  const filteredData = tableData.filter(row => 
-    row.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    row.productName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+              // 2. Lógica de Opcionales (Diferenciales puros)
+              const optDesc = opt.getElementsByTagName("Description")[0]?.textContent?.toLowerCase() || "";
+              if (optDesc.includes("polyurethane")) row.options.poly = optVal;
+              if (optDesc.includes("solid surface")) row.options.solid = optVal;
+              if (optDesc.includes("caster")) row.options.casters = optVal;
+              if (optDesc.includes("tablet")) row.options.tablet = optVal;
+              if (optDesc.includes("chrome")) row.options.chrome = optVal;
+              if (optDesc.includes("ganging")) row.options.ganging = optVal;
+              if (optDesc.includes("power")) row.options.power = optVal;
+              if (optDesc.includes("bevel")) row.options.bevel = optVal;
+              if (optDesc.includes("shelf")) row.options.shelf = optVal;
+            }
+          }
+        }
+        extracted.push(row);
+      }
+      setProducts(extracted);
+    } catch (err) {
+      console.error("Parsing error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchAndParseXML(); }, []);
+
+  const filtered = useMemo(() => 
+    products.filter(p => p.sku.toLowerCase().includes(searchTerm.toLowerCase()) || p.name.toLowerCase().includes(searchTerm.toLowerCase())), 
+  [products, searchTerm]);
 
   return (
-    <div className="p-4 overflow-x-auto">
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Buscar por código o nombre..."
-          className="p-2 border rounded w-full max-w-md"
+    <div className="flex flex-col h-full bg-white font-sans">
+      {/* Mini Header de búsqueda */}
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+        <h1 className="text-sm font-bold text-gray-700 uppercase tracking-tighter">Lesro Price Matrix</h1>
+        <input 
+          type="text" 
+          placeholder="Filtrar por SKU o Nombre..." 
+          className="text-xs border border-gray-300 rounded px-3 py-1.5 w-64 focus:ring-1 focus:ring-[#6264A7] outline-none"
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <table className="min-w-full border-collapse border border-gray-300 text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">ID (Product Code)</th>
-            <th className="border p-2">Product Name</th>
-            <th className="border p-2">Base Price</th>
-            <th className="border p-2 text-blue-600">Grade 02</th>
-            <th className="border p-2 text-blue-600">Grade 03</th>
-            <th className="border p-2 text-blue-600">Grade 04</th>
-            <th className="border p-2 text-blue-600">Grade 05</th>
-            <th className="border p-2 text-blue-600">Grade 06</th>
-            <th className="border p-2 text-blue-600">Grade 07</th>
-            <th className="border p-2 text-blue-600">Grade 08</th>
-            <th className="border p-2 text-blue-600">Grade 09</th>
-            <th className="border p-2 text-blue-600">Grade 10</th>
-            <th className="border p-2 text-green-600">Upcharge: Poly Armpad</th>
-            <th className="border p-2 text-green-600">Upcharge: Solid Surface</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredData.map((row) => (
-            <tr key={row.id} className="hover:bg-gray-50">
-              <td className="border p-2 font-mono">{row.id}</td>
-              <td className="border p-2">{row.productName}</td>
-              <td className="border p-2 font-bold">${row.basePrice}</td>
-              <td className="border p-2">${row.grade02}</td>
-              <td className="border p-2">${row.grade03}</td>
-              <td className="border p-2">${row.grade04}</td>
-              <td className="border p-2">${row.grade05}</td>
-              <td className="border p-2">${row.grade06}</td>
-              <td className="border p-2">${row.grade07}</td>
-              <td className="border p-2">${row.grade08}</td>
-              <td className="border p-2">${row.grade09}</td>
-              <td className="border p-2">${row.grade10}</td>
-              <td className="border p-2 text-center text-gray-600">
-                {row.armpadPoly > 0 ? `+$${row.armpadPoly}` : '—'}
-              </td>
-              <td className="border p-2 text-center text-gray-600">
-                {row.armpadSolid > 0 ? `+$${row.armpadSolid}` : '—'}
-              </td>
+      <div className="flex-1 overflow-auto">
+        <table className="w-full text-[10px] border-collapse min-w-[2500px]">
+          <thead className="sticky top-0 z-10 bg-[#464775] text-white">
+            <tr>
+              {headers.map(h => (
+                <th key={h} className="border border-[#5B5FC7] px-2 py-2 text-left font-semibold uppercase">{h}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {loading ? (
+              <tr><td colSpan={27} className="text-center py-10 text-sm font-medium">Procesando matriz XML...</td></tr>
+            ) : filtered.map((p, i) => (
+              <tr key={i} className="hover:bg-blue-50 transition-colors">
+                <td className="px-2 py-1.5 border border-gray-100 text-gray-400">{p.sequence}</td>
+                <td className="px-2 py-1.5 border border-gray-100 font-bold text-gray-600">{p.line}</td>
+                <td className="px-2 py-1.5 border border-gray-100 truncate max-w-xs">{p.name}</td>
+                <td className="px-2 py-1.5 border border-gray-100 font-mono text-[#6264A7] font-bold">{p.sku}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right bg-gray-50">${p.nonUph}</td>
+                
+                {/* Grados 02-13 */}
+                {[...Array(12)].map((_, idx) => {
+                  const gKey = `G${(idx + 2).toString().padStart(2, '0')}`;
+                  return <td key={gKey} className="px-2 py-1.5 border border-gray-100 text-right font-medium">{p.grades[gKey] ? `$${p.grades[gKey]}` : "-"}</td>;
+                })}
+
+                {/* Opcionales */}
+                <td className="px-2 py-1.5 border border-gray-100 text-right text-red-600">+{p.options.poly}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right text-red-600">+{p.options.solid}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right text-blue-600">+{p.options.casters}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right text-blue-600">+{p.options.tablet}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right">+{p.options.chrome}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right">+{p.options.ganging}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right">+{p.options.power}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right">+{p.options.bevel}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-right">+{p.options.shelf}</td>
+                <td className="px-2 py-1.5 border border-gray-100 text-center font-bold">{p.origin}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-export default CatalogPriceTable;
+export default CatalogTable;
