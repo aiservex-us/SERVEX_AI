@@ -33,7 +33,7 @@ const LesroPricingMaster = () => {
         .eq('user_id', user?.id)
         .single();
 
-      if (!data?.xml_raw) return;
+      if (!data?.xml_updated_raw) return;
 
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
