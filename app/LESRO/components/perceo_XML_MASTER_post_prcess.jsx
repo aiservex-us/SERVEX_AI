@@ -8,13 +8,15 @@ import {
   RefreshCw, 
   Table as TableIcon, 
   Filter, 
-  Layout 
+  Layout,
+  Download // Importado para el botón de descarga
 } from 'lucide-react';
 
 const LesroPricingMaster = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [rawXmlContent, setRawXmlContent] = useState(""); // Estado para guardar el XML crudo
 
   const headers = [
     "SKU", "Product Name", "Product Line", "Base Price",
@@ -22,24 +24,42 @@ const LesroPricingMaster = () => {
     "Poly Arm", "Solid Arm", "Casters", "Tablet", "Chrome", "Power"
   ];
 
+  const downloadXML = () => {
+    if (!rawXmlContent) return;
+    
+    // Generar número aleatorio para el nombre
+    const randomNum = Math.floor(Math.random() * 10000);
+    const fileName = `LES${randomNum}.XML`;
+    
+    const blob = new Blob([rawXmlContent], { type: 'text/xml' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   const processXML = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Cambio principal: Seleccionamos 'xml_updated_raw'
       const { data } = await supabase
         .from('ClientsSERVEX')
         .select('xml_updated_raw')
         .eq('user_id', user?.id)
         .single();
 
-      // Verificación de la nueva columna
       if (!data?.xml_updated_raw) {
         console.warn("No se encontró contenido en xml_updated_raw");
         setProducts([]);
         return;
       }
+
+      setRawXmlContent(data.xml_updated_raw); // Guardamos el contenido para la descarga
 
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.xml_updated_raw, "text/xml");
@@ -200,7 +220,19 @@ const LesroPricingMaster = () => {
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
-            <button onClick={processXML} className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#616161]" title="Reload from xml_updated_raw">
+            {/* Botón de Descarga añadido aquí */}
+            <button 
+                onClick={downloadXML} 
+                className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#2D884D]" 
+                title="Download XML File"
+            >
+                <Download size={14} />
+            </button>
+            <button 
+                onClick={processXML} 
+                className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#616161]" 
+                title="Reload from xml_updated_raw"
+            >
                 <RefreshCw size={14} />
             </button>
         </div>
