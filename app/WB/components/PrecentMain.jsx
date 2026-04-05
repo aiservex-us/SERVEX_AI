@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function LesroAIPanel() {
+export default function WBAIPanel() {
   const fadeIn = {
     initial: { opacity: 0, y: 8 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } }
@@ -37,13 +37,13 @@ export default function LesroAIPanel() {
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 bg-[#FFF] rounded-[4px] flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden p-1">
               <img 
-                src="/logosEmpresas/lesro.webp" 
-                alt="Lesro Logo" 
+                src="/logosEmpresas/wb.webp" 
+                alt="WB Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#242424] tracking-tight">Intelligence Data Hub: Lesro Automation</h1>
+              <h1 className="text-xl font-bold text-[#242424] tracking-tight">Intelligence Data Hub: WB Automation</h1>
               <p className="text-[13px] text-[#616161] max-w-2xl mt-1 font-normal leading-relaxed">
                 Intelligent catalog synchronization powered by AI engines. Automated conversion from legacy assets (PDF/CSV) to <strong className="font-semibold">enriched XML structures</strong> for CET Designer and Catalog Creator.
               </p>
@@ -78,7 +78,7 @@ export default function LesroAIPanel() {
             </div>
           </div>
 
-          {/* Card: Accuracy Probability - #464775 Applied */}
+          {/* Card: Accuracy Probability */}
           <div className="bg-white p-5 rounded-[6px] border border-[#EDEBE9] hover:border-[#D1D1D1] transition-all shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <div className="p-2 bg-[#F3F5F8] rounded-[4px]">
@@ -256,7 +256,7 @@ export default function LesroAIPanel() {
       {/* CORPORATE FOOTER */}
       <footer className="max-w-7xl mx-auto mt-8 px-2 flex justify-between items-center border-t border-[#EDEBE9] pt-4">
         <p className="text-[11px] text-[#616161] font-medium">
-          <strong className="font-bold">Servex US</strong> © 2026 | Catalog Automation for <strong className="font-bold">Lesro</strong>
+          <strong className="font-bold">Servex US</strong> © 2026 | Catalog Automation for <strong className="font-bold">WB</strong>
         </p>
         <div className="flex gap-4">
           <span className="text-[11px] font-bold text-[#464775] cursor-pointer hover:underline">Engine Documentation</span>
