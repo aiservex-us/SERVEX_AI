@@ -117,30 +117,50 @@ export default function UploadClientXML() {
   // --- Lógica de Guardado (Tabla: ClientsSERVEX_WB) ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
+    
     if (!companyName.trim() || !xmlContent.trim()) {
       setMessage({ text: 'Name and XML are required', type: 'error' });
       return;
     }
+
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
+      // 1. Obtener usuario actual
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      const { error } = await supabase.from('ClientsSERVEX_WB').insert({
-        company_name: companyName, 
-        xml_raw: xmlContent, 
-        csv_raw: csvContent, 
-        csvpdf_raw: csvPdfContent, 
-        user_id: user.id,
-      });
+      if (userError || !user) {
+        setMessage({ text: 'Authorization error. Please login again.', type: 'error' });
+        setLoading(false);
+        return;
+      }
 
-      if (error) setMessage({ text: 'Error saving data', type: 'error' });
-      else {
+      // 2. Insertar en la tabla con el nombre exacto (case-sensitive)
+      const { error } = await supabase
+        .from('ClientsSERVEX_WB')
+        .insert({
+          company_name: companyName, 
+          xml_raw: xmlContent, 
+          csv_raw: csvContent, 
+          csvpdf_raw: csvPdfContent, 
+          user_id: user.id,
+        });
+
+      if (error) {
+        console.error("Supabase error detail:", error);
+        setMessage({ text: `Error: ${error.message}`, type: 'error' });
+      } else {
         setMessage({ text: 'Data saved successfully', type: 'success' });
-        setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
+        setXmlContent(''); 
+        setCsvContent(''); 
+        setCsvPdfContent('');
         setIsHistoryCleared(false);
       }
-    } finally { setLoading(false); }
+    } catch (err) {
+      console.error("Unexpected failure:", err);
+      setMessage({ text: 'An unexpected error occurred during save', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- Lógica de Reset (Filtrando por WB) ---
