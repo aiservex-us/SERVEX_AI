@@ -22,6 +22,7 @@ export default function UploadClientXML() {
   const [csvPdfContent, setCsvPdfContent] = useState(''); 
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [isHistoryCleared, setIsHistoryCleared] = useState(false);
   
   // Custom Confirmation Modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -31,7 +32,6 @@ export default function UploadClientXML() {
   const [readingCsvPdf, setReadingCsvPdf] = useState(false);
 
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
-  const [dragActive, setDragActive] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
@@ -103,6 +103,7 @@ export default function UploadClientXML() {
       else {
         setMessage({ text: 'Data saved successfully', type: 'success' });
         setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
+        setIsHistoryCleared(false); // Reset status if new data is saved
       }
     } finally { setLoading(false); }
   };
@@ -126,6 +127,7 @@ export default function UploadClientXML() {
       else {
         setMessage({ text: 'History deleted successfully.', type: 'success' });
         setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
+        setIsHistoryCleared(true); // Switch panel to green state
       }
     } catch (err) {
       setMessage({ text: 'An unexpected error occurred', type: 'error' });
@@ -225,21 +227,25 @@ export default function UploadClientXML() {
           <div className="col-span-12 lg:col-span-8 space-y-4">
             
             {/* RESET DATA PANEL UI */}
-            <div className="bg-red-50 rounded-lg border border-red-100 p-6 mb-4 shadow-sm flex flex-col items-center text-center">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-3">
-                <Trash2 className="text-red-600" size={20} />
+            <div className={`rounded-lg border p-6 mb-4 shadow-sm flex flex-col items-center text-center transition-colors duration-500 ${isHistoryCleared ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${isHistoryCleared ? 'bg-green-100' : 'bg-red-100'}`}>
+                {isHistoryCleared ? <CheckCircle2 className="text-green-600" size={20} /> : <Trash2 className="text-red-600" size={20} />}
               </div>
-              <h2 className="text-sm font-black text-red-900 uppercase tracking-wider mb-1">DATA CLEANUP RECOMMENDED</h2>
-              <p className="text-[11px] text-red-700 max-w-md mb-4 leading-normal font-medium">
-                It is recommended to clear the data history in the Database before adding new master files.
+              <h2 className={`text-sm font-black uppercase tracking-wider mb-1 ${isHistoryCleared ? 'text-green-900' : 'text-red-900'}`}>
+                {isHistoryCleared ? 'DATABASE IS READY' : 'DATA CLEANUP RECOMMENDED'}
+              </h2>
+              <p className={`text-[11px] max-w-md mb-4 leading-normal font-medium ${isHistoryCleared ? 'text-green-700' : 'text-red-700'}`}>
+                {isHistoryCleared 
+                  ? 'The history has been cleared successfully. You can now proceed to upload the new master files.' 
+                  : 'It is recommended to clear the data history in the Database before adding new master files.'}
               </p>
               <button 
                 onClick={() => setShowConfirmModal(true)}
-                disabled={resetLoading}
-                className="bg-red-600 text-white px-6 py-2 rounded text-[11px] font-bold hover:bg-red-700 transition-all flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-50"
+                disabled={resetLoading || isHistoryCleared}
+                className={`text-white px-6 py-2 rounded text-[11px] font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-50 ${isHistoryCleared ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
               >
-                {resetLoading ? <RefreshCw className="animate-spin" size={14} /> : <Trash2 size={14} />}
-                Click here to delete history
+                {resetLoading ? <RefreshCw className="animate-spin" size={14} /> : (isHistoryCleared ? <CheckCircle2 size={14} /> : <Trash2 size={14} />)}
+                {isHistoryCleared ? 'History Cleared' : 'Click here to delete history'}
               </button>
             </div>
 
