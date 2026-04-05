@@ -69,32 +69,6 @@ const SVXUnifiedPlatform = () => {
   // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
 
-  // ======================================================
-  // REALTIME SYNC (ESCUCHA DE CAMBIOS EN CLOUD)
-  // ======================================================
-  useEffect(() => {
-    const channel = supabase
-      .channel('servex-audit-sync')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'ClientsSERVEX', filter: 'company_name=eq.LESRO' },
-        (payload) => {
-          // Si detectamos que se actualizó el reporte o el resumen, traemos los datos
-          if (payload.new.audit_summary_json || payload.new.audit_report_json) {
-            fetchCloudData();
-            setBackendSuccess(true);
-            setIsProcessing(false);
-            showAlert("Cloud data updated successfully", "success");
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
   const handleTabChangeToXml = () => {
     setIsXmlLoading(true);
     setActiveTab('xml_view');
@@ -202,8 +176,6 @@ const SVXUnifiedPlatform = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
-      // Enviamos el archivo sin esperar a que termine el procesamiento pesado
       const response = await fetch('http://0.0.0.0:8000/audit-process', {
         method: 'POST',
         body: formData,
@@ -214,12 +186,14 @@ const SVXUnifiedPlatform = () => {
         throw new Error(errorData.detail || 'SERVEX_AI Error');
       }
 
-      // No llamamos a fetchCloudData inmediatamente, dejamos que Realtime lo haga
-      showAlert("Process started. Waiting for cloud synchronization...", "info");
-      
+      setBackendSuccess(true);
+      await new Promise(resolve => setTimeout(resolve, 200));
+      await fetchCloudData();
+      showAlert("Cloud synchronization successful", "success");
     } catch (err) {
       setBackendError(err.message);
       showAlert(err.message, "error");
+    } finally {
       setIsProcessing(false);
     }
   };

@@ -11,49 +11,25 @@ const IndependentLESROVisualizer = () => {
   const [xmlString, setXmlString] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchIndependentData = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('ClientsSERVEX')
-        .select('xml_updated_raw')
-        .eq('company_name', 'LESRO')
-        .single();
-
-      if (error) throw error;
-      if (data) setXmlString(data.xml_updated_raw);
-    } catch (err) {
-      console.error("Error fetching independent XML:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    // 1. Carga inicial
-    fetchIndependentData();
+    const fetchIndependentData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ClientsSERVEX')
+          .select('xml_updated_raw')
+          .eq('company_name', 'LESRO')
+          .single();
 
-    // 2. Suscripción en tiempo real para "esperar" actualizaciones del sistema
-    const channel = supabase
-      .channel('xml-realtime-update')
-      .on(
-        'postgres_changes',
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'ClientsSERVEX', 
-          filter: 'company_name=eq.LESRO' 
-        },
-        (payload) => {
-          if (payload.new.xml_updated_raw) {
-            setXmlString(payload.new.xml_updated_raw);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+        if (error) throw error;
+        if (data) setXmlString(data.xml_updated_raw);
+      } catch (err) {
+        console.error("Error fetching independent XML:", err);
+      } finally {
+        setLoading(false);
+      }
     };
+
+    fetchIndependentData();
   }, []);
 
   if (loading) return (
@@ -83,6 +59,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
 
       // --- OPTIMIZACIÓN CLAVE: INDEXACIÓN ---
+      // Agrupamos las features por su código para no buscarlas una por una dentro del loop de productos.
       const featuresMap = {};
       const globalFeatures = [];
 
@@ -116,11 +93,13 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           coo: "US"
         };
 
+        // Función interna para procesar nodos de opciones de forma eficiente
         const processFeat = (feat) => {
           const options = Array.from(feat.getElementsByTagName("Option"));
           options.forEach(opt => {
             const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
             const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase();
+            // Acceso directo al valor del precio
             const valNode = opt.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0];
             const upcharge = valNode ? valNode.textContent : "N/A";
 
@@ -147,10 +126,12 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           });
         };
 
+        // 1. Procesar features que coinciden exactamente con el SKU
         if (featuresMap[skuNorm]) {
           featuresMap[skuNorm].forEach(processFeat);
         }
 
+        // 2. Procesar features globales (Grados, Casters, etc)
         globalFeatures.forEach(processFeat);
 
         return rowData;
