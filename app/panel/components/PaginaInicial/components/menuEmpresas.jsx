@@ -22,14 +22,7 @@ export default function Calendar() {
           Dashboard Clients
         </h2>
 
-        <button
-          onClick={() => setOpenModal(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[12px] font-semibold
-          bg-[#6264A7] text-white hover:bg-[#4f52a3] transition"
-        >
-          <Plus size={14} />
-          Add
-        </button>
+       
       </div>
 
       {/* ===================== */}
