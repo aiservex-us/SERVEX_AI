@@ -2,13 +2,19 @@
 
 import { useState, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
+import Link from 'next/link'; 
 import { 
   UploadCloud, 
   FileCode, 
   Building2, 
   CheckCircle2, 
   AlertCircle,
+  FileUp,
   Info,
+  MoreHorizontal,
+  Settings2,
+  HelpCircle,
+  Maximize2,
   FileSpreadsheet,
   RefreshCw, 
   FileType,
@@ -16,15 +22,16 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML() {
+  // --- Lógica de Estado Original ---
   const [companyName, setCompanyName] = useState('LESRO');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
   const [csvPdfContent, setCsvPdfContent] = useState(''); 
   const [loading, setLoading] = useState(false);
+  
+  // --- Nuevos Estados para Reset e Historial ---
   const [resetLoading, setResetLoading] = useState(false);
   const [isHistoryCleared, setIsHistoryCleared] = useState(false);
-  
-  // Custom Confirmation Modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const [readingXml, setReadingXml] = useState(false);
@@ -32,11 +39,15 @@ export default function UploadClientXML() {
   const [readingCsvPdf, setReadingCsvPdf] = useState(false);
 
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
+  const [dragActive, setDragActive] = useState(false);
+  const [dragActiveCSV, setDragActiveCSV] = useState(false); 
+  const [dragActiveCsvPdf, setDragActiveCsvPdf] = useState(false); 
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
   const csvPdfInputRef = useRef<HTMLInputElement | null>(null); 
 
+  // --- Lógica de Lectura de Archivos (Sin cambios) ---
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
       setMessage({ text: 'Only XML files are allowed', type: 'error' });
@@ -82,6 +93,28 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) readXMLFile(file);
+  };
+
+  const handleDropCSV = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActiveCSV(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) readCSVFile(file);
+  };
+
+  const handleDropCsvPdf = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActiveCsvPdf(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) readCsvPdfFile(file);
+  };
+
+  // --- Lógica de Guardado (Sin cambios, solo añade reset de estado visual) ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!companyName.trim() || !xmlContent.trim()) {
@@ -103,11 +136,12 @@ export default function UploadClientXML() {
       else {
         setMessage({ text: 'Data saved successfully', type: 'success' });
         setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
-        setIsHistoryCleared(false); // Reset status if new data is saved
+        setIsHistoryCleared(false); // Si guarda nuevo, el historial vuelve a estar "sucio"
       }
     } finally { setLoading(false); }
   };
 
+  // --- Lógica de Reset Implementada ---
   const executeReset = async () => {
     setShowConfirmModal(false);
     setResetLoading(true);
@@ -127,7 +161,7 @@ export default function UploadClientXML() {
       else {
         setMessage({ text: 'History deleted successfully.', type: 'success' });
         setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
-        setIsHistoryCleared(true); // Switch panel to green state
+        setIsHistoryCleared(true); // Cambia el panel a verde
       }
     } catch (err) {
       setMessage({ text: 'An unexpected error occurred', type: 'error' });
@@ -139,12 +173,12 @@ export default function UploadClientXML() {
   return (
     <div className="min-h-screen bg-[#FFF] flex font-sans text-[#242424] relative">
       
-      {/* --- CUSTOM CONFIRMATION MODAL --- */}
+      {/* --- MODAL DE CONFIRMACIÓN (NUEVO) --- */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
           <div className="relative bg-white w-full max-w-md rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6">
+            <div className="p-6 text-left">
               <div className="flex items-center gap-4 mb-4 text-red-600">
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                   <AlertCircle size={24} />
@@ -156,16 +190,10 @@ export default function UploadClientXML() {
               </p>
             </div>
             <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3">
-              <button 
-                onClick={() => setShowConfirmModal(false)}
-                className="px-4 py-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors"
-              >
+              <button onClick={() => setShowConfirmModal(false)} className="px-4 py-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors">
                 Cancel
               </button>
-              <button 
-                onClick={executeReset}
-                className="bg-red-600 text-white px-6 py-2 rounded text-xs font-bold hover:bg-red-700 transition-all shadow-sm active:scale-95"
-              >
+              <button onClick={executeReset} className="bg-red-600 text-white px-6 py-2 rounded text-xs font-bold hover:bg-red-700 transition-all shadow-sm active:scale-95">
                 Yes, delete history
               </button>
             </div>
@@ -175,6 +203,20 @@ export default function UploadClientXML() {
 
       <div className="flex-1 flex flex-col">
         
+        {/* --- TEAMS TOP BAR --- */}
+        <div className="h-12 bg-[#464775] flex items-center justify-between px-4 shadow-sm z-10">
+          <div className="flex items-center gap-4 text-white">
+            <div className="bg-white p-1 rounded-sm">
+              <FileUp size={14} className="text-[#464775]" />
+            </div>
+            <span className="text-xs font-semibold">Servex Ingest Engine</span>
+          </div>
+          <div className="flex items-center gap-3 text-white/80">
+            <HelpCircle size={16} />
+            <Settings2 size={16} />
+          </div>
+        </div>
+
         {/* --- PAGE HEADER --- */}
         <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -186,8 +228,13 @@ export default function UploadClientXML() {
               <p className="text-[11px] text-[#616161]">Structured data processing for the Servex ecosystem</p>
             </div>
           </div>
+          <div className="flex gap-2">
+            <button className="p-2 hover:bg-gray-100 rounded-md text-gray-500"><Maximize2 size={16} /></button>
+            <button className="p-2 hover:bg-gray-100 rounded-md text-gray-500"><MoreHorizontal size={16} /></button>
+          </div>
         </div>
 
+        {/* --- CONTENT GRID --- */}
         <div className="p-8 grid grid-cols-12 gap-6 max-w-7xl">
           
           <div className="col-span-12 lg:col-span-4 space-y-4">
@@ -196,7 +243,7 @@ export default function UploadClientXML() {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${companyName ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>1</div>
-                  <span className="text-xs font-medium">Entity Name (LESRO)</span>
+                  <span className="text-xs font-medium">Entity Name</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
@@ -226,7 +273,7 @@ export default function UploadClientXML() {
 
           <div className="col-span-12 lg:col-span-8 space-y-4">
             
-            {/* RESET DATA PANEL UI */}
+            {/* --- PANEL DE RESET CON LÓGICA VISUAL (NUEVO) --- */}
             <div className={`rounded-lg border p-6 mb-4 shadow-sm flex flex-col items-center text-center transition-colors duration-500 ${isHistoryCleared ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${isHistoryCleared ? 'bg-green-100' : 'bg-red-100'}`}>
                 {isHistoryCleared ? <CheckCircle2 className="text-green-600" size={20} /> : <Trash2 className="text-red-600" size={20} />}
@@ -249,6 +296,17 @@ export default function UploadClientXML() {
               </button>
             </div>
 
+            <div className="bg-[#F3F2F1] rounded-lg border border-[#E1DFDD] p-6 mb-4 shadow-sm flex flex-col items-center text-center">
+              <h2 className="text-sm font-black text-[#242424] uppercase tracking-wider mb-1">SYNC YOUR CATALOG</h2>
+              <p className="text-[11px] text-[#616161] max-w-md mb-4 leading-normal">
+                If the data to be entered comes from a PDF, synchronize the data with the platform format to link them.
+              </p>
+              <Link href="/synchronizer" className="bg-white border border-[#5B5FC7] text-[#5B5FC7] px-6 py-2 rounded text-[11px] font-bold hover:bg-[#5B5FC7] hover:text-white transition-all flex items-center gap-2 shadow-sm">
+                <RefreshCw size={14} />
+                Go to Synchronizer
+              </Link>
+            </div>
+
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-6 space-y-6">
                 
@@ -265,35 +323,59 @@ export default function UploadClientXML() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed rounded-md p-4 text-center cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1] transition-all">
-                    <UploadCloud className="mx-auto mb-2 text-gray-400" size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Upload XML</p>
-                    <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => {
-                      const file = e.target.files?.[0]; if (file) readXMLFile(file);
-                    }} />
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                    onDragLeave={() => setDragActive(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
+                      ${dragActive ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                  >
+                    {readingXml ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />}
+                    <p className="text-[10px] font-bold text-[#242424]">{readingXml ? 'Reading...' : 'Upload XML'}</p>
+                    <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
 
-                  <div onClick={() => csvInputRef.current?.click()} className="border-2 border-dashed rounded-md p-4 text-center cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1] transition-all">
-                    <FileSpreadsheet className="mx-auto mb-2 text-gray-400" size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Upload CSV</p>
-                    <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
-                      const file = e.target.files?.[0]; if (file) readCSVFile(file);
-                    }} />
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragActiveCSV(true); }}
+                    onDragLeave={() => setDragActiveCSV(false)}
+                    onDrop={handleDropCSV}
+                    onClick={() => csvInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
+                      ${dragActiveCSV ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                  >
+                    {readingCsv ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />}
+                    <p className="text-[10px] font-bold text-[#242424]">{readingCsv ? 'Reading...' : 'Upload CSV'}</p>
+                    <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
 
-                  <div onClick={() => csvPdfInputRef.current?.click()} className="border-2 border-dashed rounded-md p-4 text-center cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1] transition-all">
-                    <FileType className="mx-auto mb-2 text-gray-400" size={20} />
-                    <p className="text-[10px] font-bold text-[#242424]">Upload CSV (PDF)</p>
-                    <input ref={csvPdfInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
-                      const file = e.target.files?.[0]; if (file) readCsvPdfFile(file);
-                    }} />
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragActiveCsvPdf(true); }}
+                    onDragLeave={() => setDragActiveCsvPdf(false)}
+                    onDrop={handleDropCsvPdf}
+                    onClick={() => csvPdfInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
+                      ${dragActiveCsvPdf ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                  >
+                    {readingCsvPdf ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <FileType className={`mx-auto mb-2 ${dragActiveCsvPdf ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />}
+                    <p className="text-[10px] font-bold text-[#242424]">{readingCsvPdf ? 'Reading...' : 'Upload CSV (PDF)'}</p>
+                    <input ref={csvPdfInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCsvPdfFile(file); }} />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" placeholder="XML Preview..." value={xmlContent} readOnly />
-                  <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" placeholder="CSV Preview..." value={csvContent} readOnly />
-                  <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" placeholder="PDF CSV Preview..." value={csvPdfContent} readOnly />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-[#242424]">XML Preview</label>
+                    <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-[#242424]">CSV Preview</label>
+                    <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvContent} readOnly />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-[#242424]">PDF CSV Preview</label>
+                    <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvPdfContent} readOnly />
+                  </div>
                 </div>
 
                 {message.type && (
