@@ -47,20 +47,35 @@ export default function UploadClientXML() {
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
   const csvPdfInputRef = useRef<HTMLInputElement | null>(null); 
 
-  // --- Lógica de Lectura de Archivos ---
+  // --- Lógica de Lectura de Archivos Asíncrona Optimizado ---
+  // Esta función auxiliar asegura que el estado de 'loading' se renderice antes 
+  // de que el navegador comience el procesamiento pesado del texto.
+  const readFileAsync = (file: File, setter: (val: string) => void, loadingSetter: (val: boolean) => void, successMsg: string) => {
+    loadingSetter(true);
+    
+    // El timeout de 100ms permite que React actualice la UI y muestre el spinner
+    // antes de que el FileReader bloquee el hilo principal con archivos grandes.
+    setTimeout(() => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setter(e.target?.result as string);
+        setMessage({ text: successMsg, type: 'success' });
+        loadingSetter(false);
+      };
+      reader.onerror = () => {
+        setMessage({ text: 'Error reading file', type: 'error' });
+        loadingSetter(false);
+      };
+      reader.readAsText(file);
+    }, 100);
+  };
+
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
       setMessage({ text: 'Only XML files are allowed', type: 'error' });
       return;
     }
-    setReadingXml(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setXmlContent(e.target?.result as string);
-      setMessage({ text: 'XML file loaded successfully', type: 'success' });
-      setReadingXml(false);
-    };
-    reader.readAsText(file);
+    readFileAsync(file, setXmlContent, setReadingXml, 'XML file loaded successfully');
   };
 
   const readCSVFile = (file: File) => {
@@ -68,14 +83,7 @@ export default function UploadClientXML() {
       setMessage({ text: 'Only CSV files are allowed', type: 'error' });
       return;
     }
-    setReadingCsv(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setCsvContent(e.target?.result as string);
-      setMessage({ text: 'CSV file loaded successfully', type: 'success' });
-      setReadingCsv(false);
-    };
-    reader.readAsText(file);
+    readFileAsync(file, setCsvContent, setReadingCsv, 'CSV file loaded successfully');
   };
 
   const readCsvPdfFile = (file: File) => {
@@ -83,14 +91,7 @@ export default function UploadClientXML() {
       setMessage({ text: 'Only CSV files (PDF Transformed) are allowed', type: 'error' });
       return;
     }
-    setReadingCsvPdf(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setCsvPdfContent(e.target?.result as string);
-      setMessage({ text: 'PDF CSV loaded successfully', type: 'success' });
-      setReadingCsvPdf(false);
-    };
-    reader.readAsText(file);
+    readFileAsync(file, setCsvPdfContent, setReadingCsvPdf, 'PDF CSV loaded successfully');
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -125,7 +126,6 @@ export default function UploadClientXML() {
 
     setLoading(true);
     try {
-      // 1. Obtener usuario actual
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
@@ -134,7 +134,6 @@ export default function UploadClientXML() {
         return;
       }
 
-      // 2. Insertar en la tabla con el nombre exacto (case-sensitive)
       const { error } = await supabase
         .from('ClientsSERVEX_WB')
         .insert({
@@ -412,9 +411,10 @@ export default function UploadClientXML() {
               <div className="bg-[#FAF9F8] px-6 py-4 flex justify-end border-t border-gray-200">
                 <button
                   onClick={handleSave}
-                  disabled={loading}
+                  disabled={loading || readingXml || readingCsv || readingCsvPdf}
                   className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm active:scale-95 disabled:opacity-50 flex items-center gap-2"
                 >
+                  {loading ? <RefreshCw className="animate-spin" size={14} /> : null}
                   {loading ? 'Saving WB Data...' : 'Save WB Changes'}
                 </button>
               </div>
