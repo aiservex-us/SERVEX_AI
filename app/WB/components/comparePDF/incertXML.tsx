@@ -22,14 +22,14 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML() {
-  // --- Lógica de Estado Original ---
-  const [companyName, setCompanyName] = useState('LESRO');
+  // --- Lógica de Estado (Actualizado a WB) ---
+  const [companyName, setCompanyName] = useState('WB');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
   const [csvPdfContent, setCsvPdfContent] = useState(''); 
   const [loading, setLoading] = useState(false);
   
-  // --- Nuevos Estados para Reset e Historial ---
+  // --- Estados para Reset e Historial ---
   const [resetLoading, setResetLoading] = useState(false);
   const [isHistoryCleared, setIsHistoryCleared] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -114,7 +114,7 @@ export default function UploadClientXML() {
     if (file) readCsvPdfFile(file);
   };
 
-  // --- Lógica de Guardado ---
+  // --- Lógica de Guardado (Tabla: ClientsSERVEX_WB) ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!companyName.trim() || !xmlContent.trim()) {
@@ -126,7 +126,6 @@ export default function UploadClientXML() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
       
-      // Cambio de tabla a ClientsSERVEX_WB
       const { error } = await supabase.from('ClientsSERVEX_WB').insert({
         company_name: companyName, 
         xml_raw: xmlContent, 
@@ -144,7 +143,7 @@ export default function UploadClientXML() {
     } finally { setLoading(false); }
   };
 
-  // --- Lógica de Reset ---
+  // --- Lógica de Reset (Filtrando por WB) ---
   const executeReset = async () => {
     setShowConfirmModal(false);
     setResetLoading(true);
@@ -154,7 +153,6 @@ export default function UploadClientXML() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
 
-      // Cambio de tabla a ClientsSERVEX_WB
       const { error } = await supabase
         .from('ClientsSERVEX_WB')
         .delete()
@@ -190,7 +188,7 @@ export default function UploadClientXML() {
                 <h3 className="text-lg font-bold text-slate-900">Confirm Deletion</h3>
               </div>
               <p className="text-sm text-slate-600 leading-relaxed">
-                You are about to delete all history for **LESRO**. This action is irreversible and the current master files will be lost. Do you wish to continue?
+                You are about to delete all history for **WB**. This action is irreversible and the current master files will be lost. Do you wish to continue?
               </p>
             </div>
             <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3">
@@ -207,13 +205,13 @@ export default function UploadClientXML() {
 
       <div className="flex-1 flex flex-col">
         
-        {/* --- TEAMS TOP BAR --- */}
+        {/* --- TOP BAR --- */}
         <div className="h-12 bg-[#464775] flex items-center justify-between px-4 shadow-sm z-10">
           <div className="flex items-center gap-4 text-white">
             <div className="bg-white p-1 rounded-sm">
               <FileUp size={14} className="text-[#464775]" />
             </div>
-            <span className="text-xs font-semibold">Servex Ingest Engine</span>
+            <span className="text-xs font-semibold">Servex Ingest Engine (WB)</span>
           </div>
           <div className="flex items-center gap-3 text-white/80">
             <HelpCircle size={16} />
@@ -221,15 +219,15 @@ export default function UploadClientXML() {
           </div>
         </div>
 
-        {/* --- PAGE HEADER --- */}
+        {/* --- HEADER --- */}
         <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#E8EAF6] rounded-md flex items-center justify-center">
               <FileCode className="text-[#5B5FC7]" size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#242424]">CET Catalog Upload</h1>
-              <p className="text-[11px] text-[#616161]">Structured data processing for the Servex ecosystem</p>
+              <h1 className="text-lg font-bold text-[#242424]">WB Catalog Upload</h1>
+              <p className="text-[11px] text-[#616161]">Structured data processing for WB environment</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -238,7 +236,7 @@ export default function UploadClientXML() {
           </div>
         </div>
 
-        {/* --- CONTENT GRID --- */}
+        {/* --- CONTENT --- */}
         <div className="p-8 grid grid-cols-12 gap-6 max-w-7xl">
           
           <div className="col-span-12 lg:col-span-4 space-y-4">
@@ -247,7 +245,7 @@ export default function UploadClientXML() {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${companyName ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>1</div>
-                  <span className="text-xs font-medium">Entity Name</span>
+                  <span className="text-xs font-medium">Entity: WB</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
@@ -259,7 +257,7 @@ export default function UploadClientXML() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvPdfContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>4</div>
-                  <span className="text-xs font-medium">PDF Synchronization</span>
+                  <span className="text-xs font-medium">PDF Sync</span>
                 </div>
               </div>
             </div>
@@ -270,25 +268,25 @@ export default function UploadClientXML() {
                 <span className="text-xs font-bold">Security Note</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                This channel is end-to-end encrypted (E2EE). Data is stored in isolated Supabase instances.
+                This channel is end-to-end encrypted. Data is stored in isolated WB instances.
               </p>
             </div>
           </div>
 
           <div className="col-span-12 lg:col-span-8 space-y-4">
             
-            {/* --- PANEL DE RESET --- */}
+            {/* PANEL DE RESET */}
             <div className={`rounded-lg border p-6 mb-4 shadow-sm flex flex-col items-center text-center transition-colors duration-500 ${isHistoryCleared ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${isHistoryCleared ? 'bg-green-100' : 'bg-red-100'}`}>
                 {isHistoryCleared ? <CheckCircle2 className="text-green-600" size={20} /> : <Trash2 className="text-red-600" size={20} />}
               </div>
               <h2 className={`text-sm font-black uppercase tracking-wider mb-1 ${isHistoryCleared ? 'text-green-900' : 'text-red-900'}`}>
-                {isHistoryCleared ? 'DATABASE IS READY' : 'DATA CLEANUP RECOMMENDED'}
+                {isHistoryCleared ? 'WB DATABASE READY' : 'WB CLEANUP RECOMMENDED'}
               </h2>
               <p className={`text-[11px] max-w-md mb-4 leading-normal font-medium ${isHistoryCleared ? 'text-green-700' : 'text-red-700'}`}>
                 {isHistoryCleared 
-                  ? 'The history has been cleared successfully. You can now proceed to upload the new master files.' 
-                  : 'It is recommended to clear the data history in the Database before adding new master files.'}
+                  ? 'History for WB has been cleared. You can now upload new files.' 
+                  : 'Clear the WB history before adding new master files.'}
               </p>
               <button 
                 onClick={() => setShowConfirmModal(true)}
@@ -296,14 +294,14 @@ export default function UploadClientXML() {
                 className={`text-white px-6 py-2 rounded text-[11px] font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-50 ${isHistoryCleared ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
               >
                 {resetLoading ? <RefreshCw className="animate-spin" size={14} /> : (isHistoryCleared ? <CheckCircle2 size={14} /> : <Trash2 size={14} />)}
-                {isHistoryCleared ? 'History Cleared' : 'Click here to delete history'}
+                {isHistoryCleared ? 'History Cleared' : 'Delete WB History'}
               </button>
             </div>
 
             <div className="bg-[#F3F2F1] rounded-lg border border-[#E1DFDD] p-6 mb-4 shadow-sm flex flex-col items-center text-center">
-              <h2 className="text-sm font-black text-[#242424] uppercase tracking-wider mb-1">SYNC YOUR CATALOG</h2>
+              <h2 className="text-sm font-black text-[#242424] uppercase tracking-wider mb-1">SYNC WB CATALOG</h2>
               <p className="text-[11px] text-[#616161] max-w-md mb-4 leading-normal">
-                If the data to be entered comes from a PDF, synchronize the data with the platform format to link them.
+                If the WB data comes from a PDF, use the synchronizer to format it correctly.
               </p>
               <Link href="/synchronizer" className="bg-white border border-[#5B5FC7] text-[#5B5FC7] px-6 py-2 rounded text-[11px] font-bold hover:bg-[#5B5FC7] hover:text-white transition-all flex items-center gap-2 shadow-sm">
                 <RefreshCw size={14} />
@@ -397,7 +395,7 @@ export default function UploadClientXML() {
                   disabled={loading}
                   className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm active:scale-95 disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {loading ? 'Saving WB Data...' : 'Save WB Changes'}
                 </button>
               </div>
             </div>
