@@ -158,7 +158,7 @@ export default function UploadClientXML() {
       const { error } = await supabase
         .from('ClientsSERVEX_WB')
         .delete()
-        .eq('company_name', 'LESRO')
+        .eq('company_name', 'WB')
         .eq('user_id', user.id);
 
       if (error) setMessage({ text: 'Error cleaning database', type: 'error' });
