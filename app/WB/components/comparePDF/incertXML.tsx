@@ -225,19 +225,7 @@ export default function UploadClientXML() {
 
       <div className="flex-1 flex flex-col">
         
-        {/* --- TOP BAR --- */}
-        <div className="h-12 bg-[#464775] flex items-center justify-between px-4 shadow-sm z-10">
-          <div className="flex items-center gap-4 text-white">
-            <div className="bg-white p-1 rounded-sm">
-              <FileUp size={14} className="text-[#464775]" />
-            </div>
-            <span className="text-xs font-semibold">Servex Ingest Engine (WB)</span>
-          </div>
-          <div className="flex items-center gap-3 text-white/80">
-            <HelpCircle size={16} />
-            <Settings2 size={16} />
-          </div>
-        </div>
+       
 
         {/* --- HEADER --- */}
         <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
@@ -250,10 +238,7 @@ export default function UploadClientXML() {
               <p className="text-[11px] text-[#616161]">Structured data processing for WB environment</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button className="p-2 hover:bg-gray-100 rounded-md text-gray-500"><Maximize2 size={16} /></button>
-            <button className="p-2 hover:bg-gray-100 rounded-md text-gray-500"><MoreHorizontal size={16} /></button>
-          </div>
+        
         </div>
 
         {/* --- CONTENT --- */}
