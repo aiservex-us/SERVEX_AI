@@ -1,3 +1,4 @@
+import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -21,22 +22,12 @@ import {
 
 import { supabase } from '../../../lib/supabaseClient';
 
+// IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EjecutorAgente from './EJECUTOR_agente';
-import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW';
-
-// 🔹 NUEVO: generar userId único por sesión
-const getOrCreateUserId = () => {
-  let id = sessionStorage.getItem('svx_user_id');
-  if (!id) {
-    id = crypto.randomUUID();
-    sessionStorage.setItem('svx_user_id', id);
-  }
-  return id;
-};
+import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; // Nuevo componente visualizador
 
 const SVXUnifiedPlatform = () => {
-  const userId = getOrCreateUserId(); // 🔹 NUEVO
-
+  // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
@@ -51,16 +42,20 @@ const SVXUnifiedPlatform = () => {
     sessionStorage.setItem('servex_audit_tutorial_seen', 'true');
   };
 
+  // --- NAVIGATION STATES ---
   const [activeTab, setActiveTab] = useState('console'); 
 
+  // --- UNIFIED STATES ---
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [data, setData] = useState([]); 
   const [masterDataRows, setMasterDataRows] = useState([]);
   
+  // --- SUPABASE STATES ---
   const [auditReportJson, setAuditReportJson] = useState(null);
   const [xmlActualizerRaw, setXmlActualizerRaw] = useState("");
 
+  // --- CONTROL STATES ---
   const [isProcessing, setIsProcessing] = useState(false);
   const [isXmlLoading, setIsXmlLoading] = useState(false); 
   const [matchStatus, setMatchStatus] = useState(null); 
@@ -70,6 +65,8 @@ const SVXUnifiedPlatform = () => {
   const [backendError, setBackendError] = useState(null);
 
   const [agentReport, setAgentReport] = useState("")
+  
+  // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
 
   const handleTabChangeToXml = () => {
@@ -98,7 +95,7 @@ const SVXUnifiedPlatform = () => {
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
         .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
-        .eq('user_id', userId) // 🔹 CAMBIO
+        .eq('company_name', 'LESRO')
         .single();
       
       if (error) throw error;
@@ -179,8 +176,6 @@ const SVXUnifiedPlatform = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('user_id', userId); // 🔹 CAMBIO
-
       const response = await fetch('http://0.0.0.0:8000/audit-process', {
         method: 'POST',
         body: formData,
