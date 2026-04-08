@@ -417,7 +417,7 @@ const SVXUnifiedPlatform = () => {
               onClick={() => setIsMaximized(true)}
               className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-[#464775] hover:text-white border border-[#EDEBE9] rounded shadow-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-[10px] font-bold"
             >
-              <FiMaximize2 size={12} /> EXPAND VIEW
+              <FiMaximize2 size={12} /> EXPAND  VIEW
             </button>
             {renderVisualizerContent()}
           </main>
