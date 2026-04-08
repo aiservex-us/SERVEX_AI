@@ -183,7 +183,7 @@ const SVXUnifiedPlatform = () => {
       formData.append('file', file);
       formData.append('user_id', userId); // 🔹 CAMBIO
 
-      const response = await fetch('http://0.0.0.0:8000/audit-process', {
+      const response = await fetch('https://servex-ai-back.onrender.com/audit-process', {
         method: 'POST',
         body: formData,
       });
