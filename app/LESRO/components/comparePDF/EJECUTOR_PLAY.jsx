@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiZap, FiTerminal, FiTrash2, FiActivity, FiDatabase, FiCode } from 'react-icons/fi';
+import { FiZap, FiTerminal, FiTrash2, FiActivity, FiDatabase, FiCode, FiAlertCircle } from 'react-icons/fi';
 import { Zap, Loader2, ChevronRight, Maximize2, X, Cpu, Search, FileCode } from 'lucide-react';
 
 const EJECUTOR_PLAY = ({ 
@@ -10,8 +10,16 @@ const EJECUTOR_PLAY = ({
 }) => {
   const [logs, setLogs] = useState([]);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [showStatusPopup, setShowStatusPopup] = useState(false); // Nuevo estado para el popup
   const scrollRef = useRef(null);
   const modalScrollRef = useRef(null);
+
+  // Obtener fecha actual formateada
+  const currentDate = new Date().toLocaleDateString('es-ES', { 
+    day: '2-digit', 
+    month: 'long', 
+    year: 'numeric' 
+  });
 
   useEffect(() => {
     const target = isMaximized ? modalScrollRef.current : scrollRef.current;
@@ -20,6 +28,14 @@ const EJECUTOR_PLAY = ({
     }
   }, [logs, isMaximized]);
 
+  // Cerrar el popup automáticamente cuando termine el proceso
+  useEffect(() => {
+    if (!isProcessing && showStatusPopup) {
+      const timer = setTimeout(() => setShowStatusPopup(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isProcessing, showStatusPopup]);
+
   const addLog = (message, type = 'info') => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setLogs(prev => [...prev, { time, message, type }]);
@@ -27,6 +43,7 @@ const EJECUTOR_PLAY = ({
 
   const ejecutarConConsola = async () => {
     setLogs([]); 
+    setShowStatusPopup(true); // Activar el popup de bloqueo
     addLog("🚀 [KERNEL] INITIALIZING SERVEX_AI MULTI-STAGE PIPELINE...", "start");
     
     try {
@@ -113,6 +130,39 @@ const EJECUTOR_PLAY = ({
   return (
     <div className="flex flex-col gap-3 font-sans antialiased text-[#242424]">
       
+      {/* --- POPUP DE ESTADO Y BLOQUEO (NUEVO) --- */}
+      {showStatusPopup && (
+        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white border border-gray-200 shadow-2xl rounded-2xl p-6 max-w-sm w-full text-center space-y-4 transform animate-in zoom-in-95 duration-200">
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
+                <div className="relative bg-white border border-gray-100 p-3 rounded-full shadow-sm">
+                  <FiZap className="text-[#5b5fc7] animate-pulse" size={24} />
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Proceso de Actualización Iniciado</h3>
+              <p className="text-[11px] text-gray-500 font-medium">Catálogo: {currentDate}</p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
+              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={16} />
+              <p className="text-[10px] text-amber-800 leading-tight">
+                <strong>IMPORTANTE:</strong> El sistema está sincronizando datos críticos. <strong>No cambies de sección</strong> ni reinicies la aplicación hasta que el monitor de salida finalice.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
+              <Loader2 size={12} className="animate-spin" />
+              <span className="uppercase tracking-widest">Ejecutando Pipeline...</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- MAXIMIZED MODAL (ULTRA-DETAILED VIEW) --- */}
       {isMaximized && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
