@@ -21,7 +21,7 @@ const menuItems = [
   { id: 'inbox', label: 'Excel Preview', icon: Inbox, sub: 'Visualization' },
   { id: 'kanban', label: 'XML Pre Prosses', icon: KanbanSquare, sub: 'Structure' },
   { id: 'dashboard', label: 'XML Post Prosses', icon:  KanbanSquare, sub: 'Statistics' },
- 
+  { id: 'AI_reporter', label: 'AI Reporte', icon:  KanbanSquare, sub: 'Statistics' },
 ];
 
 export default function MenuLateral({
