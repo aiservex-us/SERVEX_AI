@@ -69,7 +69,7 @@ const EJECUTOR_PLAY = ({
     <div className="space-y-6 p-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white border border-[#e0e0e0] p-4 rounded-lg">
-          <div className="flex items-center gap-2 mb-2 text-[#5b5fc7]">
+          <div className="flex items-center gap-2 mb-2 text-[#464775]">
             <Search size={16} />
             <span className="text-xs font-bold uppercase">Discrepancy Audit</span>
           </div>
@@ -97,15 +97,15 @@ const EJECUTOR_PLAY = ({
         </div>
         <div className="space-y-2 text-[10px] text-[#424242]">
           <div className="flex gap-2">
-            <span className="text-[#5b5fc7] font-bold">1.</span>
+            <span className="text-[#464775] font-bold">1.</span>
             <span>Strict option mapping: POLYURETHANE, SOLID SURFACE, CASTERS, TABLET, CHROME, POWER.</span>
           </div>
           <div className="flex gap-2">
-            <span className="text-[#5b5fc7] font-bold">2.</span>
+            <span className="text-[#464775] font-bold">2.</span>
             <span>Namespace injection for industry schema compatibility (OFDAXML).</span>
           </div>
           <div className="flex gap-2">
-            <span className="text-[#5b5fc7] font-bold">3.</span>
+            <span className="text-[#464775] font-bold">3.</span>
             <span>Micro-report summary generation (<code className="bg-gray-200 px-1">audit_summary_json</code>).</span>
           </div>
         </div>
@@ -208,7 +208,7 @@ const EJECUTOR_PLAY = ({
           <button 
             onClick={ejecutarConConsola}
             disabled={!file || isProcessing}
-            className="w-full bg-[#5b5fc7] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
+            className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <FiZap size={14} />}
             RUN PIPELINE & SYNC
