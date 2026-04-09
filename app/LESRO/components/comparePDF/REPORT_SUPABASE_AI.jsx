@@ -52,24 +52,17 @@ const AgentInfo = () => {
   }
 
   return (
-    <div className="bg-[#F5F5F5] min-h-screen py-8 px-4 font-sans text-[#242424]">
+    <div className="bg-[#FFF] min-h-screen py-8 px-4 font-sans text-[#242424]">
       {/* Contenedor Principal Estilo Teams Enterprise */}
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-[0_8px_16px_rgba(0,0,0,0.08)] border border-[#E1E1E1] overflow-hidden">
         
         {/* Header - Identidad Corporativa SVX */}
-        <div className="bg-[#464775] p-4 flex items-center justify-between">
+        <div className="bg-[#ffffff] p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/20">
               <span className="text-white font-black text-sm tracking-tighter">SVX</span>
             </div>
-            <div>
-              <h1 className="text-white font-semibold text-base leading-none">
-                SVX Copilot
-              </h1>
-              <p className="text-purple-200 text-[11px] mt-1 font-medium uppercase tracking-wider">
-                Intelligence Systems & Data Automation
-              </p>
-            </div>
+           
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 border border-green-400/30 rounded-md">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
