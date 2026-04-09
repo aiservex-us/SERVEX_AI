@@ -66,7 +66,7 @@ const AgentInfo = () => {
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/20 border border-green-400/30 rounded-md">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-green-100 text-[10px] font-bold uppercase tracking-widest">
+            <span className="text-green-600 text-[10px] font-bold uppercase tracking-widest">
               Live Report
             </span>
           </div>
