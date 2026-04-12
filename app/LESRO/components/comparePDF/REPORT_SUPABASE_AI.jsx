@@ -115,18 +115,18 @@ const AgentInfo = () => {
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <h1 className="text-white font-bold text-sm leading-none tracking-tight">Console Executive Report</h1>
+                <h1 className="text-gray-600 font-bold text-sm leading-none tracking-tight">Console Executive Report</h1>
                 <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded border border-white/15">
                   <Zap size={9} className="text-yellow-400 fill-yellow-400" />
-                  <span className="text-[9px] font-bold text-white/80 tracking-wider">v4.10</span>
+                  <span className="text-[9px] font-bold text-gray-300 tracking-wider">v4.10</span>
                 </div>
               </div>
-              <p className="text-white/55 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">Auditoría de Ingeniería</p>
+              <p className="text-gray-300 text-[10px] uppercase tracking-[0.2em] mt-1 font-bold">Auditoría de Ingeniería</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/15 rounded text-[9px] font-bold text-white/60 uppercase tracking-wider">
-              <Sparkles size={9} className="text-white/50" />
+              <Sparkles size={9} className="text-gray-300" />
               SVX_PROD
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 bg-green-400/20 border border-green-400/30 rounded-md">
