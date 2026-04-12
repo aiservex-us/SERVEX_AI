@@ -101,14 +101,14 @@ const AgentInfo = () => {
   }
 
   return (
-    <div className="bg-[#F5F5F5] min-h-screen py-12 px-4 font-sans text-[#242424]">
+    <div className="bg-[#FFF] min-h-screen py-12 px-4 font-sans text-[#242424]">
       <div
         className="max-w-5xl mx-auto bg-white rounded-xl shadow-[0_12px_24px_rgba(0,0,0,0.06)] border border-[#E1E1E1] overflow-hidden"
         style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(12px)', transition: 'opacity 0.45s ease, transform 0.45s ease' }}
       >
 
         {/* Header */}
-        <div className="bg-[#464775] p-5 flex items-center justify-between">
+        <div className="bg-[#FFF] p-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-white/15 rounded-lg flex items-center justify-center border border-white/25 shadow-inner">
               <Bot size={18} className="text-white" />
@@ -140,7 +140,7 @@ const AgentInfo = () => {
         <div className="h-[3px] w-full bg-gradient-to-r from-[#464775] via-purple-400 to-indigo-300" />
 
         {/* Meta bar */}
-        <div className="px-10 py-3 bg-[#FAF9F8] border-b border-[#EDEBE9] flex items-center gap-4">
+        <div className="px-10 py-3 bg-[#FFF] border-b border-[#EDEBE9] flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <FileText size={11} className="text-[#464775]" />
             <span className="text-[10px] font-bold text-[#616161] uppercase tracking-wider">Full Document View</span>
@@ -192,7 +192,7 @@ const AgentInfo = () => {
         </div>
 
         {/* Footer */}
-        <div className="bg-[#FAF9F8] border-t border-[#EDEBE9] p-6 px-10 flex justify-between items-center text-[10px] text-[#616161] font-bold uppercase tracking-[0.15em]">
+        <div className="bg-[#FFF] border-t border-[#EDEBE9] p-6 px-10 flex justify-between items-center text-[10px] text-[#616161] font-bold uppercase tracking-[0.15em]">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 bg-[#464775] rounded-full shadow-[0_0_8px_rgba(70,71,117,0.4)]" />
             <p>Powered by <span className="text-[#464775]">Servex_AI Core Logic</span></p>
