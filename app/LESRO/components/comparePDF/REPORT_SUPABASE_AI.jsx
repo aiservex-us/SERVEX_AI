@@ -131,7 +131,7 @@ const AgentInfo = () => {
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 bg-green-400/20 border border-green-400/30 rounded-md">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-green-100 text-[10px] font-black uppercase tracking-widest">Live Data</span>
+              <span className="text-green-700 text-[10px] font-black uppercase tracking-widest">Live Data</span>
             </div>
           </div>
         </div>
