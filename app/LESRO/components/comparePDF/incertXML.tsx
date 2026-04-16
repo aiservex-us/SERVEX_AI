@@ -114,7 +114,7 @@ export default function UploadClientXML() {
     if (file) readCsvPdfFile(file);
   };
 
-  // --- Lógica de Guardado (Sin cambios, solo añade reset de estado visual) ---
+  // --- Lógica de Guardado (Modificada para limpiar TODO antes de insertar) ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!companyName.trim() || !xmlContent.trim()) {
@@ -125,6 +125,21 @@ export default function UploadClientXML() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
+
+      // 1. Borrar cualquier fila existente en la tabla (de cualquier usuario)
+      // Usamos un filtro que siempre sea verdadero para asegurar el borrado total
+      const { error: deleteError } = await supabase
+        .from('ClientsSERVEX')
+        .delete()
+        .neq('company_name', '0'); // Esto borrará todos los registros existentes
+
+      if (deleteError) {
+        setMessage({ text: 'Error cleaning existing data', type: 'error' });
+        setLoading(false);
+        return;
+      }
+
+      // 2. Insertar la nueva data
       const { error } = await supabase.from('ClientsSERVEX').insert({
         company_name: companyName, 
         xml_raw: xmlContent, 
@@ -132,36 +147,34 @@ export default function UploadClientXML() {
         csvpdf_raw: csvPdfContent, 
         user_id: user.id,
       });
+
       if (error) setMessage({ text: 'Error saving data', type: 'error' });
       else {
-        setMessage({ text: 'Data saved successfully', type: 'success' });
+        setMessage({ text: 'Data updated successfully (Old data cleared)', type: 'success' });
         setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
-        setIsHistoryCleared(false); // Si guarda nuevo, el historial vuelve a estar "sucio"
+        setIsHistoryCleared(false);
       }
     } finally { setLoading(false); }
   };
 
-  // --- Lógica de Reset Implementada ---
+  // --- Lógica de Reset Global ---
   const executeReset = async () => {
     setShowConfirmModal(false);
     setResetLoading(true);
     setMessage({ text: '', type: null });
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
-
+      // Borra absolutamente todo en la tabla sin importar el user_id
       const { error } = await supabase
         .from('ClientsSERVEX')
         .delete()
-        .eq('company_name', 'LESRO')
-        .eq('user_id', user.id);
+        .neq('company_name', '0');
 
       if (error) setMessage({ text: 'Error cleaning database', type: 'error' });
       else {
         setMessage({ text: 'History deleted successfully.', type: 'success' });
         setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
-        setIsHistoryCleared(true); // Cambia el panel a verde
+        setIsHistoryCleared(true);
       }
     } catch (err) {
       setMessage({ text: 'An unexpected error occurred', type: 'error' });
@@ -173,7 +186,7 @@ export default function UploadClientXML() {
   return (
     <div className="min-h-screen bg-[#FFF] flex font-sans text-[#242424] relative">
       
-      {/* --- MODAL DE CONFIRMACIÓN (NUEVO) --- */}
+      {/* --- MODAL DE CONFIRMACIÓN --- */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
@@ -203,8 +216,6 @@ export default function UploadClientXML() {
 
       <div className="flex-1 flex flex-col">
         
-  
-
         {/* --- PAGE HEADER --- */}
         <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -216,7 +227,6 @@ export default function UploadClientXML() {
               <p className="text-[11px] text-[#616161]">Structured data processing for the Servex ecosystem</p>
             </div>
           </div>
-      
         </div>
 
         {/* --- CONTENT GRID --- */}
@@ -258,7 +268,7 @@ export default function UploadClientXML() {
 
           <div className="col-span-12 lg:col-span-8 space-y-4">
             
-            {/* --- PANEL DE RESET CON LÓGICA VISUAL (NUEVO) --- */}
+            {/* --- PANEL DE RESET CON LÓGICA VISUAL --- */}
             <div className={`rounded-lg border p-6 mb-4 shadow-sm flex flex-col items-center text-center transition-colors duration-500 ${isHistoryCleared ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${isHistoryCleared ? 'bg-green-100' : 'bg-red-100'}`}>
                 {isHistoryCleared ? <CheckCircle2 className="text-green-600" size={20} /> : <Trash2 className="text-red-600" size={20} />}
