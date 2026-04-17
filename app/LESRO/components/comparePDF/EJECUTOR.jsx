@@ -177,9 +177,6 @@ const SVXUnifiedPlatform = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      // Agregamos el ID para que el backend sepa qué fila procesar
-      formData.append('record_id', currentRecordId); 
-
       const response = await fetch('https://servex-ai-back.onrender.com/audit-process', {
         method: 'POST',
         body: formData,
@@ -349,7 +346,7 @@ const SVXUnifiedPlatform = () => {
             <div className="bg-[#464775] px-4 py-2 text-white flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Zap size={14} className="text-yellow-400 fill-yellow-400" />
-                <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization Module.</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization Module</span>
               </div>
               <button onClick={closeTutorial} className="hover:bg-white/20 p-0.5 rounded transition-colors"><X size={16} /></button>
             </div>
