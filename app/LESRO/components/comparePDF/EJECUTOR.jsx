@@ -6,9 +6,14 @@ import {
   FiAlertTriangle, FiArrowRight, FiCheckCircle, FiInfo, FiXCircle, FiCode, FiDatabase,
   FiMaximize2, FiLayers, FiPackage
 } from 'react-icons/fi';
+import { BsFileEarmarkArrowUp } from 'react-icons/bs';
 import { 
   FileText, 
+  CheckCircle as LucideCheck, 
+  AlertCircle as LucideAlert, 
   Loader2, 
+  Package as LucidePackage, 
+  ChevronRight, 
   DownloadCloud, 
   X, 
   Zap, 
@@ -20,7 +25,7 @@ import { supabase } from '../../../lib/supabaseClient';
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EjecutorAgente from './EJECUTOR_agente';
 import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; 
-import EJECUTOR_PLAY from './EJECUTOR_PLAY';
+import EJECUTOR_PLAY from './EJECUTOR_PLAY'; // IMPORTADO
 
 const SVXUnifiedPlatform = () => {
   // --- TUTORIAL ALERT STATE ---
@@ -48,7 +53,6 @@ const SVXUnifiedPlatform = () => {
   const [masterDataRows, setMasterDataRows] = useState([]);
   
   // --- SUPABASE STATES ---
-  const [currentId, setCurrentId] = useState(null); // <--- NUEVO: Para identificar la fila exacta
   const [auditReportJson, setAuditReportJson] = useState(null);
   const [xmlActualizerRaw, setXmlActualizerRaw] = useState("");
 
@@ -62,6 +66,8 @@ const SVXUnifiedPlatform = () => {
   const [backendError, setBackendError] = useState(null);
 
   const [agentReport, setAgentReport] = useState("")
+  
+  // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
 
   const handleTabChangeToXml = () => {
@@ -87,18 +93,15 @@ const SVXUnifiedPlatform = () => {
 
   const fetchCloudData = async () => {
     try {
-      // Modificado para traer el ID de la fila
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
-        .select('id, audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
+        .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
         .eq('company_name', 'LESRO')
         .single();
       
       if (error) throw error;
       
       if (dbData) {
-        setCurrentId(dbData.id); // <--- Guardamos el ID único de la fila
-        
         const report = typeof dbData.audit_report_json === 'string' 
           ? JSON.parse(dbData.audit_report_json) 
           : dbData.audit_report_json;
@@ -166,8 +169,6 @@ const SVXUnifiedPlatform = () => {
 
   const handleUnifiedProcess = async () => {
     if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
-    if (!currentId) { showAlert("No valid cloud profile found", "error"); return; }
-    
     setIsProcessing(true);
     setBackendError(null);
     setAuditReportJson(null);
@@ -176,7 +177,8 @@ const SVXUnifiedPlatform = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('client_id', currentId); // <--- ENVIAMOS EL ID AL BACKEND
+      // Agregamos el ID para que el backend sepa qué fila procesar
+      formData.append('record_id', currentRecordId); 
 
       const response = await fetch('https://servex-ai-back.onrender.com/audit-process', {
         method: 'POST',
