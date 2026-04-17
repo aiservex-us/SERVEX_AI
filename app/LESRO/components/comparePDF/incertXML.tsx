@@ -142,36 +142,43 @@ export default function UploadClientXML() {
   };
 
   // --- Lógica de Reset Global ---
-  const executeReset = async () => {
-    setShowConfirmModal(false);
-    setResetLoading(true);
-    setMessage({ text: '', type: null });
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
-
-      // IMPORTANTE: Para borrar TODO, usamos el filtro .neq('id', 0) 
-      // o .gt('id', 0). Esto "engaña" al Safe Mode de Supabase.
-      const { error } = await supabase
-        .from('ClientsSERVEX')
-        .delete()
-        .neq('company_name', '---'); // Borra todo lo que NO se llame así (es decir, todo)
-
-      if (error) {
-        console.error("Delete error:", error);
-        setMessage({ text: `Error cleaning database: ${error.message}`, type: 'error' });
-      } else {
-        setMessage({ text: 'Database cleared. Ready for new process.', type: 'success' });
-        setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
-        setIsHistoryCleared(true);
-      }
-    } catch (err) {
-      setMessage({ text: 'An unexpected error occurred', type: 'error' });
-    } finally {
-      setResetLoading(false);
+  // --- Lógica de Reset Global ---
+const executeReset = async () => {
+  setShowConfirmModal(false);
+  setResetLoading(true);
+  setMessage({ text: '', type: null });
+  
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { 
+      setMessage({ text: 'User not authorized', type: 'error' }); 
+      return; 
     }
-  };
+
+    // CAMBIO AQUÍ: Usamos .gt('id', 0) o .neq('id', 0)
+    // Esto le dice a Supabase que afecte a todos los IDs mayores a 0
+    const { error } = await supabase
+      .from('ClientsSERVEX')
+      .delete()
+      .gt('id', 0); // Selecciona todos los registros por su llave primaria
+
+    if (error) {
+      console.error("Delete error details:", error);
+      // Si el error persiste, revisa si la columna se llama 'id' o 'ID'
+      setMessage({ text: `Error: ${error.message}`, type: 'error' });
+    } else {
+      setMessage({ text: 'Database cleared. Ready for new process.', type: 'success' });
+      setXmlContent(''); 
+      setCsvContent(''); 
+      setCsvPdfContent('');
+      setIsHistoryCleared(true);
+    }
+  } catch (err) {
+    setMessage({ text: 'An unexpected error occurred', type: 'error' });
+  } finally {
+    setResetLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#FFF] flex font-sans text-[#242424] relative">
