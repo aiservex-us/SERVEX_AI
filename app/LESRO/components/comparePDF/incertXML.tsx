@@ -29,7 +29,7 @@ export default function UploadClientXML() {
   const [csvPdfContent, setCsvPdfContent] = useState(''); 
   const [loading, setLoading] = useState(false);
   
-  // --- Nuevos Estados para Reset e Historial ---
+  // --- Estados para Reset e Historial ---
   const [resetLoading, setResetLoading] = useState(false);
   const [isHistoryCleared, setIsHistoryCleared] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -141,7 +141,7 @@ export default function UploadClientXML() {
     } finally { setLoading(false); }
   };
 
-  // --- Lógica de Reset (MODIFICADA: Borra todo el contenido de la tabla) ---
+  // --- Lógica de Reset Global ---
   const executeReset = async () => {
     setShowConfirmModal(false);
     setResetLoading(true);
@@ -151,15 +151,18 @@ export default function UploadClientXML() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
 
-      // Se eliminan los filtros .eq() para limpiar la tabla completa
+      // IMPORTANTE: Para borrar TODO, usamos el filtro .neq('id', 0) 
+      // o .gt('id', 0). Esto "engaña" al Safe Mode de Supabase.
       const { error } = await supabase
         .from('ClientsSERVEX')
         .delete()
-        .neq('id', 0); // Truco común en Supabase para borrar todo si RLS lo permite, o simplemente .delete() sin filtros.
+        .neq('company_name', '---'); // Borra todo lo que NO se llame así (es decir, todo)
 
-      if (error) setMessage({ text: 'Error cleaning database', type: 'error' });
-      else {
-        setMessage({ text: 'All database records deleted successfully.', type: 'success' });
+      if (error) {
+        console.error("Delete error:", error);
+        setMessage({ text: `Error cleaning database: ${error.message}`, type: 'error' });
+      } else {
+        setMessage({ text: 'Database cleared. Ready for new process.', type: 'success' });
         setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
         setIsHistoryCleared(true);
       }
@@ -183,10 +186,10 @@ export default function UploadClientXML() {
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                   <AlertCircle size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">Confirm Global Deletion</h3>
+                <h3 className="text-lg font-bold text-slate-900">Purge All Data</h3>
               </div>
               <p className="text-sm text-slate-600 leading-relaxed">
-                You are about to delete **ALL records** in the database. This will leave the system empty for a fresh master process. This action is irreversible. Do you wish to continue?
+                You are about to clear the **entire table**. This is required to start a single-process upload. All existing data will be lost. Do you wish to continue?
               </p>
             </div>
             <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3">
@@ -194,7 +197,7 @@ export default function UploadClientXML() {
                 Cancel
               </button>
               <button onClick={executeReset} className="bg-red-600 text-white px-6 py-2 rounded text-xs font-bold hover:bg-red-700 transition-all shadow-sm active:scale-95">
-                Yes, clear all data
+                Yes, clear database
               </button>
             </div>
           </div>
@@ -210,7 +213,7 @@ export default function UploadClientXML() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[#242424]">CET Catalog Upload</h1>
-              <p className="text-[11px] text-[#616161]">Structured data processing for the Servex ecosystem</p>
+              <p className="text-[11px] text-[#616161]">Single Process Master Management</p>
             </div>
           </div>
         </div>
@@ -240,16 +243,6 @@ export default function UploadClientXML() {
                 </div>
               </div>
             </div>
-
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <div className="flex items-center gap-2 text-[#5B5FC7] mb-3">
-                <Info size={16} />
-                <span className="text-xs font-bold">Security Note</span>
-              </div>
-              <p className="text-[11px] text-[#616161] leading-relaxed">
-                This channel is end-to-end encrypted (E2EE). Data is stored in isolated Supabase instances.
-              </p>
-            </div>
           </div>
 
           <div className="col-span-12 lg:col-span-8 space-y-4">
@@ -260,12 +253,12 @@ export default function UploadClientXML() {
                 {isHistoryCleared ? <CheckCircle2 className="text-green-600" size={20} /> : <Trash2 className="text-red-600" size={20} />}
               </div>
               <h2 className={`text-sm font-black uppercase tracking-wider mb-1 ${isHistoryCleared ? 'text-green-900' : 'text-red-900'}`}>
-                {isHistoryCleared ? 'DATABASE IS READY' : 'DATA CLEANUP RECOMMENDED'}
+                {isHistoryCleared ? 'SYSTEM READY' : 'DATA CLEANUP RECOMMENDED'}
               </h2>
               <p className={`text-[11px] max-w-md mb-4 leading-normal font-medium ${isHistoryCleared ? 'text-green-700' : 'text-red-700'}`}>
                 {isHistoryCleared 
-                  ? 'The database has been fully cleared. You can now proceed with the new master process.' 
-                  : 'It is mandatory to clear all data in the Database before starting a new process.'}
+                  ? 'All records have been purged. You may now upload a new set of files.' 
+                  : 'Important: You must clear the database before adding new files to avoid process conflicts.'}
               </p>
               <button 
                 onClick={() => setShowConfirmModal(true)}
@@ -273,19 +266,8 @@ export default function UploadClientXML() {
                 className={`text-white px-6 py-2 rounded text-[11px] font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-50 ${isHistoryCleared ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
               >
                 {resetLoading ? <RefreshCw className="animate-spin" size={14} /> : (isHistoryCleared ? <CheckCircle2 size={14} /> : <Trash2 size={14} />)}
-                {isHistoryCleared ? 'History Cleared' : 'Click here to delete all data'}
+                {isHistoryCleared ? 'Database Empty' : 'Click to Clear All Data'}
               </button>
-            </div>
-
-            <div className="bg-[#F3F2F1] rounded-lg border border-[#E1DFDD] p-6 mb-4 shadow-sm flex flex-col items-center text-center">
-              <h2 className="text-sm font-black text-[#242424] uppercase tracking-wider mb-1">SYNC YOUR CATALOG</h2>
-              <p className="text-[11px] text-[#616161] max-w-md mb-4 leading-normal">
-                If the data to be entered comes from a PDF, synchronize the data with the platform format to link them.
-              </p>
-              <Link href="/synchronizer" className="bg-white border border-[#5B5FC7] text-[#5B5FC7] px-6 py-2 rounded text-[11px] font-bold hover:bg-[#5B5FC7] hover:text-white transition-all flex items-center gap-2 shadow-sm">
-                <RefreshCw size={14} />
-                Go to Synchronizer
-              </Link>
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
