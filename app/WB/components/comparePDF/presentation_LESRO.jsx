@@ -4,7 +4,7 @@ import Image from 'next/image';
 // Importamos el componente desde la misma carpeta
 import InsertXML from './incertXML';
 
-const WBAdminHero = () => {
+const WBmfgAdminHero = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Función para abrir/cerrar el modal
@@ -59,14 +59,14 @@ const WBAdminHero = () => {
           <div className="flex flex-col items-center gap-4 mb-12 lg:mb-16">
             <div className="w-16 h-16 flex items-center justify-center p-2 bg-slate-50 rounded-xl border border-slate-100">
               <img 
-                src="/logosEmpresas/wb.webp" 
-                alt="WB Logo" 
+                src="/logosEmpresas/WB.webp" 
+                alt="WB mfg Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
             <div className="flex flex-col items-center">
               <span className="font-bold text-lg tracking-widest uppercase text-black">
-                WB
+                WB mfg
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
                 Catalog Manager
@@ -82,13 +82,13 @@ const WBAdminHero = () => {
             </div>
 
             <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-black leading-[1] mb-8">
-              WB Catalog <br />
+              WB mfg Catalog <br />
               <span className="text-black/25">Administration</span>
             </h2>
             
             <p className="max-w-xl text-base sm:text-lg text-black/50 leading-relaxed mb-12 font-light">
               Centralized management for data integrity, ETL workflows, 
-              and real-time updates for WB product catalogs within the <span className="text-black/80 font-medium">SERVEX ecosystem</span>.
+              and real-time updates for WB mfg product catalogs within the <span className="text-black/80 font-medium">SERVEX ecosystem</span>.
             </p>
 
             {/* Botón que dispara el modal */}
@@ -126,7 +126,7 @@ const WBAdminHero = () => {
         
         <div className="relative z-10 opacity-20 rotate-90 pointer-events-none">
           <span className="text-white font-black text-[140px] tracking-tighter select-none leading-none">
-            WB
+            WB mfg
           </span>
         </div>
       </div>
@@ -135,4 +135,4 @@ const WBAdminHero = () => {
   );
 };
 
-export default WBAdminHero;
+export default WBmfgAdminHero;

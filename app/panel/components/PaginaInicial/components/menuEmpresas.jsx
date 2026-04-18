@@ -70,14 +70,14 @@ export default function Calendar() {
         />
 
         <CompanyCard
-          company="WB"
-          logo="/logosEmpresas/berner-air-curtains-logo-png_seeklogo-351590.png"
-          role="Air Curtains & HVAC"
-          tags={['Dashboards', 'Sales', 'Reports']}
-          status="Active contract"
-          location="United States"
-          onOpen={() => router.push('/WB')}
-        />
+            company="WB MFG"
+            logo="/logosEmpresas/WB.webp"
+            role="Industrial Solutions & Manufacturing"
+            tags={['Inventory', 'Production', 'Supply Chain']}
+            status="Active contract"
+           location="United States"
+            onOpen={() => router.push('/WB')}
+/>
 
         <CompanyCard
           company="Ali Group"

@@ -16,12 +16,12 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'reporting', label: 'WB HOME', icon: LayoutDashboard, sub: 'Analysis' },
+  { id: 'reporting', label: 'LESRO HOME', icon: LayoutDashboard, sub: 'Analysis' },
   { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
   { id: 'inbox', label: 'Excel Preview', icon: Inbox, sub: 'Visualization' },
   { id: 'kanban', label: 'XML Pre Prosses', icon: KanbanSquare, sub: 'Structure' },
   { id: 'dashboard', label: 'XML Post Prosses', icon:  KanbanSquare, sub: 'Statistics' },
- 
+  { id: 'AI_reporter', label: 'AI Reporte', icon:  KanbanSquare, sub: 'Statistics' },
 ];
 
 export default function MenuLateral({

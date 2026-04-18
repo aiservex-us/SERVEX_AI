@@ -74,7 +74,7 @@ export default function DataViewer() {
   if (loading) return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-[#FFF] p-6">
       <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
-      <span className="text-sm font-semibold text-[#242424]">Sincronizando con Teams...</span>
+      <span className="text-sm font-semibold text-[#242424]">Synchronizing with SERVEX SYSTEM DATA...</span>
     </div>
   );
 
@@ -82,8 +82,8 @@ export default function DataViewer() {
     <div className="flex h-full w-full items-center justify-center p-6 bg-[#FFF]">
       <div className="max-w-sm w-full text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
         <AlertCircle className="mx-auto mb-4 text-[#C4314B]" size={48} />
-        <h3 className="text-lg font-bold">Sin conexión a datos</h3>
-        <p className="text-sm text-[#616161] mt-2">No se han encontrado registros en la base de datos.</p>
+        <h3 className="text-lg font-bold">No Data Connection</h3>
+        <p className="text-sm text-[#616161] mt-2">No records were found in the database.</p>
       </div>
     </div>
   );
@@ -91,7 +91,7 @@ export default function DataViewer() {
   return (
     <div className="flex flex-col h-full w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
       
-      {/* HEADER COMPACTO Y ALINEADO */}
+      {/* COMPACT ALIGNED HEADER */}
       <div className="bg-white px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -108,7 +108,7 @@ export default function DataViewer() {
                 </span>
               </div>
               <p className="text-[10px] text-[#616161] font-medium truncate">
-                Última actualización: {new Date(data.created_at).toLocaleDateString()}
+                Last updated: {new Date(data.created_at).toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -136,13 +136,13 @@ export default function DataViewer() {
         </div>
       </div>
 
-      {/* TOOLBAR REFINADO */}
+      {/* REFINED TOOLBAR */}
       <div className="bg-white px-6 py-2.5 flex items-center justify-between gap-4 border-b border-[#EDEBE9] shrink-0 w-full">
         <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={13} />
           <input 
             type="text"
-            placeholder="Buscar registros en la tabla..."
+            placeholder="Search records in table..."
             className="w-full pl-9 pr-4 py-2 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-[12px] rounded-t-md font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -153,18 +153,18 @@ export default function DataViewer() {
             <button 
               onClick={fetchLatestData} 
               className="p-2 hover:bg-[#F0F0F0] rounded-full text-[#616161] transition-colors"
-              title="Refrescar datos"
+              title="Refresh data"
             >
                 <RefreshCw size={15} />
             </button>
             <div className="h-6 w-[1px] bg-[#EDEBE9] mx-1"></div>
             <button className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold text-[#616161] border border-[#D1D1D1] rounded bg-white hover:bg-[#F5F5F5] transition-shadow shadow-sm">
-                <Download size={13} /> <span>Exportar CSV</span>
+                <Download size={13} /> <span>Export CSV</span>
             </button>
         </div>
       </div>
 
-      {/* ÁREA DE TABLA - ESTILO "MASTER" */}
+      {/* TABLE AREA - "MASTER" STYLE */}
       <div className="flex-1 m-4 bg-white rounded-xl shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
         {filteredData.length > 0 ? (
           <div className="flex-1 overflow-auto custom-scrollbar">
@@ -201,18 +201,18 @@ export default function DataViewer() {
         ) : (
           <div className="flex flex-col items-center justify-center flex-1 py-12">
             <TableIcon size={40} className="text-[#D1D1D1] mb-3" />
-            <p className="text-sm font-bold text-[#616161]">No se encontraron coincidencias</p>
-            <p className="text-xs text-[#919191]">Intenta con otros términos de búsqueda</p>
+            <p className="text-sm font-bold text-[#616161]">No matches found</p>
+            <p className="text-xs text-[#919191]">Try using different search terms</p>
           </div>
         )}
       </div>
 
-      {/* FOOTER REFINADO */}
+      {/* REFINED FOOTER */}
       <div className="px-6 py-2 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[10px] font-bold text-[#616161] shrink-0 w-full">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="uppercase tracking-tight">{filteredData.length} Registros Cargados</span>
+            <span className="uppercase tracking-tight">{filteredData.length} Records Loaded</span>
           </div>
         </div>
         <div className="flex items-center gap-4">

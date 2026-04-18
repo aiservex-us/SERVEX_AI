@@ -15,6 +15,8 @@ import PrecentMain from './components/PrecentMain';
 import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
 import AIReporting from './components/comparePDF/presentation_LESRO'
 import Compare from './components/comparePDF/UploadFileCmpare'
+import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
+
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
@@ -65,6 +67,7 @@ export default function MenuInicial() {
       case 'notifications': return <UploadFileCmpare />; 
       case 'reporting': return <AIReporting />; 
       case 'compare': return <Compare />
+      case 'AI_reporter': return <Responce_ai />
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
     }

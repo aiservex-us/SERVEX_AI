@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +26,8 @@ import { supabase } from '../../../lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EjecutorAgente from './EJECUTOR_agente';
-import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; // Nuevo componente visualizador
+import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; 
+import EJECUTOR_PLAY from './EJECUTOR_PLAY'; // IMPORTADO
 
 const SVXUnifiedPlatform = () => {
   // --- TUTORIAL ALERT STATE ---
@@ -68,6 +71,31 @@ const SVXUnifiedPlatform = () => {
   
   // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
+
+  // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT) ---
+  const handleSaveToCloud = async (csvRawContent) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authorized");
+
+      // Implementación del UPSERT con base en tus requerimientos
+      const { error } = await supabase
+        .from('ClientsSERVEX')
+        .upsert({
+          company_name: 'LESRO', 
+          csv_raw: csvRawContent,
+          user_id: user.id,
+          updated_at: new Date()
+        }, { 
+          onConflict: 'company_name' 
+        });
+
+      if (error) throw error;
+    } catch (err) {
+      console.error("Error in Upsert:", err);
+      showAlert("Cloud record update failed", "error");
+    }
+  };
 
   const handleTabChangeToXml = () => {
     setIsXmlLoading(true);
@@ -176,7 +204,7 @@ const SVXUnifiedPlatform = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const response = await fetch('http://0.0.0.0:8000/audit-process', {
+      const response = await fetch('https://servex-ai-back.onrender.com/audit-process', {
         method: 'POST',
         body: formData,
       });
@@ -390,18 +418,12 @@ const SVXUnifiedPlatform = () => {
             </div>
           </div>
 
-          <div className="bg-[#464775] text-white rounded-lg p-5 shadow-lg">
-            <div className="flex items-center gap-2 mb-3"><Zap size={16} className="text-yellow-400" /><h4 className="text-xs font-bold uppercase">Platform Actions.</h4></div>
-            <button 
-              onClick={handleUnifiedProcess}
-              disabled={!file || isProcessing}
-              className="w-full bg-white text-[#444791] py-2 rounded font-bold text-[11px] hover:bg-gray-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <FiZap size={14} />}
-              PROCESS & SYNC TO CLOUD
-            </button>
-            <button onClick={handleFullReset} className="w-full mt-2 py-2 text-[10px] font-bold opacity-60 hover:opacity-100 uppercase tracking-widest">Reset System</button>
-          </div>
+          <EJECUTOR_PLAY 
+            handleUnifiedProcess={handleUnifiedProcess}
+            handleFullReset={handleFullReset}
+            file={file}
+            isProcessing={isProcessing}
+          />
         </aside>
 
         <div className="col-span-9 flex flex-col gap-4 h-full min-h-0">
