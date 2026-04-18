@@ -104,9 +104,8 @@ export default function UploadClientXML() {
   // --- Lógica de Guardado ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
-    // Validación mínima: al menos el XML debe estar presente para la entidad WB
     if (!xmlContent.trim()) {
-      setMessage({ text: 'XML content is required to sync WB data', type: 'error' });
+      setMessage({ text: 'XML content is required', type: 'error' });
       return;
     }
     setLoading(true);
@@ -117,29 +116,28 @@ export default function UploadClientXML() {
         return; 
       }
 
-      // Guardado en la tabla ClientsSERVEX_WB con el identificador WB
+      // IMPORTANTE: Asegúrate de haber ejecutado el SQL de arriba para evitar el error de conflicto
       const { error } = await supabase.from('ClientsSERVEX_WB').upsert({
         company_name: 'WB', 
         xml_raw: xmlContent, 
         csv_raw: csvContent, 
         csvpdf_raw: csvPdfContent, 
         user_id: user.id,
-        updated_at: new Date().toISOString()
       }, { 
         onConflict: 'company_name' 
       });
 
       if (error) {
-        console.error('Supabase Error:', error);
-        setMessage({ text: 'Error saving data to ClientsSERVEX_WB', type: 'error' });
+        console.error('Supabase Full Error:', error);
+        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
       } else {
-        setMessage({ text: 'WB Catalog updated successfully', type: 'success' });
+        setMessage({ text: 'WB Catalog Data successfully stored', type: 'success' });
         setXmlContent(''); 
         setCsvContent(''); 
         setCsvPdfContent('');
       }
-    } catch (err) {
-      setMessage({ text: 'Unexpected error occurred', type: 'error' });
+    } catch (err: any) {
+      setMessage({ text: 'Unexpected client-side error', type: 'error' });
     } finally { 
       setLoading(false); 
     }
