@@ -4,13 +4,12 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import { FaMicrosoft, FaGoogle } from 'react-icons/fa'; // Añadido FaGoogle
+import { FaMicrosoft } from 'react-icons/fa';
 import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
 
-  // --- Manejador Microsoft ---
   const handleMicrosoftLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'azure',
@@ -20,28 +19,14 @@ export default function LoginPage() {
     });
   };
 
-  // --- Manejador Google (NUEVO) ---
-  const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}//Panel_Cient`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-  };
-
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        // --- Lógica de sonido ---
-        const audio = new Audio('/tu-sonido.mp3'); 
+        // --- Lógica de sonido añadida ---
+        const audio = new Audio('/tu-sonido.mp3'); // Asegúrate de que el nombre coincida
         audio.play().catch(err => console.log("El navegador bloqueó el autoplay:", err));
         
-        // Redirigir al panel
+        // Redirigir
         router.push('/panel');
       }
     });
@@ -91,7 +76,7 @@ export default function LoginPage() {
 
             <p className="text-sm text-gray-500 mb-8 text-center leading-relaxed">
               This platform provides secure access to the SERVEX artificial
-              intelligence ecosystem..  
+              intelligence ecosystem.  
               <br />
               <span className="font-medium text-gray-700">
                 Only users with a <strong>@servex-us.com</strong> corporate email
@@ -99,32 +84,14 @@ export default function LoginPage() {
               </span>
             </p>
 
-            <div className="space-y-3">
-              {/* BOTÓN MICROSOFT */}
-              <button
-                onClick={handleMicrosoftLogin}
-                className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium text-[#242424]"
-              >
-                <FaMicrosoft className="text-[#00A4EF]" />
-                Sign in with Microsoft
-              </button>
-
-              {/* DIVISOR (Opcional, pero ayuda visualmente) */}
-              <div className="flex items-center gap-2 my-2">
-                <div className="h-[1px] bg-gray-100 flex-1"></div>
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Attention SERVEX Clients: Access to the Partner Portal and the creation of corporate workspaces is managed exclusively through Google Authentication.</span>
-                <div className="h-[1px] bg-gray-100 flex-1"></div>
-              </div>
-
-              {/* BOTÓN GOOGLE */}
-              <button
-                onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium text-[#242424]"
-              >
-                <FaGoogle className="text-[#EA4335]" />
-                Sign in with Google
-              </button>
-            </div>
+            {/* BOTÓN MICROSOFT */}
+            <button
+              onClick={handleMicrosoftLogin}
+              className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
+            >
+              <FaMicrosoft className="text-lg" />
+              Sign in with Microsoft
+            </button>
 
             <p className="text-xs text-gray-400 text-center mt-8">
               Unauthorized access is restricted. All activity is monitored for
