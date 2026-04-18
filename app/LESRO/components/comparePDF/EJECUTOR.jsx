@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -69,6 +71,31 @@ const SVXUnifiedPlatform = () => {
   
   // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
+
+  // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT) ---
+  const handleSaveToCloud = async (csvRawContent) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authorized");
+
+      // Implementación del UPSERT con base en tus requerimientos
+      const { error } = await supabase
+        .from('ClientsSERVEX')
+        .upsert({
+          company_name: 'LESRO', 
+          csv_raw: csvRawContent,
+          user_id: user.id,
+          updated_at: new Date()
+        }, { 
+          onConflict: 'company_name' 
+        });
+
+      if (error) throw error;
+    } catch (err) {
+      console.error("Error in Upsert:", err);
+      showAlert("Cloud record update failed", "error");
+    }
+  };
 
   const handleTabChangeToXml = () => {
     setIsXmlLoading(true);
