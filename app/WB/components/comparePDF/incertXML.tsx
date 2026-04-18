@@ -104,31 +104,45 @@ export default function UploadClientXML() {
   // --- Lógica de Guardado ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
-    if (!companyName.trim() || !xmlContent.trim()) {
-      setMessage({ text: 'Name and XML are required', type: 'error' });
+    // Validación mínima: al menos el XML debe estar presente para la entidad WB
+    if (!xmlContent.trim()) {
+      setMessage({ text: 'XML content is required to sync WB data', type: 'error' });
       return;
     }
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
+      if (!user) { 
+        setMessage({ text: 'User not authorized', type: 'error' }); 
+        return; 
+      }
 
+      // Guardado en la tabla ClientsSERVEX_WB con el identificador WB
       const { error } = await supabase.from('ClientsSERVEX_WB').upsert({
-        company_name: companyName, 
+        company_name: 'WB', 
         xml_raw: xmlContent, 
         csv_raw: csvContent, 
         csvpdf_raw: csvPdfContent, 
         user_id: user.id,
+        updated_at: new Date().toISOString()
       }, { 
         onConflict: 'company_name' 
       });
 
-      if (error) setMessage({ text: 'Error saving data', type: 'error' });
-      else {
-        setMessage({ text: 'Data updated successfully', type: 'success' });
-        setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
+      if (error) {
+        console.error('Supabase Error:', error);
+        setMessage({ text: 'Error saving data to ClientsSERVEX_WB', type: 'error' });
+      } else {
+        setMessage({ text: 'WB Catalog updated successfully', type: 'success' });
+        setXmlContent(''); 
+        setCsvContent(''); 
+        setCsvPdfContent('');
       }
-    } finally { setLoading(false); }
+    } catch (err) {
+      setMessage({ text: 'Unexpected error occurred', type: 'error' });
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (
