@@ -91,7 +91,7 @@ export default function LoginPage() {
 
             <p className="text-sm text-gray-500 mb-8 text-center leading-relaxed">
               This platform provides secure access to the SERVEX artificial
-              intelligence ecosystem.  
+              intelligence ecosystem..  
               <br />
               <span className="font-medium text-gray-700">
                 Only users with a <strong>@servex-us.com</strong> corporate email
