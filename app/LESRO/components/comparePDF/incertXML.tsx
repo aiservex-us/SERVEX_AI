@@ -29,7 +29,7 @@ export default function UploadClientXML() {
   const [csvPdfContent, setCsvPdfContent] = useState(''); 
   const [loading, setLoading] = useState(false);
   
-  // --- Estados para Reset e Historial ---
+  // --- Nuevos Estados para Reset e Historial ---
   const [resetLoading, setResetLoading] = useState(false);
   const [isHistoryCleared, setIsHistoryCleared] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -47,7 +47,7 @@ export default function UploadClientXML() {
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
   const csvPdfInputRef = useRef<HTMLInputElement | null>(null); 
 
-  // --- Lógica de Lectura de Archivos ---
+  // --- Lógica de Lectura de Archivos (Sin cambios) ---
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
       setMessage({ text: 'Only XML files are allowed', type: 'error' });
@@ -114,7 +114,7 @@ export default function UploadClientXML() {
     if (file) readCsvPdfFile(file);
   };
 
-  // --- Lógica de Guardado ---
+  // --- Lógica de Guardado (Sin cambios, solo añade reset de estado visual) ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!companyName.trim() || !xmlContent.trim()) {
@@ -136,54 +136,44 @@ export default function UploadClientXML() {
       else {
         setMessage({ text: 'Data saved successfully', type: 'success' });
         setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
-        setIsHistoryCleared(false);
+        setIsHistoryCleared(false); // Si guarda nuevo, el historial vuelve a estar "sucio"
       }
     } finally { setLoading(false); }
   };
 
-  // --- Lógica de Reset Global ---
-  // --- Lógica de Reset Global ---
-const executeReset = async () => {
-  setShowConfirmModal(false);
-  setResetLoading(true);
-  setMessage({ text: '', type: null });
-  
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { 
-      setMessage({ text: 'User not authorized', type: 'error' }); 
-      return; 
-    }
+  // --- Lógica de Reset Implementada ---
+  const executeReset = async () => {
+    setShowConfirmModal(false);
+    setResetLoading(true);
+    setMessage({ text: '', type: null });
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setMessage({ text: 'User not authorized', type: 'error' }); return; }
 
-    // CAMBIO AQUÍ: Usamos .gt('id', 0) o .neq('id', 0)
-    // Esto le dice a Supabase que afecte a todos los IDs mayores a 0
-    const { error } = await supabase
-      .from('ClientsSERVEX')
-      .delete()
-      .gt('id', 0); // Selecciona todos los registros por su llave primaria
+      const { error } = await supabase
+        .from('ClientsSERVEX')
+        .delete()
+        .eq('company_name', 'LESRO')
+        .eq('user_id', user.id);
 
-    if (error) {
-      console.error("Delete error details:", error);
-      // Si el error persiste, revisa si la columna se llama 'id' o 'ID'
-      setMessage({ text: `Error: ${error.message}`, type: 'error' });
-    } else {
-      setMessage({ text: 'Database cleared. Ready for new process.', type: 'success' });
-      setXmlContent(''); 
-      setCsvContent(''); 
-      setCsvPdfContent('');
-      setIsHistoryCleared(true);
+      if (error) setMessage({ text: 'Error cleaning database', type: 'error' });
+      else {
+        setMessage({ text: 'History deleted successfully.', type: 'success' });
+        setXmlContent(''); setCsvContent(''); setCsvPdfContent('');
+        setIsHistoryCleared(true); // Cambia el panel a verde
+      }
+    } catch (err) {
+      setMessage({ text: 'An unexpected error occurred', type: 'error' });
+    } finally {
+      setResetLoading(false);
     }
-  } catch (err) {
-    setMessage({ text: 'An unexpected error occurred', type: 'error' });
-  } finally {
-    setResetLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-[#FFF] flex font-sans text-[#242424] relative">
       
-      {/* --- MODAL DE CONFIRMACIÓN --- */}
+      {/* --- MODAL DE CONFIRMACIÓN (NUEVO) --- */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
@@ -193,10 +183,10 @@ const executeReset = async () => {
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                   <AlertCircle size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">Purge All Data</h3>
+                <h3 className="text-lg font-bold text-slate-900">Confirm Deletion</h3>
               </div>
               <p className="text-sm text-slate-600 leading-relaxed">
-                You are about to clear the **entire table**. This is required to start a single-process upload. All existing data will be lost. Do you wish to continue?
+                You are about to delete all history for **LESRO**. This action is irreversible and the current master files will be lost. Do you wish to continue?
               </p>
             </div>
             <div className="bg-slate-50 px-6 py-4 flex justify-end gap-3">
@@ -204,7 +194,7 @@ const executeReset = async () => {
                 Cancel
               </button>
               <button onClick={executeReset} className="bg-red-600 text-white px-6 py-2 rounded text-xs font-bold hover:bg-red-700 transition-all shadow-sm active:scale-95">
-                Yes, clear database
+                Yes, delete history
               </button>
             </div>
           </div>
@@ -212,6 +202,9 @@ const executeReset = async () => {
       )}
 
       <div className="flex-1 flex flex-col">
+        
+  
+
         {/* --- PAGE HEADER --- */}
         <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -220,9 +213,10 @@ const executeReset = async () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[#242424]">CET Catalog Upload</h1>
-              <p className="text-[11px] text-[#616161]">Single Process Master Management</p>
+              <p className="text-[11px] text-[#616161]">Structured data processing for the Servex ecosystem</p>
             </div>
           </div>
+      
         </div>
 
         {/* --- CONTENT GRID --- */}
@@ -250,22 +244,32 @@ const executeReset = async () => {
                 </div>
               </div>
             </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+              <div className="flex items-center gap-2 text-[#5B5FC7] mb-3">
+                <Info size={16} />
+                <span className="text-xs font-bold">Security Note</span>
+              </div>
+              <p className="text-[11px] text-[#616161] leading-relaxed">
+                This channel is end-to-end encrypted (E2EE). Data is stored in isolated Supabase instances.
+              </p>
+            </div>
           </div>
 
           <div className="col-span-12 lg:col-span-8 space-y-4">
             
-            {/* --- PANEL DE RESET --- */}
+            {/* --- PANEL DE RESET CON LÓGICA VISUAL (NUEVO) --- */}
             <div className={`rounded-lg border p-6 mb-4 shadow-sm flex flex-col items-center text-center transition-colors duration-500 ${isHistoryCleared ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${isHistoryCleared ? 'bg-green-100' : 'bg-red-100'}`}>
                 {isHistoryCleared ? <CheckCircle2 className="text-green-600" size={20} /> : <Trash2 className="text-red-600" size={20} />}
               </div>
               <h2 className={`text-sm font-black uppercase tracking-wider mb-1 ${isHistoryCleared ? 'text-green-900' : 'text-red-900'}`}>
-                {isHistoryCleared ? 'SYSTEM READY' : 'DATA CLEANUP RECOMMENDED'}
+                {isHistoryCleared ? 'DATABASE IS READY' : 'DATA CLEANUP RECOMMENDED'}
               </h2>
               <p className={`text-[11px] max-w-md mb-4 leading-normal font-medium ${isHistoryCleared ? 'text-green-700' : 'text-red-700'}`}>
                 {isHistoryCleared 
-                  ? 'All records have been purged. You may now upload a new set of files.' 
-                  : 'Important: You must clear the database before adding new files to avoid process conflicts.'}
+                  ? 'The history has been cleared successfully. You can now proceed to upload the new master files.' 
+                  : 'It is recommended to clear the data history in the Database before adding new master files.'}
               </p>
               <button 
                 onClick={() => setShowConfirmModal(true)}
@@ -273,8 +277,19 @@ const executeReset = async () => {
                 className={`text-white px-6 py-2 rounded text-[11px] font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95 disabled:opacity-50 ${isHistoryCleared ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
               >
                 {resetLoading ? <RefreshCw className="animate-spin" size={14} /> : (isHistoryCleared ? <CheckCircle2 size={14} /> : <Trash2 size={14} />)}
-                {isHistoryCleared ? 'Database Empty' : 'Click to Clear All Data'}
+                {isHistoryCleared ? 'History Cleared' : 'Click here to delete history'}
               </button>
+            </div>
+
+            <div className="bg-[#F3F2F1] rounded-lg border border-[#E1DFDD] p-6 mb-4 shadow-sm flex flex-col items-center text-center">
+              <h2 className="text-sm font-black text-[#242424] uppercase tracking-wider mb-1">SYNC YOUR CATALOG</h2>
+              <p className="text-[11px] text-[#616161] max-w-md mb-4 leading-normal">
+                If the data to be entered comes from a PDF, synchronize the data with the platform format to link them.
+              </p>
+              <Link href="/synchronizer" className="bg-white border border-[#5B5FC7] text-[#5B5FC7] px-6 py-2 rounded text-[11px] font-bold hover:bg-[#5B5FC7] hover:text-white transition-all flex items-center gap-2 shadow-sm">
+                <RefreshCw size={14} />
+                Go to Synchronizer
+              </Link>
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">

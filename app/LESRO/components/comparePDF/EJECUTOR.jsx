@@ -93,16 +93,11 @@ const SVXUnifiedPlatform = () => {
 
   const fetchCloudData = async () => {
     try {
-      // OBTENEMOS EL USUARIO ACTUAL PARA FILTRAR
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
         .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
         .eq('company_name', 'LESRO')
-        .eq('user_id', user.id) // FILTRO DE INDEPENDENCIA
-        .maybeSingle(); // EVITA ERROR 406 SI HAY MÁS DE UN REGISTRO O NINGUNO
+        .single();
       
       if (error) throw error;
       
@@ -180,13 +175,8 @@ const SVXUnifiedPlatform = () => {
     setXmlActualizerRaw("");
 
     try {
-      // OBTENEMOS EL USUARIO PARA ENVIARLO AL BACKEND
-      const { data: { user } } = await supabase.auth.getUser();
-      
       const formData = new FormData();
       formData.append('file', file);
-      if (user) formData.append('user_id', user.id); // ENVIAMOS EL ID AL BACKEND
-
       const response = await fetch('https://servex-ai-back.onrender.com/audit-process', {
         method: 'POST',
         body: formData,
