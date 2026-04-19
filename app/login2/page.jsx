@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 // CAMBIO AQUÍ: Importamos específicamente el cliente de Google
-import { supabaseGoogle as supabase } from '../lib/supabaseClient'; 
+import { supabaseGoogle as supabase } from '../lib/supabaseClient2'; 
 import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc'; 
 import Image from 'next/image';
