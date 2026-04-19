@@ -14,7 +14,7 @@ export default function PanelClientPage() {
       console.error('Error al cerrar sesión:', error.message);
     } else {
       // Redirigir a la página de login principal o raíz
-      router.push('/login');
+      router.push('/login2');
     }
   };
 
