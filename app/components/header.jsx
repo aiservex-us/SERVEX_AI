@@ -40,15 +40,6 @@ export default function Header() {
     }
   };
 
-  // Funcionalidad para el segundo botón (Login 2)
-  const handleSecondButton = () => {
-    if (isAuthenticated) {
-      router.push('/Panel_Client'); // Redirige al panel correspondiente si ya está logueado
-    } else {
-      router.push('/login2');
-    }
-  };
-
   const NavItem = ({ icon: Icon, label, onClick }) => (
     <div
       onClick={onClick}
@@ -109,38 +100,25 @@ export default function Header() {
             />
           </nav>
 
-          {/* Grupo de botones de login / dashboard */}
-          <div className="hidden md:flex items-center gap-3">
-            {/* Botón 1 (Normal) */}
-            <button
-              onClick={handleMainButton}
-              className={`
-                inline-flex px-5 py-2 text-sm font-medium rounded-full shadow transition hover:scale-[1.03]
-                ${
-                  isAuthenticated
-                    ? 'bg-gray-600 text-white hover:bg-gray-700'
-                    : 'bg-black text-white'
-                }
-              `}
-            >
-              {isAuthenticated ? 'Dashboard' : 'Iniciar sesión'}
-            </button>
-
-            {/* Botón 2 (Inicia sesión 2) */}
-            <button
-              onClick={handleSecondButton}
-              className={`
-                inline-flex px-5 py-2 text-sm font-medium rounded-full border border-black/10 shadow-sm transition hover:scale-[1.03]
-                ${
-                  isAuthenticated
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'bg-white text-black hover:bg-gray-50'
-                }
-              `}
-            >
-              {isAuthenticated ? 'Client Panel' : 'Iniciar sesión 2'}
-            </button>
-          </div>
+          {/* Botón login / dashboard */}
+          <button
+            onClick={handleMainButton}
+            className={`
+              hidden md:inline-flex
+              px-5 py-2
+              text-sm font-medium
+              rounded-full
+              shadow
+              transition hover:scale-[1.03]
+              ${
+                isAuthenticated
+                  ? 'bg-gray-600 text-white hover:bg-gray-700'
+                  : 'bg-black text-white'
+              }
+            `}
+          >
+            {isAuthenticated ? 'Dashboard' : 'Iniciar sesión'}
+          </button>
 
           {/* Botón hamburguesa */}
           <button
@@ -217,13 +195,13 @@ export default function Header() {
               }}
             />
 
-            <div className="pt-6 border-t border-black/10 flex flex-col gap-3">
+            <div className="pt-6 border-t border-black/10">
               <button
                 onClick={() => {
                   handleMainButton();
                   setOpen(false);
                 }}
-                className={`w-full rounded-full px-6 py-3 text-sm font-medium text-white shadow transition
+                className={`w-full rounded-full px-6 py-3 text-sm font-medium text-white shadow transition hover:scale-[1.03]
                   ${
                     isAuthenticated
                       ? 'bg-gray-600 hover:bg-gray-700'
@@ -232,22 +210,6 @@ export default function Header() {
                 `}
               >
                 {isAuthenticated ? 'Dashboard' : 'Iniciar sesión'}
-              </button>
-
-              <button
-                onClick={() => {
-                  handleSecondButton();
-                  setOpen(false);
-                }}
-                className={`w-full rounded-full px-6 py-3 text-sm font-medium shadow transition border border-black/10
-                  ${
-                    isAuthenticated
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-black'
-                  }
-                `}
-              >
-                {isAuthenticated ? 'Client Panel' : 'Iniciar sesión 2'}
               </button>
             </div>
           </nav>
