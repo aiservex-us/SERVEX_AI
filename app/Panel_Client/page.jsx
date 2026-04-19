@@ -1,20 +1,22 @@
 'use client';
 
 import React from 'react';
-import { supabase } from '../lib/supabaseClient';
+// CAMBIO CLAVE: Importamos supabaseGoogle para que use la sesión de clientes
+import { supabaseGoogle as supabase } from '../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
-import { FiLogOut } from 'react-icons/fi'; // Icono de salida
+import { FiLogOut } from 'react-icons/fi';
 
 export default function PanelClientPage() {
   const router = useRouter();
 
   const handleLogout = async () => {
+    // Esto ahora solo cerrará la sesión de Google y borrará 'sb-customer-session'
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error al cerrar sesión:', error.message);
     } else {
-      // Redirigir a la página de login principal o raíz
-      router.push('/');
+      // Redirigir a la página de login de clientes
+      router.push('/'); 
     }
   };
 
