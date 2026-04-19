@@ -7,24 +7,42 @@ import { createClient } from '@supabase/supabase-js';
 // =======================
 //
 
-// 🔹 Project URL (Tu URL de Supabase)
 const supabaseUrl = 'https://zotgxyupuiifnbuwwjkl.supabase.co';
+const supabaseAnonKey = 'sb_publishable_usgTKwhsIpmNIiGa_F4tiw_ah3THCTJ';
 
-// 🔹 Publishable key (Tu Anon Key)
-const supabaseAnonKey =
-  'sb_publishable_usgTKwhsIpmNIiGa_F4tiw_ah3THCTJ';
+/**
+ * 💡 SOLUCIÓN PARA SEPARAR SESIONES:
+ * Creamos dos clientes con diferentes 'storageKey'. 
+ * Esto hace que el navegador guarde los tokens en lugares distintos.
+ */
 
-// 🔹 Cliente Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Cliente para Trabajadores (Microsoft / Azure) - Usará el nombre por defecto o uno específico
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storageKey: 'sb-worker-session', // Llave única para trabajadores
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
+
+// Cliente para Clientes (Google / Customer Portal)
+export const supabaseGoogle = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storageKey: 'sb-customer-session', // Llave única para clientes externos
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 //
 // =======================
-// AUTH (SOLO AZURE)
+// AUTH (SOLO AZURE / TRABAJADORES)
 // =======================
 //
 
 // 🔐 Login con Microsoft Entra ID (Azure)
 export async function signInWithAzure() {
+  // Usa la instancia 'supabase' (Trabajadores)
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'azure',
   });
@@ -35,33 +53,21 @@ export async function signInWithAzure() {
   }
 }
 
-// 👤 Obtener usuario autenticado
-// 🔒 VALIDADO PARA AZURE + DOMINIO CORPORATIVO
+// 👤 Obtener usuario autenticado (TRABAJADORES)
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
 
-  // 💡 CORRECCIÓN APLICADA AQUÍ: Manejar el error de sesión faltante silenciosamente
   if (error) {
-    // Si el error es una 'Sesión Faltante', es un comportamiento esperado (usuario deslogueado).
     if (error.message.includes('Auth session missing')) {
-        // No hacer nada o registrar un log informativo, no un error.
-        // console.log('ℹ️ Auth session missing. User is logged out.');
         return null; 
     }
-    
-    // Si es cualquier otro error, imprimirlo
     console.error('❌ Error fetching user:', error);
     return null;
   }
 
-  // Si no hay data.user pero no hubo un error formal (caso borde, devolvemos null)
-  if (!data?.user) {
-    return null;
-  }
+  if (!data?.user) return null;
 
   const user = data.user;
-
-  // 📧 Azure puede enviar el email en distintos campos
   const email =
     user.email ||
     user.user_metadata?.email ||
@@ -70,61 +76,25 @@ export async function getCurrentUser() {
 
   const provider = user.app_metadata?.provider;
 
-  // 🔐 VALIDACIONES DE SEGURIDAD
   const isAzure = provider === 'azure';
-  // >>> REGLA DE DOMINIO: SOLO @servex-us.com
   const isAuthorizedDomain =
     email && email.toLowerCase().endsWith('@servex-us.com');
 
   if (!isAzure || !isAuthorizedDomain) {
-    console.warn(
-      '🚫 Acceso denegado:',
-      { email, provider }
-    );
-
-    // Cerramos sesión inmediatamente si no cumple con la regla de negocio
+    console.warn('🚫 Acceso denegado:', { email, provider });
     await supabase.auth.signOut();
     return null;
   }
 
-  // ✅ Usuario válido
   return {
     id: user.id,
     email,
-    provider,
-    raw: user, // objeto completo por si se necesita
-  };
-}
-
-// 👤 Obtener usuario para Clientes (Google)
-export async function getCurrentCustomer() {
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error) {
-    if (error.message.includes('Auth session missing')) return null;
-    console.error('❌ Error fetching customer:', error);
-    return null;
-  }
-
-  const user = data?.user;
-  if (!user) return null;
-
-  const provider = user.app_metadata?.provider;
-
-  // Solo permitimos si el proveedor es Google
-  if (provider !== 'google') {
-    return null;
-  }
-
-  return {
-    id: user.id,
-    email: user.email,
     provider,
     raw: user,
   };
 }
 
-// 🔁 Escuchar cambios de sesión (opcional pero útil)
+// 🔁 Escuchar cambios de sesión
 export function subscribeToAuthState(callback) {
   const {
     data: { subscription },
@@ -135,7 +105,7 @@ export function subscribeToAuthState(callback) {
   return subscription;
 }
 
-// 🚪 Logout
+// 🚪 Logout (TRABAJADORES)
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) {
@@ -149,7 +119,6 @@ export async function signOut() {
 // =======================
 //
 
-// 💾 Guardar auditoría (ROBUSTO PARA AZURE)
 export async function saveAuditToSupabase({ audit_content, user }) {
   if (!user?.id) {
     console.warn('⚠️ Auditoría sin usuario válido');
