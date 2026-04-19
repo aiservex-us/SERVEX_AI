@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { supabase, getCurrentCustomer } from '../lib/supabaseClient'; // Importamos validación de cliente
+// CAMBIO AQUÍ: Importamos específicamente el cliente de Google
+import { supabaseGoogle as supabase } from '../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc'; 
 import Image from 'next/image';
@@ -24,12 +25,10 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    // Validamos que sea un cliente (Google)
-    getCurrentCustomer().then((user) => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         const audio = new Audio('/tu-sonido.mp3');
-        audio.play().catch(err => console.log("Autoplay bloqueado:", err));
-        
+        audio.play().catch(err => console.log("El navegador bloqueó el autoplay:", err));
         router.push('/Panel_Client');
       }
     });
@@ -47,9 +46,10 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-[#c7d2fe] via-[#ddd6fe] to-[#bfdbfe]" />
           <div className="relative z-10">
             <div className="text-4xl font-bold mb-4">*</div>
-            <p className="text-sm opacity-80 mb-2">Customer Portal</p>
+            <p className="text-sm opacity-80 mb-2">Secure corporate access</p>
             <h2 className="text-2xl font-semibold leading-snug">
-              Access your project status and management tools via Google account.
+              Sign in to the SERVEX AI ecosystem and unlock intelligent tools
+              built for enterprise performance
             </h2>
           </div>
         </div>
@@ -61,11 +61,14 @@ export default function LoginPage() {
 
           <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
             <h1 className="text-2xl font-semibold text-gray-900 mb-4 text-center">
-              Customer Portal
+              Access SERVEX AI Platform
             </h1>
-
             <p className="text-sm text-gray-500 mb-8 text-center leading-relaxed">
-              Authorized access for SERVEX US customers.
+              This platform provides secure access to the SERVEX artificial intelligence ecosystem.
+              <br />
+              <span className="font-medium text-gray-700">
+                Only users with a <strong>@servex-us.com</strong> corporate email are authorized to sign in.
+              </span>
             </p>
 
             <button
@@ -77,7 +80,7 @@ export default function LoginPage() {
             </button>
 
             <p className="text-xs text-gray-400 text-center mt-8">
-              Activity monitored for security purposes.
+              Unauthorized access is restricted. All activity is monitored for security purposes.
             </p>
           </div>
         </div>

@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { supabase, getCurrentUser } from '../lib/supabaseClient'; // Importamos la función de validación
+// Importamos la instancia estándar (Azure)
+import { supabase } from '../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
 import { FaMicrosoft } from 'react-icons/fa';
 import Image from 'next/image';
@@ -20,12 +21,10 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    // Usamos la función que valida Azure + Dominio
-    getCurrentUser().then((user) => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         const audio = new Audio('/tu-sonido.mp3');
-        audio.play().catch(err => console.log("Autoplay bloqueado:", err));
-        
+        audio.play().catch(err => console.log("El navegador bloqueó el autoplay:", err));
         router.push('/panel');
       }
     });
@@ -58,14 +57,13 @@ export default function LoginPage() {
 
           <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
             <h1 className="text-2xl font-semibold text-gray-900 mb-4 text-center">
-              Employee Access
+              Access SERVEX AI Platform
             </h1>
-
             <p className="text-sm text-gray-500 mb-8 text-center leading-relaxed">
-              Internal platform for SERVEX workers.
+              This platform provides secure access to the SERVEX artificial intelligence ecosystem.
               <br />
               <span className="font-medium text-gray-700">
-                Only <strong>@servex-us.com</strong> accounts are authorized.
+                Only users with a <strong>@servex-us.com</strong> corporate email are authorized to sign in.
               </span>
             </p>
 
@@ -78,7 +76,7 @@ export default function LoginPage() {
             </button>
 
             <p className="text-xs text-gray-400 text-center mt-8">
-              Unauthorized access is restricted.
+              Unauthorized access is restricted. All activity is monitored for security purposes.
             </p>
           </div>
         </div>
