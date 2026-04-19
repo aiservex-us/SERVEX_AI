@@ -96,6 +96,34 @@ export async function getCurrentUser() {
   };
 }
 
+// 👤 Obtener usuario para Clientes (Google)
+export async function getCurrentCustomer() {
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error) {
+    if (error.message.includes('Auth session missing')) return null;
+    console.error('❌ Error fetching customer:', error);
+    return null;
+  }
+
+  const user = data?.user;
+  if (!user) return null;
+
+  const provider = user.app_metadata?.provider;
+
+  // Solo permitimos si el proveedor es Google
+  if (provider !== 'google') {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    provider,
+    raw: user,
+  };
+}
+
 // 🔁 Escuchar cambios de sesión (opcional pero útil)
 export function subscribeToAuthState(callback) {
   const {
