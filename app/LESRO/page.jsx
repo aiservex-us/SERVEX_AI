@@ -69,7 +69,7 @@ export default function MenuInicial() {
       case 'compare': return <Compare />
       case 'AI_reporter': return <Responce_ai />
       default:
-        return <div className="p-6 text-gray-500">View under construction</div>;
+        return <div className="p-6 text-gray-500">View under construction.</div>;
     }
   };
 
