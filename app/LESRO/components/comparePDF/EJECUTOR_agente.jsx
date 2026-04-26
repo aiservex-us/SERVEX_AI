@@ -13,14 +13,12 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedModal, setCopiedModal] = useState(false);
 
-  // EFECTO PARA ABRIR AUTOMÁTICAMENTE CUANDO LLEGA INFO
   useEffect(() => {
     if (reportText && !isProcessing) {
       setIsModalOpen(true);
     }
   }, [reportText, isProcessing]);
 
-  // Componente de Renderizado de Markdown (Mismo estilo que AgentInfo)
   const MarkdownContent = ({ content, isSmall = false }) => (
     <div className={`prose prose-slate max-w-none
       prose-headings:text-[#464775] prose-headings:font-bold
@@ -115,32 +113,32 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
         </div>
       </section>
 
-      {/* MODAL FULL REPORT (CON ESTILO AGENTINFO) */}
+      {/* MODAL FULL REPORT ACTUALIZADO */}
       {isModalOpen && (
         <div 
           className="fixed inset-0 z-[200] flex items-center justify-center p-6"
-          style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', backgroundColor: 'rgba(30, 30, 50, 0.55)' }}
+          style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
           onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
         >
           <div 
-            className="w-full max-w-5xl bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-            style={{ maxHeight: '90vh' }}
+            className="w-full max-w-5xl bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-200"
+            style={{ maxHeight: '92vh' }}
           >
-            {/* Header del Modal */}
-            <div className="bg-[#464775] px-6 py-4 flex items-center justify-between flex-shrink-0">
+            {/* Header Limpio (Sin fondo morado) */}
+            <div className="bg-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="bg-white/15 p-1.5 rounded border border-white/20">
-                  <FileText size={18} className="text-white" />
+                <div className="bg-gray-50 p-1.5 rounded border border-gray-200">
+                  <FileText size={18} className="text-[#464775]" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-white font-bold text-sm tracking-tight">Console Executive Report</p>
-                    <div className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">
-                      <Zap size={8} className="text-yellow-400 fill-yellow-400" />
-                      <span className="text-[8px] font-bold text-white/80 tracking-wider">v4.10</span>
+                    <p className="text-gray-900 font-bold text-sm tracking-tight">Executive Audit Report</p>
+                    <div className="flex items-center gap-1 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+                      <Zap size={8} className="text-yellow-600 fill-yellow-600" />
+                      <span className="text-[8px] font-bold text-gray-500 tracking-wider">v4.10</span>
                     </div>
                   </div>
-                  <p className="text-white/50 text-[10px] font-medium uppercase tracking-widest">SVX Intelligence · Full Document View</p>
+                  <p className="text-gray-400 text-[10px] font-medium uppercase tracking-widest">SVX Intelligence · Full Document</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -150,14 +148,15 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
                     setCopiedModal(true);
                     setTimeout(() => setCopiedModal(false), 2000);
                   }}
-                  className="flex items-center gap-1.5 text-[11px] font-semibold bg-white/10 px-3 py-1.5 rounded border border-white/20 hover:bg-white/20 transition-all text-white"
+                  className="flex items-center gap-1.5 text-[11px] font-semibold bg-white px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 transition-all text-gray-600 shadow-sm"
                 >
-                  {copiedModal ? <Check size={12} /> : <Clipboard size={12} />}
-                  {copiedModal ? 'Copied!' : 'Copy'}
+                  {copiedModal ? <Check size={12} className="text-green-500" /> : <Clipboard size={12} />}
+                  {copiedModal ? 'Copied!' : 'Copy Document'}
                 </button>
+                <div className="w-px h-6 bg-gray-100 mx-1" />
                 <button 
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1.5 hover:bg-white/15 rounded transition-colors text-white/70 hover:text-white"
+                  className="p-1.5 hover:bg-gray-100 rounded transition-colors text-gray-400 hover:text-gray-600"
                 >
                   <X size={20} />
                 </button>
@@ -165,21 +164,22 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
             </div>
 
             {/* Document Body */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar bg-white">
-              <div className="px-10 lg:px-16 py-10">
+            <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#FCFCFC]">
+              <div className="max-w-4xl mx-auto px-8 lg:px-12 py-10 bg-white min-h-full shadow-[0_0_40px_rgba(0,0,0,0.02)]">
                 {/* Meta Bar interna */}
-                <div className="mb-10 pb-5 border-b border-gray-100 flex items-center justify-between">
+                <div className="mb-10 pb-6 border-b border-gray-100 flex items-end justify-between">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Bot size={22} className="text-[#464775]" />
-                      <h1 className="text-xl font-black text-gray-900 tracking-tight">Executive Audit Report</h1>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-1 bg-[#464775] rounded-full" />
+                      <p className="text-[10px] text-[#464775] font-black uppercase tracking-[0.2em]">Engineering Audit</p>
                     </div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.1em]">Generated by SVX Copilot · Engineering Audit</p>
+                    <h1 className="text-2xl font-black text-gray-900 tracking-tight">Intelligence Report</h1>
+                    <p className="text-[11px] text-gray-400 mt-1">Ref ID: SVX-{new Date().getFullYear()}-0425</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-[#464775] uppercase tracking-wider">Live Analysis Data</p>
-                    <p className="text-[10px] text-gray-400 font-medium">
-                      {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  <div className="text-right pb-1">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Date of Issue</p>
+                    <p className="text-xs font-bold text-gray-800">
+                      {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
@@ -188,19 +188,14 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
                 <MarkdownContent content={reportText} />
 
                 {/* Footer del Documento */}
-                <div className="mt-12 pt-6 border-t border-[#EDEBE9] flex justify-between items-center opacity-70">
-                   <div className="flex items-center gap-3 text-[9px] font-bold text-[#616161] uppercase tracking-[0.15em]">
-                    <div className="w-1.5 h-1.5 bg-[#464775] rounded-full" />
-                    <p>Powered by <span className="text-[#464775]">Servex_AI Core Logic</span></p>
+                <div className="mt-16 pt-8 border-t border-gray-100 flex justify-between items-center opacity-60">
+                   <div className="flex items-center gap-3 text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em]">
+                    <p>Powered by <span className="text-[#464775]">Servex_AI Logic</span></p>
                   </div>
-                  <div className="flex gap-4 items-center text-[9px] font-bold text-[#616161] uppercase">
+                  <div className="flex gap-4 items-center text-[9px] font-bold text-gray-400 uppercase">
                     <div className="flex items-center gap-1">
                       <Shield size={10} />
-                      <span>Azure OAuth</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Cloud size={10} />
-                      <span>SVX_PROD</span>
+                      <span>Secured Environment</span>
                     </div>
                   </div>
                 </div>
