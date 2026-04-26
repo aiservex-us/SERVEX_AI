@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Se agregó useEffect
 import { 
   Bot, Sparkles, Clipboard, Check, 
   Zap, Maximize2, X, FileText
@@ -10,6 +10,13 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [copiedModal, setCopiedModal] = useState(false);
+
+  // EFECTO PARA ABRIR AUTOMÁTICAMENTE
+  useEffect(() => {
+    if (reportText && !isProcessing) {
+      setIsModalOpen(true);
+    }
+  }, [reportText, isProcessing]);
 
   const formatReport = (text) => {
     if (!text) return null;
