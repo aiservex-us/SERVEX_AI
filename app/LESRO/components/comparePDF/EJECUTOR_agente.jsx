@@ -92,7 +92,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
         <div className="p-5">
           <div className="flex items-center gap-2 text-[#464775] mb-3">
             <Bot size={18} />
-            <h3 className="text-sm font-bold text-gray-900">Executive Audit Report</h3>
+            <h3 className="text-xs font-bold text-gray-900">Executive Audit Report</h3>
           </div>
 
           <div className="bg-white border border-gray-100 rounded-md p-4 h-40 overflow-y-auto custom-scrollbar">
