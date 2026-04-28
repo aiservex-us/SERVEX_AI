@@ -22,7 +22,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
   const MarkdownContent = ({ content, isSmall = false }) => (
     <div className={`prose prose-slate max-w-none
       prose-headings:text-[#464775] prose-headings:font-bold
-      ${isSmall ? 'prose-p:text-[11px]' : 'prose-p:text-[12px]'}
+      ${isSmall ? 'prose-p:text-[9px]' : 'prose-p:text-[9px]'}
       prose-h2:text-lg prose-h2:border-b prose-h2:border-[#F0F0F0] prose-h2:pb-2
       prose-p:text-[#424242] prose-p:leading-relaxed
       prose-strong:text-[#464775] prose-strong:font-bold
