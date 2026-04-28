@@ -92,7 +92,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
         <div className="p-5">
           <div className="flex items-center gap-2 text-[#464775] mb-3">
             <Bot size={18} />
-            <h3 className="text-xs font-bold text-gray-900">Executive Audit Report</h3>
+            <h3 className="text-s font-bold text-gray-900">Executive Audit Report</h3>
           </div>
 
           <div className="bg-white border border-gray-100 rounded-md p-4 h-40 overflow-y-auto custom-scrollbar">
@@ -106,7 +106,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
               <MarkdownContent content={reportText} isSmall={true} />
             ) : (
               <div className="h-full flex items-center justify-center">
-                <p className="text-xs text-gray-400 italic">No data currently processed.</p>
+                <p className="text-s text-gray-400 italic">No data currently processed.</p>
               </div>
             )}
           </div>
@@ -132,7 +132,7 @@ const EjecutorAgente = ({ reportText, isProcessing }) => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="text-gray-900 font-bold text-sm tracking-tight">Executive Audit Report</p>
+                    <p className="text-gray-900 font-bold text-s tracking-tight">Executive Audit Report</p>
                     <div className="flex items-center gap-1 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
                       <Zap size={8} className="text-yellow-600 fill-yellow-600" />
                       <span className="text-[8px] font-bold text-gray-500 tracking-wider">v4.10</span>
