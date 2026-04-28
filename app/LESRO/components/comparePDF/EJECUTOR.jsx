@@ -275,17 +275,6 @@ const SVXUnifiedPlatform = () => {
                         {row.map((cell, ci) => {
                           const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                           const isCellDiff = masterCell !== null && cell !== masterCell;
-                          
-                          // Lógica de cálculo de porcentaje
-                          let percentage = null;
-                          if (isCellDiff) {
-                            const oldVal = parseFloat(masterCell?.toString().replace(/[^0-9.-]+/g,""));
-                            const newVal = parseFloat(cell?.toString().replace(/[^0-9.-]+/g,""));
-                            if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
-                              percentage = ((newVal - oldVal) / oldVal) * 100;
-                            }
-                          }
-
                           return (
                             <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
                               {isCellDiff ? (
@@ -294,11 +283,6 @@ const SVXUnifiedPlatform = () => {
                                   <div className="flex items-center gap-1 text-[#237B4B] font-bold">
                                     <FiArrowRight size={10} /><span>{cell}</span>
                                   </div>
-                                  {percentage !== null && (
-                                    <span className={`text-[8px] font-black mt-1 ${percentage >= 0 ? 'text-[#237B4B]' : 'text-red-600'}`}>
-                                      {percentage >= 0 ? '+' : ''}{percentage.toFixed(2)}%
-                                    </span>
-                                  )}
                                 </div>
                               ) : (
                                 <span className="text-gray-600">{cell}</span>
