@@ -57,6 +57,7 @@ const SVXUnifiedPlatform = () => {
   // --- SUPABASE STATES ---
   const [auditReportJson, setAuditReportJson] = useState(null);
   const [xmlActualizerRaw, setXmlActualizerRaw] = useState("");
+  const [visualDiffRecords, setVisualDiffRecords] = useState([]); // Nuevo estado para la columna visual
 
   // --- CONTROL STATES ---
   const [isProcessing, setIsProcessing] = useState(false);
@@ -73,17 +74,17 @@ const SVXUnifiedPlatform = () => {
   const [isMaximized, setIsMaximized] = useState(false);
 
   // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT) ---
-  const handleSaveToCloud = async (csvRawContent) => {
+  const handleSaveToCloud = async (csvRawContent, diffsArray = []) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authorized");
 
-      // Implementación del UPSERT con base en tus requerimientos
       const { error } = await supabase
         .from('ClientsSERVEX')
         .upsert({
           company_name: 'LESRO', 
           csv_raw: csvRawContent,
+          audit_diff_visual_json: diffsArray, // SE GUARDA EL JSON CON PORCENTAJES AQUÍ
           user_id: user.id,
           updated_at: new Date()
         }, { 
@@ -122,7 +123,7 @@ const SVXUnifiedPlatform = () => {
     try {
       const { data: dbData, error } = await supabase
         .from('ClientsSERVEX')
-        .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
+        .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw, audit_diff_visual_json') 
         .eq('company_name', 'LESRO')
         .single();
       
@@ -136,6 +137,7 @@ const SVXUnifiedPlatform = () => {
         setAuditReportJson(report);
         setXmlActualizerRaw(dbData.xml_updated_raw); 
         setAgentReport(dbData.informa_agent_raw || "");
+        setVisualDiffRecords(dbData.audit_diff_visual_json || []);
   
         if (dbData.csv_raw && data.length > 0) {
             const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
@@ -147,9 +149,31 @@ const SVXUnifiedPlatform = () => {
             const currentRows = data.slice(headerIndex + 1);
             const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
   
+            // GENERACIÓN DE DIFERENCIAS Y CÁLCULO DE PORCENTAJES
+            const auditVisualData = [];
             const auditResults = currentRows.map((row, idx) => {
               const mRow = masterRowsOnly[idx] || [];
               const isDifferent = JSON.stringify(row) !== JSON.stringify(mRow);
+              
+              if (isDifferent) {
+                row.forEach((cell, ci) => {
+                  const oldVal = parseFloat(mRow[ci]);
+                  const newVal = parseFloat(cell);
+                  if (mRow[ci] !== cell) {
+                    let pct = 0;
+                    if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
+                      pct = ((newVal - oldVal) / oldVal) * 100;
+                    }
+                    auditVisualData.push({
+                      row_index: idx,
+                      col_index: ci,
+                      old_value: mRow[ci],
+                      new_value: cell,
+                      percentage: pct.toFixed(2)
+                    });
+                  }
+                });
+              }
               return { row, mRow, isDifferent };
             });
   
@@ -160,6 +184,10 @@ const SVXUnifiedPlatform = () => {
               setDiffCount(discrepancies.length);
               setMasterDataRows(discrepancies.map(d => d.mRow));
               setData([header, ...discrepancies.map(d => d.row)]);
+              
+              // SE DISPARA EL GUARDADO AUTOMÁTICO DE LAS DIFERENCIAS CON PORCENTAJE
+              const csvRawRaw = data.map(r => r.join(',')).join('\n');
+              handleSaveToCloud(csvRawRaw, auditVisualData);
             } else {
               setMatchStatus('match');
             }
@@ -234,7 +262,7 @@ const SVXUnifiedPlatform = () => {
   const handleFullReset = () => {
     setData([]); setFile(null); setFileName(""); setMatchStatus(null);
     setBackendSuccess(false); setAuditReportJson(null); setXmlActualizerRaw("");
-    setMasterDataRows([]);
+    setMasterDataRows([]); setVisualDiffRecords([]);
   };
 
   const renderVisualizerContent = () => (
@@ -275,6 +303,10 @@ const SVXUnifiedPlatform = () => {
                         {row.map((cell, ci) => {
                           const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                           const isCellDiff = masterCell !== null && cell !== masterCell;
+                          
+                          // Buscar el registro de diferencia guardado para obtener el porcentaje
+                          const diffRecord = visualDiffRecords.find(d => d.row_index === ri && d.col_index === ci);
+
                           return (
                             <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
                               {isCellDiff ? (
@@ -283,6 +315,11 @@ const SVXUnifiedPlatform = () => {
                                   <div className="flex items-center gap-1 text-[#237B4B] font-bold">
                                     <FiArrowRight size={10} /><span>{cell}</span>
                                   </div>
+                                  {diffRecord && diffRecord.percentage !== "0.00" && (
+                                    <span className="text-[8px] mt-1 text-[#237B4B] bg-[#237B4B]/10 px-1 rounded w-fit font-black">
+                                      {diffRecord.percentage > 0 ? '+' : ''}{diffRecord.percentage}%
+                                    </span>
+                                  )}
                                 </div>
                               ) : (
                                 <span className="text-gray-600">{cell}</span>
