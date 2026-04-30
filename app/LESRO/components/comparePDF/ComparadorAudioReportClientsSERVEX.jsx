@@ -55,7 +55,7 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
   }, {});
 
   return (
-    <div className="min-h-screen bg-[#F3F5F7] p-4 font-sans text-slate-600">
+    <div className="min-h-screen bg-[#FFF] p-4 font-sans text-slate-600">
       {/* HEADER CON BUSCADOR */}
       <header className="mb-6 flex flex-col md:flex-row md:items-end justify-between px-2 gap-4">
         <div>
