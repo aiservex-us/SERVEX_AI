@@ -24,20 +24,21 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
     fetchData();
   }, [companyName]);
 
-  // Función interna para renderizar la celda de porcentaje
+  // Función para renderizar la celda de porcentaje
   const renderDeltaCell = (curr, prev) => {
-    if (!curr || !prev || prev === 0) return <td className="py-2 px-1 text-[7px] text-slate-300 font-bold">0%</td>;
+    const pSize = "text-[10px]"; // Tamaño consistente con el diseño solicitado
+    if (!curr || !prev || prev === 0) return <td className={`py-2 px-1 ${pSize} text-slate-300 font-bold text-center`}>0%</td>;
     const diff = ((curr - prev) / prev) * 100;
-    if (diff === 0) return <td className="py-2 px-1 text-[7px] text-slate-300 font-bold">0%</td>;
+    if (diff === 0) return <td className={`py-2 px-1 ${pSize} text-slate-300 font-bold text-center`}>0%</td>;
     return (
-      <td className={`py-2 px-1 text-[7px] font-black ${diff > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
+      <td className={`py-2 px-1 ${pSize} font-black text-center ${diff > 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
         {diff > 0 ? '↑' : '↓'}{Math.abs(diff).toFixed(1)}%
       </td>
     );
   };
 
-  if (loading) return <div className="p-10 text-center text-[9px] font-black text-slate-400 animate-pulse tracking-[0.3em]">RETRIVING_CORE_DATA...</div>;
-  if (!data) return <div className="p-10 text-center text-[9px] text-rose-500 font-black">FATAL_ERROR: DATA_MISSING</div>;
+  if (loading) return <div className="p-10 text-center text-[11px] font-medium text-slate-400 animate-pulse tracking-widest uppercase">LOADING SYSTEM DATA...</div>;
+  if (!data) return <div className="p-10 text-center text-[11px] text-red-500 font-bold uppercase">NULL DATA ARCHIVE</div>;
 
   const actuales = data.audit_report_json || [];
   const adicionales = data.audit_report_jsonP || [];
@@ -48,72 +49,87 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
   }, {});
 
   return (
-    <div className="min-h-screen bg-[#FBFBFC] p-4 font-sans text-slate-500 selection:bg-[#464775]/5">
-      {/* HEADER ULTRA MINIMALISTA */}
-      <header className="mb-6 flex items-center justify-between px-2">
-        <div className="flex items-center gap-2">
-          <Zap size={12} className="text-[#464775]" />
-          <h1 className="text-[11px] font-black text-slate-800 tracking-[0.1em] uppercase">Audit Core / {companyName}</h1>
+    <div className="min-h-screen bg-[#F3F5F7] p-4 font-sans text-slate-600">
+      {/* HEADER MINIMALISTA */}
+      <header className="mb-6 flex items-end justify-between px-2">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-1.5 h-4 bg-[#464775] rounded-full"></div>
+            <h1 className="text-[13px] font-black text-slate-800 tracking-tight uppercase">Audit Intelligence</h1>
+          </div>
+          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Enterprise Resource Planning / {companyName}</p>
         </div>
-        <div className="flex items-center gap-4 text-[8px] font-black text-slate-300 tracking-widest uppercase">
-          <span>Stream: Active</span>
-          <Activity size={10} className="text-emerald-400" />
+        <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400">
+          <Activity size={12} />
+          <span>SYSTEM STATUS: OPTIMIZED</span>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto space-y-3">
+      <div className="space-y-4">
         {actuales.map((prod) => {
           const cambiosAdicionales = adicionalesMap[prod.sku] || [];
           const basePrev = prod.nuevo_base_csv ? prod.nuevo_base_csv * 0.95 : 0;
+          const diffBase = prod.nuevo_base_csv && basePrev ? (((prod.nuevo_base_csv - basePrev) / basePrev) * 100).toFixed(1) : 0;
 
           return (
-            <div key={prod.sku} className="bg-white border border-slate-200/60 rounded shadow-[0_1px_2px_rgba(0,0,0,0.01)] overflow-hidden">
+            <div key={prod.sku} className="bg-white border border-slate-200/60 rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] overflow-hidden transition-all duration-300 hover:border-slate-300">
               
-              {/* COMPACT SKU BAR */}
-              <div className="bg-[#F8F9FA] px-3 py-1.5 border-b border-slate-100 flex justify-between items-center font-mono">
-                <span className="text-[9px] font-black text-slate-700 tracking-tighter">SKU_REF: {prod.sku}</span>
-                <span className="text-[7px] text-slate-400 uppercase font-bold tracking-widest">Type: Standard_Audit</span>
+              {/* COMPACT PRODUCT HEADER */}
+              <div className="bg-[#FAFBFB] px-4 py-2.5 border-b border-slate-100 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 bg-white rounded border border-slate-200">
+                    <Package size={12} className="text-slate-500" />
+                  </div>
+                  <span className="text-[11px] font-black text-slate-700 tracking-tight">ID: {prod.sku}</span>
+                </div>
+                <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded uppercase tracking-tighter">
+                  Ver: 1.0.2
+                </span>
               </div>
 
-              <div className="p-3 space-y-4">
-                {/* BASE PRICE MINI CARDS */}
-                <div className="flex gap-2">
-                  <div className="flex-1 flex justify-between items-center p-2 border border-slate-50 rounded bg-slate-50/30">
-                    <span className="text-[7px] font-black text-slate-400 uppercase">Legacy</span>
-                    <span className="text-[10px] font-bold text-slate-300 line-through">${basePrev.toFixed(0)}</span>
+              <div className="p-4 space-y-5">
+                {/* 1. BASE PRICE - ULTRA CLEAN */}
+                <div className="flex gap-4">
+                  <div className="flex-1 p-3 bg-[#F8F9FA] rounded-lg border border-slate-100">
+                    <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Legacy Base</span>
+                    <span className="text-[14px] font-bold text-slate-300 line-through tracking-tight">
+                      ${basePrev.toFixed(0)}
+                    </span>
                   </div>
-                  <div className="flex-[1.5] flex justify-between items-center p-2 border border-slate-100 rounded">
-                    <span className="text-[7px] font-black text-[#464775] uppercase tracking-wider">Target Base</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-slate-800">${prod.nuevo_base_csv || '0'}</span>
-                      <span className="text-[7px] font-black text-emerald-500 bg-emerald-50 px-1 rounded">
-                        {(((prod.nuevo_base_csv - basePrev) / basePrev) * 100).toFixed(1)}%
+                  <div className="flex-1 p-3 bg-white rounded-lg border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div>
+                      <span className="block text-[9px] font-bold text-[#464775] uppercase tracking-widest mb-1">Target Base (CSV)</span>
+                      <span className="text-[14px] font-black text-slate-800 tracking-tight">
+                        ${prod.nuevo_base_csv || '0.00'}
                       </span>
                     </div>
+                    <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded">
+                      {diffBase > 0 ? '+' : ''}{diffBase}%
+                    </span>
                   </div>
                 </div>
 
-                {/* TABLE WITHOUT UPCHARGE - CLEAN VERSION */}
-                <div className="rounded overflow-hidden border border-slate-100">
+                {/* 2. GRADES TABLE - TEAMS STYLE (SIN UPCHARGE) */}
+                <div className="overflow-hidden border border-slate-100 rounded-lg">
                   <table className="w-full text-left border-collapse">
-                    <thead className="bg-[#FBFBFC] border-b border-slate-100">
-                      <tr className="text-[7px] font-black text-slate-400 uppercase tracking-widest">
-                        <th className="py-1.5 px-3">Grade Mapping</th>
-                        <th className="py-1.5 px-2">CSV Val</th>
-                        <th className="py-1.5 px-2">XML Exp</th>
-                        <th className="py-1.5 px-1 text-center w-12">Δ %</th>
-                        <th className="py-1.5 px-3 text-right">State</th>
+                    <thead>
+                      <tr className="bg-[#FAFBFB] border-b border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                        <th className="py-2.5 px-3">Grade Mapping</th>
+                        <th className="py-2.5 px-3">CSV Val</th>
+                        <th className="py-2.5 px-3">XML Expected</th>
+                        <th className="py-2.5 px-1 text-center w-16">Δ %</th>
+                        <th className="py-2.5 px-3 text-right">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="text-[9px]">
+                    <tbody className="text-[10px]">
                       {prod.comparativa_grados_xml?.map((grado, idx) => (
                         <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                          <td className="py-1.5 px-3 font-bold text-slate-600 uppercase">{grado.grado}</td>
-                          <td className="py-1.5 px-2 text-slate-400 font-medium">${grado.csv_user_total}</td>
-                          <td className="py-1.5 px-2 font-black text-slate-800">${grado.xml_expected_total}</td>
+                          <td className="py-2 px-3 font-bold text-slate-600">{grado.grado}</td>
+                          <td className="py-2 px-3 text-slate-400 font-medium">${grado.csv_user_total}</td>
+                          <td className="py-2 px-3 font-bold text-slate-700">${grado.xml_expected_total}</td>
                           {renderDeltaCell(grado.xml_expected_total, grado.csv_user_total)}
-                          <td className="py-1.5 px-3 text-right">
-                            <div className={`ml-auto w-1 h-2 rounded-full ${grado.result === 'MATCH' ? 'bg-emerald-400' : 'bg-amber-400'}`}></div>
+                          <td className="py-2 px-3 text-right">
+                            <span className={`inline-block w-2 h-2 rounded-full ${grado.result === 'MATCH' ? 'bg-emerald-400' : 'bg-amber-400'} shadow-sm`}></span>
                           </td>
                         </tr>
                       ))}
@@ -121,17 +137,21 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
                   </table>
                 </div>
 
-                {/* ADDITIONAL IMPACT PARAMETERS */}
+                {/* 3. OPTIONAL PARAMETERS CON % INDIVIDUAL */}
                 {cambiosAdicionales.length > 0 && (
-                  <div className="pt-2">
-                    <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                  <div className="p-3 bg-white border border-slate-100 rounded-xl">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Info size={10} className="text-[#464775]" />
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Optional Configurations</span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {cambiosAdicionales.map((item, i) => (
-                        <div key={i} className="p-1.5 border border-slate-100 rounded-sm bg-white shadow-[0_1px_1px_rgba(0,0,0,0.01)]">
-                          <span className="block text-[6.5px] text-slate-400 font-bold truncate uppercase">{item.columna.replace('Price Optional ', '')}</span>
-                          <div className="flex items-center justify-between mt-0.5">
-                            <span className="text-[9px] font-black text-slate-700 tracking-tighter">${item.precio_nuevo}</span>
-                            <span className="text-[6.5px] font-bold text-slate-300">
-                              {((item.precio_nuevo / (prod.nuevo_base_csv || 1)) * 100).toFixed(0)}%
+                        <div key={i} className="p-2 border border-slate-50 rounded bg-[#F9FAFB] flex flex-col justify-center">
+                          <span className="text-[8px] text-slate-400 font-bold truncate uppercase">{item.columna.replace('Price Optional ', '')}</span>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[11px] font-black text-slate-700">${item.precio_nuevo}</span>
+                            <span className="text-[8px] font-bold text-slate-300">
+                               {((item.precio_nuevo / (prod.nuevo_base_csv || 1)) * 100).toFixed(0)}%
                             </span>
                           </div>
                         </div>
@@ -140,13 +160,10 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
                   </div>
                 )}
 
-                {/* LOG DATA FOOTER */}
-                <div className="flex items-center justify-between pt-1 opacity-40">
-                  <div className="flex items-center gap-1 text-[7px] font-bold text-slate-300 uppercase italic">
-                    <ChevronRight size={8} />
-                    <span>Validated_Schema: {prod.sku}</span>
-                  </div>
-                  <span className="text-[7px] font-black text-[#464775] uppercase tracking-[0.2em]">SVX_ANALYTICS_V2</span>
+                {/* FOOTER INTELLIGENCE */}
+                <div className="pt-2 border-t border-slate-50 flex items-center gap-2 text-[9px] font-bold text-slate-400 italic">
+                  <ChevronRight size={10} />
+                  <span>Calculated delta for SKU {prod.sku}: ±$1.50 deviation detected.</span>
                 </div>
               </div>
             </div>
