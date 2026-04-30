@@ -12,14 +12,16 @@ import {
   ChevronLeft,
   X,
   LayoutTemplate,
-  FileDiff
-} from 'lucide-react';
+  FileDiff,
+  GitCompare // <--- ¡Asegúrate de que esta línea esté aquí!
+} from 'lucide-react';;
 
 const menuItems = [
   { id: 'reporting', label: 'LESRO HOME', icon: LayoutDashboard, sub: 'Analysis' },
   { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
   { id: 'inbox', label: 'Excel Preview', icon: Inbox, sub: 'Visualization' },
   { id: 'kanban', label: 'XML Pre Prosses', icon: KanbanSquare, sub: 'Structure' },
+  { id: 'audit_comparator', label: 'Audit Comparator', icon: GitCompare, sub: 'Before / After' },
   { id: 'dashboard', label: 'XML Post Prosses', icon:  KanbanSquare, sub: 'Statistics' },
   { id: 'AI_reporter', label: 'AI Reporte', icon:  KanbanSquare, sub: 'Statistics' },
 ];
