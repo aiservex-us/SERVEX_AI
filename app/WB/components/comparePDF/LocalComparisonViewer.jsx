@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
 import { DownloadCloud } from 'lucide-react';
-import { supabase } from '../../../lib/supabaseClient';
 
 const LocalComparisonViewer = ({
   file,
@@ -11,60 +10,6 @@ const LocalComparisonViewer = ({
   matchStatus,
   processFileSelection
 }) => {
-  useEffect(() => {
-    const saveAuditDiffVisualJson = async () => {
-      if (!file || !data?.length || matchStatus !== 'mismatch') return;
-
-      try {
-        const visualDiffJson = data.slice(1).map((row, rowIndex) => ({
-          rowIndex,
-          recordId: row[0] || null,
-          values: row.map((cell, cellIndex) => {
-            const masterCell = masterDataRows[rowIndex]
-              ? masterDataRows[rowIndex][cellIndex]
-              : null;
-
-            const isDifferent =
-              masterCell !== null && cell !== masterCell;
-
-            return {
-              columnIndex: cellIndex,
-              columnName: data[0]?.[cellIndex] || `column_${cellIndex}`,
-              currentValue: cell,
-              masterValue: masterCell,
-              isDifferent,
-              changePercent:
-                isDifferent &&
-                !isNaN(parseFloat(masterCell)) &&
-                !isNaN(parseFloat(cell)) &&
-                parseFloat(masterCell) !== 0
-                  ? (((parseFloat(cell) - parseFloat(masterCell)) /
-                      parseFloat(masterCell)) *
-                      100).toFixed(2)
-                  : null
-            };
-          })
-        }));
-
-        const { error } = await supabase
-          .from('ClientsSERVEX')
-          .update({
-            audit_diff_visual_json: visualDiffJson
-          })
-          .eq('company_name', 'LESRO');
-
-        if (error) {
-          throw error;
-        }
-
-        console.log('audit_diff_visual_json saved successfully:', visualDiffJson);
-      } catch (error) {
-        console.error('Error saving audit_diff_visual_json:', error);
-      }
-    };
-
-    saveAuditDiffVisualJson();
-  }, [file, data, masterDataRows, matchStatus]);
   return (
     <motion.div
       key="console"
