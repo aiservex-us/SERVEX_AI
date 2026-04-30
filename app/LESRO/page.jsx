@@ -68,7 +68,7 @@ export default function MenuInicial() {
       case 'reporting': return <AIReporting />; 
       case 'compare': return <Compare />;
       case 'AI_reporter': return <Responce_ai />;
-      case 'AI_reporter': return <ComparadorAuditReportClientsSERVEX />;
+      case 'audit_comparator': return <ComparadorAuditReportClientsSERVEX />;
       default:
         return <div className="p-6 text-gray-500">View under construction.</div>;
     }
