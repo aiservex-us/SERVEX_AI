@@ -27,8 +27,7 @@ import { supabase } from '../../../lib/supabaseClient';
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EjecutorAgente from './EJECUTOR_agente';
 import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; 
-import EJECUTOR_PLAY from './EJECUTOR_PLAY'; 
-import VisualDiffSaver from './VisualDiffSaver'; // ADAPTACIÓN DE IMPORTACIÓN
+import EJECUTOR_PLAY from './EJECUTOR_PLAY'; // IMPORTADO
 
 const SVXUnifiedPlatform = () => {
   // --- TUTORIAL ALERT STATE ---
@@ -457,14 +456,6 @@ const SVXUnifiedPlatform = () => {
         </div>,
         document.body
       )}
-
-      {/* ADAPTACIÓN DE PERSISTENCIA AUTOMÁTICA */}
-      <VisualDiffSaver 
-        data={data} 
-        masterDataRows={masterDataRows} 
-        matchStatus={matchStatus}
-        isProcessing={isProcessing}
-      />
     </div>
   );
 };
