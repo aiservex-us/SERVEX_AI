@@ -46,13 +46,18 @@ const LocalComparisonViewer = ({
           })
         }));
 
-        await supabase
+        const { error } = await supabase
           .from('ClientsSERVEX')
           .update({
-            audit_diff_visual_json: visualDiffJson,
-            updated_at: new Date().toISOString()
+            audit_diff_visual_json: visualDiffJson
           })
           .eq('company_name', 'LESRO');
+
+        if (error) {
+          throw error;
+        }
+
+        console.log('audit_diff_visual_json saved successfully:', visualDiffJson);
       } catch (error) {
         console.error('Error saving audit_diff_visual_json:', error);
       }
