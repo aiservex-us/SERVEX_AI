@@ -39,7 +39,7 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
         {/* Modal Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-white">
           <h2 className="text-[14px] font-semibold text-[#242424] flex items-center gap-2">
-            <div className="w-1.5 h-4 bg-[#5B5FC7] rounded-full shadow-sm"></div>
+            <div className="w-1.5 h-4 bg-[#464775] rounded-full shadow-sm"></div>
             SERVEX DATA EXPERIENCE
           </h2>
         </div>
@@ -62,7 +62,7 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
                 <h3 className="text-lg font-bold text-[#242424] leading-tight">
                   Evolve your workflow
                 </h3>
-                <p className="text-[11px] text-[#5B5FC7] font-bold mt-0.5 tracking-wider uppercase">
+                <p className="text-[11px] text-[#464775] font-bold mt-0.5 tracking-wider uppercase">
                   Next-Gen Data Orchestration
                 </p>
               </div>
@@ -71,7 +71,7 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
                 <p className="text-[#424242] text-[13px] leading-relaxed">
                   Welcome to the new era of management at <strong>Servex US</strong>. We have optimized the platform to deliver an industrial-grade experience.
                 </p>
-                <div className="bg-gray-50 p-3 rounded-md border-l-4 border-[#5B5FC7]">
+                <div className="bg-gray-50 p-3 rounded-md border-l-4 border-[#464775]">
                   <p className="text-[12px] text-[#616161] leading-snug">
                     Forget obsolete flows. With <strong>SVX Command & Copilot</strong>, you will process data in seconds under a high-availability architecture.
                   </p>
@@ -81,21 +81,44 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Footer with Buttons */}
+        {/* Footer with Buttons & Info Bubbles (Tooltips) */}
         <div className="px-6 py-4 bg-[#F9F9F9] flex flex-col sm:flex-row-reverse gap-2 border-t border-gray-100">
-          <button
-            onClick={handleClientRedirect}
-            className="px-4 py-1.5 bg-[#5B5FC7] hover:bg-[#464775] text-white text-[12px] font-semibold rounded transition-all shadow-sm active:scale-95"
-          >
-            Client Access
-          </button>
           
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 bg-white border border-[#D1D1D1] hover:bg-[#F0F0F0] text-[#242424] text-[12px] font-semibold rounded transition-all active:scale-95"
-          >
-            I am a Collaborator
-          </button>
+          {/* Button: Client Access */}
+          <div className="relative group">
+            <button
+              onClick={handleClientRedirect}
+              className="w-full sm:w-auto px-4 py-1.5 bg-[#464775] text-white text-[12px] font-semibold rounded 
+                         transition-all duration-300 ease-out
+                         hover:bg-[#3b3c63] hover:shadow-md hover:-translate-y-0.5 
+                         active:scale-[0.97] active:translate-y-0"
+            >
+              Client Access
+            </button>
+            {/* Info Bubble - English Version */}
+            <div className="absolute bottom-full mb-2 right-0 w-60 p-3 bg-[#242424] text-white text-[10px] rounded shadow-xl opacity-0 translate-y-2 pointer-events-none transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 z-10">
+              As a <strong>SERVEX</strong> client, access your command center to <strong>upload, transform, and manage your XML catalogs</strong> with data engineering tools that simplify every update.
+              <div className="absolute top-full right-6 border-4 border-transparent border-t-[#242424]"></div>
+            </div>
+          </div>
+          
+          {/* Button: Collaborator */}
+          <div className="relative group">
+            <button
+              onClick={onClose}
+              className="w-full sm:w-auto px-4 py-1.5 bg-white border border-[#D1D1D1] text-[#242424] text-[12px] font-semibold rounded 
+                         transition-all duration-300 ease-out
+                         hover:bg-[#F0F0F0] hover:border-gray-400 hover:shadow-sm hover:-translate-y-0.5
+                         active:scale-[0.97] active:translate-y-0"
+            >
+              I am a Collaborator
+            </button>
+            {/* Info Bubble - English Version */}
+            <div className="absolute bottom-full mb-2 left-0 w-60 p-3 bg-[#242424] text-white text-[10px] rounded shadow-xl opacity-0 translate-y-2 pointer-events-none transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 z-10">
+              Access <strong>SVX Copilot</strong> to monitor XML file integrity, execute mapping processes, and ensure seamless data synchronization with the Servex ecosystem.
+              <div className="absolute top-full left-6 border-4 border-transparent border-t-[#242424]"></div>
+            </div>
+          </div>
           
           <div className="flex-1 flex items-center">
             <span className="text-[9px] text-gray-400 font-medium tracking-tighter uppercase">
@@ -110,7 +133,6 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
 };
 
 // --- MAIN COMPONENT (HOME) ---
-// Eliminado el tipo explícito JSX.Element para evitar errores de namespace
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
