@@ -14,26 +14,22 @@ export default function Home() {
       <Header />
 
       {/* Contenido principal */}
-      <main className="pt-[80px]  flex flex-col">
+      <main className="  flex flex-col">
         <section className="w-full">
           <Main1 />
         </section>
         <section className="w-full">
-        <Main3 />
-         </section>
-         <section className="w-full">
-          <MainGif />
+          <Cards />
         </section>
+      
         <section className="w-full">
           <Main2 />
         </section>
-       
         <section className="w-full">
-          <Cards />
+          <MainGif />
         </section>
-        <section className="w-full">
-          <Cdata />
-        </section>
+
+ 
 
         <Footer />
       </main>
