@@ -110,7 +110,8 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
 };
 
 // --- MAIN COMPONENT (HOME) ---
-export default function Home(): JSX.Element {
+// Eliminado el tipo explícito JSX.Element para evitar errores de namespace
+export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
