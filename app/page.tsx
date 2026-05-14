@@ -1,7 +1,22 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-// Your existing component imports
+import { 
+  Users, 
+  LayoutDashboard, 
+  RefreshCcw, 
+  FileCode, 
+  ShieldCheck, 
+  Database, 
+  Download, 
+  ArrowRight,
+  Grid,
+  Search,
+  Bell,
+  Settings
+} from 'lucide-react';
+
+// Componentes existentes
 import Header from './components/header';
 import Main1 from './components/main1';
 import Main2 from './components/main2';
@@ -9,13 +24,53 @@ import Cards from './components/cards';
 import Footer from './components/footer';
 import MainGif from './components/main3';
 
-// --- INTERFACES FOR TYPESCRIPT ---
 interface WelcomePopupProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// --- POPUP COMPONENT (MINIMALIST/PROFESSIONAL STYLE) ---
+// --- PORTAL CARD COMPONENT (Teams Style) ---
+const PortalSection = ({ title, subtitle, description, features, buttonText, onClick, colorClass, gradientClass, iconColor }: any) => (
+  <div className="flex flex-col bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all group">
+    <div className="flex items-center gap-3 mb-4">
+      <div className={`p-2.5 rounded-lg bg-gradient-to-br ${gradientClass} shadow-sm border border-white/20`}>
+        {title.includes("COLABORADORES") ? 
+          <Users size={22} className="text-white" /> : 
+          <ShieldCheck size={22} className="text-white" />
+        }
+      </div>
+      <div>
+        <h4 className={`font-bold text-[15px] leading-tight ${iconColor}`}>{title}</h4>
+        <span className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">{subtitle}</span>
+      </div>
+    </div>
+    
+    <p className="text-[12px] text-gray-600 mb-6 leading-relaxed">
+      {description}
+    </p>
+
+    <div className="space-y-4 mb-8 flex-1">
+      {features.map((f: any, i: number) => (
+        <div key={i} className="flex items-start gap-3">
+          <div className="mt-0.5 text-gray-400">{f.icon}</div>
+          <div>
+            <p className="text-[12px] font-bold text-gray-800 leading-none">{f.label}</p>
+            <p className="text-[10px] text-gray-500 mt-1">{f.desc}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <button 
+      onClick={onClick}
+      className={`w-full py-2.5 rounded text-white text-[12px] font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${colorClass} hover:brightness-110`}
+    >
+      {buttonText} <ArrowRight size={14} />
+    </button>
+  </div>
+);
+
+// --- POPUP COMPONENT (CRM LARGE STYLE) ---
 const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
@@ -25,105 +80,61 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
 
   return (
     <div 
-      className="fixed inset-0 z-[999] flex items-center justify-center p-4 animate-in fade-in duration-500 bg-cover bg-center"
+      className="fixed inset-0 z-[999] flex items-center justify-center p-6 animate-in fade-in duration-500 bg-cover bg-center"
       style={{ 
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), url('/fondo_popup_inicio.jpg')` 
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), url('/fondo22.jpg')` 
       }}
     >
-      {/* Subtle blur overlay */}
       <div className="absolute inset-0 bg-white/20 backdrop-blur-[4px]"></div>
 
-      {/* Popup Card */}
-      <div className="relative w-full max-w-[500px] bg-white rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-gray-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-[950px] bg-[#FFF] rounded-2xl shadow-[0_32px_120px_rgba(0,0,0,0.2)] border border-white/50 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
         
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-white">
-          <h2 className="text-[14px] font-semibold text-[#242424] flex items-center gap-2">
-            <div className="w-1.5 h-4 bg-[#464775] rounded-full shadow-sm"></div>
-            SERVEX DATA EXPERIENCE
-          </h2>
-        </div>
-
-        {/* Modal Body */}
-        <div className="p-6 text-left bg-white">
-          <div className="flex items-start gap-4">
-            
-            {/* Logo or Icon */}
-            <div className="hidden sm:flex shrink-0 w-12 h-12 bg-white rounded-xl items-center justify-center shadow-sm border border-gray-100 overflow-hidden">
-              <img 
-                src="/logo2.png" 
-                alt="SVX Logo"
-                className="w-8 h-8 object-contain"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <h3 className="text-lg font-bold text-[#242424] leading-tight">
-                  Evolve your workflow
-                </h3>
-                <p className="text-[11px] text-[#464775] font-bold mt-0.5 tracking-wider uppercase">
-                  Next-Gen Data Orchestration
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-[#424242] text-[13px] leading-relaxed">
-                  Welcome to the new era of management at <strong>Servex US</strong>. We have optimized the platform to deliver an industrial-grade experience.
-                </p>
-                <div className="bg-gray-50 p-3 rounded-md border-l-4 border-[#464775]">
-                  <p className="text-[12px] text-[#616161] leading-snug">
-                    Forget obsolete flows. With <strong>SVX Command & Copilot</strong>, you will process data in seconds under a high-availability architecture.
-                  </p>
-                </div>
-              </div>
-            </div>
+        <div className="p-10">
+          <div className="text-center mb-10">
+            <h3 className="text-3xl font-extrabold text-[#242424] tracking-tight">Select Your Ecosystem Portal</h3>
+            <p className="text-[14px] text-gray-500 mt-2">Welcome to the new era of data orchestrations at <strong>Servex US</strong>. Choose your entry point.</p>
           </div>
-        </div>
 
-        {/* Footer with Buttons & Info Bubbles (Tooltips) */}
-        <div className="px-6 py-4 bg-[#F9F9F9] flex flex-col sm:flex-row-reverse gap-2 border-t border-gray-100">
-          
-          {/* Button: Client Access */}
-          <div className="relative group">
-            <button
-              onClick={handleClientRedirect}
-              className="w-full sm:w-auto px-4 py-1.5 bg-[#464775] text-white text-[12px] font-semibold rounded 
-                         transition-all duration-300 ease-out
-                         hover:bg-[#3b3c63] hover:shadow-md hover:-translate-y-0.5 
-                         active:scale-[0.97] active:translate-y-0"
-            >
-              Client Access
-            </button>
-            {/* Info Bubble - English Version */}
-            <div className="absolute bottom-full mb-2 right-0 w-60 p-3 bg-[#242424] text-white text-[10px] rounded shadow-xl opacity-0 translate-y-2 pointer-events-none transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 z-10">
-              As a <strong>SERVEX</strong> client, access your command center to <strong>upload, transform, and manage your XML catalogs</strong> with data engineering tools that simplify every update.
-              <div className="absolute top-full right-6 border-4 border-transparent border-t-[#242424]"></div>
-            </div>
-          </div>
-          
-          {/* Button: Collaborator */}
-          <div className="relative group">
-            <button
+          <div className="grid md:grid-cols-2 gap-8">
+            <PortalSection 
+              title="PORTAL COLABORADORES"
+              subtitle="(SVX COPILOT)"
+              colorClass="bg-[#414141]"
+              gradientClass="from-[#717171] to-[#414141]"
+              iconColor="text-[#414141]"
+              description="Tu Centro de Mando Integral: Gestión avanzada de catálogos XML, automatización de flujos y monitoreo en tiempo real."
+              features={[
+                { icon: <LayoutDashboard size={16}/>, label: "Panel de Control", desc: "Métricas clave de ingeniería." },
+                { icon: <RefreshCcw size={16}/>, label: "Sincronización Técnica", desc: "Gestión de flujos activos." },
+                { icon: <FileCode size={16}/>, label: "Análisis de XML", desc: "Validación de estructura de datos." }
+              ]}
+              buttonText="Ingresar al Portal Interno"
               onClick={onClose}
-              className="w-full sm:w-auto px-4 py-1.5 bg-white border border-[#D1D1D1] text-[#242424] text-[12px] font-semibold rounded 
-                         transition-all duration-300 ease-out
-                         hover:bg-[#F0F0F0] hover:border-gray-400 hover:shadow-sm hover:-translate-y-0.5
-                         active:scale-[0.97] active:translate-y-0"
-            >
-              I am a Collaborator
-            </button>
-            {/* Info Bubble - English Version */}
-            <div className="absolute bottom-full mb-2 left-0 w-60 p-3 bg-[#242424] text-white text-[10px] rounded shadow-xl opacity-0 translate-y-2 pointer-events-none transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 z-10">
-              Access <strong>SVX Copilot</strong> to monitor XML file integrity, execute mapping processes, and ensure seamless data synchronization with the Servex ecosystem.
-              <div className="absolute top-full left-6 border-4 border-transparent border-t-[#242424]"></div>
-            </div>
+            />
+
+            <PortalSection 
+              title="ÁREA CLIENTES"
+              subtitle="(COMMAND CENTER)"
+              colorClass="bg-[#464775]"
+              gradientClass="from-[#5b5fc7] to-[#464775]"
+              iconColor="text-[#464775]"
+              description="Tu Centro de Comando para Proyectos: Control integral de cargas, descargas y transformaciones de catálogos corporativos."
+              features={[
+                { icon: <Database size={16}/>, label: "Mis Proyectos", desc: "Estado de integraciones CET." },
+                { icon: <Download size={16}/>, label: "Gestor de Catálogos", desc: "Carga masiva de archivos XML." },
+                { icon: <ShieldCheck size={16}/>, label: "Descargas Técnicas", desc: "Manuales y especificaciones." }
+              ]}
+              buttonText="Acceso Área Clientes"
+              onClick={handleClientRedirect}
+            />
           </div>
-          
-          <div className="flex-1 flex items-center">
-            <span className="text-[9px] text-gray-400 font-medium tracking-tighter uppercase">
-              SVX ECOSYSTEM © 2026
-            </span>
+        </div>
+
+        <div className="bg-white border-t border-gray-200 px-8 py-3 flex justify-between items-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+          <span>SVX ECOSYSTEM © 2026</span>
+          <div className="flex gap-6">
+            <span>Microsoft Teams UI System</span>
+            <span>Security Verified</span>
           </div>
         </div>
 
@@ -132,16 +143,33 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
   );
 };
 
-// --- MAIN COMPONENT (HOME) ---
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const hasClosedPopup = sessionStorage.getItem('svx_popup_closed');
-    
-    if (!hasClosedPopup) {
-      setIsModalOpen(true);
-    }
+    // Configuración del sonido utilizando tono1.mp3
+    const audio = new Audio('/tono1.mp3');
+    audio.play().catch(error => {
+      console.log("El audio no pudo reproducirse automáticamente debido a políticas del navegador:", error);
+    });
+
+    // Timer de 4 segundos para la animación inicial
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      audio.pause(); // Detener el audio cuando termina la carga
+      
+      // Solo abrir el modal después de que termine la animación si no se ha cerrado antes
+      const hasClosedPopup = sessionStorage.getItem('svx_popup_closed');
+      if (!hasClosedPopup) {
+        setIsModalOpen(true);
+      }
+    }, 4000);
+
+    return () => {
+      clearTimeout(timer);
+      audio.pause();
+    };
   }, []);
 
   const handleCloseModal = () => {
@@ -149,37 +177,35 @@ export default function Home() {
     setIsModalOpen(false);
   };
 
+  // Pantalla de carga (Splash Screen)
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-[1000] bg-white flex items-center justify-center">
+        <div className="animate-in fade-in zoom-in duration-1000">
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            className="w-48 h-auto animate-pulse" 
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full bg-[#FAF9F8] relative">
-      
-      {/* 1. Modal / Popup */}
       <WelcomePopup 
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
       />
 
-      {/* 2. App Content with blur effect when modal is open */}
       <div className={`transition-all duration-700 ${isModalOpen ? 'opacity-30 blur-md pointer-events-none' : 'opacity-100 blur-0'}`}>
-        
         <Header />
-
         <main className="flex flex-col">
-          <section className="w-full">
-            <Main1 />
-          </section>
-          
-          <section className="w-full">
-            <Cards />
-          </section>
-        
-          <section className="w-full">
-            <Main2 />
-          </section>
-
-          <section className="w-full">
-            <MainGif />
-          </section>
-
+          <section className="w-full"><Main1 /></section>
+          <section className="w-full"><Cards /></section>
+          <section className="w-full"><Main2 /></section>
+          <section className="w-full"><MainGif /></section>
           <Footer />
         </main>
       </div>
