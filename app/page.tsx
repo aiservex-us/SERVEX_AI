@@ -29,7 +29,9 @@ export default function Home() {
           <MainGif />
         </section>
 
- 
+        <section className="w-full">
+     
+        </section>
 
         <Footer />
       </main>
