@@ -10,6 +10,7 @@ import {
   FiMail,
   FiMenu,
   FiX,
+  FiExternalLink
 } from 'react-icons/fi';
 
 export default function Header() {
@@ -17,7 +18,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // 🔹 Detectar sesión
+  // 🔹 Detect Session
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setIsAuthenticated(!!data.user);
@@ -38,6 +39,11 @@ export default function Header() {
     } else {
       router.push('/login');
     }
+  };
+
+  const handleAccessSvx = () => {
+    // Opens in the same tab as requested
+    window.location.href = 'https://servex-clent-profle.vercel.app/';
   };
 
   const NavItem = ({ icon: Icon, label, onClick }) => (
@@ -63,7 +69,7 @@ export default function Header() {
             onClick={() => router.push('/')}
           />
 
-          {/* Navegación desktop */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <NavItem
               icon={FiInfo}
@@ -100,27 +106,47 @@ export default function Header() {
             />
           </nav>
 
-          {/* Botón login / dashboard */}
-          <button
-            onClick={handleMainButton}
-            className={`
-              hidden md:inline-flex
-              px-5 py-2
-              text-sm font-medium
-              rounded-full
-              shadow
-              transition hover:scale-[1.03]
-              ${
-                isAuthenticated
-                  ? 'bg-gray-600 text-white hover:bg-gray-700'
-                  : 'bg-black text-white'
-              }
-            `}
-          >
-            {isAuthenticated ? 'Dashboard' : 'Iniciar sesión'}
-          </button>
+          {/* Action Button Group */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* New Button: Access Svx Command */}
+            <button
+              onClick={handleAccessSvx}
+              className="
+                px-5 py-2
+                text-sm font-medium
+                rounded-full
+                border border-black/10
+                bg-white
+                text-black
+                transition hover:bg-gray-50 hover:scale-[1.03]
+                flex items-center gap-2
+              "
+            >
+              Access Svx Command
+              <FiExternalLink size={14} className="opacity-50" />
+            </button>
 
-          {/* Botón hamburguesa */}
+            {/* Login / Dashboard Button */}
+            <button
+              onClick={handleMainButton}
+              className={`
+                px-5 py-2
+                text-sm font-medium
+                rounded-full
+                shadow
+                transition hover:scale-[1.03]
+                ${
+                  isAuthenticated
+                    ? 'bg-gray-600 text-white hover:bg-gray-700'
+                    : 'bg-black text-white'
+                }
+              `}
+            >
+              {isAuthenticated ? 'Dashboard' : 'Sign In'}
+            </button>
+          </div>
+
+          {/* Mobile Hamburger Button */}
           <button
             onClick={() => setOpen(true)}
             className="md:hidden p-2 rounded-full hover:bg-black/5 transition"
@@ -130,9 +156,9 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Overlay móvil */}
+      {/* Mobile Overlay */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-white">
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
           <div className="flex items-center justify-between px-4 py-4 border-b border-black/10">
             <img
               src="/logo.png"
@@ -195,13 +221,22 @@ export default function Header() {
               }}
             />
 
-            <div className="pt-6 border-t border-black/10">
+            <div className="pt-6 border-t border-black/10 flex flex-col gap-3">
+              {/* Access Svx Command Button on Mobile */}
+              <button
+                onClick={handleAccessSvx}
+                className="w-full rounded-full px-6 py-3 text-sm font-medium bg-white text-black border border-black/10 shadow-sm transition active:scale-95 flex justify-center items-center gap-2"
+              >
+                Access Svx Command
+                <FiExternalLink size={14} />
+              </button>
+
               <button
                 onClick={() => {
                   handleMainButton();
                   setOpen(false);
                 }}
-                className={`w-full rounded-full px-6 py-3 text-sm font-medium text-white shadow transition hover:scale-[1.03]
+                className={`w-full rounded-full px-6 py-3 text-sm font-medium text-white shadow transition active:scale-95
                   ${
                     isAuthenticated
                       ? 'bg-gray-600 hover:bg-gray-700'
@@ -209,7 +244,7 @@ export default function Header() {
                   }
                 `}
               >
-                {isAuthenticated ? 'Dashboard' : 'Iniciar sesión'}
+                {isAuthenticated ? 'Dashboard' : 'Sign In'}
               </button>
             </div>
           </nav>
