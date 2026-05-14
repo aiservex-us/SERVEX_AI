@@ -16,7 +16,7 @@ import {
   Settings
 } from 'lucide-react';
 
-// Componentes existentes
+// Existing components
 import Header from './components/header';
 import Main1 from './components/main1';
 import Main2 from './components/main2';
@@ -34,7 +34,7 @@ const PortalSection = ({ title, subtitle, description, features, buttonText, onC
   <div className="flex flex-col bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all group">
     <div className="flex items-center gap-3 mb-4">
       <div className={`p-2.5 rounded-lg bg-gradient-to-br ${gradientClass} shadow-sm border border-white/20`}>
-        {title.includes("COLABORADORES") ? 
+        {title.includes("PARTNERS") || title.includes("COLABORATORS") ? 
           <Users size={22} className="text-white" /> : 
           <ShieldCheck size={22} className="text-white" />
         }
@@ -85,7 +85,7 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
         backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), url('/fondo22.jpg')` 
       }}
     >
-      <div className="absolute inset-0 bg-white/20 backdrop-blur-[4px]"></div>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[4px]"></div>
 
       <div className="relative w-full max-w-[950px] bg-[#FFF] rounded-2xl shadow-[0_32px_120px_rgba(0,0,0,0.2)] border border-white/50 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
         
@@ -97,34 +97,34 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
 
           <div className="grid md:grid-cols-2 gap-8">
             <PortalSection 
-              title="PORTAL COLABORADORES"
+              title="PARTNERS PORTAL"
               subtitle="(SVX COPILOT)"
               colorClass="bg-[#414141]"
               gradientClass="from-[#717171] to-[#414141]"
               iconColor="text-[#414141]"
-              description="Tu Centro de Mando Integral: Gestión avanzada de catálogos XML, automatización de flujos y monitoreo en tiempo real."
+              description="Automation engine for the new SERVEX-US furniture project. Technical orchestration and intelligent workflows."
               features={[
-                { icon: <LayoutDashboard size={16}/>, label: "Panel de Control", desc: "Métricas clave de ingeniería." },
-                { icon: <RefreshCcw size={16}/>, label: "Sincronización Técnica", desc: "Gestión de flujos activos." },
-                { icon: <FileCode size={16}/>, label: "Análisis de XML", desc: "Validación de estructura de datos." }
+                { icon: <FileCode size={16}/>, label: "XML Catalogs", desc: "Updates for CET Designer." },
+                { icon: <RefreshCcw size={16}/>, label: "Data Orchestration", desc: "Automated ETL pipelines." },
+                { icon: <LayoutDashboard size={16}/>, label: "Engineering Control", desc: "Real-time flow monitoring." }
               ]}
-              buttonText="Ingresar al Portal Interno"
+              buttonText="Enter Internal Portal"
               onClick={onClose}
             />
 
             <PortalSection 
-              title="ÁREA CLIENTES"
+              title="CLIENT AREA"
               subtitle="(COMMAND CENTER)"
               colorClass="bg-[#464775]"
               gradientClass="from-[#5b5fc7] to-[#464775]"
               iconColor="text-[#464775]"
-              description="Tu Centro de Comando para Proyectos: Control integral de cargas, descargas y transformaciones de catálogos corporativos."
+              description="Your Command Center for autonomous product management. Evolve your operations and leave Excel limitations behind."
               features={[
-                { icon: <Database size={16}/>, label: "Mis Proyectos", desc: "Estado de integraciones CET." },
-                { icon: <Download size={16}/>, label: "Gestor de Catálogos", desc: "Carga masiva de archivos XML." },
-                { icon: <ShieldCheck size={16}/>, label: "Descargas Técnicas", desc: "Manuales y especificaciones." }
+                { icon: <Database size={16}/>, label: "Catalog Management", desc: "Total control without spreadsheets." },
+                { icon: <Download size={16}/>, label: "My Projects", desc: "Live integration status." },
+                { icon: <ShieldCheck size={16}/>, label: "Download Area", desc: "Manuals and corporate resources." }
               ]}
-              buttonText="Acceso Área Clientes"
+              buttonText="Access Client Area"
               onClick={handleClientRedirect}
             />
           </div>
@@ -148,26 +148,26 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Verificar si ya se mostró la animación en esta pestaña (sessionStorage)
+    // Check if the animation has already been shown in this tab (sessionStorage)
     const hasSeenAnimation = sessionStorage.getItem('svx_animation_seen');
 
     if (hasSeenAnimation) {
-      // Si ya se vio, quitamos el loading de inmediato y no abrimos el modal
+      // If already seen, remove loading immediately and don't open the modal
       setIsLoading(false);
       return;
     }
 
-    // Si es la primera vez en la pestaña:
+    // If it's the first time in the tab:
     const audio = new Audio('/tono1.mp3');
     audio.play().catch(error => {
-      console.log("Audio bloqueado:", error);
+      console.log("Audio blocked:", error);
     });
 
     const timer = setTimeout(() => {
       setIsLoading(false);
       audio.pause();
       
-      // Marcamos que la animación ya se vio en esta sesión
+      // Mark that the animation has been seen in this session
       sessionStorage.setItem('svx_animation_seen', 'true');
       
       const hasClosedPopup = sessionStorage.getItem('svx_popup_closed');
@@ -187,7 +187,7 @@ export default function Home() {
     setIsModalOpen(false);
   };
 
-  // Pantalla de carga (Splash Screen)
+  // Splash Screen
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-[1000] bg-white flex items-center justify-center">
