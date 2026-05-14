@@ -148,18 +148,28 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Configuración del sonido utilizando tono1.mp3
+    // Verificar si ya se mostró la animación en esta pestaña (sessionStorage)
+    const hasSeenAnimation = sessionStorage.getItem('svx_animation_seen');
+
+    if (hasSeenAnimation) {
+      // Si ya se vio, quitamos el loading de inmediato y no abrimos el modal
+      setIsLoading(false);
+      return;
+    }
+
+    // Si es la primera vez en la pestaña:
     const audio = new Audio('/tono1.mp3');
     audio.play().catch(error => {
-      console.log("El audio no pudo reproducirse automáticamente debido a políticas del navegador:", error);
+      console.log("Audio bloqueado:", error);
     });
 
-    // Timer de 4 segundos para la animación inicial
     const timer = setTimeout(() => {
       setIsLoading(false);
-      audio.pause(); // Detener el audio cuando termina la carga
+      audio.pause();
       
-      // Solo abrir el modal después de que termine la animación si no se ha cerrado antes
+      // Marcamos que la animación ya se vio en esta sesión
+      sessionStorage.setItem('svx_animation_seen', 'true');
+      
       const hasClosedPopup = sessionStorage.getItem('svx_popup_closed');
       if (!hasClosedPopup) {
         setIsModalOpen(true);
