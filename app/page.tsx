@@ -222,7 +222,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#FAF9F8] relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#FFF] relative overflow-hidden">
       <WelcomePopup 
         isOpen={isModalOpen} 
         onClose={handleCloseModal} 
