@@ -51,7 +51,7 @@ const ServexModernFooter = () => {
     <footer className="font-inter bg-white overflow-hidden">
       
       {/* CONTACT SECTION */}
-      <div className="bg-gray-50 border-b border-white px-6 py-14 md:px-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+      <div className="bg-white border-b border-white px-6 py-14 md:px-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
         <div className="space-y-2">
           <span className="text-xs font-semibold tracking-widest text-gray-500 uppercase">
             Heard enough? →
@@ -190,7 +190,7 @@ const ServexModernFooter = () => {
       </div>
 
       {/* BOTTOM BAR */}
-      <div className="bg-gray-50 px-6 md:px-16 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="bg-white px-6 md:px-16 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <a
           href="https://glynneai.com"
           target="_blank"
