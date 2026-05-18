@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+// Cambiado con alias para apuntar transparentemente al segundo proyecto sin romper tu lógica interna
+import { supabaseSecondProject as supabase } from '@/app/lib/supabaseClient';
 
 export default function FileSlotsManager({ onSelectSlot }) {
   const [loading, setLoading] = useState(true);
