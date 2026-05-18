@@ -1,4 +1,3 @@
-// app/lib/supabaseClient.js
 import { createClient } from '@supabase/supabase-js';
 
 //
@@ -144,3 +143,21 @@ export async function saveAuditToSupabase({ audit_content, user }) {
 
   return { data, error: null };
 }
+
+//
+// ============================================
+// CONEXIÓN ADICIONAL (SEGUNDO PROYECTO SUPABASE)
+// ============================================
+//
+
+const secondSupabaseUrl = 'https://jktxlojmqxkitnagljwz.supabase.co';
+const secondSupabaseAnonKey = 'sb_publishable_ErJWTHF6NQzrqzKj9HIw2w_68qijBMn';
+
+// Cliente independiente listo para interactuar con las tablas del otro proyecto
+export const supabaseSecondProject = createClient(secondSupabaseUrl, secondSupabaseAnonKey, {
+  auth: {
+    storageKey: 'sb-second-project-session', // Evita conflictos con las sesiones anteriores
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
