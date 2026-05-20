@@ -7,7 +7,7 @@ import PanelMenur from './components/PaginaInicial/initPage';
 
 export default function PanelPage() {
   const router = useRouter();
-{/*
+
   // 🔒 PROTECCIÓN DE RUTA PARA TRABAJADORES
   useEffect(() => {
     const checkUser = async () => {
@@ -20,7 +20,7 @@ export default function PanelPage() {
     };
 
     checkUser();
-  }, [router]); */}
+  }, [router]); 
 
   return (
     /* Contenedor padre sin scroll y altura completa */
