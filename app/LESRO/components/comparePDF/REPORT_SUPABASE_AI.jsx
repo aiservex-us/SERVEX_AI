@@ -108,34 +108,7 @@ const AgentInfo = () => {
       >
 
         {/* Header */}
-        <div className="bg-[#d3d3d3] p-3 px-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center border border-white/20">
-              <Bot size={14} className="text-gray-300" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <h1 className="text-gray-300 font-bold text-[10px] leading-none tracking-tight">Console Executive Report</h1>
-                <div className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">
-                  <Zap size={7} className="text-yellow-400 fill-yellow-400" />
-                  <span className="text-[7px] font-bold text-white/80 tracking-wider">v4.10</span>
-                </div>
-              </div>
-              <p className="text-gray-300 text-[8px] uppercase tracking-[0.2em] mt-1 font-bold">Auditoría de Ingeniería</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-white/10 border border-white/10 rounded text-[7px] font-bold text-white/60 uppercase tracking-wider">
-              <Sparkles size={7} />
-              SVX_PROD
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1 bg-white/10 border border-white/10 rounded">
-              <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-white text-[8px] font-bold uppercase tracking-widest">Live Data</span>
-            </div>
-          </div>
-        </div>
-
+       
         {/* Meta bar */}
         <div className="px-6 py-2 bg-[#FBFBFB] border-b border-[#EDEBE9] flex items-center gap-4">
           <div className="flex items-center gap-1.5">
