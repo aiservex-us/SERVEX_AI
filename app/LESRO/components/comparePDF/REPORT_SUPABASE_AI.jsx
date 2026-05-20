@@ -110,7 +110,7 @@ const AgentInfo = () => {
         {/* Header */}
        
         {/* Meta bar */}
-        <div className="px-6 py-2 bg-[#FBFBFB] border-b border-[#EDEBE9] flex items-center gap-4">
+        <div className="px-6 py-2 bg-[#FFF] border-b border-[#EDEBE9] flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <FileText size={9} className="text-[#464775]" />
             <span className="text-[8px] font-bold text-[#616161] uppercase tracking-wider">Full Document View</span>
