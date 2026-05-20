@@ -108,20 +108,20 @@ const AgentInfo = () => {
       >
 
         {/* Header */}
-        <div className="bg-[#464775] p-3 px-6 flex items-center justify-between">
+        <div className="bg-[#d3d3d3] p-3 px-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center border border-white/20">
-              <Bot size={14} className="text-white" />
+              <Bot size={14} className="text-gray-300" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5">
-                <h1 className="text-white font-bold text-[10px] leading-none tracking-tight">Console Executive Report</h1>
+                <h1 className="text-gray-300 font-bold text-[10px] leading-none tracking-tight">Console Executive Report</h1>
                 <div className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">
                   <Zap size={7} className="text-yellow-400 fill-yellow-400" />
                   <span className="text-[7px] font-bold text-white/80 tracking-wider">v4.10</span>
                 </div>
               </div>
-              <p className="text-white/60 text-[8px] uppercase tracking-[0.2em] mt-1 font-bold">Auditoría de Ingeniería</p>
+              <p className="text-gray-300 text-[8px] uppercase tracking-[0.2em] mt-1 font-bold">Auditoría de Ingeniería</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
