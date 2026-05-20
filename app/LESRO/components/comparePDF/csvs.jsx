@@ -89,7 +89,7 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="flex flex-col h-full w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-full w-[90vw] bg-[#FFF] font-sans text-[#242424] overflow-hidden">
       
       {/* COMPACT ALIGNED HEADER */}
       <div className="bg-white px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">

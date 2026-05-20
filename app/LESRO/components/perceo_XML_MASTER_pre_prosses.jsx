@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
@@ -137,12 +138,12 @@ const LesroPricingMaster = () => {
   if (loading) return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-[#FFF] p-6">
       <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
-      <span className="text-sm font-semibold text-[#242424]">Calculando matrices de precios...</span>
+      <span className="text-sm font-semibold text-[#242424] text-center px-4">Calculando matrices de precios...</span>
     </div>
   );
 
   return (
-    <div className="flex flex-col h-full w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-full w-full max-w-full bg-[#FFF] font-sans text-[#242424] overflow-hidden">
       
       {/* HEADER */}
       <div className="bg-white px-4 md:px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
@@ -151,8 +152,8 @@ const LesroPricingMaster = () => {
             <div className="bg-[#5B5FC7] p-2 rounded-lg shadow-md shrink-0">
               <Layout size={20} className="text-white" />
             </div>
-            <div className="truncate">
-              <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424] truncate">
                   LESRO Pricing Master
                 </h2>
@@ -167,7 +168,7 @@ const LesroPricingMaster = () => {
           </div>
 
           {/* STATS CAPSULES */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 sm:self-center self-start">
             {[
               { label: "Products", value: stats.total },
               { label: "Avg Base", value: `$${stats.avgPrice}` }
@@ -195,16 +196,20 @@ const LesroPricingMaster = () => {
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
-            <button onClick={processXML} className="p-1.5 hover:bg-[#F0F0F0] rounded-full text-[#616161]">
+            <button 
+              onClick={processXML} 
+              className="p-2 hover:bg-[#F0F0F0] rounded-full text-[#616161] transition-colors"
+              title="Reload from xml_raw"
+            >
                 <RefreshCw size={14} />
             </button>
         </div>
       </div>
 
       {/* TABLE AREA */}
-      <div className="flex-1 m-2 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
+      <div className="flex-1 m-2 md:m-3 bg-white rounded-lg shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
         {filtered.length > 0 ? (
-          <div className="flex-1 overflow-auto custom-scrollbar">
+          <div className="flex-1 overflow-auto custom-scrollbar w-full">
             <table className="min-w-full border-separate border-spacing-0 text-[10px]">
               <thead>
                 <tr className="bg-[#FAF9F8]">
@@ -250,7 +255,7 @@ const LesroPricingMaster = () => {
             </table>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center flex-1 py-10">
+          <div className="flex flex-col items-center justify-center flex-1 py-10 px-4 text-center">
             <TableIcon size={32} className="text-[#D1D1D1] mb-2" />
             <p className="text-xs font-semibold text-[#616161]">No products matched your search</p>
           </div>
@@ -258,12 +263,12 @@ const LesroPricingMaster = () => {
       </div>
 
       {/* FOOTER */}
-      <div className="px-4 py-1.5 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[9px] font-medium text-[#616161] shrink-0 w-full">
-        <div className="flex items-center gap-2">
+      <div className="px-4 py-2 bg-white border-t border-[#EDEBE9] flex sm:flex-row flex-col justify-between items-center gap-2 text-[9px] font-medium text-[#616161] shrink-0 w-full">
+        <div className="flex items-center gap-2 order-2 sm:order-1">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
           <span>Showing {filtered.length} of {products.length} Products</span>
         </div>
-        <div className="bg-[#5B5FC7]/10 px-2 py-0.5 rounded text-[#5B5FC7] font-bold uppercase text-[8px]">
+        <div className="bg-[#5B5FC7]/10 px-2 py-0.5 rounded text-[#5B5FC7] font-bold uppercase text-[8px] order-1 sm:order-2 self-end sm:self-center">
           XML Live Engine
         </div>
       </div>
@@ -283,3 +288,4 @@ const LesroPricingMaster = () => {
 };
 
 export default LesroPricingMaster;
+
