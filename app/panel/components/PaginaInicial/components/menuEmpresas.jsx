@@ -59,15 +59,6 @@ export default function Calendar() {
       {/* ===================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-        <CompanyCard
-          company="LESRO"
-          logo="/logosEmpresas/lesro.png"
-          role="Enterprise Furniture Manufacturing"
-          tags={['Analytics', 'Automation', 'Orders']}
-          status="Active contract"
-          location="United States"
-          onOpen={() => router.push('/LESRO')}
-        />
 
         <CompanyCard
             company="WB Tables"
@@ -98,6 +89,16 @@ export default function Calendar() {
            location="United States"
             onOpen={() => router.push('/WB')}
 />
+
+<CompanyCard
+          company="LESRO"
+          logo="/logosEmpresas/lesro.png"
+          role="Enterprise Furniture Manufacturing"
+          tags={['Analytics', 'Automation', 'Orders']}
+          status="Active contract"
+          location="United States"
+          onOpen={() => router.push('/LESRO')}
+        />
 
         <CompanyCard
           company="Teknion"
