@@ -162,7 +162,7 @@ const AgentInfo = () => {
         </div>
 
         {/* Footer */}
-        <div className="bg-[#FBFBFB] border-t border-[#EDEBE9] p-3 px-6 flex justify-between items-center text-[8px] text-[#616161] font-bold uppercase tracking-[0.15em]">
+        <div className="bg-[#FFF] border-t border-[#EDEBE9] p-3 px-6 flex justify-between items-center text-[8px] text-[#616161] font-bold uppercase tracking-[0.15em]">
           <div className="flex items-center gap-3">
             <div className="w-1 h-1 bg-[#464775] rounded-full" />
             <p>Powered by <span className="text-[#464775]">Servex_AI Core Logic</span></p>
