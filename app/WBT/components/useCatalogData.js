@@ -14,7 +14,7 @@ export const useCatalogData = () => {
       if (!user) return;
 
       const { data } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_WBT')
         .select('xml_raw')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })

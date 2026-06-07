@@ -16,7 +16,7 @@ const AgentInfo = () => {
       try {
         setLoading(true);
         const { data, error: supabaseError } = await supabase
-          .from('ClientsSERVEX')
+          .from('ClientsSERVEX_WBT')
           .select('informa_agent_raw')
           .maybeSingle();
 

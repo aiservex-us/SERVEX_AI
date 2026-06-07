@@ -80,7 +80,7 @@ const SVXUnifiedPlatform = () => {
 
       // Implementación del UPSERT con base en tus requerimientos
       const { error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_WBT')
         .upsert({
           company_name: 'LESRO', 
           csv_raw: csvRawContent,

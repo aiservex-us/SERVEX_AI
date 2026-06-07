@@ -15,7 +15,7 @@ const IndependentLESROVisualizer = () => {
     const fetchIndependentData = async () => {
       try {
         const { data, error } = await supabase
-          .from('ClientsSERVEX')
+          .from('ClientsSERVEX_WBT')
           .select('xml_updated_raw')
           .eq('company_name', 'LESRO')
           .single();

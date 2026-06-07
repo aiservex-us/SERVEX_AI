@@ -18,7 +18,7 @@ const ConfigXML = ({ externalSearchSKU }) => {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) return setLoadingXML(false);
-                const { data, error } = await supabase.from('ClientsSERVEX').select('xml_raw').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single();
+                const { data, error } = await supabase.from('ClientsSERVEX_WBTX').select('xml_raw').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single();
                 if (error) throw error;
                 if (data?.xml_raw) {
                     const parser = new DOMParser();

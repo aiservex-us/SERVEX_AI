@@ -73,7 +73,7 @@ const SVXCopilotEnterprise = () => {
     setIsAnalyzing(true);
     try {
       const { data: dbRows, error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_WBT')
         .select('csv_raw')
         .not('csv_raw', 'is', null)
         .limit(1); 
