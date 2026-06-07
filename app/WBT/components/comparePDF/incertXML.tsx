@@ -34,6 +34,74 @@ export default function UploadClientXML() {
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
   const csvPdfInputRef = useRef<HTMLInputElement | null>(null); 
 
+  // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (Equivalente al Script de Python) ---
+  const sanitizeCSV = (rawCsvText: string): any[] => {
+    if (!rawCsvText || !rawCsvText.trim()) return [];
+
+    // Separar por líneas nativas
+    const lines = rawCsvText.split(/\r?\n/);
+    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return [];
+
+    const rawHeaderAccum: string[] = [];
+    let dataStartIndex = 0;
+    let openQuotes = false;
+
+    // Detectar si la cabecera está rota en múltiples líneas por comillas abiertas
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      rawHeaderAccum.push(line);
+      
+      // Cuenta cuántas comillas hay para ver si cierran el bloque
+      const quoteCount = (line.match(/"/g) || []).length;
+      if (quoteCount % 2 !== 0) {
+        openQuotes = !openQuotes;
+      }
+
+      if (!openQuotes) {
+        dataStartIndex = i + 1;
+        break;
+      }
+    }
+
+    const fullRawHeader = rawHeaderAccum.join('\n');
+    
+    // Limpieza ultra-sofisticada de columnas (Preservado de la lógica Python)
+    const tokens = fullRawHeader.split(';');
+    const cleanedTokens = tokens.map(token => {
+      let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
+      tClean = tClean.replace(/\s+/g, ' ').trim(); // Limpia espacios múltiples
+      return tClean;
+    });
+
+    const perfectHeaders = cleanedTokens;
+    const dataLines = lines.slice(dataStartIndex);
+    const sanitizedJson: any[] = [];
+
+    // Re-estructurar la matriz de datos mapeando contra los headers perfectos
+    dataLines.forEach(line => {
+      if (!line.trim()) return; // Ignorar líneas vacías al final
+      const currentCells = line.split(';');
+      const rowObject: any = {};
+
+      perfectHeaders.forEach((header, index) => {
+        // Si el header existe, asignamos el valor limpio de comillas extrañas
+        let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
+        cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); // Remover comillas envolventes de los datos
+        rowObject[header] = cellValue;
+      });
+
+      // Implementación del `restkey` de Python para atrapar campos huérfanos por desalineación
+      if (currentCells.length > perfectHeaders.length) {
+        const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
+        rowObject['_orphaned_fields'] = orphaned;
+      }
+
+      sanitizedJson.push(rowObject);
+    });
+
+    return sanitizedJson;
+  };
+
   // --- Lógica de Lectura de Archivos ---
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
@@ -101,7 +169,7 @@ export default function UploadClientXML() {
     if (file) readCsvPdfFile(file);
   };
 
-  // --- Lógica de Guardado ---
+  // --- Lógica de Saneamiento y Guardado ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!xmlContent.trim()) {
@@ -116,14 +184,22 @@ export default function UploadClientXML() {
         return; 
       }
 
-      // IMPORTANTE: Asegúrate de haber ejecutado el SQL de arriba para evitar el error de conflicto
-      const { error } = await supabase.from('ClientsSERVEX_WBT').upsert({
+      // 1. Ejecutar el Saneamiento en memoria antes de guardar
+      console.log('[+] Iniciando saneamiento estructural sobre los contenidos CSV...');
+      const sanitizedCsvJson = sanitizeCSV(csvContent);
+      const sanitizedCsvPdfJson = sanitizeCSV(csvPdfContent);
+
+      // 2. Definir el Payload Unificado preparado para campos JSONB en Supabase
+      const payload = {
         company_name: 'WBT', 
         xml_raw: xmlContent, 
-        csv_raw: csvContent, 
-        csvpdf_raw: csvPdfContent, 
+        csv_raw: sanitizedCsvJson,      // Se inyecta la estructura JSON limpia
+        csvpdf_raw: sanitizedCsvPdfJson, // Se inyecta la estructura JSON limpia
         user_id: user.id,
-      }, { 
+      };
+
+      // 3. Persistencia en la tabla principal (con control de conflictos)
+      const { error } = await supabase.from('ClientsSERVEX_WBT').upsert(payload, { 
         onConflict: 'company_name' 
       });
 
@@ -131,12 +207,13 @@ export default function UploadClientXML() {
         console.error('Supabase Full Error:', error);
         setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
       } else {
-        setMessage({ text: 'WB Catalog Data successfully stored', type: 'success' });
+        setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
         setXmlContent(''); 
         setCsvContent(''); 
         setCsvPdfContent('');
       }
     } catch (err: any) {
+      console.error(err);
       setMessage({ text: 'Unexpected client-side error', type: 'error' });
     } finally { 
       setLoading(false); 
@@ -174,11 +251,11 @@ export default function UploadClientXML() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">CSV File</span>
+                  <span className="text-xs font-medium">CSV File (Will be Sanitized)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvPdfContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>3</div>
-                  <span className="text-xs font-medium">PDF CSV Sync</span>
+                  <span className="text-xs font-medium">PDF CSV Sync (Will be Sanitized)</span>
                 </div>
               </div>
             </div>
@@ -186,10 +263,10 @@ export default function UploadClientXML() {
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
               <div className="flex items-center gap-2 text-[#5B5FC7] mb-3">
                 <Info size={16} />
-                <span className="text-xs font-bold">Encrypted Channel</span>
+                <span className="text-xs font-bold">Encrypted & Sanitized</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                Your data is processed and stored securely in isolated instances.
+                Your data is parsed, structural breaks are fixed in-memory, and stored securely as compliant datasets.
               </p>
             </div>
           </div>
@@ -260,11 +337,11 @@ export default function UploadClientXML() {
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">CSV Preview</label>
+                    <label className="text-xs font-bold text-[#242424]">CSV Original Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvContent} readOnly />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">PDF CSV Preview</label>
+                    <label className="text-xs font-bold text-[#242424]">PDF CSV Original Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvPdfContent} readOnly />
                   </div>
                 </div>
@@ -284,7 +361,7 @@ export default function UploadClientXML() {
                   disabled={loading}
                   className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm active:scale-95 disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'Saving...' : 'Save Catalog Data'}
+                  {loading ? 'Sanitizing & Saving...' : 'Save Catalog Data'}
                 </button>
               </div>
             </div>
