@@ -117,7 +117,7 @@ export default function UploadClientXML() {
       }
 
       // IMPORTANTE: Asegúrate de haber ejecutado el SQL de arriba para evitar el error de conflicto
-      const { error } = await supabase.from('ClientsSERVEX_WB').upsert({
+      const { error } = await supabase.from('ClientsSERVEX_WBT').upsert({
         company_name: 'WB', 
         xml_raw: xmlContent, 
         csv_raw: csvContent, 
