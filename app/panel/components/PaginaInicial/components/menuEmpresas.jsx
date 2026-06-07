@@ -67,7 +67,7 @@ export default function Calendar() {
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
            location="United States"
-            onOpen={() => router.push('/WB')}
+            onOpen={() => router.push('/WBT')}
 />
 
 <CompanyCard
@@ -77,7 +77,7 @@ export default function Calendar() {
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
            location="United States"
-            onOpen={() => router.push('/WB')}
+            onOpen={() => router.push('/WBD')}
 />
 
 <CompanyCard
@@ -87,7 +87,7 @@ export default function Calendar() {
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
            location="United States"
-            onOpen={() => router.push('/WB')}
+            onOpen={() => router.push('/WBHD')}
 />
 
 <CompanyCard
