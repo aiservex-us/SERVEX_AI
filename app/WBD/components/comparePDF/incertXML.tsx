@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML() {
-  const [companyName, setCompanyName] = useState('WB');
+  const [companyName, setCompanyName] = useState('WBD');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
   const [csvPdfContent, setCsvPdfContent] = useState(''); 
