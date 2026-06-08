@@ -17,8 +17,12 @@ const WBDDataMatrix = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
+  
+  // Estado para controlar la página actual
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
-  // Cabeceras base del catálogo estándar WB
+  // Cabeceras estrictas requeridas para mostrar del XML
   const baseHeaders = ["SKU", "Description", "Classification", "Base Price"];
 
   const processXML = async () => {
@@ -31,7 +35,7 @@ const WBDDataMatrix = () => {
 
       // Ingestión desde la tabla correcta configurada en Supabase para WBD
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX_WBT')
+        .from('ClientsSERVEX_WBD')
         .select('xml_raw')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -48,10 +52,7 @@ const WBDDataMatrix = () => {
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBD XML structure");
 
-      // Mapeo estructural basado en los Tags detectados del esquema WBD
-      const featuresGlobal = Array.from(xmlDoc.getElementsByTagName("Feature"));
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
-
       const extracted = [];
 
       for (const p of productsXML) {
@@ -65,37 +66,16 @@ const WBDDataMatrix = () => {
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        const row = {
+        extracted.push({
           sku,
           description,
           classification,
-          basePrice,
-          optionsMap: {} // Almacenará dinámicamente las opciones numéricas encontradas
-        };
-
-        // Vinculación opcional con las Features y Options secundarias del esquema
-        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef")).map(f => f.textContent);
-        
-        featureRefs.forEach(fRef => {
-          const matchedFeature = featuresGlobal.find(f => f.getElementsByTagName("Code")[0]?.textContent === fRef);
-          if (matchedFeature) {
-            const options = Array.from(matchedFeature.getElementsByTagName("Option"));
-            options.forEach(opt => {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent || "";
-              const optPriceElem = opt.getElementsByTagName("OptionPrice")[0];
-              const optVal = optPriceElem ? parseFloat(optPriceElem.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
-              
-              if (optCode && optVal > 0) {
-                row.optionsMap[optCode] = optVal;
-              }
-            });
-          }
+          basePrice
         });
-
-        extracted.push(row);
       }
       
       setProducts(extracted);
+      setCurrentPage(1); // Reiniciar a la primera página tras una recarga exitosa
     } catch (err) {
       console.error("Error en procesamiento de matriz de datos WBD:", err);
       setError(err.message || "Error al procesar la información de catálogos WBD.");
@@ -108,19 +88,6 @@ const WBDDataMatrix = () => {
     processXML();
   }, []);
 
-  // Obtener de forma única todas las opciones de características dinámicas para las columnas extras
-  const dynamicOptionHeaders = useMemo(() => {
-    const keys = new Set();
-    products.forEach(p => {
-      Object.keys(p.optionsMap).forEach(k => keys.add(k));
-    });
-    return Array.from(keys).sort();
-  }, [products]);
-
-  const allHeaders = useMemo(() => {
-    return [...baseHeaders, ...dynamicOptionHeaders];
-  }, [dynamicOptionHeaders]);
-
   const filtered = useMemo(() => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
@@ -129,6 +96,21 @@ const WBDDataMatrix = () => {
       p.description.toLowerCase().includes(cleanSearch)
     );
   }, [products, searchTerm]);
+
+  // Al cambiar el término de búsqueda, devolvemos la vista a la primera página automáticamente
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Segmentación de los datos en bloques exactos de 20 para el renderizado
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(startIndex, startIndex + itemsPerPage);
+  }, [filtered, currentPage]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filtered.length / itemsPerPage) || 1;
+  }, [filtered]);
 
   const stats = useMemo(() => {
     const total = products.length;
@@ -222,7 +204,7 @@ const WBDDataMatrix = () => {
                     <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-30 border-r border-b border-[#E0E0E0] select-none">
                       Index
                     </th>
-                    {allHeaders.map((header) => (
+                    {baseHeaders.map((header) => (
                       <th
                         key={header}
                         className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
@@ -238,10 +220,12 @@ const WBDDataMatrix = () => {
 
                 <tbody className="bg-white divide-y divide-[#F0F0F0]">
                   <AnimatePresence initial={false}>
-                    {filtered.map((p, idx) => {
+                    {paginatedProducts.map((p, idx) => {
+                      const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
+                      
                       return (
                         <motion.tr 
-                          key={p.sku || idx}
+                          key={p.sku || realIndex}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -250,7 +234,7 @@ const WBDDataMatrix = () => {
                         >
                           {/* Index Column */}
                           <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 bg-white group-hover:bg-[#FCFAFF] border-b border-[#F0F0F0]">
-                            {idx + 1}
+                            {realIndex}
                           </td>
 
                           {/* SKU */}
@@ -280,22 +264,6 @@ const WBDDataMatrix = () => {
                               ${p.basePrice.toLocaleString()}
                             </div>
                           </td>
-
-                          {/* Dynamic Options Columns Mapping */}
-                          {dynamicOptionHeaders.map(optKey => {
-                            const val = p.optionsMap[optKey];
-                            return (
-                              <td key={optKey} className="p-0 text-[#424242] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
-                                <div className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate">
-                                  {val !== undefined && val > 0 ? (
-                                    <span className="text-[#2D884D] font-bold">+${val.toLocaleString()}</span>
-                                  ) : (
-                                    <span className="text-[#A19F9D] italic text-[10px]">—</span>
-                                  )}
-                                </div>
-                              </td>
-                            );
-                          })}
                         </motion.tr>
                       );
                     })}
@@ -305,13 +273,38 @@ const WBDDataMatrix = () => {
             </div>
           )}
 
-          {/* Table Footer Info */}
-          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
+          {/* Table Footer Info & Pagination Controls */}
+          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
-              <span className="uppercase tracking-tight">TOTAL COLUMNS: {allHeaders.length}</span>
+              <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length}</span>
               <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
             </div>
             
+            {/* Controles de paginación de 20 en 20 */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className="px-2 py-1 bg-white border border-[#D2D2D2] rounded-sm text-[#242424] transition-colors enabled:hover:bg-[#F3F2F1] disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-bold"
+              >
+                Previous
+              </button>
+              
+              <span className="text-[#242424] font-mono px-1 text-[11px]">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className="px-2 py-1 bg-white border border-[#D2D2D2] rounded-sm text-[#242424] transition-colors enabled:hover:bg-[#F3F2F1] disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-bold"
+              >
+                Next
+              </button>
+            </div>
+
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
                 WBD ETL Pipeline V2 (Oauth Verified)
