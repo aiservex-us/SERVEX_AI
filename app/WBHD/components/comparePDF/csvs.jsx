@@ -28,7 +28,7 @@ export default function DataViewer() {
     setLoading(true);
     try {
       const { data: record, error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_WBT')
         .select('company_name, csv_raw, csvpdf_raw, created_at')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -43,33 +43,77 @@ export default function DataViewer() {
     }
   };
 
-  const parseCSV = (csvString, type) => {
-    if (!csvString || csvString === '---') return [];
+  // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB ---
+  const getSanitizedData = (record, tab) => {
+    if (!record || !record[tab]) return [];
     
-    const lines = csvString.trim().split('\n');
-    if (lines.length < 1) return [];
-
-    const delimiter = type === 'csv_raw' ? ';' : ',';
-    const headers = lines[0].split(delimiter).map(h => h.replace(/"/g, '').trim());
-    const dataLines = lines.slice(1);
+    if (Array.isArray(record[tab])) {
+      return record[tab];
+    }
     
-    return dataLines.map(line => {
-      const values = line.split(delimiter).map(v => v.replace(/"/g, '').trim());
-      return headers.reduce((obj, header, i) => {
-        const key = header || `Col_${i}`;
-        obj[key] = values[i] || '';
-        return obj;
-      }, {});
-    });
+    try {
+      if (typeof record[tab] === 'string') {
+        return JSON.parse(record[tab]);
+      }
+    } catch (e) {
+      console.error("Error interpretando JSONB slot:", e);
+    }
+    
+    return [];
   };
 
-  const currentCsvData = data ? parseCSV(data[activeTab], activeTab) : [];
+  const currentCsvData = getSanitizedData(data, activeTab);
   
   const filteredData = currentCsvData.filter(row => 
     Object.values(row).some(val => 
       String(val).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
+
+  // --- LOGICA DE DESCARGA E INYECCIÓN EN ARCHIVO CSV ---
+  const handleDownloadCSV = () => {
+    if (filteredData.length === 0) return;
+
+    // 1. Obtener las cabeceras a partir del primer registro mapeado
+    const headers = Object.keys(filteredData[0]);
+    
+    // 2. Mapear cada registro respetando comillas si hay caracteres especiales
+    const csvRows = filteredData.map(row => 
+      headers.map(header => {
+        let val = row[header];
+        if (val === null || val === undefined) {
+          val = '';
+        } else if (Array.isArray(val)) {
+          val = val.join(', '); // Manejo seguro para campos como _orphaned_fields
+        } else {
+          val = String(val);
+        }
+        
+        // Si el valor contiene punto y coma, comillas o saltos de línea, lo envolvemos de forma segura
+        if (val.includes(';') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
+          val = `"${val.replace(/"/g, '""')}"`;
+        }
+        return val;
+      }).join(';')
+    );
+
+    // 3. Unificar cabeceras y filas con salto de línea estándar
+    const csvContent = [headers.join(';'), ...csvRows].join('\n');
+    
+    // 4. Crear Blob con BOM para forzar codificación UTF-8 en Excel
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    // 5. Crear gatillo de descarga nativo en el DOM
+    const link = document.createElement('a');
+    link.href = url;
+    const filename = `${data?.company_name || 'Catalog'}_${activeTab}_${new Date().toISOString().slice(0,10)}.csv`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
@@ -148,7 +192,12 @@ export default function DataViewer() {
                 <RefreshCw size={13} />
               </button>
 
-              <button className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5 shadow-xs">
+              {/* Botón de exportación conectado */}
+              <button 
+                onClick={handleDownloadCSV}
+                disabled={filteredData.length === 0}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] disabled:opacity-50 disabled:hover:bg-white text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5 shadow-xs"
+              >
                 <Download size={12} /> <span>Export CSV</span>
               </button>
             </div>
@@ -198,7 +247,7 @@ export default function DataViewer() {
                                 title={cellValue?.toString() || ''}
                               >
                                 {cellValue !== null && cellValue !== undefined && cellValue !== '---' ? (
-                                  cellValue.toString()
+                                  Array.isArray(cellValue) ? cellValue.join(', ') : cellValue.toString()
                                 ) : (
                                   <span className="text-[#A19F9D] italic text-[10px]">N/A</span>
                                 )}
