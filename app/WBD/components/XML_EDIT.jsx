@@ -47,7 +47,7 @@ const SVXUnifiedEnterprise = () => {
         if (!user) return setLoadingXML(false);
 
         const { data, error } = await supabase
-          .from('ClientsSERVEX_WBT')
+          .from('ClientsSERVEX_WBD')
           .select('xml_raw')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })

@@ -48,7 +48,7 @@ const LesroPricingMaster = () => {
       const { data: { user } } = await supabase.auth.getUser();
 
       const { data } = await supabase
-        .from('ClientsSERVEX_WBT')
+        .from('ClientsSERVEX_WBD')
         .select('xml_updated_raw')
         .eq('user_id', user?.id)
         .single();
