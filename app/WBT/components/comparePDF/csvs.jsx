@@ -27,7 +27,6 @@ export default function DataViewer() {
   const fetchLatestData = async () => {
     setLoading(true);
     try {
-      // Ajustado a la tabla de persistencia unificada ClientsSERVEX_WBT
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBT')
         .select('company_name, csv_raw, csvpdf_raw, created_at')
@@ -48,12 +47,10 @@ export default function DataViewer() {
   const getSanitizedData = (record, tab) => {
     if (!record || !record[tab]) return [];
     
-    // Si la data ya viene mapeada como JSON/Array por Supabase
     if (Array.isArray(record[tab])) {
       return record[tab];
     }
     
-    // Fallback por si en algún entorno local persistiera como string JSON
     try {
       if (typeof record[tab] === 'string') {
         return JSON.parse(record[tab]);
@@ -73,172 +70,215 @@ export default function DataViewer() {
     )
   );
 
+  // --- LOGICA DE DESCARGA E INYECCIÓN EN ARCHIVO CSV ---
+  const handleDownloadCSV = () => {
+    if (filteredData.length === 0) return;
+
+    // 1. Obtener las cabeceras a partir del primer registro mapeado
+    const headers = Object.keys(filteredData[0]);
+    
+    // 2. Mapear cada registro respetando comillas si hay caracteres especiales
+    const csvRows = filteredData.map(row => 
+      headers.map(header => {
+        let val = row[header];
+        if (val === null || val === undefined) {
+          val = '';
+        } else if (Array.isArray(val)) {
+          val = val.join(', '); // Manejo seguro para campos como _orphaned_fields
+        } else {
+          val = String(val);
+        }
+        
+        // Si el valor contiene punto y coma, comillas o saltos de línea, lo envolvemos de forma segura
+        if (val.includes(';') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
+          val = `"${val.replace(/"/g, '""')}"`;
+        }
+        return val;
+      }).join(';')
+    );
+
+    // 3. Unificar cabeceras y filas con salto de línea estándar
+    const csvContent = [headers.join(';'), ...csvRows].join('\n');
+    
+    // 4. Crear Blob con BOM para forzar codificación UTF-8 en Excel
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    // 5. Crear gatillo de descarga nativo en el DOM
+    const link = document.createElement('a');
+    link.href = url;
+    const filename = `${data?.company_name || 'Catalog'}_${activeTab}_${new Date().toISOString().slice(0,10)}.csv`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-[#FFF] p-6">
-      <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
-      <span className="text-sm font-semibold text-[#242424]">Synchronizing with SERVEX SYSTEM DATA...</span>
+    <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
+        Retrieving master data matrix...
+      </div>
     </div>
   );
 
   if (!data) return (
-    <div className="flex h-full w-full items-center justify-center p-6 bg-[#FFF]">
-      <div className="max-w-sm w-full text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
-        <AlertCircle className="mx-auto mb-4 text-[#C4314B]" size={48} />
-        <h3 className="text-lg font-bold">No Data Connection</h3>
-        <p className="text-sm text-[#616161] mt-2">No records were found in the database.</p>
-      </div>
+    <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
+      <span className="font-bold">Synchronization error:</span> No records were found in the database.
     </div>
   );
 
   return (
-    <div className="flex flex-col h-full w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
-      
-      {/* COMPACT ALIGNED HEADER */}
-      <div className="bg-white px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="bg-[#5B5FC7] p-2.5 rounded-lg shadow-md shrink-0">
-              <Database size={18} className="text-white" />
-            </div>
-            <div className="truncate">
+    <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
+      <div className="w-full max-w-[90vw] mx-auto">
+        
+        <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
+          
+          {/* Operations / Filters Header */}
+          <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <h2 className="text-base md:text-lg font-extrabold tracking-tight text-[#242424] truncate">
-                  {data.company_name}
-                </h2>
-                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-2 py-0.5 rounded-full uppercase shrink-0 border border-[#5B5FC7]/10">
+                <span className="text-xs font-bold text-[#242424]">{data.company_name}</span>
+                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
                   Read Only
                 </span>
               </div>
-              <p className="text-[10px] text-[#616161] font-medium truncate">
+              <span className="text-[10px] text-[#616161]">
                 Last updated: {new Date(data.created_at).toLocaleDateString()}
-              </p>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Tab Selector styled as ClientSubmissionsMatrix Controls */}
+              <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('csv_raw')}
+                  className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
+                    activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                  }`}
+                >
+                  Manual Sync
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('csvpdf_raw')}
+                  className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
+                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                  }`}
+                >
+                  PDF Intelligence
+                </button>
+              </div>
+
+              {/* Live Search */}
+              <input
+                type="text"
+                placeholder="Search matrix..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[180px]"
+              />
+
+              {/* Actions */}
+              <button 
+                onClick={fetchLatestData}
+                type="button"
+                className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161] transition-colors"
+                title="Refresh data"
+              >
+                <RefreshCw size={13} />
+              </button>
+
+              {/* Botón de exportación conectado */}
+              <button 
+                onClick={handleDownloadCSV}
+                disabled={filteredData.length === 0}
+                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] disabled:opacity-50 disabled:hover:bg-white text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5 shadow-xs"
+              >
+                <Download size={12} /> <span>Export CSV</span>
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-[#F0F0F0] p-1 rounded-lg shrink-0 border border-[#EDEBE9]">
-            <button
-              onClick={() => setActiveTab('csv_raw')}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:text-[#5B5FC7]'
-              }`}
-            >
-              <FileSpreadsheet size={12} />
-              <span>Manual Sync</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('csvpdf_raw')}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-[#616161] hover:text-[#5B5FC7]'
-              }`}
-            >
-              <FileText size={12} />
-              <span>PDF Intelligence</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* REFINED TOOLBAR */}
-      <div className="bg-white px-6 py-2.5 flex items-center justify-between gap-4 border-b border-[#EDEBE9] shrink-0 w-full">
-        <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#616161]" size={13} />
-          <input 
-            type="text"
-            placeholder="Search records in table..."
-            className="w-full pl-9 pr-4 py-2 bg-[#F0F0F0] border-transparent border-b-2 focus:border-[#5B5FC7] focus:bg-white transition-all outline-none text-[12px] rounded-t-md font-medium"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        <div className="flex items-center gap-2 shrink-0">
-            <button 
-              onClick={fetchLatestData} 
-              className="p-2 hover:bg-[#F0F0F0] rounded-full text-[#616161] transition-colors"
-              title="Refresh data"
-            >
-                <RefreshCw size={15} />
-            </button>
-            <div className="h-6 w-[1px] bg-[#EDEBE9] mx-1"></div>
-            <button className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold text-[#616161] border border-[#D1D1D1] rounded bg-white hover:bg-[#F5F5F5] transition-shadow shadow-sm">
-                <Download size={13} /> <span>Export CSV</span>
-            </button>
-        </div>
-      </div>
-
-      {/* TABLE AREA - "MASTER" STYLE */}
-      <div className="flex-1 m-4 bg-white rounded-xl shadow-sm border border-[#EDEBE9] flex flex-col overflow-hidden">
-        {filteredData.length > 0 ? (
-          <div className="flex-1 overflow-auto custom-scrollbar">
-            <table className="min-w-full border-separate border-spacing-0 text-[11px]">
-              <thead>
-                <tr className="bg-[#FAF9F8]">
-                  {/* Se extraen las llaves limpias directamente del primer objeto saneado */}
-                  {Object.keys(currentCsvData[0]).map((header) => (
-                    <th key={header} className="px-4 py-2.5 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap border-b border-r border-[#EDEBE9]">
-                      <div className="flex items-center gap-1.5 uppercase tracking-wider text-[9px]">
-                        {header}
-                        <Filter size={8} className="text-[#5B5FC7] opacity-40" />
-                      </div>
+          {/* Table Container */}
+          {filteredData.length === 0 ? (
+            <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
+              No matching records found.
+            </div>
+          ) : (
+            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
+              <table className="table-fixed border-collapse text-left text-xs w-max min-w-full">
+                <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
+                  <tr>
+                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-30 border-r border-b border-[#E0E0E0] select-none">
+                      Index
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F0F0F0]">
-                {filteredData.map((row, idx) => (
-                  <tr key={idx} className="group hover:bg-[#F5F5F7] transition-colors">
-                    {Object.values(row).map((val, i) => (
-                      <td key={i} className="px-4 py-2.5 text-[#424242] border-r border-[#F0F0F0]/30 last:border-none whitespace-nowrap">
-                        {/* Se evalúa si el valor es un arreglo (ej: _orphaned_fields) para prevenir roturas en el renderizado */}
-                        {val && val !== '---' ? (
-                          <span className="font-medium">
-                            {Array.isArray(val) ? val.join(', ') : String(val)}
-                          </span>
-                        ) : (
-                          <span className="text-[#BDBDBD] italic text-[10px]">N/A</span>
-                        )}
-                      </td>
+                    {Object.keys(currentCsvData[0]).map((header) => (
+                      <th
+                        key={header}
+                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          {header}
+                          <Filter size={8} className="text-[#5B5FC7] opacity-40" />
+                        </div>
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center flex-1 py-12">
-            <TableIcon size={40} className="text-[#D1D1D1] mb-3" />
-            <p className="text-sm font-bold text-[#616161]">No matches found</p>
-            <p className="text-xs text-[#919191]">Try using different search terms</p>
-          </div>
-        )}
-      </div>
+                </thead>
 
-      {/* REFINED FOOTER */}
-      <div className="px-6 py-2 bg-white border-t border-[#EDEBE9] flex justify-between items-center text-[10px] font-bold text-[#616161] shrink-0 w-full">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="uppercase tracking-tight">{filteredData.length} Records Loaded</span>
+                <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                  {filteredData.map((row, idx) => {
+                    return (
+                      <tr key={idx} className="hover:bg-[#F7F5FA] transition-colors duration-75">
+                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 bg-white group-hover:bg-[#FCFAFF] border-b border-[#F0F0F0]">
+                          {idx + 1}
+                        </td>
+
+                        {Object.keys(currentCsvData[0]).map((header) => {
+                          const cellValue = row[header];
+                          return (
+                            <td key={header} className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
+                              <div 
+                                className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate"
+                                title={cellValue?.toString() || ''}
+                              >
+                                {cellValue !== null && cellValue !== undefined && cellValue !== '---' ? (
+                                  Array.isArray(cellValue) ? cellValue.join(', ') : cellValue.toString()
+                                ) : (
+                                  <span className="text-[#A19F9D] italic text-[10px]">N/A</span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination/Information Footer */}
+          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
+            <div className="flex gap-4">
+              <span className="uppercase tracking-tight">ATTRIBUTES: {currentCsvData.length > 0 ? Object.keys(currentCsvData[0]).length : 0}</span>
+              <span className="uppercase tracking-tight">FILTERED RECORDS: {filteredData.length} of {currentCsvData.length}</span>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
+                {activeTab === 'csv_raw' ? 'Source: ERP Manual' : 'Source: AI PDF Extraction'}
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="bg-[#5B5FC7]/10 px-3 py-1 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-            {activeTab === 'csv_raw' ? 'Source: ERP Manual' : 'Source: AI PDF Extraction'}
-          </div>
-        </div>
-      </div>
 
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; border: 2px solid #FFF; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #A1A1A1; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #F5F5F5; }
-        
-        table { 
-          table-layout: auto !important; 
-          width: max-content !important; 
-        }
-      `}</style>
+      </div>
     </div>
   );
 }
