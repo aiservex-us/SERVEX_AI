@@ -226,7 +226,7 @@ export default function UploadClientXML() {
       };
 
       // 3. Persistencia en la tabla principal (con control de conflictos)
-      const { error } = await supabase.from('ClientsSERVEX_WBT').upsert(payload, { 
+      const { error } = await supabase.from('ClientsSERVEX_WBD').upsert(payload, { 
         onConflict: 'company_name' 
       });
 
