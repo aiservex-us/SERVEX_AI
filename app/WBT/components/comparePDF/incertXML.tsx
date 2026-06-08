@@ -38,8 +38,30 @@ export default function UploadClientXML() {
   const sanitizeCSV = (rawCsvText: string): any[] => {
     if (!rawCsvText || !rawCsvText.trim()) return [];
 
-    // Separar por líneas nativas
-    const lines = rawCsvText.split(/\r?\n/);
+    // 1. Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
+    const lines: string[] = [];
+    let currentLine = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < rawCsvText.length; i++) {
+      const char = rawCsvText[i];
+      if (char === '"') {
+        insideQuotes = !insideQuotes;
+        currentLine += char;
+      } else if ((char === '\n' || char === '\r') && !insideQuotes) {
+        if (char === '\r' && rawCsvText[i + 1] === '\n') {
+          i++; // Omitir el siguiente \n de la secuencia \r\n
+        }
+        lines.push(currentLine);
+        currentLine = '';
+      } else {
+        currentLine += char;
+      }
+    }
+    if (currentLine || rawCsvText.endsWith('\n') || rawCsvText.endsWith('\r')) {
+      lines.push(currentLine);
+    }
+
     if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return [];
 
     const rawHeaderAccum: string[] = [];
@@ -51,7 +73,6 @@ export default function UploadClientXML() {
       const line = lines[i];
       rawHeaderAccum.push(line);
       
-      // Cuenta cuántas comillas hay para ver si cierran el bloque
       const quoteCount = (line.match(/"/g) || []).length;
       if (quoteCount % 2 !== 0) {
         openQuotes = !openQuotes;
@@ -65,11 +86,13 @@ export default function UploadClientXML() {
 
     const fullRawHeader = rawHeaderAccum.join('\n');
     
-    // Limpieza ultra-sofisticada de columnas (Preservado de la lógica Python)
+    // Limpieza ultra-sofisticada de columnas (Preservado e igualado a la lógica Python)
     const tokens = fullRawHeader.split(';');
     const cleanedTokens = tokens.map(token => {
+      // Remover saltos de línea internos, comillas dobles y simples
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
-      tClean = tClean.replace(/\s+/g, ' ').trim(); // Limpia espacios múltiples
+      // Normalizar espacios múltiples duplicados intermedios
+      tClean = tClean.split(/\s+/).join(' ').trim();
       return tClean;
     });
 
@@ -79,15 +102,19 @@ export default function UploadClientXML() {
 
     // Re-estructurar la matriz de datos mapeando contra los headers perfectos
     dataLines.forEach(line => {
-      if (!line.trim()) return; // Ignorar líneas vacías al final
+      if (!line.trim()) return; // Ignorar líneas vacías
       const currentCells = line.split(';');
       const rowObject: any = {};
 
       perfectHeaders.forEach((header, index) => {
-        // Si el header existe, asignamos el valor limpio de comillas extrañas
         let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
-        cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); // Remover comillas envolventes de los datos
-        rowObject[header] = cellValue;
+        // Preservar valores nulos reales de columnas vacías según las directrices de Servex
+        if (cellValue === '') {
+          rowObject[header] = null;
+        } else {
+          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); // Remover comillas envolventes
+          rowObject[header] = cellValue;
+        }
       });
 
       // Implementación del `restkey` de Python para atrapar campos huérfanos por desalineación

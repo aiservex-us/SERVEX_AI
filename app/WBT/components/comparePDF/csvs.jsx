@@ -15,9 +15,9 @@ import {
 } from 'lucide-react';
 
 export default function DataViewer() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'csv_raw' | 'csvpdf_raw'>('csv_raw'); 
+  const [activeTab, setActiveTab] = useState('csv_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -27,6 +27,7 @@ export default function DataViewer() {
   const fetchLatestData = async () => {
     setLoading(true);
     try {
+      // Ajustado a la tabla de persistencia unificada ClientsSERVEX_WBT
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBT')
         .select('company_name, csv_raw, csvpdf_raw, created_at')
@@ -43,78 +44,44 @@ export default function DataViewer() {
     }
   };
 
-  // --- PARSER ADAPTATIVO CON CONTROL DE FALLOS (Híbrido JSONB / String CSV) ---
-  const parseCSVData = (rawPayload: any, type: 'csv_raw' | 'csvpdf_raw'): any[] => {
-    if (!rawPayload || rawPayload === '---') return [];
+  // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB ---
+  const getSanitizedData = (record, tab) => {
+    if (!record || !record[tab]) return [];
     
-    // CASO 1: Los datos ya vienen pre-saneados como JSON/JSONB desde el nuevo pipeline
-    if (typeof rawPayload === 'object' && Array.isArray(rawPayload)) {
-      return rawPayload;
+    // Si la data ya viene mapeada como JSON/Array por Supabase
+    if (Array.isArray(record[tab])) {
+      return record[tab];
     }
-
-    // CASO 2: Fallback tolerante si los datos siguen almacenados como String plano
-    if (typeof rawPayload === 'string') {
-      const lines = rawPayload.trim().split(/\r?\n/);
-      if (lines.length < 1) return [];
-
-      // Auto-detectar delimitador para evitar el hardcodeo conflictivo de Lesro
-      const firstLine = lines[0];
-      const delimiter = firstLine.includes(';') ? ';' : ',';
-
-      // Reconstrucción básica de cabeceras limpias
-      const headers = firstLine.split(delimiter).map(h => h.replace(/"/g, '').trim());
-      const dataLines = lines.slice(1);
-      
-      return dataLines.map(line => {
-        const values = line.split(delimiter).map(v => v.replace(/"/g, '').trim());
-        return headers.reduce((obj: any, header, i) => {
-          const key = header || `Col_${i}`;
-          obj[key] = values[i] || '';
-          return obj;
-        }, {});
-      });
+    
+    // Fallback por si en algún entorno local persistiera como string JSON
+    try {
+      if (typeof record[tab] === 'string') {
+        return JSON.parse(record[tab]);
+      }
+    } catch (e) {
+      console.error("Error interpretando JSONB slot:", e);
     }
-
+    
     return [];
   };
 
-  // Ejecución del parser adaptativo
-  const currentCsvData = data ? parseCSVData(data[activeTab], activeTab) : [];
+  const currentCsvData = getSanitizedData(data, activeTab);
   
-  // Extraer las cabeceras dinámicamente basadas en el primer registro del set actual
-  const tableHeaders = currentCsvData.length > 0 ? Object.keys(currentCsvData[0]) : [];
-
   const filteredData = currentCsvData.filter(row => 
     Object.values(row).some(val => 
       String(val).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
-  // Descarga limpia nativa de la tabla visualizada
-  const exportCurrentTableToCSV = () => {
-    if (filteredData.length === 0) return;
-    const headers = tableHeaders.join(';');
-    const rows = filteredData.map(row => 
-      tableHeaders.map(header => `"${String(row[header] || '').replace(/"/g, '""')}"`).join(';')
-    ).join('\n');
-    
-    const blob = new Blob([headers + '\n' + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${data?.company_name || 'EXPORT'}_${activeTab}_2026.csv`;
-    a.click();
-  };
-
   if (loading) return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center bg-[#FFF] p-6">
+    <div className="flex h-full w-full flex-col items-center justify-center bg-[#FFF] p-6">
       <RefreshCw className="animate-spin text-[#5B5FC7] mb-4" size={40} />
       <span className="text-sm font-semibold text-[#242424]">Synchronizing with SERVEX SYSTEM DATA...</span>
     </div>
   );
 
   if (!data) return (
-    <div className="flex h-screen w-screen items-center justify-center p-6 bg-[#FFF]">
+    <div className="flex h-full w-full items-center justify-center p-6 bg-[#FFF]">
       <div className="max-w-sm w-full text-center p-8 bg-white rounded-xl shadow-lg border border-[#EDEBE9]">
         <AlertCircle className="mx-auto mb-4 text-[#C4314B]" size={48} />
         <h3 className="text-lg font-bold">No Data Connection</h3>
@@ -124,7 +91,7 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
+    <div className="flex flex-col h-full w-screen bg-[#FFF] font-sans text-[#242424] overflow-hidden">
       
       {/* COMPACT ALIGNED HEADER */}
       <div className="bg-white px-6 py-3 border-b border-[#EDEBE9] shadow-sm z-20 shrink-0 w-full">
@@ -193,10 +160,7 @@ export default function DataViewer() {
                 <RefreshCw size={15} />
             </button>
             <div className="h-6 w-[1px] bg-[#EDEBE9] mx-1"></div>
-            <button 
-              onClick={exportCurrentTableToCSV}
-              className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold text-[#616161] border border-[#D1D1D1] rounded bg-white hover:bg-[#F5F5F5] transition-shadow shadow-sm"
-            >
+            <button className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold text-[#616161] border border-[#D1D1D1] rounded bg-white hover:bg-[#F5F5F5] transition-shadow shadow-sm">
                 <Download size={13} /> <span>Export CSV</span>
             </button>
         </div>
@@ -209,7 +173,8 @@ export default function DataViewer() {
             <table className="min-w-full border-separate border-spacing-0 text-[11px]">
               <thead>
                 <tr className="bg-[#FAF9F8]">
-                  {tableHeaders.map((header) => (
+                  {/* Se extraen las llaves limpias directamente del primer objeto saneado */}
+                  {Object.keys(currentCsvData[0]).map((header) => (
                     <th key={header} className="px-4 py-2.5 text-left font-bold text-[#242424] sticky top-0 bg-[#FAF9F8] z-10 whitespace-nowrap border-b border-r border-[#EDEBE9]">
                       <div className="flex items-center gap-1.5 uppercase tracking-wider text-[9px]">
                         {header}
@@ -222,18 +187,18 @@ export default function DataViewer() {
               <tbody className="divide-y divide-[#F0F0F0]">
                 {filteredData.map((row, idx) => (
                   <tr key={idx} className="group hover:bg-[#F5F5F7] transition-colors">
-                    {tableHeaders.map((header, i) => {
-                      const val = row[header];
-                      return (
-                        <td key={i} className="px-4 py-2.5 text-[#424242] border-r border-[#F0F0F0]/30 last:border-none whitespace-nowrap">
-                          {val && val !== '---' ? (
-                            typeof val === 'object' ? JSON.stringify(val) : <span className="font-medium">{val}</span>
-                          ) : (
-                            <span className="text-[#BDBDBD] italic text-[10px]">N/A</span>
-                          )}
-                        </td>
-                      );
-                    })}
+                    {Object.values(row).map((val, i) => (
+                      <td key={i} className="px-4 py-2.5 text-[#424242] border-r border-[#F0F0F0]/30 last:border-none whitespace-nowrap">
+                        {/* Se evalúa si el valor es un arreglo (ej: _orphaned_fields) para prevenir roturas en el renderizado */}
+                        {val && val !== '---' ? (
+                          <span className="font-medium">
+                            {Array.isArray(val) ? val.join(', ') : String(val)}
+                          </span>
+                        ) : (
+                          <span className="text-[#BDBDBD] italic text-[10px]">N/A</span>
+                        )}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
