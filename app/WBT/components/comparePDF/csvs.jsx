@@ -11,7 +11,9 @@ import {
   AlertCircle,
   Table as TableIcon,
   Download,
-  Filter
+  Filter,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 export default function DataViewer() {
@@ -19,10 +21,25 @@ export default function DataViewer() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('csv_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // --- ESTADOS PARA PAGINACIÓN LOCAL ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 18;
 
   useEffect(() => {
     fetchLatestData();
   }, []);
+
+  // Resetea la página activa si se cambia de contexto (pestaña)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  // Resetea la página activa si cambia el término de búsqueda
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   const fetchLatestData = async () => {
     setLoading(true);
@@ -70,26 +87,29 @@ export default function DataViewer() {
     )
   );
 
+  // --- CÁLCULO DE SEGMENTO DE PÁGINA (PAGINACIÓN CLIENT-SIDE) ---
+  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE) || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+
   // --- LOGICA DE DESCARGA E INYECCIÓN EN ARCHIVO CSV ---
   const handleDownloadCSV = () => {
     if (filteredData.length === 0) return;
 
-    // 1. Obtener las cabeceras a partir del primer registro mapeado
     const headers = Object.keys(filteredData[0]);
     
-    // 2. Mapear cada registro respetando comillas si hay caracteres especiales
     const csvRows = filteredData.map(row => 
       headers.map(header => {
         let val = row[header];
         if (val === null || val === undefined) {
           val = '';
         } else if (Array.isArray(val)) {
-          val = val.join(', '); // Manejo seguro para campos como _orphaned_fields
+          val = val.join(', ');
         } else {
           val = String(val);
         }
         
-        // Si el valor contiene punto y coma, comillas o saltos de línea, lo envolvemos de forma segura
         if (val.includes(';') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
           val = `"${val.replace(/"/g, '""')}"`;
         }
@@ -97,14 +117,11 @@ export default function DataViewer() {
       }).join(';')
     );
 
-    // 3. Unificar cabeceras y filas con salto de línea estándar
     const csvContent = [headers.join(';'), ...csvRows].join('\n');
     
-    // 4. Crear Blob con BOM para forzar codificación UTF-8 en Excel
     const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     
-    // 5. Crear gatillo de descarga nativo en el DOM
     const link = document.createElement('a');
     link.href = url;
     const filename = `${data?.company_name || 'Catalog'}_${activeTab}_${new Date().toISOString().slice(0,10)}.csv`;
@@ -151,7 +168,7 @@ export default function DataViewer() {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Tab Selector styled as ClientSubmissionsMatrix Controls */}
+              {/* Tab Selector */}
               <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
                 <button
                   type="button"
@@ -178,7 +195,7 @@ export default function DataViewer() {
                 type="text"
                 placeholder="Search matrix..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[180px]"
               />
 
@@ -192,8 +209,8 @@ export default function DataViewer() {
                 <RefreshCw size={13} />
               </button>
 
-              {/* Botón de exportación conectado */}
               <button 
+                type="button"
                 onClick={handleDownloadCSV}
                 disabled={filteredData.length === 0}
                 className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] disabled:opacity-50 disabled:hover:bg-white text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5 shadow-xs"
@@ -204,7 +221,7 @@ export default function DataViewer() {
           </div>
 
           {/* Table Container */}
-          {filteredData.length === 0 ? (
+          {paginatedData.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
               No matching records found.
             </div>
@@ -231,11 +248,13 @@ export default function DataViewer() {
                 </thead>
 
                 <tbody className="bg-white divide-y divide-[#F0F0F0]">
-                  {filteredData.map((row, idx) => {
+                  {paginatedData.map((row, relativeIdx) => {
+                    // Cálculo del índice global real de la fila para que no se reinicie en cada página
+                    const absoluteIdx = startIndex + relativeIdx;
                     return (
-                      <tr key={idx} className="hover:bg-[#F7F5FA] transition-colors duration-75">
-                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 bg-white group-hover:bg-[#FCFAFF] border-b border-[#F0F0F0]">
-                          {idx + 1}
+                      <tr key={absoluteIdx} className="hover:bg-[#F7F5FA] transition-colors duration-75">
+                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 bg-white border-b border-[#F0F0F0]">
+                          {absoluteIdx + 1}
                         </td>
 
                         {Object.keys(currentCsvData[0]).map((header) => {
@@ -263,11 +282,36 @@ export default function DataViewer() {
             </div>
           )}
 
-          {/* Pagination/Information Footer */}
-          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-semibold text-[#616161] select-none">
+          {/* Pagination Controls & Information Footer */}
+          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
               <span className="uppercase tracking-tight">ATTRIBUTES: {currentCsvData.length > 0 ? Object.keys(currentCsvData[0]).length : 0}</span>
-              <span className="uppercase tracking-tight">FILTERED RECORDS: {filteredData.length} of {currentCsvData.length}</span>
+              <span className="uppercase tracking-tight">SHOWING: {startIndex + 1}-{Math.min(endIndex, filteredData.length)} OF {filteredData.length}</span>
+            </div>
+
+            {/* CONTROLES DE INTERFAZ DE PAGINACIÓN */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] disabled:opacity-40 disabled:hover:bg-white rounded-sm text-[#242424] transition-colors flex items-center justify-center cursor-pointer"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              
+              <span className="text-[11px] font-bold px-2 text-[#242424]">
+                PAGE {currentPage} OF {totalPages}
+              </span>
+
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] disabled:opacity-40 disabled:hover:bg-white rounded-sm text-[#242424] transition-colors flex items-center justify-center cursor-pointer"
+              >
+                <ChevronRight size={14} />
+              </button>
             </div>
             
             <div className="flex items-center gap-4">
