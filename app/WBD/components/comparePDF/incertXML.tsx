@@ -218,7 +218,7 @@ export default function UploadClientXML() {
 
       // 2. Definir el Payload Unificado preparado para campos JSONB en Supabase
       const payload = {
-        company_name: 'WBT', 
+        company_name: 'WBD', 
         xml_raw: xmlContent, 
         csv_raw: sanitizedCsvJson,      // Se inyecta la estructura JSON limpia
         csvpdf_raw: sanitizedCsvPdfJson, // Se inyecta la estructura JSON limpia
