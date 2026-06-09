@@ -160,11 +160,15 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
-  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBO ---
+  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBA ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!xmlContent.trim()) {
       setMessage({ text: 'XML content is required', type: 'error' });
+      return;
+    }
+    if (!csvContent.trim()) {
+      setMessage({ text: 'CSV content is required', type: 'error' });
       return;
     }
     setLoading(true);
@@ -176,24 +180,27 @@ export default function UploadClientXML() {
       }
 
       console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
+      
+      // Procesa y formatea el archivo CSV a un array estruturado (JSON)
       const sanitizedCsvJson = sanitizeCSV(csvContent);
 
       const payload = {
         company_name: 'WBA',
         xml_raw: xmlContent, 
-        csv_raw: JSON.stringify(sanitizedCsvJson), 
+        csv_raw: JSON.stringify(sanitizedCsvJson), // Guardando el JSON estructurado y listo
         user_id: user.id,
       };
 
-      const { error } = await supabase.from('ClientsSERVEX_WBA').upsert(payload, { 
-        onConflict: 'id' 
-      });
+      // Corregido: Usamos .insert() en lugar de .upsert() sin ID para garantizar la inserción exitosa
+      const { error } = await supabase
+        .from('ClientsSERVEX_WBA')
+        .insert([payload]);
 
       if (error) {
         console.error('Supabase Core Error:', error);
         setMessage({ text: `DB Error [${error.code}]: ${error.message}`, type: 'error' });
       } else {
-        setMessage({ text: 'WBO Catalog Data successfully sanitized and stored in csv_raw', type: 'success' });
+        setMessage({ text: 'WBA Catalog Data successfully sanitized and stored in csv_raw', type: 'success' });
         setXmlContent(''); 
         setCsvContent(''); 
       }
@@ -216,7 +223,7 @@ export default function UploadClientXML() {
               <FileCode className="text-[#5B5FC7]" size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#242424]">WBO Catalog Upload</h1>
+              <h1 className="text-lg font-bold text-[#242424]">WBA Catalog Upload</h1>
               <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección directa en la columna csv_raw</p>
             </div>
           </div>
@@ -236,7 +243,6 @@ export default function UploadClientXML() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  {/* Línea 247 Corregida de forma segura usando un string de JS literal */}
                   <span className="text-xs font-medium">{"Sanitize -> Guardar en csv_raw"}</span>
                 </div>
               </div>
@@ -248,7 +254,7 @@ export default function UploadClientXML() {
                 <span className="text-xs font-bold">Alineación de Entidad</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                Los datos procesados se guardan de forma limpia como una matriz JSON válida dentro de <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">csv_raw</code> para evitar errores de sintaxis en el visor.
+                Los datos procesados se guardan de forma limpia como una matriz JSON válida dentro de <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">csv_raw</code> dentro de la tabla <code className="font-mono bg-gray-100 px-1 rounded text-[#242424]">ClientsSERVEX_WBA</code>.
               </p>
             </div>
           </div>
@@ -318,7 +324,7 @@ export default function UploadClientXML() {
                   disabled={loading}
                   className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'Saneando y Guardando...' : 'Guardar Datos en WBO'}
+                  {loading ? 'Saneando y Guardando...' : 'Guardar Datos en WBA'}
                 </button>
               </div>
             </div>
