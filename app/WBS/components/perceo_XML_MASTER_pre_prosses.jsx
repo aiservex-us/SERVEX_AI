@@ -29,15 +29,14 @@ const WBDDataMatrix = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user found");
 
-      // Ingestión desde la tabla correcta configurada en Supabase para WBD
+      // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad WBS
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_WBS')
         .select('xml_raw')
-        .eq('user_id', user.id)
+        .eq('company_name', 'WBS')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (dbError) throw dbError;
@@ -130,7 +129,7 @@ const WBDDataMatrix = () => {
   );
 
   if (error) return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
+    <div className="flex min-h-[90vh] h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
       <h3 className="text-sm font-bold text-[#242424] mb-1">Error en Sincronización del Motor</h3>
       <p className="text-xs text-[#616161] max-w-md mb-4">{error}</p>
