@@ -60,61 +60,63 @@ export default function Calendar() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
 
-        <CompanyCard
+      <CompanyCard
             company="WB Tables"
             logo="/logosEmpresas/WB.webp"
-            role="Industrial Solutions & Manufacturing"
+            role="Heavy-Duty Tables & Worksurfaces"
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
-           location="United States"
+            location="United States"
             onOpen={() => router.push('/WBT')}
 />
 
 <CompanyCard
             company="WB Workstations"
             logo="/logosEmpresas/WB.webp"
-            role="Industrial Solutions & Manufacturing"
+            role="Ergonomic & Tech Workstations"
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
-           location="United States"
+            location="United States"
             onOpen={() => router.push('/WBW')}
 />
 
 <CompanyCard
             company="WB Desks"
             logo="/logosEmpresas/WB.webp"
-            role="Industrial Solutions & Manufacturing"
+            role="Office & Educational Desks"
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
-           location="United States"
+            location="United States"
             onOpen={() => router.push('/WBD')}
 />
 
 <CompanyCard
             company="WB Seating"
             logo="/logosEmpresas/WB.webp"
-            role="Industrial Solutions & Manufacturing"
+            role="Industrial & Lab Task Seating"
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
-           location="United States"
+            location="United States"
             onOpen={() => router.push('/WBD')}
 />
+
 <CompanyCard
             company="WB Storage"
             logo="/logosEmpresas/WB.webp"
-            role="Industrial Solutions & Manufacturing"
+            role="Modular Cabinets & Storage Systems"
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
-           location="United States"
+            location="United States"
             onOpen={() => router.push('/WBD')}
 />
+
 <CompanyCard
             company="WB OnVoy"
             logo="/logosEmpresas/WB.webp"
-            role="Industrial Solutions & Manufacturing"
+            role="Mobile Lab & Collaboration Carts"
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
-           location="United States"
+            location="United States"
             onOpen={() => router.push('/WBD')}
 />
 <CompanyCard
