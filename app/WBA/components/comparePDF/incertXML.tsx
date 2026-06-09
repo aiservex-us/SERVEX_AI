@@ -48,7 +48,7 @@ export default function UploadClientXML() {
         } else {
           insideQuotes = !insideQuotes; 
         }
-      } else if (char === ';' && !insideQuotes) {
+      } else if (char === ',' && !insideQuotes) {
         currentRow.push(currentCell);
         currentCell = '';
       } else if ((char === '\n' || char === '\r') && !insideQuotes) {
