@@ -176,18 +176,19 @@ export default function UploadClientXML() {
       }
 
       console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
+      
+      // Procesamos y obtenemos el objeto JSON saneado
       const sanitizedCsvJson = sanitizeCSV(csvContent);
 
       /**
-       * PAYLOAD CORREGIDO ALINEADO CON TU DDL DE POSTGRESQL (Sin residuos de csvpdf_raw):
-       * - csv_raw: Almacena texto CSV original.
-       * - csvpdf_raw: Recibe el JSON stringificado del procesamiento optimizer.
+       * PAYLOAD MODIFICADO CON EL NUEVO FLUJO UNIFICADO:
+       * - csv_raw: Ahora almacena directamente el JSON stringificado ya listo y saneado.
+       * - csvpdf_raw: Eliminado por completo de la transacción.
        */
       const payload = {
         company_name: 'WBO',
         xml_raw: xmlContent, 
-        csv_raw: csvContent, 
-        csvpdf_raw: JSON.stringify(sanitizedCsvJson), 
+        csv_raw: JSON.stringify(sanitizedCsvJson), 
         user_id: user.id,
       };
 
@@ -200,7 +201,7 @@ export default function UploadClientXML() {
         console.error('Supabase Core Error:', error);
         setMessage({ text: `DB Error [${error.code}]: ${error.message}`, type: 'error' });
       } else {
-        setMessage({ text: 'WBO Catalog Data successfully sanitized and stored in ClientsSERVEX_WBO', type: 'success' });
+        setMessage({ text: 'WBO Catalog Data successfully sanitized and stored in csv_raw', type: 'success' });
         setXmlContent(''); 
         setCsvContent(''); 
       }
@@ -224,7 +225,7 @@ export default function UploadClientXML() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[#242424]">WBO Catalog Upload</h1>
-              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección para la tabla ClientsSERVEX_WBO</p>
+              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección directa en la columna csv_raw</p>
             </div>
           </div>
         </div>
@@ -243,7 +244,7 @@ export default function UploadClientXML() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">CSV Optimizer Raw (JSON)</span>
+                  <span className="text-xs font-medium">Sanitize -> Guardar en csv_raw</span>
                 </div>
               </div>
             </div>
@@ -254,7 +255,7 @@ export default function UploadClientXML() {
                 <span className="text-xs font-bold">Alineación de Entidad</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                Los datos se enlazan de forma centralizada bajo la firma corporativa <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">WBO</code> en la base de datos de producción.
+                Los datos procesados se guardan de forma limpia como una matriz JSON válida dentro de <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">csv_raw</code> para evitar errores de sintaxis en el visor.
               </p>
             </div>
           </div>
