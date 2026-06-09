@@ -209,7 +209,7 @@ export default function UploadClientXML() {
        * - informa_agent_raw: Almacena el pipeline transformado desde PDF.
        */
       const payload = {
-        company_name: 'WBD',
+        company_name: 'WBO',
         xml_raw: xmlContent, 
         csv_raw: csvContent, 
         csv_optimizer_raw: JSON.stringify(sanitizedCsvJson), 
@@ -218,7 +218,7 @@ export default function UploadClientXML() {
       };
 
       // Persistencia exacta apuntando a tu esquema e identificador de tabla corregido: ClientsSERVEX_WBW
-      const { error } = await supabase.from('ClientsSERVEX_WBW').upsert(payload, { 
+      const { error } = await supabase.from('ClientsSERVEX_WBO').upsert(payload, { 
         onConflict: 'id' 
       });
 
