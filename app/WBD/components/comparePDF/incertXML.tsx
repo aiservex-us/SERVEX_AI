@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML() {
-  const [companyName, setCompanyName] = useState('WBT'); // Mantenido por consistencia de UI, mapeado a WBD en la persistencia si aplica
+  const [companyName, setCompanyName] = useState('WBD'); 
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
   const [csvPdfContent, setCsvPdfContent] = useState(''); 
@@ -32,8 +32,8 @@ export default function UploadClientXML() {
   const csvPdfInputRef = useRef<HTMLInputElement | null>(null);
 
   /**
-   * PARSER ULTRA-SOFISTICADO DE CSV CON MÁQUINA DE ESTADOS
-   * Resuelve saltos de línea internos, comillas dobles y previene colisión de llaves.
+   * PARSER DE CSV MEDIANTE MÁQUINA DE ESTADOS
+   * Gestiona saltos de línea físicos internos e inmuniza contra caracteres delimitadores embebidos.
    */
   const parseCSVToRows = (text: string): string[][] => {
     const rows: string[][] = [];
@@ -46,19 +46,18 @@ export default function UploadClientXML() {
       const nextChar = text[i + 1];
 
       if (char === '"') {
-        // Manejo de comillas dobles escapadas ("") de SQL/CSV estándar
         if (insideQuotes && nextChar === '"') {
           currentCell += '"';
-          i++; // Omitir la siguiente comilla
+          i++; 
         } else {
-          insideQuotes = !insideQuotes; // Conmutar estado de comillas
+          insideQuotes = !insideQuotes; 
         }
       } else if (char === ';' && !insideQuotes) {
         currentRow.push(currentCell);
         currentCell = '';
       } else if ((char === '\n' || char === '\r') && !insideQuotes) {
         if (char === '\r' && nextChar === '\n') {
-          i++; // Manejo de saltos de línea Windows (CRLF)
+          i++; 
         }
         currentRow.push(currentCell);
         rows.push(currentRow);
@@ -68,7 +67,6 @@ export default function UploadClientXML() {
         currentCell += char;
       }
     }
-    // Agregar residuo final si existe
     if (currentCell || currentRow.length > 0) {
       currentRow.push(currentCell);
       rows.push(currentRow);
@@ -77,7 +75,7 @@ export default function UploadClientXML() {
   };
 
   /**
-   * SANEADOR DE ESTRUCTURA Y NORMALIZADOR DE CABECERAS
+   * SANEADOR ESTRUCTURAL DE MATRICES Y RESOLUCIÓN DE COLISIONES
    */
   const sanitizeCSV = (rawCsvText: string): any[] => {
     if (!rawCsvText || !rawCsvText.trim()) return [];
@@ -85,7 +83,6 @@ export default function UploadClientXML() {
     const allRows = parseCSVToRows(rawCsvText);
     if (allRows.length === 0) return [];
 
-    // Extraer y sanear la primera fila (Cabecera)
     const rawHeaders = allRows[0];
     const cleanedHeaders = rawHeaders.map(header => {
       let hClean = header.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
@@ -93,7 +90,7 @@ export default function UploadClientXML() {
       return hClean || 'unnamed_column';
     });
 
-    // SISTEMA ANTICOLISIÓN DE CABECERAS: Asegura llaves únicas para el JSONB de PostgreSQL
+    // SISTEMA DE LLAVES UNICAS PARA CAMPOS JSONB (Previene sobreescrituras de columnas repetidas)
     const perfectHeaders: string[] = [];
     const headerCounts: { [key: string]: number } = {};
 
@@ -111,7 +108,6 @@ export default function UploadClientXML() {
     const sanitizedJson: any[] = [];
 
     dataRows.forEach(row => {
-      // Filtrar filas completamente vacías
       if (row.length === 0 || (row.length === 1 && row[0].trim() === '')) return;
 
       const rowObject: any = {};
@@ -120,16 +116,13 @@ export default function UploadClientXML() {
         let cellValue = row[index] !== undefined ? row[index] : '';
         cellValue = cellValue.trim();
 
-        // Preservación estricta de nulos para Servex US
         if (cellValue === '') {
           rowObject[header] = null;
         } else {
-          // Remover comillas residuales en los extremos del valor procesado
           rowObject[header] = cellValue.replace(/^["']|["']$/g, '').trim();
         }
       });
 
-      // Captura de campos huérfanos (restkey) por desalineación de la fila
       if (row.length > perfectHeaders.length) {
         rowObject['_orphaned_fields'] = row.slice(perfectHeaders.length).map(c => c.trim());
       }
@@ -140,7 +133,7 @@ export default function UploadClientXML() {
     return sanitizedJson;
   };
 
-  // --- Lógica de Lectura de Archivos ---
+  // --- Handlers de carga de archivos ---
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
       setMessage({ text: 'Only XML files are allowed', type: 'error' });
@@ -186,7 +179,7 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
-  // --- Lógica de Persistencia Alineada al DDL ---
+  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBD ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!xmlContent.trim()) {
@@ -201,41 +194,42 @@ export default function UploadClientXML() {
         return; 
       }
 
-      console.log('[+] Iniciando saneamiento de matrices CSV...');
+      console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
       const sanitizedCsvJson = sanitizeCSV(csvContent);
       const sanitizedCsvPdfJson = sanitizeCSV(csvPdfContent);
 
       /**
-       * ALINEACIÓN ESTRICTA CON TU DDL:
-       * Los objetos JSON se convierten a string mediante JSON.stringify 
-       * para almacenarse de forma correcta en los campos de destino de Supabase.
+       * PAYLOAD ESTRUCTURADO SEGÚN TU DDL DE POSTGRESQL:
+       * - csv_raw: Almacena el texto original limpio.
+       * - csv_optimizer_raw: Almacena la estructura JSON del CSV principal optimizado.
+       * - informa_agent_raw: Almacena el pipeline transformado desde PDF.
        */
       const payload = {
-        company_name: 'Servex US - WBT',
+        company_name: 'Servex US - WBD',
         xml_raw: xmlContent, 
-        csv_raw: csvContent, // Guardamos el texto plano original en el campo text
-        csv_optimizer_raw: JSON.stringify(sanitizedCsvJson), // Mapeado a la columna JSONB/Text optimizada
-        informa_agent_raw: JSON.stringify(sanitizedCsvPdfJson), // Reutilización estructurada o mapeo según arquitectura de negocio
+        csv_raw: csvContent, 
+        csv_optimizer_raw: JSON.stringify(sanitizedCsvJson), 
+        informa_agent_raw: JSON.stringify(sanitizedCsvPdfJson), 
         user_id: user.id,
       };
 
-      // Inyección exacta en la tabla 'ClientsSERVEX_WBD' de acuerdo al DDL de Postgres
+      // Persistencia exacta apuntando a tu esquema e identificador de tabla corregido: ClientsSERVEX_WBD
       const { error } = await supabase.from('ClientsSERVEX_WBD').upsert(payload, { 
-        onConflict: 'id' // Cambiado a 'id' o la restricción de unicidad real de tu tabla
+        onConflict: 'id' 
       });
 
       if (error) {
-        console.error('Supabase Full Error:', error);
+        console.error('Supabase Core Error:', error);
         setMessage({ text: `DB Error [${error.code}]: ${error.message}`, type: 'error' });
       } else {
-        setMessage({ text: 'WB Catalog Data successfully sanitized and stored in ClientsSERVEX_WBD', type: 'success' });
+        setMessage({ text: 'WBD Catalog Data successfully sanitized and stored in ClientsSERVEX_WBD', type: 'success' });
         setXmlContent(''); 
         setCsvContent(''); 
         setCsvPdfContent('');
       }
     } catch (err: any) {
       console.error(err);
-      setMessage({ text: 'Unexpected client-side error', type: 'error' });
+      setMessage({ text: 'Unexpected client-side application error', type: 'error' });
     } finally { 
       setLoading(false); 
     }
@@ -244,38 +238,39 @@ export default function UploadClientXML() {
   return (
     <div className="min-h-screen bg-white flex font-sans text-[#242424] relative">
       <div className="flex-1 flex flex-col">
-        {/* --- CABECERA --- */}
+        
+        {/* --- NAVBAR --- */}
         <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#E8EAF6] rounded-md flex items-center justify-center">
               <FileCode className="text-[#5B5FC7]" size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#242424]">WB Catalog Upload & Sanitize</h1>
-              <p className="text-[11px] text-[#616161]">Infraestructura de datos optimizada para Servex US</p>
+              <h1 className="text-lg font-bold text-[#242424]">WBD Catalog Upload</h1>
+              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección para la tabla ClientsSERVEX_WBD</p>
             </div>
           </div>
         </div>
 
-        {/* --- GRID DE CONTENIDO --- */}
+        {/* --- BODY DESIGN --- */}
         <div className="p-8 grid grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
           
-          {/* Panel de Estado Lateral */}
+          {/* Status Tracker */}
           <div className="col-span-12 lg:col-span-4 space-y-4">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Upload Progress</h3>
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Etapas de Saneamiento</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>1</div>
-                  <span className="text-xs font-medium">XML Master File</span>
+                  <span className="text-xs font-medium">XML Raw Target</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">CSV Target (State Machine Cleaned)</span>
+                  <span className="text-xs font-medium">CSV Optimizer Raw (JSON)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvPdfContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>3</div>
-                  <span className="text-xs font-medium">PDF CSV Sync</span>
+                  <span className="text-xs font-medium">Informa Agent Sync (JSON)</span>
                 </div>
               </div>
             </div>
@@ -283,15 +278,15 @@ export default function UploadClientXML() {
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
               <div className="flex items-center gap-2 text-[#5B5FC7] mb-3">
                 <Info size={16} />
-                <span className="text-xs font-bold">Arquitectura de Datos</span>
+                <span className="text-xs font-bold">Alineación de Entidad</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                El motor analiza caracteres especiales, sanitiza colisiones de nombres redundantes de columnas como <code className="font-mono bg-gray-100 px-1 rounded">Top</code> y empaqueta el dataset listo para el motor PostgreSQL.
+                Los datos se enlazan de forma centralizada bajo la firma corporativa <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">WBD</code> en la base de datos de producción.
               </p>
             </div>
           </div>
 
-          {/* Formulario Principal */}
+          {/* Interfaz de Upload */}
           <div className="col-span-12 lg:col-span-8">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-6 space-y-6">
@@ -308,14 +303,14 @@ export default function UploadClientXML() {
                   </div>
                 </div>
 
-                {/* Zonas de Carga de Archivos */}
+                {/* Slots para Archivos */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className="border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]"
                   >
                     {readingXml ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <UploadCloud className="mx-auto mb-2 text-gray-400" size={20} />}
-                    <p className="text-[10px] font-bold text-[#242424]">{readingXml ? 'Reading...' : 'Upload XML'}</p>
+                    <p className="text-[10px] font-bold text-[#242424]">{readingXml ? 'Leyendo...' : 'Cargar XML'}</p>
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
 
@@ -324,7 +319,7 @@ export default function UploadClientXML() {
                     className="border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]"
                   >
                     {readingCsv ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <FileSpreadsheet className="mx-auto mb-2 text-gray-400" size={20} />}
-                    <p className="text-[10px] font-bold text-[#242424]">{readingCsv ? 'Reading...' : 'Upload CSV'}</p>
+                    <p className="text-[10px] font-bold text-[#242424]">{readingCsv ? 'Leyendo...' : 'Cargar CSV'}</p>
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
 
@@ -333,12 +328,12 @@ export default function UploadClientXML() {
                     className="border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]"
                   >
                     {readingCsvPdf ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <FileType className="mx-auto mb-2 text-gray-400" size={20} />}
-                    <p className="text-[10px] font-bold text-[#242424]">{readingCsvPdf ? 'Reading...' : 'Upload CSV (PDF)'}</p>
+                    <p className="text-[10px] font-bold text-[#242424]">{readingCsvPdf ? 'Leyendo...' : 'Cargar CSV (PDF)'}</p>
                     <input ref={csvPdfInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCsvPdfFile(file); }} />
                   </div>
                 </div>
 
-                {/* Previsualizaciones */}
+                {/* Previews de Buffer */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
@@ -369,7 +364,7 @@ export default function UploadClientXML() {
                   disabled={loading}
                   className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'Saneando y Persistiendo...' : 'Procesar y Guardar Catálogo'}
+                  {loading ? 'Saneando y Guardando...' : 'Guardar Datos en WBD'}
                 </button>
               </div>
             </div>
