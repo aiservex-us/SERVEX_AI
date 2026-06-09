@@ -176,15 +176,8 @@ export default function UploadClientXML() {
       }
 
       console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
-      
-      // Procesamos y obtenemos el objeto JSON saneado
       const sanitizedCsvJson = sanitizeCSV(csvContent);
 
-      /**
-       * PAYLOAD MODIFICADO CON EL NUEVO FLUJO UNIFICADO:
-       * - csv_raw: Ahora almacena directamente el JSON stringificado ya listo y saneado.
-       * - csvpdf_raw: Eliminado por completo de la transacción.
-       */
       const payload = {
         company_name: 'WBO',
         xml_raw: xmlContent, 
@@ -192,7 +185,6 @@ export default function UploadClientXML() {
         user_id: user.id,
       };
 
-      // Inyección exacta apuntando a tu esquema actualizable: ClientsSERVEX_WBO
       const { error } = await supabase.from('ClientsSERVEX_WBO').upsert(payload, { 
         onConflict: 'id' 
       });
@@ -244,7 +236,8 @@ export default function UploadClientXML() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">Sanitize -> Guardar en csv_raw</span>
+                  {/* Línea 247 Corregida de forma segura usando un string de JS literal */}
+                  <span className="text-xs font-medium">{"Sanitize -> Guardar en csv_raw"}</span>
                 </div>
               </div>
             </div>
