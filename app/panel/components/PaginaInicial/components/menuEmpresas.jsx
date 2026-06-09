@@ -59,7 +59,16 @@ export default function Calendar() {
       {/* ===================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-
+      <CompanyCard
+            company="WB Accesories"
+            logo="/logosEmpresas/WB.webp"
+            role="Heavy-Duty Tables & Worksurfaces"
+            tags={['Inventory', 'Production', 'Supply Chain']}
+            status="Active contract"
+            location="United States"
+            onOpen={() => router.push('/WBT')}
+/>
+      
       <CompanyCard
             company="WB Tables"
             logo="/logosEmpresas/WB.webp"
@@ -80,15 +89,7 @@ export default function Calendar() {
             onOpen={() => router.push('/WBW')}
 />
 
-<CompanyCard
-            company="WB Desks"
-            logo="/logosEmpresas/WB.webp"
-            role="Office & Educational Desks"
-            tags={['Inventory', 'Production', 'Supply Chain']}
-            status="Active contract"
-            location="United States"
-            onOpen={() => router.push('/WBD')}
-/>
+
 
 <CompanyCard
             company="WB Seating"
@@ -110,10 +111,14 @@ export default function Calendar() {
             onOpen={() => router.push('/WBD')}
 />
 
+
+
+
+
 <CompanyCard
-            company="WB OnVoy"
+            company="WB Desks"
             logo="/logosEmpresas/WB.webp"
-            role="Mobile Lab & Collaboration Carts"
+            role="Office & Educational Desks"
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
             location="United States"
