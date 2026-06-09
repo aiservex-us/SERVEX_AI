@@ -90,7 +90,6 @@ export default function UploadClientXML() {
       return hClean || 'unnamed_column';
     });
 
-    // SISTEMA DE LLAVES UNICAS PARA CAMPOS JSONB (Previene sobreescrituras de columnas repetidas)
     const perfectHeaders: string[] = [];
     const headerCounts: { [key: string]: number } = {};
 
@@ -179,7 +178,7 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
-  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBD ---
+  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBS ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!xmlContent.trim()) {
@@ -195,25 +194,27 @@ export default function UploadClientXML() {
       }
 
       console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
+      
+      // Sanitizamos las matrices para transformarlas a JSON
       const sanitizedCsvJson = sanitizeCSV(csvContent);
       const sanitizedCsvPdfJson = sanitizeCSV(csvPdfContent);
 
       /**
-       * PAYLOAD ESTRUCTURADO SEGÚN TU DDL DE POSTGRESQL:
-       * - csv_raw: Almacena el texto original limpio.
-       * - csv_optimizer_raw: Almacena la estructura JSON del CSV principal optimizado.
-       * - informa_agent_raw: Almacena el pipeline transformado desde PDF.
+       * PAYLOAD CORREGIDO ALINEADO A TU DDL:
+       * - csv_raw: Almacena el contenido del CSV original.
+       * - audit_report_json: Recibe el objeto JSON sanitizado (aprovechando el campo jsonb existente).
+       * - informa_agent_raw: Almacena el pipeline transformado desde PDF como texto plano.
        */
       const payload = {
         company_name: 'WBS',
         xml_raw: xmlContent, 
-        csv_raw: csvContent, 
-        csv_optimizer_raw: JSON.stringify(sanitizedCsvJson), 
+        csv_raw: csvContent, // Guardamos el raw original aquí
+        audit_report_json: sanitizedCsvJson, // Mapeado a una columna jsonb real de tu DDL
         informa_agent_raw: JSON.stringify(sanitizedCsvPdfJson), 
         user_id: user.id,
       };
 
-      // Persistencia exacta apuntando a tu esquema e identificador de tabla corregido: ClientsSERVEX_WBD
+      // Inyección exacta apuntando a la tabla real sin colisionar con esquemas fantasma
       const { error } = await supabase.from('ClientsSERVEX_WBS').upsert(payload, { 
         onConflict: 'id' 
       });
@@ -247,7 +248,7 @@ export default function UploadClientXML() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[#242424]">WBD Catalog Upload</h1>
-              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección para la tabla ClientsSERVEX_WBD</p>
+              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección para la tabla ClientsSERVEX_WBS</p>
             </div>
           </div>
         </div>
@@ -266,7 +267,7 @@ export default function UploadClientXML() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">CSV Optimizer Raw (JSON)</span>
+                  <span className="text-xs font-medium">CSV Raw & Audit Map</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvPdfContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>3</div>
@@ -281,7 +282,7 @@ export default function UploadClientXML() {
                 <span className="text-xs font-bold">Alineación de Entidad</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                Los datos se enlazan de forma centralizada bajo la firma corporativa <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">WBD</code> en la base de datos de producción.
+                Los datos se enlazan de forma centralizada bajo la firma corporativa <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">WBS</code> en la base de datos de producción.
               </p>
             </div>
           </div>
@@ -364,7 +365,7 @@ export default function UploadClientXML() {
                   disabled={loading}
                   className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'Saneando y Guardando...' : 'Guardar Datos en WBD'}
+                  {loading ? 'Saneando y Guardando...' : 'Guardar Datos en WBS'}
                 </button>
               </div>
             </div>
