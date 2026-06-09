@@ -35,7 +35,7 @@ const WBDDataMatrix = () => {
 
       // Ingestión desde la tabla correcta configurada en Supabase para WBD
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX_WBT')
+        .from('ClientsSERVEX_WBO')
         .select('xml_raw')
         .eq('user_id', user.id)
         .maybeSingle();
