@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -22,7 +24,7 @@ const WBDDataMatrix = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // Cabeceras estrictas requeridas para mostrar del XML correspondientes al CSV solicitado
+  // Cabeceras estrictas requeridas para mostrar del XML
   const baseHeaders = ["Code", "Sku #", "2026 List Price"];
 
   const processXML = async () => {
@@ -50,26 +52,26 @@ const WBDDataMatrix = () => {
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBA XML structure");
+      if (parserError) throw new Error("Error parsing WBD XML structure");
 
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
 
       for (const p of productsXML) {
-        // Extracción de Code
-        const code = p.getElementsByTagName("Code")[0]?.textContent || "";
+        const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
+        const description = p.getElementsByTagName("Description")[0]?.textContent || "";
+        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
+          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
+          || "N/A";
         
-        // Extracción de Sku # (Buscando ProductCode dentro del contenedor ProductRef)
-        const productRefElement = p.getElementsByTagName("ProductRef")[0] || p;
-        const sku = productRefElement.getElementsByTagName("ProductCode")[0]?.textContent || "";
-        
-        // Extracción de 2026 List Price (<Price><Value>...</Value></Price>)
+        // Extracción del valor numérico del precio base (<Price><Value>...</Value></Price>)
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
         extracted.push({
-          code,
           sku,
+          description,
+          classification,
           basePrice
         });
       }
@@ -77,8 +79,8 @@ const WBDDataMatrix = () => {
       setProducts(extracted);
       setCurrentPage(1); // Reiniciar a la primera página tras una recarga exitosa
     } catch (err) {
-      console.error("Error en procesamiento de matriz de datos WBA:", err);
-      setError(err.message || "Error al procesar la información de catálogos WBA.");
+      console.error("Error en procesamiento de matriz de datos WBD:", err);
+      setError(err.message || "Error al procesar la información de catálogos WBD.");
     } finally {
       setLoading(false);
     }
@@ -92,8 +94,8 @@ const WBDDataMatrix = () => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
     return products.filter(p => 
-      p.code.toLowerCase().includes(cleanSearch) ||
-      p.sku.toLowerCase().includes(cleanSearch)
+      p.sku.toLowerCase().includes(cleanSearch) ||
+      p.description.toLowerCase().includes(cleanSearch)
     );
   }, [products, searchTerm]);
 
@@ -194,7 +196,7 @@ const WBDDataMatrix = () => {
           {/* Table Matrix */}
           {filtered.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No se encontraroncoincidencias de SKU o productos en el esquema actual.
+              No se encontraron coincidencias de SKU o productos en el esquema actual.
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
@@ -237,21 +239,28 @@ const WBDDataMatrix = () => {
                             {realIndex}
                           </td>
 
-                          {/* Code */}
-                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
-                            <div className="px-3 py-1.5 font-sans text-[11px] font-medium whitespace-nowrap truncate" title={p.code}>
-                              {p.code}
-                            </div>
-                          </td>
-
-                          {/* Sku # */}
+                          {/* SKU */}
                           <td className="p-0 text-[#5B5FC7] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] font-bold whitespace-nowrap truncate" title={p.sku}>
                               {p.sku}
                             </div>
                           </td>
 
-                          {/* 2026 List Price */}
+                          {/* Description */}
+                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
+                            <div className="px-3 py-1.5 font-sans text-[11px] font-medium whitespace-nowrap truncate" title={p.description}>
+                              {p.description}
+                            </div>
+                          </td>
+
+                          {/* Classification */}
+                          <td className="p-0 text-[#616161] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
+                            <div className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate" title={p.classification}>
+                              {p.classification}
+                            </div>
+                          </td>
+
+                          {/* Base Price */}
                           <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] font-extrabold bg-[#F9F9F9]/50 whitespace-nowrap truncate">
                               ${p.basePrice.toLocaleString()}
