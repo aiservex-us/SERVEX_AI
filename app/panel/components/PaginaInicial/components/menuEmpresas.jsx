@@ -71,13 +71,13 @@ export default function Calendar() {
 />
 
 <CompanyCard
-            company="WB Hard Plastic Desks"
+            company="WB Workstations"
             logo="/logosEmpresas/WB.webp"
             role="Industrial Solutions & Manufacturing"
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
            location="United States"
-            onOpen={() => router.push('/WBHD')}
+            onOpen={() => router.push('/WBW')}
 />
 
 <CompanyCard
@@ -90,6 +90,33 @@ export default function Calendar() {
             onOpen={() => router.push('/WBD')}
 />
 
+<CompanyCard
+            company="WB Seating"
+            logo="/logosEmpresas/WB.webp"
+            role="Industrial Solutions & Manufacturing"
+            tags={['Inventory', 'Production', 'Supply Chain']}
+            status="Active contract"
+           location="United States"
+            onOpen={() => router.push('/WBD')}
+/>
+<CompanyCard
+            company="WB Storage"
+            logo="/logosEmpresas/WB.webp"
+            role="Industrial Solutions & Manufacturing"
+            tags={['Inventory', 'Production', 'Supply Chain']}
+            status="Active contract"
+           location="United States"
+            onOpen={() => router.push('/WBD')}
+/>
+<CompanyCard
+            company="WB OnVoy"
+            logo="/logosEmpresas/WB.webp"
+            role="Industrial Solutions & Manufacturing"
+            tags={['Inventory', 'Production', 'Supply Chain']}
+            status="Active contract"
+           location="United States"
+            onOpen={() => router.push('/WBD')}
+/>
 <CompanyCard
           company="LESRO"
           logo="/logosEmpresas/lesro.png"
