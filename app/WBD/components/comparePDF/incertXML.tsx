@@ -205,7 +205,7 @@ export default function UploadClientXML() {
        * - informa_agent_raw: Almacena el pipeline transformado desde PDF.
        */
       const payload = {
-        company_name: 'Servex US - WBD',
+        company_name: 'WBD',
         xml_raw: xmlContent, 
         csv_raw: csvContent, 
         csv_optimizer_raw: JSON.stringify(sanitizedCsvJson), 
