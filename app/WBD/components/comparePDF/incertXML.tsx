@@ -34,11 +34,11 @@ export default function UploadClientXML() {
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
   const csvPdfInputRef = useRef<HTMLInputElement | null>(null); 
 
-  // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (Equivalente al Script de Python) ---
+  // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA ---
   const sanitizeCSV = (rawCsvText: string): any[] => {
     if (!rawCsvText || !rawCsvText.trim()) return [];
 
-    // 1. Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
+    // 1. Reconstrucción exacta ante saltos de línea reales y comillas abiertas
     const lines: string[] = [];
     let currentLine = '';
     let insideQuotes = false;
@@ -50,7 +50,7 @@ export default function UploadClientXML() {
         currentLine += char;
       } else if ((char === '\n' || char === '\r') && !insideQuotes) {
         if (char === '\r' && rawCsvText[i + 1] === '\n') {
-          i++; // Omitir el siguiente \n de la secuencia \r\n
+          i++; // Omitir el salto de línea de la secuencia \r\n
         }
         lines.push(currentLine);
         currentLine = '';
@@ -84,15 +84,15 @@ export default function UploadClientXML() {
       }
     }
 
-    const fullRawHeader = rawHeaderAccum.join('\n');
+    const fullRawHeader = rawHeaderAccum.join(' ');
     
-    // Limpieza ultra-sofisticada de columnas (Preservado e igualado a la lógica Python)
+    // Limpieza ultra-sofisticada de columnas adaptada a cabeceras rotas
     const tokens = fullRawHeader.split(';');
     const cleanedTokens = tokens.map(token => {
-      // Remover saltos de línea internos, comillas dobles y simples
-      let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
-      // Normalizar espacios múltiples duplicados intermedios
-      tClean = tClean.split(/\s+/).join(' ').trim();
+      // Remover saltos de línea internos, retornos de carro y cualquier tipo de comillas residuales
+      let tClean = token.replace(/[\r\n]+/g, ' ').replace(/"/g, '').replace(/'/g, '');
+      // Colapsar espacios múltiples duplicados intermedios a un solo espacio
+      tClean = tClean.replace(/\s+/g, ' ').trim();
       return tClean;
     });
 
@@ -108,16 +108,17 @@ export default function UploadClientXML() {
 
       perfectHeaders.forEach((header, index) => {
         let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
-        // Preservar valores nulos reales de columnas vacías según las directrices de Servex
+        
         if (cellValue === '') {
           rowObject[header] = null;
         } else {
-          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); // Remover comillas envolventes
+          // Remover comillas envolventes de los campos de datos y limpiar espacios extremos
+          cellValue = cellValue.replace(/^["']|["']$/g, '').trim();
           rowObject[header] = cellValue;
         }
       });
 
-      // Implementación del `restkey` de Python para atrapar campos huérfanos por desalineación
+      // Implementación del restkey para atrapar campos huérfanos por desalineación estructural
       if (currentCells.length > perfectHeaders.length) {
         const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
         rowObject['_orphaned_fields'] = orphaned;
@@ -211,28 +212,27 @@ export default function UploadClientXML() {
         return; 
       }
 
-      // 1. Ejecutar el Saneamiento en memoria antes de guardar
       console.log('[+] Iniciando saneamiento estructural sobre los contenidos CSV...');
       const sanitizedCsvJson = sanitizeCSV(csvContent);
       const sanitizedCsvPdfJson = sanitizeCSV(csvPdfContent);
 
-      // 2. Definir el Payload Unificado preparado para campos JSONB en Supabase
+      // Definir el Payload Unificado preparado para persistencia
       const payload = {
         company_name: 'WBD', 
         xml_raw: xmlContent, 
-        csv_raw: sanitizedCsvJson,      // Se inyecta la estructura JSON limpia
-        csvpdf_raw: sanitizedCsvPdfJson, // Se inyecta la estructura JSON limpia
+        csv_raw: sanitizedCsvJson,      
+        csvpdf_raw: sanitizedCsvPdfJson, 
         user_id: user.id,
       };
 
-      // 3. Persistencia en la tabla principal (con control de conflictos)
+      // Persistencia con control de conflictos explícito
       const { error } = await supabase.from('ClientsSERVEX_WBD').upsert(payload, { 
         onConflict: 'company_name' 
       });
 
       if (error) {
         console.error('Supabase Full Error:', error);
-        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
+        setMessage({ text: `DB Error: ${error.message} (${error.details || 'Verifica restricciones UNIQUE'})`, type: 'error' });
       } else {
         setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
         setXmlContent(''); 
