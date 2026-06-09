@@ -66,7 +66,7 @@ export default function Calendar() {
             tags={['Inventory', 'Production', 'Supply Chain']}
             status="Active contract"
             location="United States"
-            onOpen={() => router.push('/WBT')}
+            onOpen={() => router.push('/WBA')}
 />
       
       <CompanyCard
