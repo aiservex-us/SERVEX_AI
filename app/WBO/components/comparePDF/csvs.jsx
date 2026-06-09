@@ -58,7 +58,7 @@ export default function DataViewer() {
       if (error) throw error;
       setData(record);
     } catch (error) {
-      console.error('Error fetching WBD data:', error);
+      console.error('Error fetching WBO data:', error);
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ export default function DataViewer() {
     
     const link = document.createElement('a');
     link.href = url;
-    const filename = `${data?.company_name || 'WBD'}_${activeTab === 'csv_optimizer_raw' ? 'Sanitized_Manual' : 'Sanitized_PDF'}_${new Date().toISOString().slice(0,10)}.csv`;
+    const filename = `${data?.company_name || 'WBO'}_${activeTab === 'csv_optimizer_raw' ? 'Sanitized_Manual' : 'Sanitized_PDF'}_${new Date().toISOString().slice(0,10)}.csv`;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
