@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML() {
+  // CORRECCIÓN: Alineación de Entidad a WBS
   const [companyName, setCompanyName] = useState('WBS'); 
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
@@ -30,6 +31,46 @@ export default function UploadClientXML() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
   const csvPdfInputRef = useRef<HTMLInputElement | null>(null);
+
+  /**
+   * SANEADOR DE TEXTO PLANO PARA CSV (RECONSTRUCTOR DE ENCABEZADOS Y FILAS)
+   * Toma el CSV crudo desalineado, limpia los quiebres de línea internos, 
+   * remueve comillas espurias de los encabezados y estandariza el delimitador.
+   */
+  const cleanRawCSVText = (rawText: string): string => {
+    if (!rawText || !rawText.trim()) return '';
+
+    // Dividimos de forma segura por líneas considerando el estado de comillas si es necesario, 
+    // pero para aislar el encabezado conflictivo del prompt analizamos la estructura de líneas.
+    const rows = parseCSVToRows(rawText);
+    if (rows.length === 0) return '';
+
+    // Procesar la primera fila (Headers) removiendo saltos, comillas internas y normalizando espacios
+    const cleanedHeaders = rows[0].map(header => {
+      let hClean = header.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
+      return hClean.split(/\s+/).join(' ').trim();
+    });
+
+    // Reconstruir las filas de datos limpiando espacios sobrantes o comillas extremas
+    const cleanedRows = rows.slice(1).map(row => {
+      return row.map(cell => {
+        let cClean = cell.trim();
+        // Quitar comillas exteriores si existen
+        if (/^["'].*["']$/.test(cClean)) {
+          cClean = cClean.slice(1, -1).trim();
+        }
+        return cClean;
+      });
+    });
+
+    // Unificar los encabezados limpios con sus respectivas filas usando el delimitador ';'
+    const finalCsvLines = [
+      cleanedHeaders.join(';'),
+      ...cleanedRows.map(row => row.join(';'))
+    ];
+
+    return finalCsvLines.join('\n');
+  };
 
   /**
    * PARSER DE CSV MEDIANTE MÁQUINA DE ESTADOS
@@ -156,8 +197,11 @@ export default function UploadClientXML() {
     setReadingCsv(true);
     const reader = new FileReader();
     reader.onload = (e) => {
-      setCsvContent(e.target?.result as string);
-      setMessage({ text: 'CSV file loaded successfully', type: 'success' });
+      const rawText = e.target?.result as string;
+      // Inyectamos el saneador para limpiar el CSV plano de inmediato en el preview y estado
+      const cleanedText = cleanRawCSVText(rawText);
+      setCsvContent(cleanedText);
+      setMessage({ text: 'CSV file loaded and sanitized successfully', type: 'success' });
       setReadingCsv(false);
     };
     reader.readAsText(file);
@@ -171,8 +215,10 @@ export default function UploadClientXML() {
     setReadingCsvPdf(true);
     const reader = new FileReader();
     reader.onload = (e) => {
-      setCsvPdfContent(e.target?.result as string);
-      setMessage({ text: 'PDF CSV loaded successfully', type: 'success' });
+      const rawText = e.target?.result as string;
+      const cleanedText = cleanRawCSVText(rawText);
+      setCsvPdfContent(cleanedText);
+      setMessage({ text: 'PDF CSV loaded and sanitized successfully', type: 'success' });
       setReadingCsvPdf(false);
     };
     reader.readAsText(file);
@@ -193,28 +239,23 @@ export default function UploadClientXML() {
         return; 
       }
 
-      console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
-      
-      // Sanitizamos las matrices para transformarlas a JSON
+      console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV Saneadas...');
       const sanitizedCsvJson = sanitizeCSV(csvContent);
       const sanitizedCsvPdfJson = sanitizeCSV(csvPdfContent);
 
       /**
-       * PAYLOAD CORREGIDO ALINEADO A TU DDL:
-       * - csv_raw: Almacena el contenido del CSV original.
-       * - audit_report_json: Recibe el objeto JSON sanitizado (aprovechando el campo jsonb existente).
-       * - informa_agent_raw: Almacena el pipeline transformado desde PDF como texto plano.
+       * PAYLOAD ESTRUCTURADO SEGÚN TU DDL DE POSTGRESQL (ClientsSERVEX_WBS):
+       * - csv_raw: Almacena el string de texto plano perfectamente limpio.
        */
       const payload = {
         company_name: 'WBS',
         xml_raw: xmlContent, 
-        csv_raw: csvContent, // Guardamos el raw original aquí
-        audit_report_json: sanitizedCsvJson, // Mapeado a una columna jsonb real de tu DDL
-        informa_agent_raw: JSON.stringify(sanitizedCsvPdfJson), 
+        csv_raw: csvContent, // Ya contiene el formato corregido en una sola línea por fila
+        audit_report_json: sanitizedCsvJson, // Mantenemos compatibilidad con campos JSONB de tu tabla
         user_id: user.id,
       };
 
-      // Inyección exacta apuntando a la tabla real sin colisionar con esquemas fantasma
+      // CORRECCIÓN CRÍTICA: Apuntamiento exacto a la tabla ClientsSERVEX_WBS
       const { error } = await supabase.from('ClientsSERVEX_WBS').upsert(payload, { 
         onConflict: 'id' 
       });
@@ -247,7 +288,7 @@ export default function UploadClientXML() {
               <FileCode className="text-[#5B5FC7]" size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#242424]">WBD Catalog Upload</h1>
+              <h1 className="text-lg font-bold text-[#242424]">WBS Catalog Upload</h1>
               <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección para la tabla ClientsSERVEX_WBS</p>
             </div>
           </div>
@@ -267,11 +308,11 @@ export default function UploadClientXML() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">CSV Raw & Audit Map</span>
+                  <span className="text-xs font-medium">CSV Cleaned Raw (Text)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvPdfContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>3</div>
-                  <span className="text-xs font-medium">Informa Agent Sync (JSON)</span>
+                  <span className="text-xs font-medium">Informa Agent Sync</span>
                 </div>
               </div>
             </div>
@@ -341,11 +382,11 @@ export default function UploadClientXML() {
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">CSV Original Preview</label>
+                    <label className="text-xs font-bold text-[#242424]">CSV Saneado Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvContent} readOnly />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">PDF CSV Original Preview</label>
+                    <label className="text-xs font-bold text-[#242424]">PDF CSV Saneado Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvPdfContent} readOnly />
                   </div>
                 </div>
