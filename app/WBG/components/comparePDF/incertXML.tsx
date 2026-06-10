@@ -28,8 +28,8 @@ export default function UploadClientXML() {
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
 
   /**
-   * PARSER DE CSV MEDIANTE MÁQUINA DE ESTADOS
-   * Gestiona saltos de línea físicos internos e inmuniza contra caracteres delimitadores embebidos.
+   * PARSER DE CSV ULTRA-ROBUSTO OPTIMIZADO
+   * Procesa saltos de línea embebidos y previene bucles infinitos.
    */
   const parseCSVToRows = (text: string): string[][] => {
     const rows: string[][] = [];
@@ -37,12 +37,15 @@ export default function UploadClientXML() {
     let currentCell = '';
     let insideQuotes = false;
 
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const nextChar = text[i + 1];
+    // Normalizar saltos de línea para evitar desajustes de carro
+    const normalizedText = text.replace(/\r\n/g, '\n');
+
+    for (let i = 0; i < normalizedText.length; i++) {
+      const char = normalizedText[i];
 
       if (char === '"') {
-        if (insideQuotes && nextChar === '"') {
+        // Manejo de comillas dobles escapadas ("")
+        if (insideQuotes && normalizedText[i + 1] === '"') {
           currentCell += '"';
           i++; 
         } else {
@@ -51,10 +54,7 @@ export default function UploadClientXML() {
       } else if (char === ';' && !insideQuotes) {
         currentRow.push(currentCell);
         currentCell = '';
-      } else if ((char === '\n' || char === '\r') && !insideQuotes) {
-        if (char === '\r' && nextChar === '\n') {
-          i++; 
-        }
+      } else if (char === '\n' && !insideQuotes) {
         currentRow.push(currentCell);
         rows.push(currentRow);
         currentRow = [];
@@ -63,6 +63,8 @@ export default function UploadClientXML() {
         currentCell += char;
       }
     }
+    
+    // Insertar última línea residual si existe
     if (currentCell || currentRow.length > 0) {
       currentRow.push(currentCell);
       rows.push(currentRow);
@@ -79,19 +81,20 @@ export default function UploadClientXML() {
     const allRows = parseCSVToRows(rawCsvText);
     if (allRows.length === 0) return [];
 
+    // Limpieza agresiva de encabezados según tus requerimientos
     const rawHeaders = allRows[0];
     const cleanedHeaders = rawHeaders.map(header => {
-      // 1. Reemplazar saltos de línea y retornos por espacios simples
+      // 1. Reemplazar saltos de línea por espacios
       let hClean = header.replace(/[\r\n]+/g, ' ');
-      // 2. Eliminar todas las comillas dobles y simples residuales
+      // 2. Eliminar comillas
       hClean = hClean.replace(/["']/g, '');
-      // 3. Colapsar múltiples espacios en uno solo y limpiar los extremos
+      // 3. Colapsar espacios y limpiar extremos
       hClean = hClean.replace(/\s+/g, ' ').trim();
       
       return hClean || 'unnamed_column';
     });
 
-    // SISTEMA DE LLAVES UNICAS PARA CAMPOS JSONB (Previene sobreescrituras de columnas repetidas)
+    // Control de columnas repetidas para JSONB seguro
     const perfectHeaders: string[] = [];
     const headerCounts: { [key: string]: number } = {};
 
@@ -109,6 +112,7 @@ export default function UploadClientXML() {
     const sanitizedJson: any[] = [];
 
     dataRows.forEach(row => {
+      // Evitar procesar filas completamente vacías
       if (row.length === 0 || (row.length === 1 && row[0].trim() === '')) return;
 
       const rowObject: any = {};
@@ -120,6 +124,7 @@ export default function UploadClientXML() {
         if (cellValue === '') {
           rowObject[header] = null;
         } else {
+          // Remover comillas residuales de los valores de las celdas
           rowObject[header] = cellValue.replace(/^["']|["']$/g, '').trim();
         }
       });
@@ -165,7 +170,7 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
-  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBG ---
+  // --- Orquestador de Persistencia e Inyección Corregido ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!xmlContent.trim()) {
@@ -183,21 +188,17 @@ export default function UploadClientXML() {
       console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
       const sanitizedCsvJson = sanitizeCSV(csvContent);
 
-      /**
-       * PAYLOAD ESTRUCTURADO SEGÚN TU DDL DE POSTGRESQL:
-       * - csv_raw: Almacena directamente la estructura JSON del CSV principal ya saneado.
-       */
       const payload = {
         company_name: 'WBG',
         xml_raw: xmlContent, 
-        csv_raw: JSON.stringify(sanitizedCsvJson), 
+        csv_raw: JSON.stringify(sanitizedCsvJson), // Guardado estructurado en formato stringificado (válido para TEXT o JSONB)
         user_id: user.id,
       };
 
-      // Persistencia exacta apuntando a tu esquema e identificador de tabla: ClientsSERVEX_WBG
-      const { error } = await supabase.from('ClientsSERVEX_WBG').upsert(payload, { 
-        onConflict: 'id' 
-      });
+      // CORRECCIÓN CLAVE: Cambiado de .upsert() a .insert() porque el ID es autogenerado por PostgreSQL
+      const { error } = await supabase
+        .from('ClientsSERVEX_WBG')
+        .insert([payload]);
 
       if (error) {
         console.error('Supabase Core Error:', error);
