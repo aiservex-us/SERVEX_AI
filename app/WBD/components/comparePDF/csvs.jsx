@@ -49,7 +49,7 @@ export default function DataViewer() {
       // Consulta exacta alineada al DDL y filtrada por la entidad corporativa WBD
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBD')
-        .select('company_name, csv_optimizer_raw, informa_agent_raw, created_at')
+        .select('company_name, csv_raw, informa_agent_raw, created_at')
         .eq('company_name', 'WBD')
         .order('created_at', { ascending: false })
         .limit(1)
