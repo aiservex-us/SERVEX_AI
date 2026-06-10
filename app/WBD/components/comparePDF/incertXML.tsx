@@ -85,8 +85,13 @@ export default function UploadClientXML() {
 
     const rawHeaders = allRows[0];
     const cleanedHeaders = rawHeaders.map(header => {
-      let hClean = header.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
-      hClean = hClean.split(/\s+/).join(' ').trim();
+      // 1. Reemplazar saltos de línea y retornos por espacios simples
+      let hClean = header.replace(/[\r\n]+/g, ' ');
+      // 2. Eliminar todas las comillas dobles y simples residuales
+      hClean = hClean.replace(/["']/g, '');
+      // 3. Colapsar múltiples espacios en uno solo y limpiar los extremos
+      hClean = hClean.replace(/\s+/g, ' ').trim();
+      
       return hClean || 'unnamed_column';
     });
 
@@ -200,15 +205,13 @@ export default function UploadClientXML() {
 
       /**
        * PAYLOAD ESTRUCTURADO SEGÚN TU DDL DE POSTGRESQL:
-       * - csv_raw: Almacena el texto original limpio.
-       * - csv_optimizer_raw: Almacena la estructura JSON del CSV principal optimizado.
+       * - csv_raw: Almacena directamente la estructura JSON del CSV principal ya saneado.
        * - informa_agent_raw: Almacena el pipeline transformado desde PDF.
        */
       const payload = {
         company_name: 'WBD',
         xml_raw: xmlContent, 
-        csv_raw: csvContent, 
-        csv_optimizer_raw: JSON.stringify(sanitizedCsvJson), 
+        csv_raw: JSON.stringify(sanitizedCsvJson), 
         informa_agent_raw: JSON.stringify(sanitizedCsvPdfJson), 
         user_id: user.id,
       };

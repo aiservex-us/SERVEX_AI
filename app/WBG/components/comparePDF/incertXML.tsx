@@ -184,7 +184,7 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
-  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBD ---
+  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBG ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!xmlContent.trim()) {
@@ -205,20 +205,18 @@ export default function UploadClientXML() {
 
       /**
        * PAYLOAD ESTRUCTURADO SEGÚN TU DDL DE POSTGRESQL:
-       * - csv_raw: Almacena el texto original limpio.
-       * - csv_optimizer_raw: Almacena la estructura JSON del CSV principal optimizado.
-       * - informa_agent_raw: Almacena el pipeline transformado desde PDF.
+       * - csv_raw: Almacena directamente la estructura JSON del CSV principal ya saneado.
+       * - nforma_agent_raw: Almacena el pipeline transformado desde PDF.
        */
       const payload = {
         company_name: 'WBG',
         xml_raw: xmlContent, 
-        csv_raw: csvContent, 
-        csv_optimizer_raw: JSON.stringify(sanitizedCsvJson), 
-        informa_agent_raw: JSON.stringify(sanitizedCsvPdfJson), 
+        csv_raw: JSON.stringify(sanitizedCsvJson), 
+        nforma_agent_raw: JSON.stringify(sanitizedCsvPdfJson), 
         user_id: user.id,
       };
 
-      // Persistencia exacta apuntando a tu esquema e identificador de tabla corregido: ClientsSERVEX_WBD
+      // Persistencia exacta apuntando a tu esquema e identificador de tabla: ClientsSERVEX_WBG
       const { error } = await supabase.from('ClientsSERVEX_WBG').upsert(payload, { 
         onConflict: 'id' 
       });
