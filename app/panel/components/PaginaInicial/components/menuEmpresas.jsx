@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Search } from 'lucide-react'; // 🔹 Agregué Search para el input
 import InsertXML from './incertXML'; // 🔹 NUEVO IMPORT
 
 export default function Calendar() {
@@ -10,6 +10,158 @@ export default function Calendar() {
 
   // 🔹 estado modal
   const [openModal, setOpenModal] = useState(false);
+
+  // 🔹 Estado para el filtro de búsqueda
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // 🔹 Array de datos idéntico a tus tarjetas para poder filtrar dinámicamente
+  const companies = [
+    {
+      company: "WB Accesories",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Heavy-Duty Tables & Worksurfaces",
+      tags: ['Inventory', 'Production', 'Supply Chain'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBA')
+    },
+    {
+      company: "WB Tables",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Heavy-Duty Tables & Worksurfaces",
+      tags: ['Inventory', 'Production', 'Supply Chain'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBT')
+    },
+    {
+      company: "WB Workstations",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Ergonomic & Tech Workstations",
+      tags: ['Inventory', 'Production', 'Supply Chain'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBO')
+    },
+    {
+      company: "WB Seating",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Industrial & Lab Task Seating",
+      tags: ['Inventory', 'Production', 'Supply Chain'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBS')
+    },
+    {
+      company: "WB Storage",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Modular Cabinets & Storage Systems",
+      tags: ['Inventory', 'Production', 'Supply Chain'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBD')
+    },
+    {
+      company: "WB Desks",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Office & Educational Desks",
+      tags: ['Inventory', 'Production', 'Supply Chain'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBD')
+    },
+    {
+      company: "LESRO",
+      logo: "/logosEmpresas/lesro.png",
+      role: "Enterprise Furniture Manufacturing",
+      tags: ['Analytics', 'Automation', 'Orders'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/LESRO')
+    },
+    {
+      company: "Teknion",
+      logo: "/logosEmpresas/Teknion_logo_RGB.svg",
+      role: "Office Furniture Systems",
+      tags: ['Analytics', 'ERP Sync'],
+      status: "Active contract",
+      location: "Global",
+      onOpen: undefined
+    },
+    {
+      company: "Shaw Floors",
+      logo: "/logosEmpresas/ShawFloorsLogo_Navy.png",
+      role: "Flooring Solutions",
+      tags: ['Dashboards', 'Sales'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: undefined
+    },
+    {
+      company: "MityLite",
+      logo: "/logosEmpresas/mity-lite-logo.png",
+      role: "Event Furniture",
+      tags: ['Automation', 'Orders'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: undefined
+    },
+    {
+      company: "H&M",
+      logo: "/logosEmpresas/hm-logo-caption.svg",
+      role: "Retail & Apparel",
+      tags: ['BI', 'Reports'],
+      status: "Active contract",
+      location: "Global",
+      onOpen: undefined
+    },
+    {
+      company: "Metalumen",
+      logo: "/logosEmpresas/logo-metalumen.png",
+      role: "Lighting Manufacturing",
+      tags: ['Analytics'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: undefined
+    },
+    {
+      company: "Via Seating",
+      logo: "/logosEmpresas/via_peach-brown-logo.webp",
+      role: "Seating Solutions",
+      tags: ['Dashboards', 'Orders'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: undefined
+    },
+    {
+      company: "DALS Lighting",
+      logo: "/logosEmpresas/cropped-logo-dals.png",
+      role: "Architectural Lighting",
+      tags: ['Automation', 'Reports'],
+      status: "Active contract",
+      location: "Canada / US",
+      onOpen: undefined
+    },
+    {
+      company: "Header Group",
+      logo: "/logosEmpresas/header_logo_hover.svg",
+      role: "Manufacturing Group",
+      tags: ['BI', 'Integrations'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: undefined
+    }
+  ];
+
+  // 🔹 Filtrado por nombre de empresa o tags
+  const filteredCompanies = companies.filter((c) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      c.company.toLowerCase().includes(search) ||
+      c.role.toLowerCase().includes(search) ||
+      c.tags.some(tag => tag.toLowerCase().includes(search))
+    );
+  });
 
   return (
     <div className="bg-white p-6 rounded-xl">
@@ -19,10 +171,20 @@ export default function Calendar() {
       {/* ===================== */}
       <div className="flex items-center justify-between mb-6 border-b border-slate-200 pb-4">
         <h2 className="text-lg font-semibold text-slate-800 tracking-tight">
-          Dashboard Clients
+          SVX Data Matrix Manager
         </h2>
 
-       
+        {/* 🔹 INPUT DE FILTRADO AGREGADO AL HEADER */}
+        <div className="relative w-64">
+          <input
+            type="text"
+            placeholder="Filter clients..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:border-[#6264A7] text-slate-700 placeholder-slate-400"
+          />
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        </div>
       </div>
 
       {/* ===================== */}
@@ -55,157 +217,21 @@ export default function Calendar() {
       )}
 
       {/* ===================== */}
-      {/* 🔹 GRID ORIGINAL */}
+      {/* 🔹 GRID DINÁMICO FILTRADO */}
       {/* ===================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-
-      <CompanyCard
-            company="WB Accesories"
-            logo="/logosEmpresas/WB.webp"
-            role="Heavy-Duty Tables & Worksurfaces"
-            tags={['Inventory', 'Production', 'Supply Chain']}
-            status="Active contract"
-            location="United States"
-            onOpen={() => router.push('/WBA')}
-/>
-      
-      <CompanyCard
-            company="WB Tables"
-            logo="/logosEmpresas/WB.webp"
-            role="Heavy-Duty Tables & Worksurfaces"
-            tags={['Inventory', 'Production', 'Supply Chain']}
-            status="Active contract"
-            location="United States"
-            onOpen={() => router.push('/WBT')}
-/>
-
-<CompanyCard
-            company="WB Workstations"
-            logo="/logosEmpresas/WB.webp"
-            role="Ergonomic & Tech Workstations"
-            tags={['Inventory', 'Production', 'Supply Chain']}
-            status="Active contract"
-            location="United States"
-            onOpen={() => router.push('/WBO')}
-/>
-
-
-
-<CompanyCard
-            company="WB Seating"
-            logo="/logosEmpresas/WB.webp"
-            role="Industrial & Lab Task Seating"
-            tags={['Inventory', 'Production', 'Supply Chain']}
-            status="Active contract"
-            location="United States"
-            onOpen={() => router.push('/WBS')}
-/>
-
-<CompanyCard
-            company="WB Storage"
-            logo="/logosEmpresas/WB.webp"
-            role="Modular Cabinets & Storage Systems"
-            tags={['Inventory', 'Production', 'Supply Chain']}
-            status="Active contract"
-            location="United States"
-            onOpen={() => router.push('/WBD')}
-/>
-
-
-
-
-
-<CompanyCard
-            company="WB Desks"
-            logo="/logosEmpresas/WB.webp"
-            role="Office & Educational Desks"
-            tags={['Inventory', 'Production', 'Supply Chain']}
-            status="Active contract"
-            location="United States"
-            onOpen={() => router.push('/WBD')}
-/>
-<CompanyCard
-          company="LESRO"
-          logo="/logosEmpresas/lesro.png"
-          role="Enterprise Furniture Manufacturing"
-          tags={['Analytics', 'Automation', 'Orders']}
-          status="Active contract"
-          location="United States"
-          onOpen={() => router.push('/LESRO')}
-        />
-
-        <CompanyCard
-          company="Teknion"
-          logo="/logosEmpresas/Teknion_logo_RGB.svg"
-          role="Office Furniture Systems"
-          tags={['Analytics', 'ERP Sync']}
-          status="Active contract"
-          location="Global"
-        />
-
-        <CompanyCard
-          company="Shaw Floors"
-          logo="/logosEmpresas/ShawFloorsLogo_Navy.png"
-          role="Flooring Solutions"
-          tags={['Dashboards', 'Sales']}
-          status="Active contract"
-          location="United States"
-        />
-
-        <CompanyCard
-          company="MityLite"
-          logo="/logosEmpresas/mity-lite-logo.png"
-          role="Event Furniture"
-          tags={['Automation', 'Orders']}
-          status="Active contract"
-          location="United States"
-        />
-
-        <CompanyCard
-          company="H&M"
-          logo="/logosEmpresas/hm-logo-caption.svg"
-          role="Retail & Apparel"
-          tags={['BI', 'Reports']}
-          status="Active contract"
-          location="Global"
-        />
-
-        <CompanyCard
-          company="Metalumen"
-          logo="/logosEmpresas/logo-metalumen.png"
-          role="Lighting Manufacturing"
-          tags={['Analytics']}
-          status="Active contract"
-          location="United States"
-        />
-
-        <CompanyCard
-          company="Via Seating"
-          logo="/logosEmpresas/via_peach-brown-logo.webp"
-          role="Seating Solutions"
-          tags={['Dashboards', 'Orders']}
-          status="Active contract"
-          location="United States"
-        />
-
-        <CompanyCard
-          company="DALS Lighting"
-          logo="/logosEmpresas/cropped-logo-dals.png"
-          role="Architectural Lighting"
-          tags={['Automation', 'Reports']}
-          status="Active contract"
-          location="Canada / US"
-        />
-
-        <CompanyCard
-          company="Header Group"
-          logo="/logosEmpresas/header_logo_hover.svg"
-          role="Manufacturing Group"
-          tags={['BI', 'Integrations']}
-          status="Active contract"
-          location="United States"
-        />
-
+        {filteredCompanies.map((item, idx) => (
+          <CompanyCard
+            key={idx}
+            company={item.company}
+            logo={item.logo}
+            role={item.role}
+            tags={item.tags}
+            status={item.status}
+            location={item.location}
+            onOpen={item.onOpen}
+          />
+        ))}
       </div>
     </div>
   );
