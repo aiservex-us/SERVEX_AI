@@ -20,7 +20,7 @@ export default function DataViewer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Mapeado exacto a las columnas JSONB de tu tabla ClientsSERVEX_WBD
+  // Mapeado exacto a la columna donde acabas de guardar los datos saneados
   const [activeTab, setActiveTab] = useState('csv_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -46,7 +46,7 @@ export default function DataViewer() {
   const fetchLatestData = async () => {
     setLoading(true);
     try {
-      // Consulta exacta alineada al DDL y filtrada por la entidad corporativa WBD
+      // Consulta exacta alineada al DDL y filtrada por la entidad corporativa WBG
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBG')
         .select('company_name, csv_raw, informa_agent_raw, created_at')
@@ -142,14 +142,14 @@ export default function DataViewer() {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix for WBD...
+        Retrieving master data matrix for WBG...
       </div>
     </div>
   );
 
   if (!data) return (
     <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
-      <span className="font-bold">Synchronization error:</span> No active matrix found for entity "WBD" in ClientsSERVEX_WBD.
+      <span className="font-bold">Synchronization error:</span> No active matrix found for entity "WBG" in ClientsSERVEX_WBG.
     </div>
   );
 
@@ -174,13 +174,13 @@ export default function DataViewer() {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Tab Selector mapeado a las nuevas columnas JSONB */}
+              {/* Ajustado: Las pestañas ahora apuntan a columnas físicas reales del DDL de tu tabla */}
               <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('csv_optimizer_raw')}
+                  onClick={() => setActiveTab('csv_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csv_optimizer_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
                   Manual Optimizer
@@ -320,7 +320,7 @@ export default function DataViewer() {
             
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                {activeTab === 'csv_optimizer_raw' ? 'Dataset: Sanitized Manual ERP' : 'Dataset: AI PDF Extraction'}
+                {activeTab === 'csv_raw' ? 'Dataset: Sanitized Manual ERP' : 'Dataset: AI PDF Extraction'}
               </div>
             </div>
           </div>
