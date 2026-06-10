@@ -125,7 +125,7 @@ const WBmfgAdminHero = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.12)_0%,_transparent_75%)]" />
         
         <div className="relative z-10 opacity-20 rotate-90 pointer-events-none">
-          <span className="text-white font-black text-[140px] tracking-tighter select-none leading-none">
+          <span className="text-white font-black text-[90px] tracking-tighter select-none leading-none">
             WB Accessories
           </span>
         </div>

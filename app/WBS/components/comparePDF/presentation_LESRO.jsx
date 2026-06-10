@@ -66,7 +66,7 @@ const WBmfgAdminHero = () => {
             </div>
             <div className="flex flex-col items-center">
               <span className="font-bold text-lg tracking-widest uppercase text-black">
-                WB mfg
+                WB Seating
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
                 Catalog Manager
@@ -125,7 +125,7 @@ const WBmfgAdminHero = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.12)_0%,_transparent_75%)]" />
         
         <div className="relative z-10 opacity-20 rotate-90 pointer-events-none">
-          <span className="text-white font-black text-[140px] tracking-tighter select-none leading-none">
+          <span className="text-white font-black text-[100px] tracking-tighter select-none leading-none">
             WB Seating
           </span>
         </div>

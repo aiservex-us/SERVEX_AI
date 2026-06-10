@@ -228,7 +228,7 @@ export default function UploadClientXML() {
               <FileCode className="text-[#5B5FC7]" size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#242424]">WB Catalog Upload</h1>
+              <h1 className="text-lg font-bold text-[#242424]">WBT Catalog Upload</h1>
               <p className="text-[11px] text-[#616161]">Upload master files to the Servex ecosystem</p>
             </div>
           </div>
