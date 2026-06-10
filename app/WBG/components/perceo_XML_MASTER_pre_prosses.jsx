@@ -35,7 +35,7 @@ const WBDDataMatrix = () => {
 
       // Ingestión desde la tabla correcta configurada en Supabase para WBD
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX_WBD')
+        .from('ClientsSERVEX_WBG')
         .select('xml_raw')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -56,16 +56,23 @@ const WBDDataMatrix = () => {
       const extracted = [];
 
       for (const p of productsXML) {
+        // Mapeo exacto según el esquema estructural de WBG.XML
         const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
-        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
-          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
-          || "N/A";
+        
+        // Extracción recursiva de la clasificación o del código del tag hijo
+        const classificationRef = p.getElementsByTagName("ClassificationRef")[0];
+        const classification = classificationRef 
+          ? (classificationRef.getElementsByTagName("Code")[0]?.textContent || classificationRef.textContent || "N/A")
+          : "N/A";
         
         // Extracción del valor numérico del precio base (<Price><Value>...</Value></Price>)
         const priceElement = p.getElementsByTagName("Price")[0];
-        const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
+        const basePrice = priceElement 
+          ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") 
+          : 0;
 
+        // Se persiste la estructura de llaves exacta consumida por las celdas del tbody
         extracted.push({
           sku,
           description,
@@ -77,8 +84,8 @@ const WBDDataMatrix = () => {
       setProducts(extracted);
       setCurrentPage(1); // Reiniciar a la primera página tras una recarga exitosa
     } catch (err) {
-      console.error("Error en procesamiento de matriz de datos WBD:", err);
-      setError(err.message || "Error al procesar la información de catálogos WBD.");
+      console.error("Error en procesamiento de matriz de datos WBG:", err);
+      setError(err.message || "Error al procesar la información de catálogos WBG.");
     } finally {
       setLoading(false);
     }
