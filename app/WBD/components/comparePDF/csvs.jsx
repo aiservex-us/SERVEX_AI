@@ -20,8 +20,8 @@ export default function DataViewer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Mapeado exacto a las columnas JSONB de tu tabla ClientsSERVEX_WBD
-  const [activeTab, setActiveTab] = useState('csv_optimizer_raw'); 
+  // Mapeado exacto a las columnas de la tabla: se cambia 'csv_optimizer_raw' por 'csv_raw'
+  const [activeTab, setActiveTab] = useState('csv_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
@@ -178,9 +178,9 @@ export default function DataViewer() {
               <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('csv_optimizer_raw')}
+                  onClick={() => setActiveTab('csv_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csv_optimizer_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
                   Manual Optimizer
@@ -320,7 +320,7 @@ export default function DataViewer() {
             
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                {activeTab === 'csv_optimizer_raw' ? 'Dataset: Sanitized Manual ERP' : 'Dataset: AI PDF Extraction'}
+                {activeTab === 'csv_raw' ? 'Dataset: Sanitized Manual ERP' : 'Dataset: AI PDF Extraction'}
               </div>
             </div>
           </div>
