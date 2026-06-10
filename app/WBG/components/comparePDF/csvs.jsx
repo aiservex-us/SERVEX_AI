@@ -21,7 +21,7 @@ export default function DataViewer() {
   const [loading, setLoading] = useState(true);
   
   // Mapeado exacto a las columnas JSONB de tu tabla ClientsSERVEX_WBD
-  const [activeTab, setActiveTab] = useState('csv_optimizer_raw'); 
+  const [activeTab, setActiveTab] = useState('csv_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
@@ -48,9 +48,9 @@ export default function DataViewer() {
     try {
       // Consulta exacta alineada al DDL y filtrada por la entidad corporativa WBD
       const { data: record, error } = await supabase
-        .from('ClientsSERVEX_WBD')
-        .select('company_name, csv_optimizer_raw, informa_agent_raw, created_at')
-        .eq('company_name', 'WBD')
+        .from('ClientsSERVEX_WBG')
+        .select('company_name, csv_raw, informa_agent_raw, created_at')
+        .eq('company_name', 'WBG')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -58,7 +58,7 @@ export default function DataViewer() {
       if (error) throw error;
       setData(record);
     } catch (error) {
-      console.error('Error fetching WBD data:', error);
+      console.error('Error fetching WBG data:', error);
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ export default function DataViewer() {
     
     const link = document.createElement('a');
     link.href = url;
-    const filename = `${data?.company_name || 'WBD'}_${activeTab === 'csv_optimizer_raw' ? 'Sanitized_Manual' : 'Sanitized_PDF'}_${new Date().toISOString().slice(0,10)}.csv`;
+    const filename = `${data?.company_name || 'WBG'}_${activeTab === 'csv_raw' ? 'Sanitized_Manual' : 'Sanitized_PDF'}_${new Date().toISOString().slice(0,10)}.csv`;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
