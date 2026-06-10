@@ -101,7 +101,7 @@ export default function MenuInicial() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the LESRO management area. Any temporary changes in this view will be closed.
+                  You are about to leave the WB Storage management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>

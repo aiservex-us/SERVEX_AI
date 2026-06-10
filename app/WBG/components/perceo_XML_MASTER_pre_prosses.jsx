@@ -50,7 +50,7 @@ const WBDDataMatrix = () => {
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBD XML structure");
+      if (parserError) throw new Error("Error parsing WBG XML structure");
 
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
@@ -131,7 +131,7 @@ const WBDDataMatrix = () => {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix from WBD Engine...
+        Retrieving master data matrix from WBG Engine...
       </div>
     </div>
   );
@@ -160,9 +160,9 @@ const WBDDataMatrix = () => {
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#242424]">WBD Data Matrix Master</span>
+                <span className="text-xs font-bold text-[#242424]">WBG Data Matrix Master</span>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
-                  WBD Schema Engine Live
+                  WBG Schema Engine Live
                 </span>
               </div>
               <span className="text-[10px] text-[#616161]">
