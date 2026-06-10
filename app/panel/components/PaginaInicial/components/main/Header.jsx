@@ -42,12 +42,7 @@ export default function Header() {
         
         {/* SEARCH */}
         <div className="relative w-full max-w-[180px] sm:max-w-xs md:max-w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full bg-slate-100/50 rounded-md py-2 pl-10 pr-4 text-sm border border-transparent focus:bg-white focus:border-[#6264A7]/30 outline-none transition-all"
-          />
+       
         </div>
 
         <div className="flex items-center gap-2 sm:gap-5">
