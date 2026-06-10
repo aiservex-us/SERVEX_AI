@@ -149,7 +149,7 @@ export default function DataViewer() {
 
   if (!data) return (
     <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
-      <span className="font-bold">Synchronization error:</span> No active matrix found for entity "WBG" in ClientsSERVEX_WBG.
+      <span className="font-bold">Synchronization error:</span> No ,active matrix found for entity "WBG" in ClientsSERVEX_WBG.
     </div>
   );
 
