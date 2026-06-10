@@ -66,7 +66,7 @@ const WBmfgAdminHero = () => {
             </div>
             <div className="flex flex-col items-center">
               <span className="font-bold text-lg tracking-widest uppercase text-black">
-                WB mfg
+                WB Accessories
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
                 Catalog Manager
@@ -126,7 +126,7 @@ const WBmfgAdminHero = () => {
         
         <div className="relative z-10 opacity-20 rotate-90 pointer-events-none">
           <span className="text-white font-black text-[140px] tracking-tighter select-none leading-none">
-            WB mfg
+            WB Accessories
           </span>
         </div>
       </div>

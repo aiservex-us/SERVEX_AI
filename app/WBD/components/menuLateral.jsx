@@ -51,7 +51,7 @@ export default function MenuLateral({
         <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
           <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors">
             <img
-              src="/logosEmpresas/lesro.png"
+              src="/logosEmpresas/WB.webp"
               alt="Logo"
               className={`object-contain transition-all duration-300 ${collapsed ? 'w-4 h-4' : 'w-5 h-5'}`}
             />

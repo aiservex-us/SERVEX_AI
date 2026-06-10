@@ -126,7 +126,7 @@ const WBmfgAdminHero = () => {
         
         <div className="relative z-10 opacity-20 rotate-90 pointer-events-none">
           <span className="text-white font-black text-[140px] tracking-tighter select-none leading-none">
-            WB mfg
+            WB Seating
           </span>
         </div>
       </div>
