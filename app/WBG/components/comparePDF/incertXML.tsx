@@ -10,7 +10,6 @@ import {
   UploadCloud,
   FileSpreadsheet,
   RefreshCw, 
-  FileType,
   Info
 } from 'lucide-react';
 
@@ -18,18 +17,15 @@ export default function UploadClientXML() {
   const [companyName, setCompanyName] = useState('WBG'); 
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
-  const [csvPdfContent, setCsvPdfContent] = useState(''); 
   const [loading, setLoading] = useState(false);
   
   const [readingXml, setReadingXml] = useState(false);
   const [readingCsv, setReadingCsv] = useState(false);
-  const [readingCsvPdf, setReadingCsvPdf] = useState(false);
 
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
-  const csvPdfInputRef = useRef<HTMLInputElement | null>(null);
 
   /**
    * PARSER DE CSV MEDIANTE MÁQUINA DE ESTADOS
@@ -169,21 +165,6 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
-  const readCsvPdfFile = (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      setMessage({ text: 'Only CSV files (PDF Transformed) are allowed', type: 'error' });
-      return;
-    }
-    setReadingCsvPdf(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setCsvPdfContent(e.target?.result as string);
-      setMessage({ text: 'PDF CSV loaded successfully', type: 'success' });
-      setReadingCsvPdf(false);
-    };
-    reader.readAsText(file);
-  };
-
   // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBG ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
@@ -201,18 +182,15 @@ export default function UploadClientXML() {
 
       console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
       const sanitizedCsvJson = sanitizeCSV(csvContent);
-      const sanitizedCsvPdfJson = sanitizeCSV(csvPdfContent);
 
       /**
        * PAYLOAD ESTRUCTURADO SEGÚN TU DDL DE POSTGRESQL:
        * - csv_raw: Almacena directamente la estructura JSON del CSV principal ya saneado.
-       * - nforma_agent_raw: Almacena el pipeline transformado desde PDF.
        */
       const payload = {
         company_name: 'WBG',
         xml_raw: xmlContent, 
         csv_raw: JSON.stringify(sanitizedCsvJson), 
-        nforma_agent_raw: JSON.stringify(sanitizedCsvPdfJson), 
         user_id: user.id,
       };
 
@@ -228,7 +206,6 @@ export default function UploadClientXML() {
         setMessage({ text: 'WBG Catalog Data successfully sanitized and stored in ClientsSERVEX_WBG', type: 'success' });
         setXmlContent(''); 
         setCsvContent(''); 
-        setCsvPdfContent('');
       }
     } catch (err: any) {
       console.error(err);
@@ -271,10 +248,6 @@ export default function UploadClientXML() {
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
                   <span className="text-xs font-medium">CSV Optimizer Raw (JSON)</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvPdfContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>3</div>
-                  <span className="text-xs font-medium">Informa Agent Sync (JSON)</span>
-                </div>
               </div>
             </div>
 
@@ -307,7 +280,7 @@ export default function UploadClientXML() {
                 </div>
 
                 {/* Slots para Archivos */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className="border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]"
@@ -325,19 +298,10 @@ export default function UploadClientXML() {
                     <p className="text-[10px] font-bold text-[#242424]">{readingCsv ? 'Leyendo...' : 'Cargar CSV'}</p>
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
-
-                  <div
-                    onClick={() => csvPdfInputRef.current?.click()}
-                    className="border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]"
-                  >
-                    {readingCsvPdf ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <FileType className="mx-auto mb-2 text-gray-400" size={20} />}
-                    <p className="text-[10px] font-bold text-[#242424]">{readingCsvPdf ? 'Leyendo...' : 'Cargar CSV (PDF)'}</p>
-                    <input ref={csvPdfInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCsvPdfFile(file); }} />
-                  </div>
                 </div>
 
                 {/* Previews de Buffer */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
@@ -345,10 +309,6 @@ export default function UploadClientXML() {
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">CSV Original Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvContent} readOnly />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">PDF CSV Original Preview</label>
-                    <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvPdfContent} readOnly />
                   </div>
                 </div>
 
