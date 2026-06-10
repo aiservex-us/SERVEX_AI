@@ -59,7 +59,7 @@ export default function Calendar() {
       tags: ['Inventory', 'Production', 'Supply Chain'],
       status: "Active contract",
       location: "United States",
-      onOpen: () => router.push('/WBD')
+      onOpen: () => router.push('/WBG')
     },
     {
       company: "WB Desks",
