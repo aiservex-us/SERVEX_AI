@@ -19,8 +19,9 @@ export default function Calendar() {
     {
       company: "WB Accesories",
       logo: "/logosEmpresas/WB.webp",
-      role: "Heavy-Duty Tables & Worksurfaces",
-      tags: ['Inventory', 'Production', 'Supply Chain'],
+      role: "Industrial Components & Modular Add-ons",
+      description: "Componentes estructurales, brazos articulados, iluminación LED integrada y sistemas de soporte diseñados para optimizar el espacio de trabajo del operador.",
+      tags: ['Accessories', 'Ergonomics', 'Customization'],
       status: "Active contract",
       location: "United States",
       onOpen: () => router.push('/WBA')
@@ -28,8 +29,9 @@ export default function Calendar() {
     {
       company: "WB Tables",
       logo: "/logosEmpresas/WB.webp",
-      role: "Heavy-Duty Tables & Worksurfaces",
-      tags: ['Inventory', 'Production', 'Supply Chain'],
+      role: "Heavy-Duty Production Worksurfaces",
+      description: "Mesas de uso rudo y superficies de alta resistencia mecánica, diseñadas específicamente para soportar cargas pesadas en entornos de manufactura y ensamble.",
+      tags: ['Manufacturing', 'Heavy-Duty', 'Production'],
       status: "Active contract",
       location: "United States",
       onOpen: () => router.push('/WBT')
@@ -37,8 +39,9 @@ export default function Calendar() {
     {
       company: "WB Workstations",
       logo: "/logosEmpresas/WB.webp",
-      role: "Ergonomic & Tech Workstations",
-      tags: ['Inventory', 'Production', 'Supply Chain'],
+      role: "Ergonomic Tech & ESD Workstations",
+      description: "Estaciones de trabajo avanzadas con protección antiestática integrada, gestión inteligente de cableado y soluciones de conectividad para laboratorios y electrónica.",
+      tags: ['Assembly', 'ESD-Protection', 'Tech-Design'],
       status: "Active contract",
       location: "United States",
       onOpen: () => router.push('/WBO')
@@ -46,8 +49,9 @@ export default function Calendar() {
     {
       company: "WB Seating",
       logo: "/logosEmpresas/WB.webp",
-      role: "Industrial & Lab Task Seating",
-      tags: ['Inventory', 'Production', 'Supply Chain'],
+      role: "Industrial Ergonomics & Lab Seating",
+      description: "Sillas, taburetes y asientos técnicos de alta durabilidad con especificaciones certificadas para salas limpias y turnos prolongados en líneas de producción.",
+      tags: ['Seating', 'Lab-Spec', 'Comfort'],
       status: "Active contract",
       location: "United States",
       onOpen: () => router.push('/WBS')
@@ -55,8 +59,9 @@ export default function Calendar() {
     {
       company: "WB Storage",
       logo: "/logosEmpresas/WB.webp",
-      role: "Modular Cabinets & Storage Systems",
-      tags: ['Inventory', 'Production', 'Supply Chain'],
+      role: "Modular Cabinets & High-Density Storage",
+      description: "Sistemas de almacenamiento industrial robustos, gabinetes modulares y cajoneras de alta capacidad organizativa para herramientas e inventarios bajo metodologías 5S.",
+      tags: ['Storage', 'Inventory', 'Lean-5S'],
       status: "Active contract",
       location: "United States",
       onOpen: () => router.push('/WBG')
@@ -64,8 +69,9 @@ export default function Calendar() {
     {
       company: "WB Desks",
       logo: "/logosEmpresas/WB.webp",
-      role: "Office & Educational Desks",
-      tags: ['Inventory', 'Production', 'Supply Chain'],
+      role: "Corporate Office & Educational Desks",
+      description: "Mobiliario versátil y escritorios adaptables orientados a la productividad en entornos administrativos, oficinas ejecutivas y áreas de capacitación.",
+      tags: ['Office', 'Educational', 'Facility'],
       status: "Active contract",
       location: "United States",
       onOpen: () => router.push('/WBD')
