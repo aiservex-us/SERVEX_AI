@@ -27,22 +27,27 @@ import { supabase } from '../../../lib/supabaseClient';
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EjecutorAgente from './EJECUTOR_agente';
 import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; 
-import EJECUTOR_PLAY from './EJECUTOR_PLAY'; // IMPORTADO
+import EJECUTOR_PLAY from './EJECUTOR_PLAY';
 
 const SVXUnifiedPlatform = () => {
+  // --- CONFIGURACIÓN MULTI-TENANT DINÁMICA ---
+  // Cambia este valor a 'WBT', 'WBD', etc., para mutar la persistencia y endpoints automáticamente.
+  const [currentTenant] = useState('WBT'); 
+  const [targetTableName] = useState('ClientsSERVEX_WBT');
+
   // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    const hasSeenTutorial = sessionStorage.getItem('servex_audit_tutorial_seen');
+    const hasSeenTutorial = sessionStorage.getItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`);
     if (!hasSeenTutorial) {
       setShowTutorial(true);
     }
-  }, []);
+  }, [currentTenant]);
 
   const closeTutorial = () => {
     setShowTutorial(false);
-    sessionStorage.setItem('servex_audit_tutorial_seen', 'true');
+    sessionStorage.setItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`, 'true');
   };
 
   // --- NAVIGATION STATES ---
@@ -67,22 +72,19 @@ const SVXUnifiedPlatform = () => {
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [backendError, setBackendError] = useState(null);
 
-  const [agentReport, setAgentReport] = useState("")
-  
-  // --- NUEVO ESTADO PARA EL POPUP ---
+  const [agentReport, setAgentReport] = useState("");
   const [isMaximized, setIsMaximized] = useState(false);
 
-  // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT) ---
+  // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT MULTI-TENANT) ---
   const handleSaveToCloud = async (csvRawContent) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authorized");
 
-      // Implementación del UPSERT con base en tus requerimientos
       const { error } = await supabase
-        .from('ClientsSERVEX_WBT')
+        .from(targetTableName)
         .upsert({
-          company_name: 'LESRO', 
+          company_name: currentTenant, 
           csv_raw: csvRawContent,
           user_id: user.id,
           updated_at: new Date()
@@ -92,7 +94,7 @@ const SVXUnifiedPlatform = () => {
 
       if (error) throw error;
     } catch (err) {
-      console.error("Error in Upsert:", err);
+      console.error(`Error in Upsert (${currentTenant}):`, err);
       showAlert("Cloud record update failed", "error");
     }
   };
@@ -111,20 +113,21 @@ const SVXUnifiedPlatform = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `LESRO_PRICING_MASTER_AUDIT_${new Date().getFullYear()}.xml`;
+    link.download = `${currentTenant}_PRICING_MASTER_AUDIT_${new Date().getFullYear()}.xml`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
+  // --- CONFIGURACIÓN DE SYNC DESDE LA TABLA SELECCIONADA ---
   const fetchCloudData = async () => {
     try {
       const { data: dbData, error } = await supabase
-        .from('ClientsSERVEX')
+        .from(targetTableName)
         .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
-        .eq('company_name', 'LESRO')
-        .single();
+        .eq('company_name', currentTenant)
+        .maybe_single();
       
       if (error) throw error;
       
@@ -142,7 +145,7 @@ const SVXUnifiedPlatform = () => {
             const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
             const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
   
-            const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product'));
+            const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product') || row.join('').includes('Model'));
             const header = data[headerIndex] || data[0];
             const currentRows = data.slice(headerIndex + 1);
             const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
@@ -194,6 +197,7 @@ const SVXUnifiedPlatform = () => {
     reader.readAsText(selectedFile);
   };
 
+  // --- INTEGRACIÓN ADAPTATIVA CON TU NUEVO PIPELINE API (WBT) ---
   const handleUnifiedProcess = async () => {
     if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
     setIsProcessing(true);
@@ -202,9 +206,13 @@ const SVXUnifiedPlatform = () => {
     setXmlActualizerRaw("");
 
     try {
+      // Modificado para ajustarse al mapeo estricto del router de tu sub-motor WBT
       const formData = new FormData();
-      formData.append('file', file);
-      const response = await fetch('https://servex-ai-back.onrender.com/audit-process', {
+      formData.append('company_name', currentTenant);
+      formData.append('new_csv_file', file);
+
+      // Consume el puerto del Orquestador Central unificado (reemplazar localhost por tu URL de Render en producción si aplica)
+      const response = await fetch('http://localhost:8000/api/v1/pipeline/process', {
         method: 'POST',
         body: formData,
       });
@@ -242,7 +250,7 @@ const SVXUnifiedPlatform = () => {
       {activeTab === 'console' && (
         <motion.div key="console" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full overflow-hidden">
           <div className="flex-shrink-0 p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
-            <h2 className="text-xs font-black text-[#464775] uppercase">Local Comparison Viewer</h2>
+            <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Local Comparison Viewer</h2>
             {matchStatus === 'mismatch' && (
               <div className="flex gap-4">
                   <div className="flex items-center gap-2">
@@ -275,6 +283,17 @@ const SVXUnifiedPlatform = () => {
                         {row.map((cell, ci) => {
                           const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                           const isCellDiff = masterCell !== null && cell !== masterCell;
+                          
+                          let percentageChange = null;
+                          if (isCellDiff) {
+                            const oldVal = parseFloat(String(masterCell).replace(/[^0-9.-]+/g, ""));
+                            const newVal = parseFloat(String(cell).replace(/[^0-9.-]+/g, ""));
+                            
+                            if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
+                              percentageChange = ((newVal - oldVal) / oldVal) * 100;
+                            }
+                          }
+
                           return (
                             <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
                               {isCellDiff ? (
@@ -283,6 +302,11 @@ const SVXUnifiedPlatform = () => {
                                   <div className="flex items-center gap-1 text-[#237B4B] font-bold">
                                     <FiArrowRight size={10} /><span>{cell}</span>
                                   </div>
+                                  {percentageChange !== null && (
+                                    <span className={`text-[8px] font-black mt-1 ${percentageChange >= 0 ? 'text-[#237B4B]' : 'text-red-600'}`}>
+                                      {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(2)}%
+                                    </span>
+                                  )}
                                 </div>
                               ) : (
                                 <span className="text-gray-600">{cell}</span>
@@ -349,19 +373,6 @@ const SVXUnifiedPlatform = () => {
           </div>
         </motion.div>
       )}
-
-      {activeTab === 'xml_inspector' && (
-        <motion.div key="inspector" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full overflow-hidden">
-          {isProcessing ? (
-            <div className="h-full flex flex-col items-center justify-center">
-              <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
-              <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">Parsing Catalog Structure...</span>
-            </div>
-          ) : (
-            <XML_EJECUTADO_VEW xmlString={xmlActualizerRaw} />
-          )}
-        </motion.div>
-      )}
     </AnimatePresence>
   );
 
@@ -378,8 +389,8 @@ const SVXUnifiedPlatform = () => {
               <button onClick={closeTutorial} className="hover:bg-white/20 p-0.5 rounded transition-colors"><X size={16} /></button>
             </div>
             <div className="p-5">
-              <h2 className="text-sm font-bold text-[#242424] mb-2">LESRO Catalog Audit</h2>
-              <p className="text-[12px] text-[#424242] leading-snug mb-4">Section optimized for the analysis and comparison of LESRO catalog updates.</p>
+              <h2 className="text-sm font-bold text-[#242424] mb-2">{currentTenant} Catalog Audit</h2>
+              <p className="text-[12px] text-[#424242] leading-snug mb-4">Section optimized for the analysis and comparison of {currentTenant} catalog updates.</p>
               <div className="space-y-2">
                 <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#464775]">
                   <FileText className="text-[#444791] shrink-0" size={16} />
@@ -394,10 +405,10 @@ const SVXUnifiedPlatform = () => {
 
       <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
-          <img src="/logosEmpresas/lesro.webp" alt="LESRO" className="w-15 h-15 rounded object-contain" />
+          <img src={`/logosEmpresas/${currentTenant.toLowerCase()}.webp`} alt={currentTenant} className="w-15 h-15 rounded object-contain" onError={(e) => { e.target.src = "/logosEmpresas/default.webp"; }} />
           <div>
             <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
-            <p className="text-[10px] text-gray-500 font-medium">LESRO Strategic Control</p>
+            <p className="text-[10px] text-gray-500 font-medium">{currentTenant} Strategic Control</p>
           </div>
         </div>
 
@@ -460,6 +471,7 @@ const SVXUnifiedPlatform = () => {
   );
 };
 
+// COMPONENTES AUXILIARES MANTENIDOS INTACTOS
 const TabButton = ({ active, onClick, icon, label }) => (
   <button 
     onClick={onClick}
