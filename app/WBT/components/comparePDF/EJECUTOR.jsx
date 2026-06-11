@@ -212,7 +212,7 @@ const SVXUnifiedPlatform = () => {
       formData.append('new_csv_file', file);
 
       // Consume el puerto del Orquestador Central unificado (reemplazar localhost por tu URL de Render en producción si aplica)
-      const response = await fetch('http://localhost:8000/api/v1/pipeline/process', {
+      const response = await fetch('https://servex-ai-back.onrender.com/api/v1/pipeline/process', {
         method: 'POST',
         body: formData,
       });
