@@ -502,4 +502,93 @@ const SVXUnifiedPlatform = () => {
         </div>
       )}
 
-      <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-s
+      <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
+        <div className="flex items-center gap-4">
+          <img src={`/logosEmpresas/${currentTenant.toLowerCase()}.webp`} alt={currentTenant} className="w-15 h-15 rounded object-contain" onError={(e) => { e.target.src = "/logosEmpresas/default.webp"; }} />
+          <div>
+            <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
+            <p className="text-[10px] text-gray-500 font-medium">{currentTenant} Strategic Control</p>
+          </div>
+        </div>
+
+        <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
+          <TabButton active={activeTab === 'console'} onClick={() => setActiveTab('console')} icon={<Terminal size={12}/>} label="Console" />
+          <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON" />
+          <TabButton active={activeTab === 'xml_view'} onClick={handleTabChangeToXml} icon={<FiCode size={12}/>} label="XML Code" />
+        </nav>
+      </header>
+
+      <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
+        <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">
+          <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
+            <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
+            <div className="space-y-6">
+              <Step icon={<FiUploadCloud size={14}/>} title="Data Ingestion" desc={fileName ? "Sanitized Matrix" : "Waiting for CSV"} active={!!file} />
+              <Step icon={<FiZap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />
+            </div>
+          </div>
+
+          <EJECUTOR_PLAY 
+            handleUnifiedProcess={handleUnifiedProcess}
+            handleFullReset={handleFullReset}
+            file={file}
+            isProcessing={isProcessing}
+          />
+        </aside>
+
+        <div className="col-span-9 flex flex-col h-full min-h-0">
+          <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden relative group">
+            <button 
+              onClick={() => setIsMaximized(true)}
+              className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-[#464775] hover:text-white border border-[#EDEBE9] rounded shadow-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-[10px] font-bold"
+            >
+              <FiMaximize2 size={12} /> EXPAND VIEW
+            </button>
+            {renderVisualizerContent()}
+          </main>
+        </div>
+      </div>
+
+      {isMaximized && createPortal(
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-md p-10 animate-in fade-in duration-300">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white w-[95vw] h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex-shrink-0 bg-[#ffffff] p-4 flex justify-between items-center text-black">
+              <div className="flex items-center gap-3">
+                <Terminal size={18} />
+                <span className="text-sm font-black uppercase tracking-widest">Inspection Mode: {activeTab.replace('_', ' ').toUpperCase()}</span>
+              </div>
+              <button onClick={() => setIsMaximized(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors"><FiX size={24} /></button>
+            </div>
+            <div className="flex-grow overflow-hidden bg-white">{renderVisualizerContent()}</div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+};
+
+// COMPONENTES AUXILIARES
+const TabButton = ({ active, onClick, icon, label }) => (
+  <button 
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold transition-all ${active ? 'bg-white text-[#444791] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+  >
+    {icon} {label}
+  </button>
+);
+
+const Step = ({ icon, title, desc, active, isLast }) => (
+  <div className="flex gap-4 relative">
+    <div className="flex flex-col items-center">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${active ? 'bg-[#464775] border-[#444791] text-white shadow-lg' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>{icon}</div>
+      {!isLast && <div className={`w-[2px] h-10 my-1 ${active ? 'bg-[#444791]' : 'bg-[#EDEBE9]'}`} />}
+    </div>
+    <div className={`pt-1 ${!active && 'opacity-40'}`}>
+      <h4 className="text-[10px] font-black mb-1 text-[#464775] uppercase tracking-wider">{title}</h4>
+      <p className="text-[10px] text-gray-500 font-medium truncate w-32">{desc}</p>
+    </div>
+  </div>
+);
+
+export default SVXUnifiedPlatform;
