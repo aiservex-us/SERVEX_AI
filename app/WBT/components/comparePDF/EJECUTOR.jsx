@@ -8,14 +8,9 @@ import {
   FiAlertTriangle, FiArrowRight, FiCheckCircle, FiInfo, FiXCircle, FiCode, FiDatabase,
   FiMaximize2, FiLayers, FiPackage, FiChevronLeft, FiChevronRight
 } from 'react-icons/fi';
-import { BsFileEarmarkArrowUp } from 'react-icons/bs';
 import { 
   FileText, 
-  CheckCircle as LucideCheck, 
-  AlertCircle as LucideAlert, 
   Loader2, 
-  Package as LucidePackage, 
-  ChevronRight, 
   DownloadCloud, 
   X, 
   Zap, 
@@ -57,7 +52,7 @@ const SVXUnifiedPlatform = () => {
   const [data, setData] = useState([]); 
   const [masterDataRows, setMasterDataRows] = useState([]);
   
-  // --- PAGINATION STATES (NUEVO) ---
+  // --- PAGINATION STATES (DINÁMICA PARA TODO EL CSV) ---
   const [currentPage, setCurrentPage] = useState(1);
 
   // --- SUPABASE STATES ---
@@ -161,29 +156,6 @@ const SVXUnifiedPlatform = () => {
     return finalizedMatrix;
   };
 
-  const handleSaveToCloud = async (csvRawContent) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authorized");
-
-      const { error } = await supabase
-        .from(targetTableName)
-        .upsert({
-          company_name: currentTenant, 
-          csv_raw: csvRawContent,
-          user_id: user.id,
-          updated_at: new Date()
-        }, { 
-          onConflict: 'company_name' 
-        });
-
-      if (error) throw error;
-    } catch (err) {
-      console.error(`Error in Upsert (${currentTenant}):`, err);
-      showAlert("Cloud record update failed", "error");
-    }
-  };
-
   const handleTabChangeToXml = () => {
     setIsXmlLoading(true);
     setActiveTab('xml_view');
@@ -278,7 +250,7 @@ const SVXUnifiedPlatform = () => {
       }
 
       setData(sanitizedMatrix);
-      setCurrentPage(1); // Resetear siempre a la primera página al cargar un archivo nuevo
+      setCurrentPage(1); // Reiniciar a la página 1 en cada carga externa
       setMatchStatus(null);
       setMasterDataRows([]);
       showAlert("File cleansed and structured successfully", "success");
@@ -329,15 +301,45 @@ const SVXUnifiedPlatform = () => {
     setMasterDataRows([]); setCurrentPage(1);
   };
 
-  // --- LÓGICA DE CONTROL PARA EL SEGMENTADO REQUERIDO (20 en Pág 1, 30 en Pág 2) ---
+  // =========================================================================
+  // --- CÁLCULO DE ÍNDICES DINÁMICOS (SOPORTE TOTAL DE FILAS DEL CSV) ---
+  // =========================================================================
   const getPaginatedData = () => {
     if (data.length <= 1) return [];
-    const rawProducts = data.slice(1); // Excluir la cabecera
+    const rawProducts = data.slice(1); // Omitimos la cabecera
     
     if (currentPage === 1) {
-      return rawProducts.slice(0, 20);
+      return rawProducts.slice(0, 20); // Los primeros 20 productos
     } else {
-      return rawProducts.slice(20, 50); // Siguientes 30 elementos (índices del 20 al 49)
+      // Ej: Página 2 -> Desde índice 20 hasta el 50 (30 productos)
+      // Ej: Página 3 -> Desde índice 50 hasta el 80 (30 productos)
+      const start = 20 + (currentPage - 2) * 30;
+      const end = start + 30;
+      return rawProducts.slice(start, end);
+    }
+  };
+
+  // Calcular dinámicamente el total de páginas disponibles basadas en la longitud real de los datos
+  const getTotalPages = () => {
+    if (data.length <= 1) return 1;
+    const totalProducts = data.length - 1;
+    if (totalProducts <= 20) return 1;
+    
+    // 1 página fija para los primeros 20 + el excedente dividido entre bloques de 30
+    return 1 + Math.ceil((totalProducts - 20) / 30);
+  };
+
+  // Obtener los límites numéricos de lo que se visualiza actualmente en pantalla
+  const getCurrentRangeLabels = () => {
+    if (data.length <= 1) return { start: 0, end: 0 };
+    const total = data.length - 1;
+    
+    if (currentPage === 1) {
+      return { start: 1, end: Math.min(20, total) };
+    } else {
+      const start = 21 + (currentPage - 2) * 30;
+      const end = Math.min(start + 29, total);
+      return { start, end };
     }
   };
 
@@ -380,8 +382,8 @@ const SVXUnifiedPlatform = () => {
                       </thead>
                       <tbody>
                         {getPaginatedData().map((row, ri) => {
-                          // Calcular el índice real del elemento basándose en la página actual
-                          const globalIndex = currentPage === 1 ? ri : ri + 20;
+                          // Re-mapeo del índice global para emparejar con el arreglo de discrepancias máster
+                          const globalIndex = currentPage === 1 ? ri : 20 + (currentPage - 2) * 30 + ri;
                           return (
                             <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
                               {row.map((cell, ci) => {
@@ -427,26 +429,29 @@ const SVXUnifiedPlatform = () => {
                   </table>
                 </div>
 
-                {/* --- CONTROLADORES DE PAGINACIÓN INFERIOR --- */}
-                <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2 flex items-center justify-between text-[11px] font-medium text-gray-600">
+                {/* --- BARRA DE PAGINACIÓN INFINITA DINÁMICA --- */}
+                <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2.5 flex items-center justify-between text-[11px] font-medium text-gray-600">
                   <div>
-                    Mostrando productos del <span className="font-bold">{currentPage === 1 ? '1 al 20' : '21 al 50'}</span> (Total cargados: {Math.min(data.length - 1, 50)})
+                    Mostrando del <span className="font-bold text-[#464775]">{getCurrentRangeLabels().start}</span> al <span className="font-bold text-[#464775]">{getCurrentRangeLabels().end}</span> de un total de <span className="font-bold">{data.length - 1}</span> productos.
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(1)}
-                      disabled={currentPage === 1}
-                      className="flex items-center gap-1 px-3 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all"
-                    >
-                      <FiChevronLeft size={12} /> Pág 1 (20 Prod)
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage(2)}
-                      disabled={currentPage === 2 || data.length - 1 <= 20}
-                      className="flex items-center gap-1 px-3 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all"
-                    >
-                      Pág 2 (30 Prod) <FiChevronRight size={12} />
-                    </button>
+                  <div className="flex items-center gap-15">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase">Página {currentPage} de {getTotalPages()}</span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all shadow-sm"
+                      >
+                        <FiChevronLeft size={12} /> Anterior
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, getTotalPages()))}
+                        disabled={currentPage === getTotalPages()}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all shadow-sm"
+                      >
+                        Siguiente <FiChevronRight size={12} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
