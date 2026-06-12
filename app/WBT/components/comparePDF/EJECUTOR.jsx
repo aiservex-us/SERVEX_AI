@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiUploadCloud, FiCheck, FiZap, FiShield, FiX, FiSearch, 
   FiAlertTriangle, FiArrowRight, FiCheckCircle, FiInfo, FiXCircle, FiCode, FiDatabase,
-  FiMaximize2, FiLayers, FiPackage, FiChevronLeft, FiChevronRight
+  FiMaximize2, FiLayers, FiPackage
 } from 'react-icons/fi';
 import { BsFileEarmarkArrowUp } from 'react-icons/bs';
 import { 
@@ -69,16 +69,8 @@ const SVXUnifiedPlatform = () => {
   const [alert, setAlert] = useState({ show: false, message: '', type: 'info' });
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [backendError, setBackendError] = useState(null);
+
   const [isMaximized, setIsMaximized] = useState(false);
-
-  // --- CONTROLES DE PAGINACIÓN ---
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 20;
-
-  // Resetear paginación al cambiar o limpiar archivos
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [file]);
 
   // =========================================================================
   // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (IGUALADO A PYTHON) ---
@@ -90,6 +82,7 @@ const SVXUnifiedPlatform = () => {
     let currentLine = '';
     let insideQuotes = false;
 
+    // 1. Fragmentación lineal respetando saltos de línea internos en celdas bajo comillas
     for (let i = 0; i < rawCsvText.length; i++) {
       const char = rawCsvText[i];
       if (char === '"') {
@@ -115,6 +108,7 @@ const SVXUnifiedPlatform = () => {
     let dataStartIndex = 0;
     let openQuotes = false;
 
+    // Detectar si la cabecera está rota de manera multi-línea
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       rawHeaderAccum.push(line);
@@ -131,16 +125,20 @@ const SVXUnifiedPlatform = () => {
     }
 
     const fullRawHeader = rawHeaderAccum.join('\n');
+    
+    // Identificar el delimitador de forma segura analizando la cabecera
     const delimiter = fullRawHeader.includes(';') ? ';' : ',';
     
+    // Limpieza atómica de tokens de cabecera
     const perfectHeaders = fullRawHeader.split(delimiter).map(token => {
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
       return tClean.split(/\s+/).join(' ').trim();
     });
 
     const dataLines = lines.slice(dataStartIndex);
-    const finalizedMatrix = [perfectHeaders]; 
+    const finalizedMatrix = [perfectHeaders]; // El índice 0 será siempre nuestra cabecera sanitizada
 
+    // 2. Re-estructurar y sanear fila por fila en caliente
     dataLines.forEach(line => {
       if (!line.trim()) return; 
       const currentCells = line.split(delimiter);
@@ -149,13 +147,16 @@ const SVXUnifiedPlatform = () => {
       perfectHeaders.forEach((_, index) => {
         let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
         if (cellValue === '') {
+          // Mantener concordancia con la regla de negocio de Servex para campos null
           sanitizedRow.push(null); 
         } else {
+          // Remover comillas envolventes de datos crudos residuales
           cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); 
           sanitizedRow.push(cellValue);
         }
       });
 
+      // Capturar campos huérfanos si la fila excede la longitud del header (comportamiento restkey)
       if (currentCells.length > perfectHeaders.length) {
         const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
         sanitizedRow.push(`[ORPHANED]: ${orphaned.join(' | ')}`);
@@ -165,6 +166,30 @@ const SVXUnifiedPlatform = () => {
     });
 
     return finalizedMatrix;
+  };
+
+  // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT MULTI-TENANT) ---
+  const handleSaveToCloud = async (csvRawContent) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authorized");
+
+      const { error } = await supabase
+        .from(targetTableName)
+        .upsert({
+          company_name: currentTenant, 
+          csv_raw: csvRawContent,
+          user_id: user.id,
+          updated_at: new Date()
+        }, { 
+          onConflict: 'company_name' 
+        });
+
+      if (error) throw error;
+    } catch (err) {
+      console.error(`Error in Upsert (${currentTenant}):`, err);
+      showAlert("Cloud record update failed", "error");
+    }
   };
 
   const handleTabChangeToXml = () => {
@@ -188,6 +213,7 @@ const SVXUnifiedPlatform = () => {
     URL.revokeObjectURL(url);
   };
 
+  // --- CONFIGURACIÓN DE SYNC DESDE LA TABLA SELECCIONADA ---
   const fetchCloudData = async () => {
     try {
       const { data: dbData, error } = await supabase
@@ -207,6 +233,7 @@ const SVXUnifiedPlatform = () => {
         setXmlActualizerRaw(dbData.xml_updated_raw); 
   
         if (dbData.csv_raw && data.length > 0) {
+            // Nota: Aquí data ya viene previamente sanitizado por processFileSelection
             const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
             const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
             const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
@@ -251,7 +278,9 @@ const SVXUnifiedPlatform = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target.result;
+      
       console.log('[+] Ejecutando saneamiento celular pre-renderizado...');
+      // ⚡ AQUÍ SE EJECUTA EL SANEAMIENTO ANTES DE MOSTRAR EN PANTALLA
       const sanitizedMatrix = sanitizeCSVToMatrix(text);
       
       if (sanitizedMatrix.length === 0) {
@@ -267,6 +296,7 @@ const SVXUnifiedPlatform = () => {
     reader.readAsText(selectedFile);
   };
 
+  // --- INTEGRACIÓN ADAPTATIVA CON EL PIPELINE API ---
   const handleUnifiedProcess = async () => {
     if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
     setIsProcessing(true);
@@ -312,15 +342,6 @@ const SVXUnifiedPlatform = () => {
     setMasterDataRows([]);
   };
 
-  // --- LÓGICA DE SEGMENTACIÓN ESTRUCTURAL PARA PAGINACIÓN ---
-  const headerRow = data[0] || [];
-  const bodyRows = data.slice(1);
-  const totalPages = Math.ceil(bodyRows.length / rowsPerPage) || 1;
-  
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentBodyRows = bodyRows.slice(indexOfFirstRow, indexOfLastRow);
-
   const renderVisualizerContent = () => (
     <AnimatePresence mode="wait">
       {activeTab === 'console' && (
@@ -328,7 +349,7 @@ const SVXUnifiedPlatform = () => {
           <div className="flex-shrink-0 p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
             <div className="flex items-center gap-2">
               <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Comparison Viewer</h2>
-              <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed ({bodyRows.length} total rows)</span>
+              <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
             </div>
             {matchStatus === 'mismatch' && (
               <div className="flex gap-4">
@@ -343,7 +364,6 @@ const SVXUnifiedPlatform = () => {
               </div>
             )}
           </div>
-          
           <div className="flex-grow overflow-auto">
             {!file ? (
               <div className="h-full flex flex-col items-center justify-center opacity-40">
@@ -355,84 +375,53 @@ const SVXUnifiedPlatform = () => {
             ) : (
               <table className="w-full text-left text-[10px]">
                   <thead className="bg-[#FAF9F8] sticky top-0 z-20">
-                    <tr>{headerRow.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h || `Column_${i}`}</th>)}</tr>
+                    <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h || `Column_${i}`}</th>)}</tr>
                   </thead>
                   <tbody>
-                    {currentBodyRows.map((row, ri) => {
-                      const absoluteRowIndex = indexOfFirstRow + ri;
-                      return (
-                        <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
-                          {row.map((cell, ci) => {
-                            const masterCell = masterDataRows[absoluteRowIndex] ? masterDataRows[absoluteRowIndex][ci] : null;
-                            const isCellDiff = masterCell !== null && cell !== masterCell;
+                    {data.slice(1).map((row, ri) => (
+                      <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
+                        {row.map((cell, ci) => {
+                          const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
+                          const isCellDiff = masterCell !== null && cell !== masterCell;
+                          
+                          let percentageChange = null;
+                          if (isCellDiff) {
+                            const oldVal = parseFloat(String(masterCell).replace(/[^0-9.-]+/g, ""));
+                            const newVal = parseFloat(String(cell).replace(/[^0-9.-]+/g, ""));
                             
-                            let percentageChange = null;
-                            if (isCellDiff) {
-                              const oldVal = parseFloat(String(masterCell).replace(/[^0-9.-]+/g, ""));
-                              const newVal = parseFloat(String(cell).replace(/[^0-9.-]+/g, ""));
-                              
-                              if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
-                                percentageChange = ((newVal - oldVal) / oldVal) * 100;
-                              }
+                            if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
+                              percentageChange = ((newVal - oldVal) / oldVal) * 100;
                             }
+                          }
 
-                            return (
-                              <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
-                                {isCellDiff ? (
-                                  <div className="flex flex-col">
-                                    <span className="text-red-500 line-through font-medium opacity-60">{masterCell === null ? 'null' : masterCell}</span>
-                                    <div className="flex items-center gap-1 text-[#237B4B] font-bold">
-                                      <FiArrowRight size={10} /><span>{cell === null ? 'null' : cell}</span>
-                                    </div>
-                                    {percentageChange !== null && (
-                                      <span className={`text-[8px] font-black mt-1 ${percentageChange >= 0 ? 'text-[#237B4B]' : 'text-red-600'}`}>
-                                        {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(2)}%
-                                      </span>
-                                    )}
+                          return (
+                            <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
+                              {isCellDiff ? (
+                                <div className="flex flex-col">
+                                  <span className="text-red-500 line-through font-medium opacity-60">{masterCell === null ? 'null' : masterCell}</span>
+                                  <div className="flex items-center gap-1 text-[#237B4B] font-bold">
+                                    <FiArrowRight size={10} /><span>{cell === null ? 'null' : cell}</span>
                                   </div>
-                                ) : (
-                                  <span className={cell === null ? 'text-gray-300 italic font-mono' : 'text-gray-600'}>
-                                    {cell === null ? 'null' : cell}
-                                  </span>
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })}
+                                  {percentageChange !== null && (
+                                    <span className={`text-[8px] font-black mt-1 ${percentageChange >= 0 ? 'text-[#237B4B]' : 'text-red-600'}`}>
+                                      {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(2)}%
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className={cell === null ? 'text-gray-300 italic font-mono' : 'text-gray-600'}>
+                                  {cell === null ? 'null' : cell}
+                                </span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
                   </tbody>
               </table>
             )}
           </div>
-
-          {/* CONTROLES DE PAGINACIÓN ADAPTADOS AL FOOTER DE LA CONSOLA */}
-          {file && bodyRows.length > 0 && (
-            <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2 flex items-center justify-between text-[11px] font-semibold text-gray-600">
-              <div>
-                Showing <span className="font-bold">{indexOfFirstRow + 1}</span> to <span className="font-bold">{Math.min(indexOfLastRow, bodyRows.length)}</span> of <span className="font-bold">{bodyRows.length}</span> rows
-              </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
-                  disabled={currentPage === 1}
-                  className="p-1.5 rounded border border-[#EDEBE9] bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors"
-                >
-                  <FiChevronLeft size={14} />
-                </button>
-                <div className="text-[10px] uppercase font-black tracking-wider px-2">
-                  Page {currentPage} of {totalPages}
-                </div>
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
-                  disabled={currentPage === totalPages}
-                  className="p-1.5 rounded border border-[#EDEBE9] bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-colors"
-                >
-                  <FiChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-          )}
         </motion.div>
       )}
 
@@ -550,7 +539,7 @@ const SVXUnifiedPlatform = () => {
           />
         </aside>
 
-        {/* MODIFICACIÓN: EL CONTENEDOR PRINCIPAL OCUPA AHORA TODA LA ALTURA (COL-SPAN-9) */}
+        {/* MODIFICACIÓN: COL-SPAN-9 AHORA CONTIENE SOLO EL PANEL PRINCIPAL EXTENDIDO */}
         <div className="col-span-9 flex flex-col h-full min-h-0">
           <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden relative group">
             <button 
