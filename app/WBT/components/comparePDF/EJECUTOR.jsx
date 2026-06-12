@@ -25,27 +25,24 @@ import {
 import { supabase } from '../../../lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
+import EjecutorAgente from './EJECUTOR_agente';
 import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; 
-import EJECUTOR_PLAY from './EJECUTOR_PLAY';
+import EJECUTOR_PLAY from './EJECUTOR_PLAY'; // IMPORTADO
 
 const SVXUnifiedPlatform = () => {
-  // --- CONFIGURACIÓN MULTI-TENANT DINÁMICA ---
-  const [currentTenant] = useState('WBT'); 
-  const [targetTableName] = useState('ClientsSERVEX_WBT');
-
   // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    const hasSeenTutorial = sessionStorage.getItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`);
+    const hasSeenTutorial = sessionStorage.getItem('servex_audit_tutorial_seen');
     if (!hasSeenTutorial) {
       setShowTutorial(true);
     }
-  }, [currentTenant]);
+  }, []);
 
   const closeTutorial = () => {
     setShowTutorial(false);
-    sessionStorage.setItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`, 'true');
+    sessionStorage.setItem('servex_audit_tutorial_seen', 'true');
   };
 
   // --- NAVIGATION STATES ---
@@ -70,114 +67,22 @@ const SVXUnifiedPlatform = () => {
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [backendError, setBackendError] = useState(null);
 
+  const [agentReport, setAgentReport] = useState("")
+  
+  // --- NUEVO ESTADO PARA EL POPUP ---
   const [isMaximized, setIsMaximized] = useState(false);
 
-  // =========================================================================
-  // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (IGUALADO A PYTHON) ---
-  // =========================================================================
-  const sanitizeCSVToMatrix = (rawCsvText) => {
-    if (!rawCsvText || !rawCsvText.trim()) return [];
-
-    const lines = [];
-    let currentLine = '';
-    let insideQuotes = false;
-
-    // 1. Fragmentación lineal respetando saltos de línea internos en celdas bajo comillas
-    for (let i = 0; i < rawCsvText.length; i++) {
-      const char = rawCsvText[i];
-      if (char === '"') {
-        insideQuotes = !insideQuotes;
-        currentLine += char;
-      } else if ((char === '\n' || char === '\r') && !insideQuotes) {
-        if (char === '\r' && rawCsvText[i + 1] === '\n') {
-          i++; 
-        }
-        lines.push(currentLine);
-        currentLine = '';
-      } else {
-        currentLine += char;
-      }
-    }
-    if (currentLine || rawCsvText.endsWith('\n') || rawCsvText.endsWith('\r')) {
-      lines.push(currentLine);
-    }
-
-    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return [];
-
-    let rawHeaderAccum = [];
-    let dataStartIndex = 0;
-    let openQuotes = false;
-
-    // Detectar si la cabecera está rota de manera multi-línea
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      rawHeaderAccum.push(line);
-      
-      const quoteCount = (line.match(/"/g) || []).length;
-      if (quoteCount % 2 !== 0) {
-        openQuotes = !openQuotes;
-      }
-
-      if (!openQuotes) {
-        dataStartIndex = i + 1;
-        break;
-      }
-    }
-
-    const fullRawHeader = rawHeaderAccum.join('\n');
-    
-    // Identificar el delimitador de forma segura analizando la cabecera
-    const delimiter = fullRawHeader.includes(';') ? ';' : ',';
-    
-    // Limpieza atómica de tokens de cabecera
-    const perfectHeaders = fullRawHeader.split(delimiter).map(token => {
-      let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
-      return tClean.split(/\s+/).join(' ').trim();
-    });
-
-    const dataLines = lines.slice(dataStartIndex);
-    const finalizedMatrix = [perfectHeaders]; // El índice 0 será siempre nuestra cabecera sanitizada
-
-    // 2. Re-estructurar y sanear fila por fila en caliente
-    dataLines.forEach(line => {
-      if (!line.trim()) return; 
-      const currentCells = line.split(delimiter);
-      const sanitizedRow = [];
-
-      perfectHeaders.forEach((_, index) => {
-        let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
-        if (cellValue === '') {
-          // Mantener concordancia con la regla de negocio de Servex para campos null
-          sanitizedRow.push(null); 
-        } else {
-          // Remover comillas envolventes de datos crudos residuales
-          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); 
-          sanitizedRow.push(cellValue);
-        }
-      });
-
-      // Capturar campos huérfanos si la fila excede la longitud del header (comportamiento restkey)
-      if (currentCells.length > perfectHeaders.length) {
-        const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
-        sanitizedRow.push(`[ORPHANED]: ${orphaned.join(' | ')}`);
-      }
-
-      finalizedMatrix.push(sanitizedRow);
-    });
-
-    return finalizedMatrix;
-  };
-
-  // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT MULTI-TENANT) ---
+  // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT) ---
   const handleSaveToCloud = async (csvRawContent) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authorized");
+      if (!user) throw new Error("User not authorized")
 
+      // Implementación del UPSERT con base en tus requerimientos
       const { error } = await supabase
-        .from(targetTableName)
+        .from('ClientsSERVEX_WBT')
         .upsert({
-          company_name: currentTenant, 
+          company_name: 'LESRO', 
           csv_raw: csvRawContent,
           user_id: user.id,
           updated_at: new Date()
@@ -187,7 +92,7 @@ const SVXUnifiedPlatform = () => {
 
       if (error) throw error;
     } catch (err) {
-      console.error(`Error in Upsert (${currentTenant}):`, err);
+      console.error("Error in Upsert:", err);
       showAlert("Cloud record update failed", "error");
     }
   };
@@ -206,21 +111,20 @@ const SVXUnifiedPlatform = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${currentTenant}_PRICING_MASTER_AUDIT_${new Date().getFullYear()}.xml`;
+    link.download = `LESRO_PRICING_MASTER_AUDIT_${new Date().getFullYear()}.xml`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
-  // --- CONFIGURACIÓN DE SYNC DESDE LA TABLA SELECCIONADA ---
   const fetchCloudData = async () => {
     try {
       const { data: dbData, error } = await supabase
-        .from(targetTableName)
-        .select('audit_report_json, xml_updated_raw, csv_raw') 
-        .eq('company_name', currentTenant)
-        .maybe_single();
+        .from('ClientsSERVEX')
+        .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
+        .eq('company_name', 'LESRO')
+        .single();
       
       if (error) throw error;
       
@@ -231,14 +135,14 @@ const SVXUnifiedPlatform = () => {
   
         setAuditReportJson(report);
         setXmlActualizerRaw(dbData.xml_updated_raw); 
+        setAgentReport(dbData.informa_agent_raw || "");
   
         if (dbData.csv_raw && data.length > 0) {
-            // Nota: Aquí data ya viene previamente sanitizado por processFileSelection
             const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
             const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
             const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
   
-            const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product') || row.join('').includes('Model'));
+            const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product'));
             const header = data[headerIndex] || data[0];
             const currentRows = data.slice(headerIndex + 1);
             const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
@@ -274,29 +178,22 @@ const SVXUnifiedPlatform = () => {
     }
     setFile(selectedFile);
     setFileName(selectedFile.name);
-    
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target.result;
-      
-      console.log('[+] Ejecutando saneamiento celular pre-renderizado...');
-      // ⚡ AQUÍ SE EJECUTA EL SANEAMIENTO ANTES DE MOSTRAR EN PANTALLA
-      const sanitizedMatrix = sanitizeCSVToMatrix(text);
-      
-      if (sanitizedMatrix.length === 0) {
-        showAlert("The file contains empty or unparseable blocks", "error");
-        return;
-      }
-
-      setData(sanitizedMatrix);
+      const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+      if (lines.length === 0) return;
+      const sampleLine = lines.find(l => l.includes(';') || l.includes(','));
+      const delimiter = sampleLine && sampleLine.includes(';') ? ';' : ',';
+      const matrix = lines.map(line => line.split(delimiter).map(cell => cell.trim()));
+      setData(matrix);
       setMatchStatus(null);
       setMasterDataRows([]);
-      showAlert("File cleansed and structured successfully", "success");
+      showAlert("File linked successfully", "success");
     };
     reader.readAsText(selectedFile);
   };
 
-  // --- INTEGRACIÓN ADAPTATIVA CON EL PIPELINE API ---
   const handleUnifiedProcess = async () => {
     if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
     setIsProcessing(true);
@@ -306,10 +203,8 @@ const SVXUnifiedPlatform = () => {
 
     try {
       const formData = new FormData();
-      formData.append('company_name', currentTenant);
-      formData.append('new_csv_file', file);
-
-      const response = await fetch('http://localhost:8000/api/v1/pipeline/process', {
+      formData.append('file', file);
+      const response = await fetch('https://servex-ai-back.onrender.com/audit-process', {
         method: 'POST',
         body: formData,
       });
@@ -347,10 +242,7 @@ const SVXUnifiedPlatform = () => {
       {activeTab === 'console' && (
         <motion.div key="console" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full overflow-hidden">
           <div className="flex-shrink-0 p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Comparison Viewer</h2>
-              <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
-            </div>
+            <h2 className="text-xs font-black text-[#464775] uppercase">Local Comparison Viewer</h2>
             {matchStatus === 'mismatch' && (
               <div className="flex gap-4">
                   <div className="flex items-center gap-2">
@@ -375,7 +267,7 @@ const SVXUnifiedPlatform = () => {
             ) : (
               <table className="w-full text-left text-[10px]">
                   <thead className="bg-[#FAF9F8] sticky top-0 z-20">
-                    <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h || `Column_${i}`}</th>)}</tr>
+                    <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h}</th>)}</tr>
                   </thead>
                   <tbody>
                     {data.slice(1).map((row, ri) => (
@@ -383,35 +275,17 @@ const SVXUnifiedPlatform = () => {
                         {row.map((cell, ci) => {
                           const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
                           const isCellDiff = masterCell !== null && cell !== masterCell;
-                          
-                          let percentageChange = null;
-                          if (isCellDiff) {
-                            const oldVal = parseFloat(String(masterCell).replace(/[^0-9.-]+/g, ""));
-                            const newVal = parseFloat(String(cell).replace(/[^0-9.-]+/g, ""));
-                            
-                            if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
-                              percentageChange = ((newVal - oldVal) / oldVal) * 100;
-                            }
-                          }
-
                           return (
                             <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
                               {isCellDiff ? (
                                 <div className="flex flex-col">
-                                  <span className="text-red-500 line-through font-medium opacity-60">{masterCell === null ? 'null' : masterCell}</span>
+                                  <span className="text-red-500 line-through font-medium opacity-60">{masterCell || '(null)'}</span>
                                   <div className="flex items-center gap-1 text-[#237B4B] font-bold">
-                                    <FiArrowRight size={10} /><span>{cell === null ? 'null' : cell}</span>
+                                    <FiArrowRight size={10} /><span>{cell}</span>
                                   </div>
-                                  {percentageChange !== null && (
-                                    <span className={`text-[8px] font-black mt-1 ${percentageChange >= 0 ? 'text-[#237B4B]' : 'text-red-600'}`}>
-                                      {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(2)}%
-                                    </span>
-                                  )}
                                 </div>
                               ) : (
-                                <span className={cell === null ? 'text-gray-300 italic font-mono' : 'text-gray-600'}>
-                                  {cell === null ? 'null' : cell}
-                                </span>
+                                <span className="text-gray-600">{cell}</span>
                               )}
                             </td>
                           );
@@ -475,6 +349,19 @@ const SVXUnifiedPlatform = () => {
           </div>
         </motion.div>
       )}
+
+      {activeTab === 'xml_inspector' && (
+        <motion.div key="inspector" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full overflow-hidden">
+          {isProcessing ? (
+            <div className="h-full flex flex-col items-center justify-center">
+              <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
+              <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">Parsing Catalog Structure...</span>
+            </div>
+          ) : (
+            <XML_EJECUTADO_VEW xmlString={xmlActualizerRaw} />
+          )}
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 
@@ -486,17 +373,17 @@ const SVXUnifiedPlatform = () => {
             <div className="bg-[#464775] px-4 py-2 text-white flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Zap size={14} className="text-yellow-400 fill-yellow-400" />
-                <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization & Sanitize Module</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization Module</span>
               </div>
               <button onClick={closeTutorial} className="hover:bg-white/20 p-0.5 rounded transition-colors"><X size={16} /></button>
             </div>
             <div className="p-5">
-              <h2 className="text-sm font-bold text-[#242424] mb-2">{currentTenant} Catalog Audit</h2>
-              <p className="text-[12px] text-[#424242] leading-snug mb-4">Section optimized for the analysis, positional structural cleaning and validation of {currentTenant} catalog updates.</p>
+              <h2 className="text-sm font-bold text-[#242424] mb-2">LESRO Catalog Audit</h2>
+              <p className="text-[12px] text-[#424242] leading-snug mb-4">Section optimized for the analysis and comparison of LESRO catalog updates.</p>
               <div className="space-y-2">
                 <div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#464775]">
                   <FileText className="text-[#444791] shrink-0" size={16} />
-                  <p className="text-[11px] text-[#464775]">Auto-cleanses header corruptions, multi-line row breaking and handles strict null allocations.</p>
+                  <p className="text-[11px] text-[#464775]">Updated XML for <strong>CET Designer</strong> and <strong>Catalog Creator</strong>.</p>
                 </div>
               </div>
               <button onClick={closeTutorial} className="w-full mt-5 bg-[#464775] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#3b3e7a] transition-all">Get Started</button>
@@ -507,10 +394,10 @@ const SVXUnifiedPlatform = () => {
 
       <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
-          <img src={`/logosEmpresas/${currentTenant.toLowerCase()}.webp`} alt={currentTenant} className="w-15 h-15 rounded object-contain" onError={(e) => { e.target.src = "/logosEmpresas/default.webp"; }} />
+          <img src="/logosEmpresas/lesro.webp" alt="LESRO" className="w-15 h-15 rounded object-contain" />
           <div>
             <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
-            <p className="text-[10px] text-gray-500 font-medium">{currentTenant} Strategic Control</p>
+            <p className="text-[10px] text-gray-500 font-medium">LESRO Strategic Control</p>
           </div>
         </div>
 
@@ -526,7 +413,7 @@ const SVXUnifiedPlatform = () => {
           <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
             <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
             <div className="space-y-6">
-              <Step icon={<FiUploadCloud size={14}/>} title="Data Ingestion" desc={fileName ? "Sanitized Matrix" : "Waiting for CSV"} active={!!file} />
+              <Step icon={<FiUploadCloud size={14}/>} title="Data Ingestion" desc={fileName || "Waiting for CSV"} active={!!file} />
               <Step icon={<FiZap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />
             </div>
           </div>
@@ -539,8 +426,7 @@ const SVXUnifiedPlatform = () => {
           />
         </aside>
 
-        {/* MODIFICACIÓN: COL-SPAN-9 AHORA CONTIENE SOLO EL PANEL PRINCIPAL EXTENDIDO */}
-        <div className="col-span-9 flex flex-col h-full min-h-0">
+        <div className="col-span-9 flex flex-col gap-4 h-full min-h-0">
           <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden relative group">
             <button 
               onClick={() => setIsMaximized(true)}
@@ -550,6 +436,8 @@ const SVXUnifiedPlatform = () => {
             </button>
             {renderVisualizerContent()}
           </main>
+
+          <EjecutorAgente reportText={agentReport} isProcessing={isProcessing} />
         </div>
       </div>
 
@@ -572,7 +460,6 @@ const SVXUnifiedPlatform = () => {
   );
 };
 
-// COMPONENTES AUXILIARES
 const TabButton = ({ active, onClick, icon, label }) => (
   <button 
     onClick={onClick}
