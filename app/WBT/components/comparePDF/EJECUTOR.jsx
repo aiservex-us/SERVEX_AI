@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiUploadCloud, FiCheck, FiZap, FiShield, FiX, FiSearch, 
   FiAlertTriangle, FiArrowRight, FiCheckCircle, FiInfo, FiXCircle, FiCode, FiDatabase,
-  FiMaximize2, FiLayers, FiPackage
+  FiMaximize2, FiLayers, FiPackage, FiChevronLeft, FiChevronRight
 } from 'react-icons/fi';
 import { BsFileEarmarkArrowUp } from 'react-icons/bs';
 import { 
@@ -57,6 +57,9 @@ const SVXUnifiedPlatform = () => {
   const [data, setData] = useState([]); 
   const [masterDataRows, setMasterDataRows] = useState([]);
   
+  // --- PAGINATION STATES (NUEVO) ---
+  const [currentPage, setCurrentPage] = useState(1);
+
   // --- SUPABASE STATES ---
   const [auditReportJson, setAuditReportJson] = useState(null);
   const [xmlActualizerRaw, setXmlActualizerRaw] = useState("");
@@ -81,7 +84,6 @@ const SVXUnifiedPlatform = () => {
     let currentLine = '';
     let insideQuotes = false;
 
-    // 1. Fragmentación lineal respetando saltos de línea internos en celdas bajo comillas
     for (let i = 0; i < rawCsvText.length; i++) {
       const char = rawCsvText[i];
       if (char === '"') {
@@ -107,7 +109,6 @@ const SVXUnifiedPlatform = () => {
     let dataStartIndex = 0;
     let openQuotes = false;
 
-    // Detectar si la cabecera está rota de manera multi-línea
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       rawHeaderAccum.push(line);
@@ -124,20 +125,16 @@ const SVXUnifiedPlatform = () => {
     }
 
     const fullRawHeader = rawHeaderAccum.join('\n');
-    
-    // Identificar el delimitador de forma segura analizando la cabecera
     const delimiter = fullRawHeader.includes(';') ? ';' : ',';
     
-    // Limpieza atómica de tokens de cabecera
     const perfectHeaders = fullRawHeader.split(delimiter).map(token => {
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
       return tClean.split(/\s+/).join(' ').trim();
     });
 
     const dataLines = lines.slice(dataStartIndex);
-    const finalizedMatrix = [perfectHeaders]; // El índice 0 será siempre nuestra cabecera sanitizada
+    const finalizedMatrix = [perfectHeaders];
 
-    // 2. Re-estructurar y sanear fila por fila en caliente
     dataLines.forEach(line => {
       if (!line.trim()) return; 
       const currentCells = line.split(delimiter);
@@ -146,16 +143,13 @@ const SVXUnifiedPlatform = () => {
       perfectHeaders.forEach((_, index) => {
         let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
         if (cellValue === '') {
-          // Mantener concordancia con la regla de negocio de Servex para campos null
           sanitizedRow.push(null); 
         } else {
-          // Remover comillas envolventes de datos crudos residuales
           cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); 
           sanitizedRow.push(cellValue);
         }
       });
 
-      // Capturar campos huérfanos si la fila excede la longitud del header (comportamiento restkey)
       if (currentCells.length > perfectHeaders.length) {
         const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
         sanitizedRow.push(`[ORPHANED]: ${orphaned.join(' | ')}`);
@@ -167,7 +161,6 @@ const SVXUnifiedPlatform = () => {
     return finalizedMatrix;
   };
 
-  // --- LÓGICA DE GUARDADO INTEGRADA (UPSERT MULTI-TENANT) ---
   const handleSaveToCloud = async (csvRawContent) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -212,7 +205,6 @@ const SVXUnifiedPlatform = () => {
     URL.revokeObjectURL(url);
   };
 
-  // --- CONFIGURACIÓN DE SYNC DESDE LA TABLA SELECCIONADA ---
   const fetchCloudData = async () => {
     try {
       const { data: dbData, error } = await supabase
@@ -232,7 +224,6 @@ const SVXUnifiedPlatform = () => {
         setXmlActualizerRaw(dbData.xml_updated_raw); 
   
         if (dbData.csv_raw && data.length > 0) {
-            // Nota: Aquí data ya viene previamente sanitizado por processFileSelection
             const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
             const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
             const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
@@ -279,7 +270,6 @@ const SVXUnifiedPlatform = () => {
       const text = event.target.result;
       
       console.log('[+] Ejecutando saneamiento celular pre-renderizado...');
-      // ⚡ AQUÍ SE EJECUTA EL SANEAMIENTO ANTES DE MOSTRAR EN PANTALLA
       const sanitizedMatrix = sanitizeCSVToMatrix(text);
       
       if (sanitizedMatrix.length === 0) {
@@ -288,6 +278,7 @@ const SVXUnifiedPlatform = () => {
       }
 
       setData(sanitizedMatrix);
+      setCurrentPage(1); // Resetear siempre a la primera página al cargar un archivo nuevo
       setMatchStatus(null);
       setMasterDataRows([]);
       showAlert("File cleansed and structured successfully", "success");
@@ -295,7 +286,6 @@ const SVXUnifiedPlatform = () => {
     reader.readAsText(selectedFile);
   };
 
-  // --- INTEGRACIÓN ADAPTATIVA CON EL PIPELINE API ---
   const handleUnifiedProcess = async () => {
     if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
     setIsProcessing(true);
@@ -336,7 +326,19 @@ const SVXUnifiedPlatform = () => {
   const handleFullReset = () => {
     setData([]); setFile(null); setFileName(""); setMatchStatus(null);
     setBackendSuccess(false); setAuditReportJson(null); setXmlActualizerRaw("");
-    setMasterDataRows([]);
+    setMasterDataRows([]); setCurrentPage(1);
+  };
+
+  // --- LÓGICA DE CONTROL PARA EL SEGMENTADO REQUERIDO (20 en Pág 1, 30 en Pág 2) ---
+  const getPaginatedData = () => {
+    if (data.length <= 1) return [];
+    const rawProducts = data.slice(1); // Excluir la cabecera
+    
+    if (currentPage === 1) {
+      return rawProducts.slice(0, 20);
+    } else {
+      return rawProducts.slice(20, 50); // Siguientes 30 elementos (índices del 20 al 49)
+    }
   };
 
   const renderVisualizerContent = () => (
@@ -370,53 +372,84 @@ const SVXUnifiedPlatform = () => {
                 <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
               </div>
             ) : (
-              <table className="w-full text-left text-[10px]">
-                  <thead className="bg-[#FAF9F8] sticky top-0 z-20">
-                    <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h || `Column_${i}`}</th>)}</tr>
-                  </thead>
-                  <tbody>
-                    {data.slice(1).map((row, ri) => (
-                      <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
-                        {row.map((cell, ci) => {
-                          const masterCell = masterDataRows[ri] ? masterDataRows[ri][ci] : null;
-                          const isCellDiff = masterCell !== null && cell !== masterCell;
-                          
-                          let percentageChange = null;
-                          if (isCellDiff) {
-                            const oldVal = parseFloat(String(masterCell).replace(/[^0-9.-]+/g, ""));
-                            const newVal = parseFloat(String(cell).replace(/[^0-9.-]+/g, ""));
-                            
-                            if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
-                              percentageChange = ((newVal - oldVal) / oldVal) * 100;
-                            }
-                          }
-
+              <div className="flex flex-col h-full justify-between">
+                <div className="overflow-auto flex-grow">
+                  <table className="w-full text-left text-[10px]">
+                      <thead className="bg-[#FAF9F8] sticky top-0 z-20">
+                        <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h || `Column_${i}`}</th>)}</tr>
+                      </thead>
+                      <tbody>
+                        {getPaginatedData().map((row, ri) => {
+                          // Calcular el índice real del elemento basándose en la página actual
+                          const globalIndex = currentPage === 1 ? ri : ri + 20;
                           return (
-                            <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
-                              {isCellDiff ? (
-                                <div className="flex flex-col">
-                                  <span className="text-red-500 line-through font-medium opacity-60">{masterCell === null ? 'null' : masterCell}</span>
-                                  <div className="flex items-center gap-1 text-[#237B4B] font-bold">
-                                    <FiArrowRight size={10} /><span>{cell === null ? 'null' : cell}</span>
-                                  </div>
-                                  {percentageChange !== null && (
-                                    <span className={`text-[8px] font-black mt-1 ${percentageChange >= 0 ? 'text-[#237B4B]' : 'text-red-600'}`}>
-                                      {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(2)}%
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className={cell === null ? 'text-gray-300 italic font-mono' : 'text-gray-600'}>
-                                  {cell === null ? 'null' : cell}
-                                </span>
-                              )}
-                            </td>
+                            <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
+                              {row.map((cell, ci) => {
+                                const masterCell = masterDataRows[globalIndex] ? masterDataRows[globalIndex][ci] : null;
+                                const isCellDiff = masterCell !== null && cell !== masterCell;
+                                
+                                let percentageChange = null;
+                                if (isCellDiff) {
+                                  const oldVal = parseFloat(String(masterCell).replace(/[^0-9.-]+/g, ""));
+                                  const newVal = parseFloat(String(cell).replace(/[^0-9.-]+/g, ""));
+                                  
+                                  if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
+                                    percentageChange = ((newVal - oldVal) / oldVal) * 100;
+                                  }
+                                }
+
+                                return (
+                                  <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
+                                    {isCellDiff ? (
+                                      <div className="flex flex-col">
+                                        <span className="text-red-500 line-through font-medium opacity-60">{masterCell === null ? 'null' : masterCell}</span>
+                                        <div className="flex items-center gap-1 text-[#237B4B] font-bold">
+                                          <FiArrowRight size={10} /><span>{cell === null ? 'null' : cell}</span>
+                                        </div>
+                                        {percentageChange !== null && (
+                                          <span className={`text-[8px] font-black mt-1 ${percentageChange >= 0 ? 'text-[#237B4B]' : 'text-red-600'}`}>
+                                            {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(2)}%
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className={cell === null ? 'text-gray-300 italic font-mono' : 'text-gray-600'}>
+                                        {cell === null ? 'null' : cell}
+                                      </span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
                           );
                         })}
-                      </tr>
-                    ))}
-                  </tbody>
-              </table>
+                      </tbody>
+                  </table>
+                </div>
+
+                {/* --- CONTROLADORES DE PAGINACIÓN INFERIOR --- */}
+                <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2 flex items-center justify-between text-[11px] font-medium text-gray-600">
+                  <div>
+                    Mostrando productos del <span className="font-bold">{currentPage === 1 ? '1 al 20' : '21 al 50'}</span> (Total cargados: {Math.min(data.length - 1, 50)})
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="flex items-center gap-1 px-3 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all"
+                    >
+                      <FiChevronLeft size={12} /> Pág 1 (20 Prod)
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(2)}
+                      disabled={currentPage === 2 || data.length - 1 <= 20}
+                      className="flex items-center gap-1 px-3 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all"
+                    >
+                      Pág 2 (30 Prod) <FiChevronRight size={12} />
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </motion.div>
