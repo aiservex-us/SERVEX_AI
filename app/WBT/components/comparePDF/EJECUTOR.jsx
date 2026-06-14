@@ -60,6 +60,7 @@ const SVXUnifiedPlatform = () => {
   const sanitizeCSVToMatrix = (rawCsvText) => {
     if (!rawCsvText || !rawCsvText.trim()) return [];
 
+    // 1. Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
     const lines = [];
     let currentLine = '';
     let insideQuotes = false;
@@ -71,7 +72,7 @@ const SVXUnifiedPlatform = () => {
         currentLine += char;
       } else if ((char === '\n' || char === '\r') && !insideQuotes) {
         if (char === '\r' && rawCsvText[i + 1] === '\n') {
-          i++; 
+          i++; // Omitir el siguiente \n de la secuencia \r\n
         }
         lines.push(currentLine);
         currentLine = '';
@@ -89,6 +90,7 @@ const SVXUnifiedPlatform = () => {
     let dataStartIndex = 0;
     let openQuotes = false;
 
+    // Detectar si la cabecera está rota en múltiples líneas por comillas abiertas
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       rawHeaderAccum.push(line);
@@ -105,9 +107,12 @@ const SVXUnifiedPlatform = () => {
     }
 
     const fullRawHeader = rawHeaderAccum.join('\n');
+    // Soporte dinámico para detectar separador de listas de tu ejemplo (;) o estándar (,)
     const delimiter = fullRawHeader.includes(';') ? ';' : ',';
     
-    const perfectHeaders = fullRawHeader.split(delimiter).map(token => {
+    // Limpieza ultra-sofisticada de columnas (Preservado e igualado a la lógica Python)
+    const tokens = fullRawHeader.split(delimiter);
+    const perfectHeaders = tokens.map(token => {
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
       return tClean.split(/\s+/).join(' ').trim();
     });
@@ -115,21 +120,24 @@ const SVXUnifiedPlatform = () => {
     const dataLines = lines.slice(dataStartIndex);
     const finalizedMatrix = [perfectHeaders];
 
+    // Re-estructurar la matriz de datos mapeando contra los headers perfectos
     dataLines.forEach(line => {
-      if (!line.trim()) return; 
+      if (!line.trim()) return; // Ignorar líneas vacías
       const currentCells = line.split(delimiter);
       const sanitizedRow = [];
 
       perfectHeaders.forEach((_, index) => {
         let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
+        // Preservar valores nulos reales de columnas vacías según las directrices de Servex
         if (cellValue === '') {
           sanitizedRow.push(null); 
         } else {
-          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); 
+          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); // Remover comillas envolventes
           sanitizedRow.push(cellValue);
         }
       });
 
+      // Implementación del `restkey` de Python para campos huérfanos por desalineación
       if (currentCells.length > perfectHeaders.length) {
         const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
         sanitizedRow.push(`[ORPHANED]: ${orphaned.join(' | ')}`);
@@ -142,7 +150,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   const processFileSelection = (selectedFile) => {
-    if (!selectedFile.name.endsWith('.csv')) {
+    if (!selectedFile.name.toLowerCase().endsWith('.csv')) {
       showAlert("Invalid format. Use only .CSV", "error");
       return;
     }
@@ -169,7 +177,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   // =========================================================================
-  // --- CONVERSOR DE MATRIZ SANADA A TEXTO PLANO (CSV STRING) ---
+  // --- CONVERSOR DE MATRIZ SANADA A TEXTO PLANO (CSV STRING COMPLIANT) ---
   // =========================================================================
   const convertMatrixToCSVText = (matrix) => {
     return matrix.map(row => {
@@ -198,26 +206,33 @@ const SVXUnifiedPlatform = () => {
       console.log('[+] Convirtiendo matriz estructurada a formato CSV plano...');
       const cleansedCSVText = convertMatrixToCSVText(data);
 
+      console.log('[+] Recuperando sesión de usuario para auditoría (si aplica)...');
+      const { data: { user } } = await supabase.auth.getUser();
+
       console.log(`[+] Sincronizando con la tabla ${targetTableName} para tenant: ${currentTenant}`);
       
-      // Realizamos el upsert apuntando explícitamente sobre el índice único company_name
+      // Creamos el payload apuntando estrictamente al campo text: csv_new_raw
+      const payload = { 
+        company_name: currentTenant, 
+        csv_new_raw: cleansedCSVText, // Volcado en formato string limpio plano
+        created_at: new Date().toISOString()
+      };
+
+      if (user) {
+        payload.user_id = user.id;
+      }
+
+      // Realizamos el upsert apuntando explícitamente sobre el índice único de tu DDL: company_name
       const { error: supabaseError } = await supabase
         .from(targetTableName)
-        .upsert(
-          { 
-            company_name: currentTenant, 
-            csv_new_raw: cleansedCSVText,
-            created_at: new Date().toISOString()
-          }, 
-          { onConflict: 'company_name' }
-        );
+        .upsert(payload, { onConflict: 'company_name' });
 
       if (supabaseError) {
         throw new Error(`Supabase Error: ${supabaseError.message}`);
       }
 
       setBackendSuccess(true);
-      showAlert("CSV matrix successfully processed and saved to Supabase", "success");
+      showAlert("CSV matrix successfully processed and saved to csv_new_raw", "success");
     } catch (err) {
       console.error('[-] Error crítico en la persistencia cloud de Supabase:', err);
       showAlert(err.message, "error");
