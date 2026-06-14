@@ -432,7 +432,7 @@ const SVXUnifiedPlatform = () => {
             <div className="flex-shrink-0 bg-[#ffffff] p-4 flex justify-between items-center text-black">
               <div className="flex items-center gap-3">
                 <Terminal size={18} />
-                <span className="text-sm font-black uppercase tracking-widest">Inspection Mode: CONSOLE</span>
+                <span className="text-sm font-black uppercase tracking-widest">Inspection Mode: CONSOLE.</span>
               </div>
               <button onClick={() => setIsMaximized(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors"><FiX size={24} /></button>
             </div>
