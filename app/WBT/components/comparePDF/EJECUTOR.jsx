@@ -1,12 +1,9 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  FiUploadCloud, FiCheck, FiZap, FiShield, FiX, FiSearch, 
-  FiAlertTriangle, FiArrowRight, FiCheckCircle, FiInfo, FiXCircle, FiCode, FiDatabase,
-  FiMaximize2, FiLayers, FiPackage, FiChevronLeft, FiChevronRight
+  FiUploadCloud, FiX, FiMaximize2, FiChevronLeft, FiChevronRight 
 } from 'react-icons/fi';
 import { 
   FileText, 
@@ -17,10 +14,10 @@ import {
   Terminal
 } from 'lucide-react';
 
+// Importación de la instancia del cliente de Supabase
 import { supabase } from '../../../lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
-import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; 
 import EJECUTOR_PLAY from './EJECUTOR_PLAY';
 
 const SVXUnifiedPlatform = () => {
@@ -43,30 +40,18 @@ const SVXUnifiedPlatform = () => {
     sessionStorage.setItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`, 'true');
   };
 
-  // --- NAVIGATION STATES ---
-  const [activeTab, setActiveTab] = useState('console'); 
-
   // --- UNIFIED STATES ---
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [data, setData] = useState([]); 
-  const [masterDataRows, setMasterDataRows] = useState([]);
   
   // --- PAGINATION STATES (DINÁMICA PARA TODO EL CSV) ---
   const [currentPage, setCurrentPage] = useState(1);
 
-  // --- SUPABASE STATES ---
-  const [auditReportJson, setAuditReportJson] = useState(null);
-  const [xmlActualizerRaw, setXmlActualizerRaw] = useState("");
-
   // --- CONTROL STATES ---
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isXmlLoading, setIsXmlLoading] = useState(false); 
-  const [matchStatus, setMatchStatus] = useState(null); 
-  const [diffCount, setDiffCount] = useState(0);
   const [alert, setAlert] = useState({ show: false, message: '', type: 'info' });
   const [backendSuccess, setBackendSuccess] = useState(false);
-
   const [isMaximized, setIsMaximized] = useState(false);
 
   // =========================================================================
@@ -156,79 +141,6 @@ const SVXUnifiedPlatform = () => {
     return finalizedMatrix;
   };
 
-  const handleTabChangeToXml = () => {
-    setIsXmlLoading(true);
-    setActiveTab('xml_view');
-    setTimeout(() => {
-      setIsXmlLoading(false);
-    }, 100);
-  };
-
-  const handleDownloadXML = () => {
-    if (!xmlActualizerRaw) return;
-    const blob = new Blob([xmlActualizerRaw], { type: 'text/xml' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${currentTenant}_PRICING_MASTER_AUDIT_${new Date().getFullYear()}.xml`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const fetchCloudData = async () => {
-    try {
-      const { data: dbData, error } = await supabase
-        .from(targetTableName)
-        .select('audit_report_json, xml_updated_raw, csv_raw') 
-        .eq('company_name', currentTenant)
-        .maybe_single();
-      
-      if (error) throw error;
-      
-      if (dbData) {
-        const report = typeof dbData.audit_report_json === 'string' 
-          ? JSON.parse(dbData.audit_report_json) 
-          : dbData.audit_report_json;
-  
-        setAuditReportJson(report);
-        setXmlActualizerRaw(dbData.xml_updated_raw); 
-  
-        if (dbData.csv_raw && data.length > 0) {
-            const dbLines = dbData.csv_raw.split(/\r?\n/).filter(l => l.trim() !== "");
-            const dbDelimiter = dbLines.find(l => l.includes(';') || l.includes(','))?.includes(';') ? ';' : ',';
-            const dbMatrix = dbLines.map(line => line.split(dbDelimiter).map(c => c.trim()));
-  
-            const headerIndex = data.findIndex(row => row.join('').includes('ID') || row.join('').includes('Product') || row.join('').includes('Model'));
-            const header = data[headerIndex] || data[0];
-            const currentRows = data.slice(headerIndex + 1);
-            const masterRowsOnly = dbMatrix.slice(headerIndex + 1);
-  
-            const auditResults = currentRows.map((row, idx) => {
-              const mRow = masterRowsOnly[idx] || [];
-              const isDifferent = JSON.stringify(row) !== JSON.stringify(mRow);
-              return { row, mRow, isDifferent };
-            });
-  
-            const discrepancies = auditResults.filter(item => item.isDifferent);
-  
-            if (discrepancies.length > 0) {
-              setMatchStatus('mismatch');
-              setDiffCount(discrepancies.length);
-              setMasterDataRows(discrepancies.map(d => d.mRow));
-              setData([header, ...discrepancies.map(d => d.row)]);
-            } else {
-              setMatchStatus('match');
-            }
-        }
-      }
-    } catch (err) {
-      console.error("Error fetching cloud data:", err);
-      showAlert("Error syncing data from cloud", "error");
-    }
-  };
-
   const processFileSelection = (selectedFile) => {
     if (!selectedFile.name.endsWith('.csv')) {
       showAlert("Invalid format. Use only .CSV", "error");
@@ -250,40 +162,62 @@ const SVXUnifiedPlatform = () => {
       }
 
       setData(sanitizedMatrix);
-      setCurrentPage(1); // Reiniciar a la página 1 en cada carga externa
-      setMatchStatus(null);
-      setMasterDataRows([]);
+      setCurrentPage(1); 
       showAlert("File cleansed and structured successfully", "success");
     };
     reader.readAsText(selectedFile);
   };
 
+  // =========================================================================
+  // --- CONVERSOR DE MATRIZ SANADA A TEXTO PLANO (CSV STRING) ---
+  // =========================================================================
+  const convertMatrixToCSVText = (matrix) => {
+    return matrix.map(row => {
+      return row.map(cell => {
+        if (cell === null || cell === undefined) return '';
+        let cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes(';') || cellStr.includes('\n') || cellStr.includes('"')) {
+          cellStr = `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(',');
+    }).join('\n');
+  };
+
+  // =========================================================================
+  // --- GUARDADO EXCLUSIVO EN SUPABASE ---
+  // =========================================================================
   const handleUnifiedProcess = async () => {
-    if (!file) { showAlert("Please upload a CSV file first", "warning"); return; }
+    if (!file || data.length === 0) { 
+      showAlert("Please upload and process a CSV file first", "warning"); 
+      return; 
+    }
     setIsProcessing(true);
-    setAuditReportJson(null);
-    setXmlActualizerRaw("");
 
     try {
-      const formData = new FormData();
-      formData.append('company_name', currentTenant);
-      formData.append('new_csv_file', file);
+      console.log('[+] Convirtiendo matriz saneada a texto plano para Supabase...');
+      const cleansedCSVText = convertMatrixToCSVText(data);
 
-      const response = await fetch('http://localhost:8000/api/v1/pipeline/process', {
-        method: 'POST',
-        body: formData,
-      });
+      console.log(`[+] Sincronizando con Supabase en la tabla: ${targetTableName}`);
+      const { error: supabaseError } = await supabase
+        .from(targetTableName)
+        .upsert(
+          { 
+            company_name: currentTenant, 
+            csv_new_raw: cleansedCSVText,
+            created_at: new Date().toISOString()
+          }, 
+          { onConflict: 'company_name' }
+        );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'SERVEX_AI Error');
+      if (supabaseError) {
+        throw new Error(`Supabase Error: ${supabaseError.message}`);
       }
 
       setBackendSuccess(true);
-      await new Promise(resolve => setTimeout(resolve, 200));
-      await fetchCloudData();
-      showAlert("Cloud synchronization successful", "success");
+      showAlert("Database storage synchronized successfully", "success");
     } catch (err) {
+      console.error('[-] Error crítico al guardar en Supabase:', err);
       showAlert(err.message, "error");
     } finally {
       setIsProcessing(false);
@@ -296,40 +230,34 @@ const SVXUnifiedPlatform = () => {
   };
 
   const handleFullReset = () => {
-    setData([]); setFile(null); setFileName(""); setMatchStatus(null);
-    setBackendSuccess(false); setAuditReportJson(null); setXmlActualizerRaw("");
-    setMasterDataRows([]); setCurrentPage(1);
+    setData([]); setFile(null); setFileName("");
+    setBackendSuccess(false); setCurrentPage(1);
   };
 
   // =========================================================================
-  // --- CÁLCULO DE ÍNDICES DINÁMICOS (SOPORTE TOTAL DE FILAS DEL CSV) ---
+  // --- CÁLCULO DE ÍNDICES DINÁMICOS ---
   // =========================================================================
   const getPaginatedData = () => {
     if (data.length <= 1) return [];
-    const rawProducts = data.slice(1); // Omitimos la cabecera
+    const rawProducts = data.slice(1); 
     
     if (currentPage === 1) {
-      return rawProducts.slice(0, 20); // Los primeros 20 productos
+      return rawProducts.slice(0, 20); 
     } else {
-      // Ej: Página 2 -> Desde índice 20 hasta el 50 (30 productos)
-      // Ej: Página 3 -> Desde índice 50 hasta el 80 (30 productos)
       const start = 20 + (currentPage - 2) * 30;
       const end = start + 30;
       return rawProducts.slice(start, end);
     }
   };
 
-  // Calcular dinámicamente el total de páginas disponibles basadas en la longitud real de los datos
   const getTotalPages = () => {
     if (data.length <= 1) return 1;
     const totalProducts = data.length - 1;
     if (totalProducts <= 20) return 1;
     
-    // 1 página fija para los primeros 20 + el excedente dividido entre bloques de 30
     return 1 + Math.ceil((totalProducts - 20) / 30);
   };
 
-  // Obtener los límites numéricos de lo que se visualiza actualmente en pantalla
   const getCurrentRangeLabels = () => {
     if (data.length <= 1) return { start: 0, end: 0 };
     const total = data.length - 1;
@@ -344,177 +272,87 @@ const SVXUnifiedPlatform = () => {
   };
 
   const renderVisualizerContent = () => (
-    <AnimatePresence mode="wait">
-      {activeTab === 'console' && (
-        <motion.div key="console" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full overflow-hidden">
-          <div className="flex-shrink-0 p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Comparison Viewer</h2>
-              <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex-shrink-0 p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Viewer</h2>
+          <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
+        </div>
+      </div>
+      <div className="flex-grow overflow-auto">
+        {!file ? (
+          <div className="h-full flex flex-col items-center justify-center opacity-40">
+            <DownloadCloud size={40} />
+            <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
+            <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
+            <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
+          </div>
+        ) : (
+          <div className="flex flex-col h-full justify-between">
+            <div className="overflow-auto flex-grow">
+              <table className="w-full text-left text-[10px]">
+                  <thead className="bg-[#FAF9F8] sticky top-0 z-20">
+                    <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h || `Column_${i}`}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {getPaginatedData().map((row, ri) => {
+                      return (
+                        <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
+                          {row.map((cell, ci) => {
+                            return (
+                              <td key={ci} className="p-3 border-r border-[#F3F2F1]">
+                                <span className={cell === null ? 'text-gray-300 italic font-mono' : 'text-gray-600'}>
+                                  {cell === null ? 'null' : cell}
+                                </span>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+              </table>
             </div>
-            {matchStatus === 'mismatch' && (
-              <div className="flex gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full" />
-                    <span className="text-[9px] font-bold text-gray-400 uppercase">Cloud Master</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-[#237B4B] rounded-full" />
-                    <span className="text-[9px] font-bold text-[#237B4B] uppercase">New Change</span>
-                  </div>
-              </div>
-            )}
-          </div>
-          <div className="flex-grow overflow-auto">
-            {!file ? (
-              <div className="h-full flex flex-col items-center justify-center opacity-40">
-                <DownloadCloud size={40} />
-                <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
-                <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
-                <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
-              </div>
-            ) : (
-              <div className="flex flex-col h-full justify-between">
-                <div className="overflow-auto flex-grow">
-                  <table className="w-full text-left text-[10px]">
-                      <thead className="bg-[#FAF9F8] sticky top-0 z-20">
-                        <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h || `Column_${i}`}</th>)}</tr>
-                      </thead>
-                      <tbody>
-                        {getPaginatedData().map((row, ri) => {
-                          // Re-mapeo del índice global para emparejar con el arreglo de discrepancias máster
-                          const globalIndex = currentPage === 1 ? ri : 20 + (currentPage - 2) * 30 + ri;
-                          return (
-                            <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
-                              {row.map((cell, ci) => {
-                                const masterCell = masterDataRows[globalIndex] ? masterDataRows[globalIndex][ci] : null;
-                                const isCellDiff = masterCell !== null && cell !== masterCell;
-                                
-                                let percentageChange = null;
-                                if (isCellDiff) {
-                                  const oldVal = parseFloat(String(masterCell).replace(/[^0-9.-]+/g, ""));
-                                  const newVal = parseFloat(String(cell).replace(/[^0-9.-]+/g, ""));
-                                  
-                                  if (!isNaN(oldVal) && !isNaN(newVal) && oldVal !== 0) {
-                                    percentageChange = ((newVal - oldVal) / oldVal) * 100;
-                                  }
-                                }
 
-                                return (
-                                  <td key={ci} className={`p-3 border-r border-[#F3F2F1] ${isCellDiff ? 'bg-orange-50/40' : ''}`}>
-                                    {isCellDiff ? (
-                                      <div className="flex flex-col">
-                                        <span className="text-red-500 line-through font-medium opacity-60">{masterCell === null ? 'null' : masterCell}</span>
-                                        <div className="flex items-center gap-1 text-[#237B4B] font-bold">
-                                          <FiArrowRight size={10} /><span>{cell === null ? 'null' : cell}</span>
-                                        </div>
-                                        {percentageChange !== null && (
-                                          <span className={`text-[8px] font-black mt-1 ${percentageChange >= 0 ? 'text-[#237B4B]' : 'text-red-600'}`}>
-                                            {percentageChange >= 0 ? '+' : ''}{percentageChange.toFixed(2)}%
-                                          </span>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <span className={cell === null ? 'text-gray-300 italic font-mono' : 'text-gray-600'}>
-                                        {cell === null ? 'null' : cell}
-                                      </span>
-                                    )}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                  </table>
-                </div>
-
-                {/* --- BARRA DE PAGINACIÓN INFINITA DINÁMICA --- */}
-                <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2.5 flex items-center justify-between text-[11px] font-medium text-gray-600">
-                  <div>
-                    Mostrando del <span className="font-bold text-[#464775]">{getCurrentRangeLabels().start}</span> al <span className="font-bold text-[#464775]">{getCurrentRangeLabels().end}</span> de un total de <span className="font-bold">{data.length - 1}</span> productos.
-                  </div>
-                  <div className="flex items-center gap-15">
-                    <span className="text-[10px] text-gray-400 font-bold uppercase">Página {currentPage} de {getTotalPages()}</span>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all shadow-sm"
-                      >
-                        <FiChevronLeft size={12} /> Anterior
-                      </button>
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, getTotalPages()))}
-                        disabled={currentPage === getTotalPages()}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all shadow-sm"
-                      >
-                        Siguiente <FiChevronRight size={12} />
-                      </button>
-                    </div>
-                  </div>
+            {/* --- BARRA DE PAGINACIÓN --- */}
+            <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2.5 flex items-center justify-between text-[11px] font-medium text-gray-600">
+              <div>
+                Mostrando del <span className="font-bold text-[#464775]">{getCurrentRangeLabels().start}</span> al <span className="font-bold text-[#464775]">{getCurrentRangeLabels().end}</span> de un total de <span className="font-bold">{data.length - 1}</span> productos.
+              </div>
+              <div className="flex items-center gap-15">
+                <span className="text-[10px] text-gray-400 font-bold uppercase">Página {currentPage} de {getTotalPages()}</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all shadow-sm"
+                  >
+                    <FiChevronLeft size={12} /> Anterior
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, getTotalPages()))}
+                    disabled={currentPage === getTotalPages()}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all shadow-sm"
+                  >
+                    Siguiente <FiChevronRight size={12} />
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </motion.div>
-      )}
-
-      {activeTab === 'audit_json' && (
-        <motion.div key="json" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
-          <h2 className="flex-shrink-0 text-xs font-black text-[#464775] uppercase mb-4">Column: audit_report_json</h2>
-          <div className="bg-[#1E1E1E] text-[#D4D4D4] p-4 rounded-lg font-mono text-[11px] overflow-auto flex-grow shadow-inner">
-            {isProcessing ? (
-              <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin" /></div>
-            ) : auditReportJson ? (
-              <pre>{JSON.stringify(auditReportJson, null, 2)}</pre>
-            ) : (
-              <p className="opacity-50">// No data processed in cloud yet...</p>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {activeTab === 'xml_view' && (
-        <motion.div key="xml" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex flex-col h-full p-4 overflow-hidden">
-          <div className="bg-white border border-[#EDEBE9] rounded-lg flex-grow shadow-inner relative flex flex-col items-center justify-center text-center p-8">
-            {(isProcessing || isXmlLoading) ? (
-              <div className="flex flex-col items-center justify-center">
-                <Loader2 className="animate-spin text-[#444791] mb-2" size={32} />
-                <span className="text-[10px] font-black text-[#444791] uppercase tracking-widest">
-                  {isProcessing ? "Generating XML..." : "Preparing Download Link..."}
-                </span>
-              </div>
-            ) : xmlActualizerRaw ? (
-              <div className="flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-500">
-                <div className="w-16 h-16 bg-[#F3F2F1] rounded-full flex items-center justify-center mb-4">
-                  <FiCode size={30} className="text-[#464775]" />
-                </div>
-                <h2 className="text-sm font-black text-[#464775] uppercase mb-2">XML Ready for Export</h2>
-                <p className="text-[11px] text-gray-500 max-w-[300px] leading-relaxed mb-6">
-                  The updated catalog code has been successfully generated and is stored in the <strong>xml_updated_raw</strong> column.
-                </p>
-                <button 
-                  onClick={handleDownloadXML}
-                  className="flex items-center gap-3 bg-[#464775] text-white px-8 py-3 rounded-md text-[11px] font-bold hover:bg-[#363975] transition-all shadow-lg hover:scale-105 active:scale-95"
-                >
-                  <DownloadCloud size={18} /> DOWNLOAD XML FILE
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center opacity-30 italic">
-                <FiDatabase size={40} className="mb-2" />
-                <span className="text-[10px] font-bold uppercase tracking-widest">// Waiting for data synchronization...</span>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </div>
+    </div>
   );
 
   return (
     <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
+      {alert.show && (
+        <div className={`fixed top-4 right-4 z-[2000] p-3 rounded shadow-lg text-[11px] font-bold uppercase tracking-wider ${alert.type === 'success' ? 'bg-emerald-600 text-white' : alert.type === 'error' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
+          {alert.message}
+        </div>
+      )}
+
       {showTutorial && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-[2px] animate-in fade-in duration-200">
           <div className="bg-white w-[380px] rounded shadow-xl border border-[#d1d1d1] overflow-hidden transform animate-in zoom-in-95 duration-200">
@@ -542,7 +380,7 @@ const SVXUnifiedPlatform = () => {
 
       <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
-          <img src={`/logosEmpresas/${currentTenant.toLowerCase()}.webp`} alt={currentTenant} className="w-15 h-15 rounded object-contain" onError={(e) => { e.target.src = "/logosEmpresas/default.webp"; }} />
+          <img src={`/logosEmpresas/WB.webp`} alt={currentTenant} className="w-15 h-15 rounded object-contain" onError={(e) => { e.target.src = "/logosEmpresas/default.webp"; }} />
           <div>
             <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
             <p className="text-[10px] text-gray-500 font-medium">{currentTenant} Strategic Control</p>
@@ -550,9 +388,9 @@ const SVXUnifiedPlatform = () => {
         </div>
 
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
-          <TabButton active={activeTab === 'console'} onClick={() => setActiveTab('console')} icon={<Terminal size={12}/>} label="Console" />
-          <TabButton active={activeTab === 'audit_json'} onClick={() => setActiveTab('audit_json')} icon={<FiDatabase size={12}/>} label="Audit JSON" />
-          <TabButton active={activeTab === 'xml_view'} onClick={handleTabChangeToXml} icon={<FiCode size={12}/>} label="XML Code" />
+          <div className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#444791] shadow-sm">
+            <Terminal size={12}/> Console View
+          </div>
         </nav>
       </header>
 
@@ -562,7 +400,7 @@ const SVXUnifiedPlatform = () => {
             <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
             <div className="space-y-6">
               <Step icon={<FiUploadCloud size={14}/>} title="Data Ingestion" desc={fileName ? "Sanitized Matrix" : "Waiting for CSV"} active={!!file} />
-              <Step icon={<FiZap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />
+              <Step icon={<Zap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />
             </div>
           </div>
 
@@ -571,6 +409,7 @@ const SVXUnifiedPlatform = () => {
             handleFullReset={handleFullReset}
             file={file}
             isProcessing={isProcessing}
+            currentTenant={currentTenant}
           />
         </aside>
 
@@ -589,16 +428,16 @@ const SVXUnifiedPlatform = () => {
 
       {isMaximized && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-md p-10 animate-in fade-in duration-300">
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white w-[95vw] h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+          <div className="bg-white w-[95vw] h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
             <div className="flex-shrink-0 bg-[#ffffff] p-4 flex justify-between items-center text-black">
               <div className="flex items-center gap-3">
                 <Terminal size={18} />
-                <span className="text-sm font-black uppercase tracking-widest">Inspection Mode: {activeTab.replace('_', ' ').toUpperCase()}</span>
+                <span className="text-sm font-black uppercase tracking-widest">Inspection Mode: CONSOLE</span>
               </div>
               <button onClick={() => setIsMaximized(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors"><FiX size={24} /></button>
             </div>
             <div className="flex-grow overflow-hidden bg-white">{renderVisualizerContent()}</div>
-          </motion.div>
+          </div>
         </div>,
         document.body
       )}
@@ -606,20 +445,12 @@ const SVXUnifiedPlatform = () => {
   );
 };
 
-// COMPONENTES AUXILIARES
-const TabButton = ({ active, onClick, icon, label }) => (
-  <button 
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold transition-all ${active ? 'bg-white text-[#444791] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-  >
-    {icon} {label}
-  </button>
-);
-
 const Step = ({ icon, title, desc, active, isLast }) => (
   <div className="flex gap-4 relative">
     <div className="flex flex-col items-center">
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${active ? 'bg-[#464775] border-[#444791] text-white shadow-lg' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>{icon}</div>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${active ? 'bg-[#464775] border-[#444791] text-white shadow-lg' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>
+        {icon}
+      </div>
       {!isLast && <div className={`w-[2px] h-10 my-1 ${active ? 'bg-[#444791]' : 'bg-[#EDEBE9]'}`} />}
     </div>
     <div className={`pt-1 ${!active && 'opacity-40'}`}>

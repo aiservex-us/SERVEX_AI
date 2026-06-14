@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { FiZap, FiTrash2, FiAlertCircle } from 'react-icons/fi';
 import { Zap, Loader2 } from 'lucide-react';
@@ -6,7 +8,8 @@ const EJECUTOR_PLAY = ({
   handleUnifiedProcess, 
   handleFullReset, 
   file, 
-  isProcessing 
+  isProcessing,
+  currentTenant
 }) => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
 
@@ -53,19 +56,19 @@ const EJECUTOR_PLAY = ({
             
             <div className="space-y-1">
               <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Proceso de Actualización Iniciado</h3>
-              <p className="text-[11px] text-gray-500 font-medium">Catálogo: {currentDate}</p>
+              <p className="text-[11px] text-gray-500 font-medium">Catálogo ({currentTenant}): {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
               <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={16} />
               <p className="text-[10px] text-amber-800 leading-tight">
-                <strong>IMPORTANTE:</strong> El sistema está sincronizando datos críticos. <strong>No cambies de sección</strong> ni reinicies la aplicación hasta que el monitor de salida finalice.
+                <strong>IMPORTANTE:</strong> El sistema está sincronizando datos críticos en Supabase. <strong>No cambies de sección</strong> ni reinicies la aplicación hasta que el monitor de salida finalice.
               </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
               <Loader2 size={12} className="animate-spin" />
-              <span className="uppercase tracking-widest">Ejecutando Pipeline...</span>
+              <span className="uppercase tracking-widest">Sincronizando con Supabase...</span>
             </div>
           </div>
         </div>
