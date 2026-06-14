@@ -185,7 +185,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   // =========================================================================
-  // --- GUARDADO EXCLUSIVO EN SUPABASE ---
+  // --- ALMACENAMIENTO EXCLUSIVO EN LA COLUMNA csv_new_raw DE SUPABASE ---
   // =========================================================================
   const handleUnifiedProcess = async () => {
     if (!file || data.length === 0) { 
@@ -195,10 +195,12 @@ const SVXUnifiedPlatform = () => {
     setIsProcessing(true);
 
     try {
-      console.log('[+] Convirtiendo matriz saneada a texto plano para Supabase...');
+      console.log('[+] Convirtiendo matriz estructurada a formato CSV plano...');
       const cleansedCSVText = convertMatrixToCSVText(data);
 
-      console.log(`[+] Sincronizando con Supabase en la tabla: ${targetTableName}`);
+      console.log(`[+] Sincronizando con la tabla ${targetTableName} para tenant: ${currentTenant}`);
+      
+      // Realizamos el upsert apuntando explícitamente sobre el índice único company_name
       const { error: supabaseError } = await supabase
         .from(targetTableName)
         .upsert(
@@ -215,9 +217,9 @@ const SVXUnifiedPlatform = () => {
       }
 
       setBackendSuccess(true);
-      showAlert("Database storage synchronized successfully", "success");
+      showAlert("CSV matrix successfully processed and saved to Supabase", "success");
     } catch (err) {
-      console.error('[-] Error crítico al guardar en Supabase:', err);
+      console.error('[-] Error crítico en la persistencia cloud de Supabase:', err);
       showAlert(err.message, "error");
     } finally {
       setIsProcessing(false);
@@ -314,7 +316,6 @@ const SVXUnifiedPlatform = () => {
               </table>
             </div>
 
-            {/* --- BARRA DE PAGINACIÓN --- */}
             <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2.5 flex items-center justify-between text-[11px] font-medium text-gray-600">
               <div>
                 Mostrando del <span className="font-bold text-[#464775]">{getCurrentRangeLabels().start}</span> al <span className="font-bold text-[#464775]">{getCurrentRangeLabels().end}</span> de un total de <span className="font-bold">{data.length - 1}</span> productos.
