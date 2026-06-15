@@ -57,7 +57,7 @@ const EJECUTOR_PLAY = ({
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      const targetCompany = currentTenant === 'WBT' ? 'WB Manufacturing' : currentTenant;
+      const targetCompany = currentTenant === 'WBT' ? 'WBT' : currentTenant;
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
