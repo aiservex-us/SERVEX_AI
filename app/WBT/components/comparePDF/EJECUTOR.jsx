@@ -11,8 +11,7 @@ import {
   DownloadCloud, 
   X, 
   Zap, 
-  Terminal,
-  AlertTriangle
+  Terminal
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
@@ -47,34 +46,37 @@ const SVXUnifiedPlatform = () => {
   const [data, setData] = useState([]); 
   const [sanitizedJsonData, setSanitizedJsonData] = useState([]); // Estructura JSON limpia (Array de Objetos)
   
-  // --- STATE FOR EXISTING CLOUD DATA DETECTOR ---
-  const [hasExistingData, setHasExistingData] = useState(false);
-  const [isLoadingCheck, setIsLoadingCheck] = useState(true);
+  // --- CLOUD STATE DETECTION ---
+  const [hasExistingRawData, setHasExistingRawData] = useState(false);
+  const [isCheckingCloud, setIsCheckingCloud] = useState(true);
 
-  // --- DETECTAR SI YA EXISTE INFORMACIÓN EN CSV_NEW_RAW ---
+  // --- EFECTO DE CONTROL: VALIDACIÓN ESTRUCTURAL DE REGISTROS PREVIOS ---
   useEffect(() => {
-    const checkExistingData = async () => {
+    const verifyCloudPayload = async () => {
       try {
-        setIsLoadingCheck(true);
-        const { data: cloudRecord, error } = await supabase
+        setIsCheckingCloud(true);
+        const { data: record, error } = await supabase
           .from(targetTableName)
           .select('csv_new_raw')
           .eq('company_name', currentTenant)
           .maybeSingle();
 
-        if (!error && cloudRecord && cloudRecord.csv_new_raw && Array.isArray(cloudRecord.csv_new_raw) && cloudRecord.csv_new_raw.length > 0) {
-          setHasExistingData(true);
+        if (!error && record && record.csv_new_raw && record.csv_new_raw.trim !== undefined && record.csv_new_raw.trim() !== '') {
+          setHasExistingRawData(true);
+        } else if (!error && record && record.csv_new_raw && (Array.isArray(record.csv_new_raw) || typeof record.csv_new_raw === 'object')) {
+          // Cobertura por si el wrapper del driver parsea el contenido de forma nativa
+          setHasExistingRawData(true);
         } else {
-          setHasExistingData(false);
+          setHasExistingRawData(false);
         }
       } catch (err) {
-        console.error('[-] Error verificando registros existentes:', err);
+        console.error('[-] Error verificando la existencia de matrices previas:', err);
       } finally {
-        setIsLoadingCheck(false);
+        setIsCheckingCloud(false);
       }
     };
 
-    checkExistingData();
+    verifyCloudPayload();
   }, [currentTenant, targetTableName]);
 
   // --- PAGINATION STATES (DINÁMICA PARA TODO EL CSV) ---
@@ -245,7 +247,7 @@ const SVXUnifiedPlatform = () => {
       }
 
       setBackendSuccess(true);
-      setHasExistingData(true); // Bloquear futuras cargas accidentales tras guardar con éxito
+      setHasExistingRawData(true);
       showAlert("CSV matrix successfully processed and saved to csv_new_raw", "success");
     } catch (err) {
       console.error('[-] Error crítico en la persistencia cloud de Supabase:', err);
@@ -311,24 +313,26 @@ const SVXUnifiedPlatform = () => {
         </div>
       </div>
       <div className="flex-grow overflow-auto">
-        {isLoadingCheck ? (
-          <div className="h-full flex flex-col items-center justify-center opacity-60">
-            <Loader2 size={32} className="animate-spin text-[#464775]" />
-            <p className="text-[10px] font-bold mt-2 uppercase tracking-wider text-gray-500">Verificando estado en Supabase...</p>
+        {isCheckingCloud ? (
+          <div className="h-full flex flex-col items-center justify-center opacity-50">
+            <Loader2 size={24} className="animate-spin text-[#464775]" />
+            <p className="text-[10px] font-bold mt-2 uppercase tracking-widest text-[#464775]">Verificando Cloud Matrix...</p>
           </div>
         ) : !file ? (
-          hasExistingData ? (
-            <div className="h-full flex flex-col items-center justify-center p-6 text-center bg-amber-50/20">
-              <AlertTriangle size={44} className="text-amber-500 animate-bounce mb-3" />
-              <h4 className="text-xs font-black text-amber-700 uppercase tracking-wider mb-1">Registro Existente Detectado</h4>
-              <p className="text-[11px] font-bold text-gray-600 max-w-md leading-relaxed">
-                La columna <span className="font-mono text-xs bg-amber-100 px-1 py-0.5 rounded text-amber-800">csv_new_raw</span> ya contiene información estructurada para este tenant. Por favor, revise el Excel updated o resetee la secuencia si requiere sobrescribir.
+          hasExistingRawData ? (
+            <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 mb-3 border border-amber-200">
+                <FileText size={20} />
+              </div>
+              <h3 className="text-xs font-black text-[#464775] uppercase tracking-wider mb-1">Registro de Catálogo Activo</h3>
+              <p className="text-[11px] font-medium text-gray-500 max-w-sm leading-normal mb-4">
+                Se detectó información guardada en la columna <span className="font-mono bg-gray-100 px-1 py-0.5 rounded text-red-600 font-bold">csv_new_raw</span> para este tenant. Por favor revise el archivo excel updated ya existente.
               </p>
               <button 
-                onClick={() => setHasExistingData(false)} 
-                className="mt-5 px-3 py-1.5 border border-amber-300 bg-white hover:bg-amber-50 text-amber-700 text-[9px] font-black tracking-wider rounded uppercase transition-colors shadow-sm"
+                onClick={() => setHasExistingRawData(false)} 
+                className="px-3 py-1.5 border border-[#EDEBE9] hover:bg-gray-50 text-[9px] font-black tracking-wide uppercase rounded shadow-sm transition-all"
               >
-                Forzar Carga de Nuevo Archivo
+                Ignorar y Cargar Nuevo CSV
               </button>
             </div>
           ) : (
