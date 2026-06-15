@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FiZap, FiTrash2, FiAlertCircle, FiCpu } from 'react-icons/fi';
+import { FiZap, FiTrash2, FiAlertCircle, FiCpu, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { Zap, Loader2, Cpu } from 'lucide-react';
 
 const EJECUTOR_PLAY = ({ 
@@ -15,6 +15,7 @@ const EJECUTOR_PLAY = ({
 }) => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
   const [showSecondPopup, setShowSecondPopup] = useState(false); // <--- Estado para el popup del nuevo botón
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // <--- Estado para pedir confirmación al usuario
 
   // Obtener fecha actual formateada
   const currentDate = new Date().toLocaleDateString('es-ES', { 
@@ -48,8 +49,15 @@ const EJECUTOR_PLAY = ({
     }
   };
 
-  const ejecutarSegundoProceso = async () => {
-    setShowSecondPopup(true); // Activar el popup secundario
+  // Manejador del botón secundario que intercepta la orden para pedir confirmación
+  const solicitarConfirmacionSegundoProceso = () => {
+    setShowConfirmModal(true);
+  };
+
+  // Ejecución real tras pasar la confirmación del modal
+  const ejecutarSegundoProcesoConfirmado = async () => {
+    setShowConfirmModal(false); // Cierra el modal de confirmación
+    setShowSecondPopup(true); // Activar el popup secundario de carga
     try {
       if (handleSecondProcess) {
         await handleSecondProcess();
@@ -61,6 +69,43 @@ const EJECUTOR_PLAY = ({
 
   return (
     <div className="flex flex-col gap-3 font-sans antialiased text-[#242424]">
+      
+      {/* --- MODAL DE CONFIRMACIÓN DE ACCIÓN --- */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[1002] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white border border-gray-200 shadow-2xl rounded-2xl p-6 max-w-sm w-full space-y-4 transform animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="bg-[#5b5fc7]/10 p-2 rounded-lg text-[#5b5fc7]">
+                <FiCpu size={20} />
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">
+                ¿Confirmar Ejecución Cloud?
+              </h3>
+            </div>
+            
+            <p className="text-[11px] text-gray-600 leading-relaxed">
+              Estás a punto de disparar el pipeline de reestructuración e inyección XML. El sistema procesará las matrices de datos directamente desde Supabase de forma síncrona.
+            </p>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-1.5 px-3 rounded text-[11px] transition-all flex items-center justify-center gap-1.5"
+              >
+                <FiXCircle size={13} />
+                Cancelar
+              </button>
+              <button
+                onClick={ejecutarSegundoProcesoConfirmado}
+                className="flex-1 bg-[#5b5fc7] hover:bg-[#4f52b2] text-white font-semibold py-1.5 px-3 rounded text-[11px] transition-all flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <FiCheckCircle size={13} />
+                Aceptar y Enviar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* --- POPUP 1: PROCESO UNIFICADO --- */}
       {showStatusPopup && (
@@ -148,9 +193,9 @@ const EJECUTOR_PLAY = ({
             RUN PIPELINE & SYNC
           </button>
 
-          {/* SEGUNDO BOTÓN SOLICITADO (Modificado para evaluar info en Supabase) */}
+          {/* SEGUNDO BOTÓN SOLICITADO (Modificado para interceptar y pedir confirmación) */}
           <button 
-            onClick={ejecutarSegundoProceso}
+            onClick={solicitarConfirmacionSegundoProceso}
             disabled={(!file && !hasExistingData) || isProcessing}
             className="w-full bg-[#5b5fc7] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
