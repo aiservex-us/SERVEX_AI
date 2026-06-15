@@ -56,6 +56,56 @@ const SVXUnifiedPlatform = () => {
   const [isMaximized, setIsMaximized] = useState(false);
 
   // =========================================================================
+  // --- EFECTO DE VERIFICACIÓN AUTOMÁTICA EN LA COLUMNA DE SUPABASE ---
+  // =========================================================================
+  useEffect(() => {
+    const checkAndLoadExistingData = async () => {
+      if (!currentTenant) return;
+      
+      try {
+        const { data: dbData, error } = await supabase
+          .from(targetTableName)
+          .select('csv_new_raw')
+          .eq('company_name', currentTenant)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        // Si existe información en csv_new_raw y es un Array válido con registros
+        if (dbData && dbData.csv_new_raw && Array.isArray(dbData.csv_new_raw) && dbData.csv_new_raw.length > 0) {
+          console.log('[+] Información detectada en Supabase (csv_new_raw). Reconstruyendo matriz visual...');
+          
+          const jsonArray = dbData.csv_new_raw;
+          // Extraemos los headers de las llaves del primer objeto
+          const headers = Object.keys(jsonArray[0]).filter(h => h !== '_orphaned_fields');
+          
+          // Reconstruimos la matriz fila por fila asignando los valores de forma posicional
+          const reconstructedMatrix = [headers];
+          
+          jsonArray.forEach(obj => {
+            const row = headers.map(h => obj[h]);
+            if (obj._orphaned_fields && Array.isArray(obj._orphaned_fields)) {
+              row.push(`[ORPHANED]: ${obj._orphaned_fields.join(' | ')}`);
+            }
+            reconstructedMatrix.push(row);
+          });
+
+          // Seteamos los estados simulando el arrastre exitoso
+          setData(reconstructedMatrix);
+          setSanitizedJsonData(jsonArray);
+          setFileName(`Supabase Matrix Cluster (${currentTenant})`);
+          setFile({ name: `Supabase_${currentTenant}.csv` }); // Mock para activar los contenedores condicionales
+          setBackendSuccess(true);
+        }
+      } catch (err) {
+        console.error('[-] Error en la validación inicial de almacenamiento remoto:', err);
+      }
+    };
+
+    checkAndLoadExistingData();
+  }, [currentTenant, targetTableName]);
+
+  // =========================================================================
   // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (IGUALADO A PYTHON) ---
   // =========================================================================
   const sanitizeCSVToMatrix = (rawCsvText) => {
@@ -193,10 +243,9 @@ const SVXUnifiedPlatform = () => {
 
       console.log(`[+] Sincronizando con la tabla ${targetTableName} para tenant: ${currentTenant}`);
       
-      // Creamos el payload asignando directamente el array estructurado JSON sin convertirlo a texto plano por comas
       const payload = { 
         company_name: currentTenant, 
-        csv_new_raw: sanitizedJsonData, // Se inyecta la matriz limpia serializada en objetos idéntica a insertXM
+        csv_new_raw: sanitizedJsonData, 
         created_at: new Date().toISOString()
       };
 
@@ -204,7 +253,6 @@ const SVXUnifiedPlatform = () => {
         payload.user_id = user.id;
       }
 
-      // Realizamos el upsert apuntando explícitamente sobre el índice único de tu DDL: company_name
       const { error: supabaseError } = await supabase
         .from(targetTableName)
         .upsert(payload, { onConflict: 'company_name' });
