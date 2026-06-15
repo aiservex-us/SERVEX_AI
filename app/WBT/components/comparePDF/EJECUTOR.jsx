@@ -44,6 +44,7 @@ const SVXUnifiedPlatform = () => {
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [data, setData] = useState([]); 
+  const [sanitizedJsonData, setSanitizedJsonData] = useState([]); // Estructura JSON limpia (Array de Objetos)
   
   // --- PAGINATION STATES (DINÁMICA PARA TODO EL CSV) ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,9 +59,8 @@ const SVXUnifiedPlatform = () => {
   // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (IGUALADO A PYTHON) ---
   // =========================================================================
   const sanitizeCSVToMatrix = (rawCsvText) => {
-    if (!rawCsvText || !rawCsvText.trim()) return [];
+    if (!rawCsvText || !rawCsvText.trim()) return { matrix: [], json: [] };
 
-    // 1. Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
     const lines = [];
     let currentLine = '';
     let insideQuotes = false;
@@ -72,7 +72,7 @@ const SVXUnifiedPlatform = () => {
         currentLine += char;
       } else if ((char === '\n' || char === '\r') && !insideQuotes) {
         if (char === '\r' && rawCsvText[i + 1] === '\n') {
-          i++; // Omitir el siguiente \n de la secuencia \r\n
+          i++; 
         }
         lines.push(currentLine);
         currentLine = '';
@@ -84,13 +84,12 @@ const SVXUnifiedPlatform = () => {
       lines.push(currentLine);
     }
 
-    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return [];
+    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return { matrix: [], json: [] };
 
     let rawHeaderAccum = [];
     let dataStartIndex = 0;
     let openQuotes = false;
 
-    // Detectar si la cabecera está rota en múltiples líneas por comillas abiertas
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       rawHeaderAccum.push(line);
@@ -107,10 +106,8 @@ const SVXUnifiedPlatform = () => {
     }
 
     const fullRawHeader = rawHeaderAccum.join('\n');
-    // Soporte dinámico para detectar separador de listas de tu ejemplo (;) o estándar (,)
     const delimiter = fullRawHeader.includes(';') ? ';' : ',';
     
-    // Limpieza ultra-sofisticada de columnas (Preservado e igualado a la lógica Python)
     const tokens = fullRawHeader.split(delimiter);
     const perfectHeaders = tokens.map(token => {
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
@@ -119,34 +116,37 @@ const SVXUnifiedPlatform = () => {
 
     const dataLines = lines.slice(dataStartIndex);
     const finalizedMatrix = [perfectHeaders];
+    const sanitizedJson = []; // Array de objetos llave-valor intermedio para inyección limpia
 
-    // Re-estructurar la matriz de datos mapeando contra los headers perfectos
     dataLines.forEach(line => {
-      if (!line.trim()) return; // Ignorar líneas vacías
+      if (!line.trim()) return; 
       const currentCells = line.split(delimiter);
       const sanitizedRow = [];
+      const rowObject = {};
 
-      perfectHeaders.forEach((_, index) => {
+      perfectHeaders.forEach((header, index) => {
         let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
-        // Preservar valores nulos reales de columnas vacías según las directrices de Servex
         if (cellValue === '') {
           sanitizedRow.push(null); 
+          rowObject[header] = null;
         } else {
-          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); // Remover comillas envolventes
+          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); 
           sanitizedRow.push(cellValue);
+          rowObject[header] = cellValue;
         }
       });
 
-      // Implementación del `restkey` de Python para campos huérfanos por desalineación
       if (currentCells.length > perfectHeaders.length) {
         const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
         sanitizedRow.push(`[ORPHANED]: ${orphaned.join(' | ')}`);
+        rowObject['_orphaned_fields'] = orphaned;
       }
 
       finalizedMatrix.push(sanitizedRow);
+      sanitizedJson.push(rowObject);
     });
 
-    return finalizedMatrix;
+    return { matrix: finalizedMatrix, json: sanitizedJson };
   };
 
   const processFileSelection = (selectedFile) => {
@@ -162,34 +162,19 @@ const SVXUnifiedPlatform = () => {
       const text = event.target.result;
       
       console.log('[+] Ejecutando saneamiento celular pre-renderizado...');
-      const sanitizedMatrix = sanitizeCSVToMatrix(text);
+      const { matrix, json } = sanitizeCSVToMatrix(text);
       
-      if (sanitizedMatrix.length === 0) {
+      if (matrix.length === 0) {
         showAlert("The file contains empty or unparseable blocks", "error");
         return;
       }
 
-      setData(sanitizedMatrix);
+      setData(matrix);
+      setSanitizedJsonData(json);
       setCurrentPage(1); 
       showAlert("File cleansed and structured successfully", "success");
     };
     reader.readAsText(selectedFile);
-  };
-
-  // =========================================================================
-  // --- CONVERSOR DE MATRIZ SANADA A TEXTO PLANO (CSV STRING COMPLIANT) ---
-  // =========================================================================
-  const convertMatrixToCSVText = (matrix) => {
-    return matrix.map(row => {
-      return row.map(cell => {
-        if (cell === null || cell === undefined) return '';
-        let cellStr = String(cell);
-        if (cellStr.includes(',') || cellStr.includes(';') || cellStr.includes('\n') || cellStr.includes('"')) {
-          cellStr = `"${cellStr.replace(/"/g, '""')}"`;
-        }
-        return cellStr;
-      }).join(',');
-    }).join('\n');
   };
 
   // =========================================================================
@@ -203,18 +188,15 @@ const SVXUnifiedPlatform = () => {
     setIsProcessing(true);
 
     try {
-      console.log('[+] Convirtiendo matriz estructurada a formato CSV plano...');
-      const cleansedCSVText = convertMatrixToCSVText(data);
-
-      console.log('[+] Recuperando sesión de usuario para auditoría (si aplica)...');
+      console.log('[+] Recuperando sesión de usuario para auditoría...');
       const { data: { user } } = await supabase.auth.getUser();
 
       console.log(`[+] Sincronizando con la tabla ${targetTableName} para tenant: ${currentTenant}`);
       
-      // Creamos el payload apuntando estrictamente al campo text: csv_new_raw
+      // Creamos el payload asignando directamente el array estructurado JSON sin convertirlo a texto plano por comas
       const payload = { 
         company_name: currentTenant, 
-        csv_new_raw: cleansedCSVText, // Volcado en formato string limpio plano
+        csv_new_raw: sanitizedJsonData, // Se inyecta la matriz limpia serializada en objetos idéntica a insertXM
         created_at: new Date().toISOString()
       };
 
@@ -247,7 +229,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   const handleFullReset = () => {
-    setData([]); setFile(null); setFileName("");
+    setData([]); setSanitizedJsonData([]); setFile(null); setFileName("");
     setBackendSuccess(false); setCurrentPage(1);
   };
 
