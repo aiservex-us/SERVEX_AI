@@ -10,6 +10,7 @@ import Dashboard from './components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from './components/perceo_XML_MASTER_pre_prosses.jsx';
 import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
+import Csvs_updated from './components/comparePDF/csvs_updated.jsx'; 
 import PrecentMain from './components/PrecentMain';
 // --- IMPORTACIÓN SOLICITADA ---
 import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
@@ -86,6 +87,7 @@ export default function MenuInicial() {
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
+      case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
       // --- RENDERIZADO DEL COMPONENTE DE COMPARACIÓN ---
       case 'notifications': return <UploadFileCmpare />; 

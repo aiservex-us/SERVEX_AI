@@ -18,7 +18,8 @@ import {
 const menuItems = [
   { id: 'reporting', label: 'WBT HOME', icon: LayoutDashboard, sub: 'Analysis' },
   { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
-  { id: 'inbox', label: 'Excel Preview', icon: Inbox, sub: 'Visualization' },
+  { id: 'inbox', label: 'Base Excel', icon: Inbox, sub: 'Visualization' },
+  { id: 'inbox_updated', label: 'Excel updated', icon: Inbox, sub: 'Visualization_updated' },
   { id: 'kanban', label: 'XML Pre Prosses', icon: KanbanSquare, sub: 'Structure' },
   { id: 'dashboard', label: 'XML Post Prosses', icon:  KanbanSquare, sub: 'Statistics' },
   { id: 'AI_reporter', label: 'AI Reporte', icon:  KanbanSquare, sub: 'Statistics' },
