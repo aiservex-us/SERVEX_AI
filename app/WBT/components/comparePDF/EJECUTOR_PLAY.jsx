@@ -55,33 +55,31 @@ const EJECUTOR_PLAY = ({
     setShowSecondPopup(true);
     setLocalProcessing(true);
     if (setIsProcessing) setIsProcessing(true);
-
+  
     try {
-      // Saneo del string de Tenant para coincidir con la base de datos de Supabase
-      // Si currentTenant es "WBT", mapeamos a "WB Manufacturing" corporativo
       const targetCompany = currentTenant === 'WBT' ? 'WB Manufacturing' : currentTenant;
-
       const formData = new FormData();
       formData.append('company_name', targetCompany);
-
-      // Determinar Base URL dinámicamente si estás en local o producción
-      const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-        ? 'http://localhost:8000' 
-        : 'https://servex-ai-iota.vercel.app'; // Cambia por tu url real de Render de ser necesario
-
+  
+      // CAMBIO CLAVE: Forzar el apunte directo al puerto local de FastAPI 8000
+      const baseUrl = 'http://localhost:8000'; 
+  
+      console.log(`[+] Despachando payload atómico a: ${baseUrl}/api/v1/pipeline/compare-only`);
+  
       const response = await fetch(`${baseUrl}/api/v1/pipeline/compare-only`, {
         method: 'POST',
         body: formData,
+        // No agregues headers de Content-Type manuales, el navegador debe setear el boundary del FormData automáticamente
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación');
       }
-
+  
       const result = await response.json();
       console.log('[✓] Respuesta de SERVEX_AI Engine:', result);
-
+  
     } catch (err) {
       console.error(`Secondary Process halted: ${err.message}`);
     } finally {
