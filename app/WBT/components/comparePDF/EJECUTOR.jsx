@@ -11,7 +11,8 @@ import {
   DownloadCloud, 
   X, 
   Zap, 
-  Terminal
+  Terminal,
+  AlertTriangle
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
@@ -28,16 +29,68 @@ const SVXUnifiedPlatform = () => {
   // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);
 
+  // --- DETECCIÓN DE REGISTRO ACTIVO & MODAL POPUP ---
+  const [hasExistingData, setHasExistingData] = useState(false);
+  const [showOverwriteModal, setShowOverwriteModal] = useState(false);
+  const [isClearingBackend, setIsClearingBackend] = useState(false);
+
   useEffect(() => {
     const hasSeenTutorial = sessionStorage.getItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`);
     if (!hasSeenTutorial) {
       setShowTutorial(true);
     }
+    // Verificar si ya existen datos en el backend para este tenant al iniciar
+    checkExistingCatalog();
   }, [currentTenant]);
 
   const closeTutorial = () => {
     setShowTutorial(false);
     sessionStorage.setItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`, 'true');
+  };
+
+  // --- FUNCIÓN PARA VERIFICAR SI YA EXISTE UN CATÁLOGO ACTIVO ---
+  const checkExistingCatalog = async () => {
+    try {
+      const { data: record, error } = await supabase
+        .from(targetTableName)
+        .select('csv_new_raw')
+        .eq('company_name', currentTenant)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (record && record.csv_new_raw) {
+        setHasExistingData(true);
+        setShowOverwriteModal(true); // Dispara el popup inmediatamente al detectar registro activo
+      }
+    } catch (err) {
+      console.error('[-] Error al verificar catálogo existente:', err);
+    }
+  };
+
+  // --- FUNCIÓN PARA LIMPIAR LA COLUMNA EN SUPABASE (IGNORAR Y CARGAR NUEVO) ---
+  const handleIgnoreAndClear = async () => {
+    setIsClearingBackend(true);
+    try {
+      console.log(`[+] Reseteando columna csv_new_raw para el tenant: ${currentTenant}`);
+      
+      const { error } = await supabase
+        .from(targetTableName)
+        .update({ csv_new_raw: null })
+        .eq('company_name', currentTenant);
+
+      if (error) throw error;
+
+      setHasExistingData(false);
+      setShowOverwriteModal(false);
+      handleFullReset(); // Resetea los estados locales de archivo cargado previamente
+      showAlert("Registro anterior ignorado. Proceda a cargar el nuevo CSV.", "success");
+    } catch (err) {
+      console.error('[-] Error crítico al limpiar columna csv_new_raw:', err);
+      showAlert(`Error al limpiar catálogo: ${err.message}`, "error");
+    } finally {
+      setIsClearingBackend(false);
+    }
   };
 
   // --- UNIFIED STATES ---
@@ -46,39 +99,6 @@ const SVXUnifiedPlatform = () => {
   const [data, setData] = useState([]); 
   const [sanitizedJsonData, setSanitizedJsonData] = useState([]); // Estructura JSON limpia (Array de Objetos)
   
-  // --- CLOUD STATE DETECTION ---
-  const [hasExistingRawData, setHasExistingRawData] = useState(false);
-  const [isCheckingCloud, setIsCheckingCloud] = useState(true);
-
-  // --- EFECTO DE CONTROL: VALIDACIÓN ESTRUCTURAL DE REGISTROS PREVIOS ---
-  useEffect(() => {
-    const verifyCloudPayload = async () => {
-      try {
-        setIsCheckingCloud(true);
-        const { data: record, error } = await supabase
-          .from(targetTableName)
-          .select('csv_new_raw')
-          .eq('company_name', currentTenant)
-          .maybeSingle();
-
-        if (!error && record && record.csv_new_raw && record.csv_new_raw.trim !== undefined && record.csv_new_raw.trim() !== '') {
-          setHasExistingRawData(true);
-        } else if (!error && record && record.csv_new_raw && (Array.isArray(record.csv_new_raw) || typeof record.csv_new_raw === 'object')) {
-          // Cobertura por si el wrapper del driver parsea el contenido de forma nativa
-          setHasExistingRawData(true);
-        } else {
-          setHasExistingRawData(false);
-        }
-      } catch (err) {
-        console.error('[-] Error verificando la existencia de matrices previas:', err);
-      } finally {
-        setIsCheckingCloud(false);
-      }
-    };
-
-    verifyCloudPayload();
-  }, [currentTenant, targetTableName]);
-
   // --- PAGINATION STATES (DINÁMICA PARA TODO EL CSV) ---
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -247,7 +267,7 @@ const SVXUnifiedPlatform = () => {
       }
 
       setBackendSuccess(true);
-      setHasExistingRawData(true);
+      setHasExistingData(true); // Actualiza estado tras inserción exitosa
       showAlert("CSV matrix successfully processed and saved to csv_new_raw", "success");
     } catch (err) {
       console.error('[-] Error crítico en la persistencia cloud de Supabase:', err);
@@ -311,38 +331,23 @@ const SVXUnifiedPlatform = () => {
           <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Viewer</h2>
           <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
         </div>
+        {hasExistingData && (
+          <button 
+            onClick={() => setShowOverwriteModal(true)}
+            className="bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-bold px-2 py-1 rounded transition-all uppercase tracking-wider flex items-center gap-1.5"
+          >
+            <AlertTriangle size={12} className="text-amber-600" /> Ver Estatus de Catálogo
+          </button>
+        )}
       </div>
       <div className="flex-grow overflow-auto">
-        {isCheckingCloud ? (
-          <div className="h-full flex flex-col items-center justify-center opacity-50">
-            <Loader2 size={24} className="animate-spin text-[#464775]" />
-            <p className="text-[10px] font-bold mt-2 uppercase tracking-widest text-[#464775]">Verificando Cloud Matrix...</p>
+        {!file ? (
+          <div className="h-full flex flex-col items-center justify-center opacity-40">
+            <DownloadCloud size={40} />
+            <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
+            <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
+            <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
           </div>
-        ) : !file ? (
-          hasExistingRawData ? (
-            <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 mb-3 border border-amber-200">
-                <FileText size={20} />
-              </div>
-              <h3 className="text-xs font-black text-[#464775] uppercase tracking-wider mb-1">Registro de Catálogo Activo</h3>
-              <p className="text-[11px] font-medium text-gray-500 max-w-sm leading-normal mb-4">
-                Se detectó información guardada en la columna <span className="font-mono bg-gray-100 px-1 py-0.5 rounded text-red-600 font-bold">csv_new_raw</span> para este tenant. Por favor revise el archivo excel updated ya existente.
-              </p>
-              <button 
-                onClick={() => setHasExistingRawData(false)} 
-                className="px-3 py-1.5 border border-[#EDEBE9] hover:bg-gray-50 text-[9px] font-black tracking-wide uppercase rounded shadow-sm transition-all"
-              >
-                Ignorar y Cargar Nuevo CSV
-              </button>
-            </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center opacity-40">
-              <DownloadCloud size={40} />
-              <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
-              <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
-              <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
-            </div>
-          )
         ) : (
           <div className="flex flex-col h-full justify-between">
             <div className="overflow-auto flex-grow">
@@ -405,6 +410,55 @@ const SVXUnifiedPlatform = () => {
       {alert.show && (
         <div className={`fixed top-4 right-4 z-[2000] p-3 rounded shadow-lg text-[11px] font-bold uppercase tracking-wider ${alert.type === 'success' ? 'bg-emerald-600 text-white' : alert.type === 'error' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
           {alert.message}
+        </div>
+      )}
+
+      {/* --- POPUP INTERACTIVO: DETECCIÓN DE REGISTRO EN CSV_NEW_RAW --- */}
+      {showOverwriteModal && (
+        <div className="fixed inset-0 z-[2100] flex items-center justify-center backdrop-blur-sm bg-black/10 animate-in fade-in duration-200">
+          <div className="bg-white w-[420px] rounded-lg shadow-2xl border-2 border-amber-500 overflow-hidden transform animate-in zoom-in-95 duration-200">
+            <div className="bg-amber-500 px-4 py-2.5 text-white flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={16} className="text-white fill-white/20" />
+                <span className="text-[11px] font-black uppercase tracking-wider">Registro de Catálogo Activo</span>
+              </div>
+              {!isClearingBackend && (
+                <button onClick={() => setShowOverwriteModal(false)} className="hover:bg-black/10 p-0.5 rounded transition-colors text-white">
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            <div className="p-5">
+              <h3 className="text-xs font-black text-amber-900 uppercase tracking-tight mb-2">Atención - Base de Datos Sincronizada</h3>
+              <p className="text-[12px] text-gray-700 leading-relaxed mb-4 font-medium">
+                Se detectó información guardada en la columna <span className="font-mono bg-amber-50 text-amber-800 px-1 py-0.5 rounded text-[11px] border border-amber-200">csv_new_raw</span> para este tenant. Por favor revise el archivo excel updated ya existente.
+              </p>
+              
+              <div className="space-y-2 mt-4">
+                <button 
+                  onClick={handleIgnoreAndClear}
+                  disabled={isClearingBackend}
+                  className="w-full bg-rose-600 text-white py-2 rounded text-[11px] font-bold hover:bg-rose-700 transition-all uppercase tracking-wider shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isClearingBackend ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" /> Removiendo bloque previo...
+                    </>
+                  ) : (
+                    "Ignorar y Cargar Nuevo CSV"
+                  )}
+                </button>
+                
+                <button 
+                  onClick={() => setShowOverwriteModal(false)}
+                  disabled={isClearingBackend}
+                  className="w-full bg-gray-100 text-gray-700 py-2 rounded text-[11px] font-bold hover:bg-gray-200 transition-all uppercase tracking-wider border border-gray-300 disabled:opacity-50"
+                >
+                  Mantener Existente y Revisar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
