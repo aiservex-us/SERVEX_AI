@@ -11,7 +11,8 @@ import {
   DownloadCloud, 
   X, 
   Zap, 
-  Terminal
+  Terminal,
+  Trash2
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
@@ -31,6 +32,7 @@ const SVXUnifiedPlatform = () => {
   // --- ESTADOS PARA VERIFICACIÓN DE CATÁLOGO ACTIVO ---
   const [hasExistingData, setHasExistingData] = useState(false);
   const [isClearingBackend, setIsClearingBackend] = useState(false);
+  const [isDeletingRow, setIsDeletingRow] = useState(false);
 
   useEffect(() => {
     const hasSeenTutorial = sessionStorage.getItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`);
@@ -84,6 +86,31 @@ const SVXUnifiedPlatform = () => {
       showAlert(`Error: ${err.message}`, "error");
     } finally {
       setIsClearingBackend(false);
+    }
+  };
+
+  // --- CONTROLADOR PARA ELIMINAR LA FILA COMPLETA DE LA TABLA ---
+  const handleDeleteCompleteRow = async () => {
+    const confirmDelete = window.confirm(`¿Está seguro de que desea eliminar por completo la fila asociada a la empresa ${currentTenant} de la base de datos? Esta acción no se puede deshacer.`);
+    if (!confirmDelete) return;
+
+    setIsDeletingRow(true);
+    try {
+      const { error } = await supabase
+        .from(targetTableName)
+        .delete()
+        .eq('company_name', currentTenant);
+
+      if (error) throw error;
+
+      setHasExistingData(false);
+      handleFullReset();
+      showAlert(`Fila completa de ${currentTenant} eliminada exitosamente.`, "success");
+    } catch (err) {
+      console.error('[-] Error crítico al eliminar la fila completa:', err);
+      showAlert(`Error al eliminar: ${err.message}`, "error");
+    } finally {
+      setIsDeletingRow(false);
     }
   };
 
@@ -469,9 +496,18 @@ const SVXUnifiedPlatform = () => {
         </div>
 
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#444791] shadow-sm">
-            <Terminal size={12}/> Console View
-          </div>
+          <button 
+            onClick={handleDeleteCompleteRow}
+            disabled={isDeletingRow}
+            className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#444791] shadow-sm hover:bg-rose-50 hover:text-rose-600 transition-all disabled:opacity-50"
+          >
+            {isDeletingRow ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Trash2 size={12}/>
+            )}
+            {isDeletingRow ? "Eliminando..." : `Eliminar Tenant ${currentTenant}`}
+          </button>
         </nav>
       </header>
 
@@ -495,7 +531,12 @@ const SVXUnifiedPlatform = () => {
         </aside>
 
         <div className="col-span-9 flex flex-col h-full min-h-0">
-          <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden relative group">
+          <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#444791] shadow-sm">
+              <Terminal size={12}/> Console View
+            </div>
+          </nav>
+          <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden relative group mt-4">
             <button 
               onClick={() => setIsMaximized(true)}
               className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-[#464775] hover:text-white border border-[#EDEBE9] rounded shadow-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-[10px] font-bold"
