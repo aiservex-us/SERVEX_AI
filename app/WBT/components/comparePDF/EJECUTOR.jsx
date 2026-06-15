@@ -11,8 +11,7 @@ import {
   DownloadCloud, 
   X, 
   Zap, 
-  Terminal,
-  AlertTriangle
+  Terminal
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
@@ -29,18 +28,11 @@ const SVXUnifiedPlatform = () => {
   // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);
 
-  // --- DETECCIÓN DE REGISTRO ACTIVO & MODAL POPUP ---
-  const [hasExistingData, setHasExistingData] = useState(false);
-  const [showOverwriteModal, setShowOverwriteModal] = useState(false);
-  const [isClearingBackend, setIsClearingBackend] = useState(false);
-
   useEffect(() => {
     const hasSeenTutorial = sessionStorage.getItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`);
     if (!hasSeenTutorial) {
       setShowTutorial(true);
     }
-    // Verificar si ya existen datos en el backend para este tenant al iniciar
-    checkExistingCatalog();
   }, [currentTenant]);
 
   const closeTutorial = () => {
@@ -48,56 +40,10 @@ const SVXUnifiedPlatform = () => {
     sessionStorage.setItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`, 'true');
   };
 
-  // --- FUNCIÓN PARA VERIFICAR SI YA EXISTE UN CATÁLOGO ACTIVO ---
-  const checkExistingCatalog = async () => {
-    try {
-      const { data: record, error } = await supabase
-        .from(targetTableName)
-        .select('csv_new_raw')
-        .eq('company_name', currentTenant)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (record && record.csv_new_raw) {
-        setHasExistingData(true);
-        setShowOverwriteModal(true); // Dispara el popup inmediatamente al detectar registro activo
-      }
-    } catch (err) {
-      console.error('[-] Error al verificar catálogo existente:', err);
-    }
-  };
-
-  // --- FUNCIÓN PARA LIMPIAR LA COLUMNA EN SUPABASE (IGNORAR Y CARGAR NUEVO) ---
-  const handleIgnoreAndClear = async () => {
-    setIsClearingBackend(true);
-    try {
-      console.log(`[+] Reseteando columna csv_new_raw para el tenant: ${currentTenant}`);
-      
-      const { error } = await supabase
-        .from(targetTableName)
-        .update({ csv_new_raw: null })
-        .eq('company_name', currentTenant);
-
-      if (error) throw error;
-
-      setHasExistingData(false);
-      setShowOverwriteModal(false);
-      handleFullReset(); // Resetea los estados locales de archivo cargado previamente
-      showAlert("Registro anterior ignorado. Proceda a cargar el nuevo CSV.", "success");
-    } catch (err) {
-      console.error('[-] Error crítico al limpiar columna csv_new_raw:', err);
-      showAlert(`Error al limpiar catálogo: ${err.message}`, "error");
-    } finally {
-      setIsClearingBackend(false);
-    }
-  };
-
   // --- UNIFIED STATES ---
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [data, setData] = useState([]); 
-  const [sanitizedJsonData, setSanitizedJsonData] = useState([]); // Estructura JSON limpia (Array de Objetos)
   
   // --- PAGINATION STATES (DINÁMICA PARA TODO EL CSV) ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -112,7 +58,7 @@ const SVXUnifiedPlatform = () => {
   // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (IGUALADO A PYTHON) ---
   // =========================================================================
   const sanitizeCSVToMatrix = (rawCsvText) => {
-    if (!rawCsvText || !rawCsvText.trim()) return { matrix: [], json: [] };
+    if (!rawCsvText || !rawCsvText.trim()) return [];
 
     const lines = [];
     let currentLine = '';
@@ -137,7 +83,7 @@ const SVXUnifiedPlatform = () => {
       lines.push(currentLine);
     }
 
-    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return { matrix: [], json: [] };
+    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return [];
 
     let rawHeaderAccum = [];
     let dataStartIndex = 0;
@@ -161,49 +107,42 @@ const SVXUnifiedPlatform = () => {
     const fullRawHeader = rawHeaderAccum.join('\n');
     const delimiter = fullRawHeader.includes(';') ? ';' : ',';
     
-    const tokens = fullRawHeader.split(delimiter);
-    const perfectHeaders = tokens.map(token => {
+    const perfectHeaders = fullRawHeader.split(delimiter).map(token => {
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
       return tClean.split(/\s+/).join(' ').trim();
     });
 
     const dataLines = lines.slice(dataStartIndex);
     const finalizedMatrix = [perfectHeaders];
-    const sanitizedJson = []; // Array de objetos llave-valor intermedio para inyección limpia
 
     dataLines.forEach(line => {
       if (!line.trim()) return; 
       const currentCells = line.split(delimiter);
       const sanitizedRow = [];
-      const rowObject = {};
 
-      perfectHeaders.forEach((header, index) => {
+      perfectHeaders.forEach((_, index) => {
         let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
         if (cellValue === '') {
           sanitizedRow.push(null); 
-          rowObject[header] = null;
         } else {
           cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); 
           sanitizedRow.push(cellValue);
-          rowObject[header] = cellValue;
         }
       });
 
       if (currentCells.length > perfectHeaders.length) {
         const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
         sanitizedRow.push(`[ORPHANED]: ${orphaned.join(' | ')}`);
-        rowObject['_orphaned_fields'] = orphaned;
       }
 
       finalizedMatrix.push(sanitizedRow);
-      sanitizedJson.push(rowObject);
     });
 
-    return { matrix: finalizedMatrix, json: sanitizedJson };
+    return finalizedMatrix;
   };
 
   const processFileSelection = (selectedFile) => {
-    if (!selectedFile.name.toLowerCase().endsWith('.csv')) {
+    if (!selectedFile.name.endsWith('.csv')) {
       showAlert("Invalid format. Use only .CSV", "error");
       return;
     }
@@ -215,19 +154,34 @@ const SVXUnifiedPlatform = () => {
       const text = event.target.result;
       
       console.log('[+] Ejecutando saneamiento celular pre-renderizado...');
-      const { matrix, json } = sanitizeCSVToMatrix(text);
+      const sanitizedMatrix = sanitizeCSVToMatrix(text);
       
-      if (matrix.length === 0) {
+      if (sanitizedMatrix.length === 0) {
         showAlert("The file contains empty or unparseable blocks", "error");
         return;
       }
 
-      setData(matrix);
-      setSanitizedJsonData(json);
+      setData(sanitizedMatrix);
       setCurrentPage(1); 
       showAlert("File cleansed and structured successfully", "success");
     };
     reader.readAsText(selectedFile);
+  };
+
+  // =========================================================================
+  // --- CONVERSOR DE MATRIZ SANADA A TEXTO PLANO (CSV STRING) ---
+  // =========================================================================
+  const convertMatrixToCSVText = (matrix) => {
+    return matrix.map(row => {
+      return row.map(cell => {
+        if (cell === null || cell === undefined) return '';
+        let cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes(';') || cellStr.includes('\n') || cellStr.includes('"')) {
+          cellStr = `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(',');
+    }).join('\n');
   };
 
   // =========================================================================
@@ -241,34 +195,29 @@ const SVXUnifiedPlatform = () => {
     setIsProcessing(true);
 
     try {
-      console.log('[+] Recuperando sesión de usuario para auditoría...');
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('[+] Convirtiendo matriz estructurada a formato CSV plano...');
+      const cleansedCSVText = convertMatrixToCSVText(data);
 
       console.log(`[+] Sincronizando con la tabla ${targetTableName} para tenant: ${currentTenant}`);
       
-      // Creamos el payload asignando directamente el array estructurado JSON sin convertirlo a texto plano por comas
-      const payload = { 
-        company_name: currentTenant, 
-        csv_new_raw: sanitizedJsonData, // Se inyecta la matriz limpia serializada en objetos idéntica a insertXM
-        created_at: new Date().toISOString()
-      };
-
-      if (user) {
-        payload.user_id = user.id;
-      }
-
-      // Realizamos el upsert apuntando explícitamente sobre el índice único de tu DDL: company_name
+      // Realizamos el upsert apuntando explícitamente sobre el índice único company_name
       const { error: supabaseError } = await supabase
         .from(targetTableName)
-        .upsert(payload, { onConflict: 'company_name' });
+        .upsert(
+          { 
+            company_name: currentTenant, 
+            csv_new_raw: cleansedCSVText,
+            created_at: new Date().toISOString()
+          }, 
+          { onConflict: 'company_name' }
+        );
 
       if (supabaseError) {
         throw new Error(`Supabase Error: ${supabaseError.message}`);
       }
 
       setBackendSuccess(true);
-      setHasExistingData(true); // Actualiza estado tras inserción exitosa
-      showAlert("CSV matrix successfully processed and saved to csv_new_raw", "success");
+      showAlert("CSV matrix successfully processed and saved to Supabase", "success");
     } catch (err) {
       console.error('[-] Error crítico en la persistencia cloud de Supabase:', err);
       showAlert(err.message, "error");
@@ -283,7 +232,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   const handleFullReset = () => {
-    setData([]); setSanitizedJsonData([]); setFile(null); setFileName("");
+    setData([]); setFile(null); setFileName("");
     setBackendSuccess(false); setCurrentPage(1);
   };
 
@@ -331,14 +280,6 @@ const SVXUnifiedPlatform = () => {
           <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Viewer</h2>
           <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
         </div>
-        {hasExistingData && (
-          <button 
-            onClick={() => setShowOverwriteModal(true)}
-            className="bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-bold px-2 py-1 rounded transition-all uppercase tracking-wider flex items-center gap-1.5"
-          >
-            <AlertTriangle size={12} className="text-amber-600" /> Ver Estatus de Catálogo
-          </button>
-        )}
       </div>
       <div className="flex-grow overflow-auto">
         {!file ? (
@@ -410,55 +351,6 @@ const SVXUnifiedPlatform = () => {
       {alert.show && (
         <div className={`fixed top-4 right-4 z-[2000] p-3 rounded shadow-lg text-[11px] font-bold uppercase tracking-wider ${alert.type === 'success' ? 'bg-emerald-600 text-white' : alert.type === 'error' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}`}>
           {alert.message}
-        </div>
-      )}
-
-      {/* --- POPUP INTERACTIVO: DETECCIÓN DE REGISTRO EN CSV_NEW_RAW --- */}
-      {showOverwriteModal && (
-        <div className="fixed inset-0 z-[2100] flex items-center justify-center backdrop-blur-sm bg-black/10 animate-in fade-in duration-200">
-          <div className="bg-white w-[420px] rounded-lg shadow-2xl border-2 border-amber-500 overflow-hidden transform animate-in zoom-in-95 duration-200">
-            <div className="bg-amber-500 px-4 py-2.5 text-white flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <AlertTriangle size={16} className="text-white fill-white/20" />
-                <span className="text-[11px] font-black uppercase tracking-wider">Registro de Catálogo Activo</span>
-              </div>
-              {!isClearingBackend && (
-                <button onClick={() => setShowOverwriteModal(false)} className="hover:bg-black/10 p-0.5 rounded transition-colors text-white">
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-            <div className="p-5">
-              <h3 className="text-xs font-black text-amber-900 uppercase tracking-tight mb-2">Atención - Base de Datos Sincronizada</h3>
-              <p className="text-[12px] text-gray-700 leading-relaxed mb-4 font-medium">
-                Se detectó información guardada en la columna <span className="font-mono bg-amber-50 text-amber-800 px-1 py-0.5 rounded text-[11px] border border-amber-200">csv_new_raw</span> para este tenant. Por favor revise el archivo excel updated ya existente.
-              </p>
-              
-              <div className="space-y-2 mt-4">
-                <button 
-                  onClick={handleIgnoreAndClear}
-                  disabled={isClearingBackend}
-                  className="w-full bg-rose-600 text-white py-2 rounded text-[11px] font-bold hover:bg-rose-700 transition-all uppercase tracking-wider shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {isClearingBackend ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" /> Removiendo bloque previo...
-                    </>
-                  ) : (
-                    "Ignorar y Cargar Nuevo CSV"
-                  )}
-                </button>
-                
-                <button 
-                  onClick={() => setShowOverwriteModal(false)}
-                  disabled={isClearingBackend}
-                  className="w-full bg-gray-100 text-gray-700 py-2 rounded text-[11px] font-bold hover:bg-gray-200 transition-all uppercase tracking-wider border border-gray-300 disabled:opacity-50"
-                >
-                  Mantener Existente y Revisar
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
 
