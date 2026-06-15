@@ -28,11 +28,17 @@ const SVXUnifiedPlatform = () => {
   // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);
 
+  // --- ESTADOS PARA VERIFICACIÓN DE CATÁLOGO ACTIVO ---
+  const [hasExistingData, setHasExistingData] = useState(false);
+  const [isClearingBackend, setIsClearingBackend] = useState(false);
+
   useEffect(() => {
     const hasSeenTutorial = sessionStorage.getItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`);
     if (!hasSeenTutorial) {
       setShowTutorial(true);
     }
+    // Verificar si la columna csv_new_raw tiene información en Supabase para este tenant
+    checkExistingCatalog();
   }, [currentTenant]);
 
   const closeTutorial = () => {
@@ -40,10 +46,52 @@ const SVXUnifiedPlatform = () => {
     sessionStorage.setItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`, 'true');
   };
 
+  // --- COMPROBACIÓN EN BACKEND ---
+  const checkExistingCatalog = async () => {
+    try {
+      const { data: record, error } = await supabase
+        .from(targetTableName)
+        .select('csv_new_raw')
+        .eq('company_name', currentTenant)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (record && record.csv_new_raw) {
+        setHasExistingData(true);
+      }
+    } catch (err) {
+      console.error('[-] Error al verificar el registro de catálogo activo:', err);
+    }
+  };
+
+  // --- CONTROLADOR PARA BORRAR LA COLUMNA EXCLUSIVAMENTE ---
+  const handleIgnoreAndClear = async () => {
+    setIsClearingBackend(true);
+    try {
+      const { error } = await supabase
+        .from(targetTableName)
+        .update({ csv_new_raw: null })
+        .eq('company_name', currentTenant);
+
+      if (error) throw error;
+
+      setHasExistingData(false);
+      handleFullReset();
+      showAlert("Registro anterior eliminado. Puede proceder a cargar el nuevo CSV.", "success");
+    } catch (err) {
+      console.error('[-] Error al vaciar la columna csv_new_raw:', err);
+      showAlert(`Error: ${err.message}`, "error");
+    } finally {
+      setIsClearingBackend(false);
+    }
+  };
+
   // --- UNIFIED STATES ---
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
   const [data, setData] = useState([]); 
+  const [sanitizedJsonData, setSanitizedJsonData] = useState([]); // Estructura JSON limpia (Array de Objetos)
   
   // --- PAGINATION STATES (DINÁMICA PARA TODO EL CSV) ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,9 +106,8 @@ const SVXUnifiedPlatform = () => {
   // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (IGUALADO A PYTHON) ---
   // =========================================================================
   const sanitizeCSVToMatrix = (rawCsvText) => {
-    if (!rawCsvText || !rawCsvText.trim()) return [];
+    if (!rawCsvText || !rawCsvText.trim()) return { matrix: [], json: [] };
 
-    // 1. Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
     const lines = [];
     let currentLine = '';
     let insideQuotes = false;
@@ -72,7 +119,7 @@ const SVXUnifiedPlatform = () => {
         currentLine += char;
       } else if ((char === '\n' || char === '\r') && !insideQuotes) {
         if (char === '\r' && rawCsvText[i + 1] === '\n') {
-          i++; // Omitir el siguiente \n de la secuencia \r\n
+          i++; 
         }
         lines.push(currentLine);
         currentLine = '';
@@ -84,13 +131,12 @@ const SVXUnifiedPlatform = () => {
       lines.push(currentLine);
     }
 
-    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return [];
+    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return { matrix: [], json: [] };
 
     let rawHeaderAccum = [];
     let dataStartIndex = 0;
     let openQuotes = false;
 
-    // Detectar si la cabecera está rota en múltiples líneas por comillas abiertas
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       rawHeaderAccum.push(line);
@@ -107,10 +153,8 @@ const SVXUnifiedPlatform = () => {
     }
 
     const fullRawHeader = rawHeaderAccum.join('\n');
-    // Soporte dinámico para detectar separador de listas de tu ejemplo (;) o estándar (,)
     const delimiter = fullRawHeader.includes(';') ? ';' : ',';
     
-    // Limpieza ultra-sofisticada de columnas (Preservado e igualado a la lógica Python)
     const tokens = fullRawHeader.split(delimiter);
     const perfectHeaders = tokens.map(token => {
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
@@ -119,34 +163,37 @@ const SVXUnifiedPlatform = () => {
 
     const dataLines = lines.slice(dataStartIndex);
     const finalizedMatrix = [perfectHeaders];
+    const sanitizedJson = []; // Array de objetos llave-valor intermedio para inyección limpia
 
-    // Re-estructurar la matriz de datos mapeando contra los headers perfectos
     dataLines.forEach(line => {
-      if (!line.trim()) return; // Ignorar líneas vacías
+      if (!line.trim()) return; 
       const currentCells = line.split(delimiter);
       const sanitizedRow = [];
+      const rowObject = {};
 
-      perfectHeaders.forEach((_, index) => {
+      perfectHeaders.forEach((header, index) => {
         let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
-        // Preservar valores nulos reales de columnas vacías según las directrices de Servex
         if (cellValue === '') {
           sanitizedRow.push(null); 
+          rowObject[header] = null;
         } else {
-          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); // Remover comillas envolventes
+          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); 
           sanitizedRow.push(cellValue);
+          rowObject[header] = cellValue;
         }
       });
 
-      // Implementación del `restkey` de Python para campos huérfanos por desalineación
       if (currentCells.length > perfectHeaders.length) {
         const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
         sanitizedRow.push(`[ORPHANED]: ${orphaned.join(' | ')}`);
+        rowObject['_orphaned_fields'] = orphaned;
       }
 
       finalizedMatrix.push(sanitizedRow);
+      sanitizedJson.push(rowObject);
     });
 
-    return finalizedMatrix;
+    return { matrix: finalizedMatrix, json: sanitizedJson };
   };
 
   const processFileSelection = (selectedFile) => {
@@ -162,34 +209,19 @@ const SVXUnifiedPlatform = () => {
       const text = event.target.result;
       
       console.log('[+] Ejecutando saneamiento celular pre-renderizado...');
-      const sanitizedMatrix = sanitizeCSVToMatrix(text);
+      const { matrix, json } = sanitizeCSVToMatrix(text);
       
-      if (sanitizedMatrix.length === 0) {
+      if (matrix.length === 0) {
         showAlert("The file contains empty or unparseable blocks", "error");
         return;
       }
 
-      setData(sanitizedMatrix);
+      setData(matrix);
+      setSanitizedJsonData(json);
       setCurrentPage(1); 
       showAlert("File cleansed and structured successfully", "success");
     };
     reader.readAsText(selectedFile);
-  };
-
-  // =========================================================================
-  // --- CONVERSOR DE MATRIZ SANADA A TEXTO PLANO (CSV STRING COMPLIANT) ---
-  // =========================================================================
-  const convertMatrixToCSVText = (matrix) => {
-    return matrix.map(row => {
-      return row.map(cell => {
-        if (cell === null || cell === undefined) return '';
-        let cellStr = String(cell);
-        if (cellStr.includes(',') || cellStr.includes(';') || cellStr.includes('\n') || cellStr.includes('"')) {
-          cellStr = `"${cellStr.replace(/"/g, '""')}"`;
-        }
-        return cellStr;
-      }).join(',');
-    }).join('\n');
   };
 
   // =========================================================================
@@ -203,18 +235,15 @@ const SVXUnifiedPlatform = () => {
     setIsProcessing(true);
 
     try {
-      console.log('[+] Convirtiendo matriz estructurada a formato CSV plano...');
-      const cleansedCSVText = convertMatrixToCSVText(data);
-
-      console.log('[+] Recuperando sesión de usuario para auditoría (si aplica)...');
+      console.log('[+] Recuperando sesión de usuario para auditoría...');
       const { data: { user } } = await supabase.auth.getUser();
 
       console.log(`[+] Sincronizando con la tabla ${targetTableName} para tenant: ${currentTenant}`);
       
-      // Creamos el payload apuntando estrictamente al campo text: csv_new_raw
+      // Creamos el payload asignando directamente el array estructurado JSON sin convertirlo a texto plano por comas
       const payload = { 
         company_name: currentTenant, 
-        csv_new_raw: cleansedCSVText, // Volcado en formato string limpio plano
+        csv_new_raw: sanitizedJsonData, // Se inyecta la matriz limpia serializada en objetos idéntica a insertXM
         created_at: new Date().toISOString()
       };
 
@@ -232,6 +261,7 @@ const SVXUnifiedPlatform = () => {
       }
 
       setBackendSuccess(true);
+      setHasExistingData(true); // Cambia el estado para que se refleje de inmediato
       showAlert("CSV matrix successfully processed and saved to csv_new_raw", "success");
     } catch (err) {
       console.error('[-] Error crítico en la persistencia cloud de Supabase:', err);
@@ -247,7 +277,7 @@ const SVXUnifiedPlatform = () => {
   };
 
   const handleFullReset = () => {
-    setData([]); setFile(null); setFileName("");
+    setData([]); setSanitizedJsonData([]); setFile(null); setFileName("");
     setBackendSuccess(false); setCurrentPage(1);
   };
 
@@ -296,6 +326,30 @@ const SVXUnifiedPlatform = () => {
           <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
         </div>
       </div>
+
+      {/* --- INLINE ALERT DE MANERA MENOS INVASIVA DENTRO DEL CONTENEDOR --- */}
+      {hasExistingData && (
+        <div className="flex-shrink-0 bg-amber-50 border-b border-amber-200 px-4 py-3 flex items-center justify-between text-[11px] font-medium text-amber-900 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2 pr-4">
+            <span className="font-bold uppercase tracking-wider bg-amber-500 text-white px-1.5 py-0.5 rounded text-[9px] shrink-0">Registro de Catálogo Activo</span>
+            <span>Se detectó información guardada en la columna <code className="font-mono bg-white/60 px-1 py-0.5 rounded border border-amber-300">csv_new_raw</code> para este tenant. Por favor revise el archivo excel updated ya existente.</span>
+          </div>
+          <button 
+            onClick={handleIgnoreAndClear}
+            disabled={isClearingBackend}
+            className="flex-shrink-0 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {isClearingBackend ? (
+              <>
+                <Loader2 size={12} className="animate-spin" /> Procesando...
+              </>
+            ) : (
+              "Ignorar y Cargar Nuevo CSV"
+            )}
+          </button>
+        </div>
+      )}
+
       <div className="flex-grow overflow-auto">
         {!file ? (
           <div className="h-full flex flex-col items-center justify-center opacity-40">
