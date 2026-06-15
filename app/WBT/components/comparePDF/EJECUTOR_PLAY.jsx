@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { FiZap, FiTrash2, FiAlertCircle, FiCpu } from 'react-icons/fi';
 import { Zap, Loader2, Cpu } from 'lucide-react';
 // Importamos el cliente de Supabase para validar el estado de la tabla remota
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../../../lib/supabaseClient';
 
 const EJECUTOR_PLAY = ({ 
   handleUnifiedProcess, 
