@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiZap, FiTrash2, FiAlertCircle, FiCpu } from 'react-icons/fi';
 import { Zap, Loader2, Cpu } from 'lucide-react';
-// Importamos el cliente de Supabase para validar el estado de la tabla remota
-import { supabase } from '../../../lib/supabaseClient';
 
 const EJECUTOR_PLAY = ({ 
   handleUnifiedProcess, 
@@ -16,7 +14,6 @@ const EJECUTOR_PLAY = ({
 }) => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
   const [showSecondPopup, setShowSecondPopup] = useState(false); // <--- Estado para el popup del nuevo botón
-  const [hasNewRawData, setHasNewRawData] = useState(false); // Estado para bloquear el botón si ya hay datos
 
   // Obtener fecha actual formateada
   const currentDate = new Date().toLocaleDateString('es-ES', { 
@@ -24,34 +21,6 @@ const EJECUTOR_PLAY = ({
     month: 'long', 
     year: 'numeric' 
   });
-
-  // Efecto para verificar en Supabase el estado de la columna csv_new_raw
-  useEffect(() => {
-    const checkCsvNewRawStatus = async () => {
-      if (!currentTenant) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('ClientsSERVEX_WBT')
-          .select('csv_new_raw')
-          .eq('company_name', currentTenant)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        // Si la columna existe, no es nula y no está vacía, marcamos verdadero para deshabilitar
-        if (data && data.csv_new_raw && data.csv_new_raw.trim() !== '') {
-          setHasNewRawData(true);
-        } else {
-          setHasNewRawData(false);
-        }
-      } catch (err) {
-        console.error(`Error validating database structure: ${err.message}`);
-      }
-    };
-
-    checkCsvNewRawStatus();
-  }, [currentTenant, isProcessing]); // Se re-ejecuta si cambia el tenant o si termina un proceso
 
   // Cerrar el popup de proceso unificado automáticamente
   useEffect(() => {
@@ -70,9 +39,6 @@ const EJECUTOR_PLAY = ({
   }, [isProcessing, showSecondPopup]);
 
   const ejecutarConConsola = async () => {
-    // Salvaguarda adicional en código: si se intenta ejecutar pero la base de datos ya tiene info, no hace nada
-    if (hasNewRawData) return;
-
     setShowStatusPopup(true); 
     try {
       await handleUnifiedProcess();
@@ -171,14 +137,14 @@ const EJECUTOR_PLAY = ({
         </div>
         
         <div className="flex flex-col gap-1.5">
-          {/* PRIMER BOTÓN ORIGINAL (Modificado el atributo disabled para evaluar hasNewRawData) */}
+          {/* PRIMER BOTÓN ORIGINAL */}
           <button 
             onClick={ejecutarConConsola}
-            disabled={!file || isProcessing || hasNewRawData}
+            disabled={!file || isProcessing}
             className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <FiZap size={14} />}
-            {hasNewRawData ? 'PIPELINE LOCKED (DATA EXISTS)' : 'RUN PIPELINE & SYNC'}
+            RUN PIPELINE & SYNC
           </button>
 
           {/* SEGUNDO BOTÓN SOLICITADO */}
