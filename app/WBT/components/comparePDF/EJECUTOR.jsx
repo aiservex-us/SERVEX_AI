@@ -331,23 +331,23 @@ const SVXUnifiedPlatform = () => {
         {hasExistingData && !file ? (
           /* --- ADVERTENCIA CENTRALIZADA CUANDO HAY DATOS EN DB Y NO SE HA CARGADO ARCHIVO --- */
           <div className="h-full flex items-center justify-center p-6 bg-gray-50/50">
-            <div className="bg-white border border-amber-200 rounded-xl p-8 max-w-md w-full shadow-lg text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-              <div className="mx-auto w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
-                <Zap size={24} className="fill-amber-600/10" />
+            <div className="bg-white border border-[#EDEBE9] rounded-xl p-8 max-w-md w-full shadow-lg text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="mx-auto w-12 h-12 bg-[#464775]/10 rounded-full flex items-center justify-center text-[#464775]">
+                <Zap size={24} className="fill-[#464775]/10" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xs font-black uppercase tracking-wider text-amber-800 bg-amber-50 inline-block px-2.5 py-1 rounded">
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#464775] bg-[#464775]/10 inline-block px-2.5 py-1 rounded">
                   Registro de Catálogo Activo
                 </h3>
                 <p className="text-[12px] text-gray-600 leading-relaxed font-medium">
-                  Se detectó información guardada en la columna <code className="font-mono bg-gray-100 px-1 py-0.5 rounded border border-gray-200 text-rose-600">csv_new_raw</code> para este tenant. Por favor revise el archivo excel updated ya existente.
+                  Se detectó información guardada en la columna <code className="font-mono bg-gray-100 px-1 py-0.5 rounded border border-gray-200 text-[#464775]">csv_new_raw</code> para este tenant. Por favor revise el archivo excel updated ya existente.
                 </p>
               </div>
               <div className="pt-2">
                 <button 
                   onClick={handleIgnoreAndClear}
                   disabled={isClearingBackend}
-                  className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] uppercase tracking-wider py-3 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-[#464775] hover:bg-[#3b3e7a] text-white font-bold text-[11px] uppercase tracking-wider py-3 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isClearingBackend ? (
                     <>
