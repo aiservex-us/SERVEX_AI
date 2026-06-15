@@ -1,21 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FiZap, FiTrash2, FiAlertCircle, FiCpu, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiZap, FiTrash2, FiAlertCircle, FiCpu } from 'react-icons/fi';
 import { Zap, Loader2, Cpu } from 'lucide-react';
 
 const EJECUTOR_PLAY = ({ 
   handleUnifiedProcess, 
-  handleSecondProcess, // <--- Nueva función para el segundo proceso
   handleFullReset, 
   file, 
   isProcessing,
+  setIsProcessing, // Se asume que el padre puede proveerlo o usamos control de carga local
   currentTenant,
-  hasExistingData // <--- Nueva prop recibida del padre
+  hasExistingData 
 }) => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
-  const [showSecondPopup, setShowSecondPopup] = useState(false); // <--- Estado para el popup del nuevo botón
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // <--- Estado para pedir confirmación al usuario
+  const [showSecondPopup, setShowSecondPopup] = useState(false);
+  const [localProcessing, setLocalProcessing] = useState(false);
 
   // Obtener fecha actual formateada
   const currentDate = new Date().toLocaleDateString('es-ES', { 
@@ -24,21 +24,23 @@ const EJECUTOR_PLAY = ({
     year: 'numeric' 
   });
 
+  const estadoProcesando = isProcessing || localProcessing;
+
   // Cerrar el popup de proceso unificado automáticamente
   useEffect(() => {
-    if (!isProcessing && showStatusPopup) {
+    if (!estadoProcesando && showStatusPopup) {
       const timer = setTimeout(() => setShowStatusPopup(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [isProcessing, showStatusPopup]);
+  }, [estadoProcesando, showStatusPopup]);
 
   // Cerrar el popup del segundo proceso automáticamente
   useEffect(() => {
-    if (!isProcessing && showSecondPopup) {
+    if (!estadoProcesando && showSecondPopup) {
       const timer = setTimeout(() => setShowSecondPopup(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [isProcessing, showSecondPopup]);
+  }, [estadoProcesando, showSecondPopup]);
 
   const ejecutarConConsola = async () => {
     setShowStatusPopup(true); 
@@ -49,63 +51,47 @@ const EJECUTOR_PLAY = ({
     }
   };
 
-  // Manejador del botón secundario que intercepta la orden para pedir confirmación
-  const solicitarConfirmacionSegundoProceso = () => {
-    setShowConfirmModal(true);
-  };
+  const ejecutarSegundoProceso = async () => {
+    setShowSecondPopup(true);
+    setLocalProcessing(true);
+    if (setIsProcessing) setIsProcessing(true);
 
-  // Ejecución real tras pasar la confirmación del modal
-  const ejecutarSegundoProcesoConfirmado = async () => {
-    setShowConfirmModal(false); // Cierra el modal de confirmación
-    setShowSecondPopup(true); // Activar el popup secundario de carga
     try {
-      if (handleSecondProcess) {
-        await handleSecondProcess();
+      // Saneo del string de Tenant para coincidir con la base de datos de Supabase
+      // Si currentTenant es "WBT", mapeamos a "WB Manufacturing" corporativo
+      const targetCompany = currentTenant === 'WBT' ? 'WB Manufacturing' : currentTenant;
+
+      const formData = new FormData();
+      formData.append('company_name', targetCompany);
+
+      // Determinar Base URL dinámicamente si estás en local o producción
+      const baseUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000' 
+        : 'https://servex-ai-iota.vercel.app'; // Cambia por tu url real de Render de ser necesario
+
+      const response = await fetch(`${baseUrl}/api/v1/pipeline/compare-only`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación');
       }
+
+      const result = await response.json();
+      console.log('[✓] Respuesta de SERVEX_AI Engine:', result);
+
     } catch (err) {
       console.error(`Secondary Process halted: ${err.message}`);
+    } finally {
+      setLocalProcessing(false);
+      if (setIsProcessing) setIsProcessing(false);
     }
   };
 
   return (
     <div className="flex flex-col gap-3 font-sans antialiased text-[#242424]">
-      
-      {/* --- MODAL DE CONFIRMACIÓN DE ACCIÓN --- */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-[1002] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-2xl p-6 max-w-sm w-full space-y-4 transform animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3">
-              <div className="bg-[#5b5fc7]/10 p-2 rounded-lg text-[#5b5fc7]">
-                <FiCpu size={20} />
-              </div>
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-tight">
-                ¿Confirmar Ejecución Cloud?
-              </h3>
-            </div>
-            
-            <p className="text-[11px] text-gray-600 leading-relaxed">
-              Estás a punto de disparar el pipeline de reestructuración e inyección XML. El sistema procesará las matrices de datos directamente desde Supabase de forma síncrona.
-            </p>
-
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                className="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-1.5 px-3 rounded text-[11px] transition-all flex items-center justify-center gap-1.5"
-              >
-                <FiXCircle size={13} />
-                Cancelar
-              </button>
-              <button
-                onClick={ejecutarSegundoProcesoConfirmado}
-                className="flex-1 bg-[#5b5fc7] hover:bg-[#4f52b2] text-white font-semibold py-1.5 px-3 rounded text-[11px] transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <FiCheckCircle size={13} />
-                Aceptar y Enviar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       
       {/* --- POPUP 1: PROCESO UNIFICADO --- */}
       {showStatusPopup && (
@@ -128,7 +114,7 @@ const EJECUTOR_PLAY = ({
             <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
               <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={16} />
               <p className="text-[10px] text-amber-800 leading-tight">
-                <strong>IMPORTANTE:</strong> El sistema está sincronizando datos críticos en Supabase. <strong>No cambies de sección</strong> ni reinicies la aplicación hasta que el monitor de salida finalice.
+                <strong>IMPORTANTE:</strong> El sistema está sincronizando datos críticos en Supabase. <strong>No cambies de sección</strong> ni reinicios la aplicación hasta que el monitor de salida finalice.
               </p>
             </div>
 
@@ -167,7 +153,7 @@ const EJECUTOR_PLAY = ({
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#464775]">
               <Loader2 size={12} className="animate-spin" />
-              <span className="uppercase tracking-widest">Procesando registros...</span>
+              <span className="uppercase tracking-widest">Procesando registros Cloud...</span>
             </div>
           </div>
         </div>
@@ -186,20 +172,20 @@ const EJECUTOR_PLAY = ({
           {/* PRIMER BOTÓN ORIGINAL */}
           <button 
             onClick={ejecutarConConsola}
-            disabled={!file || isProcessing}
+            disabled={!file || estadoProcesando}
             className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
-            {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <FiZap size={14} />}
+            {estadoProcesando && showStatusPopup ? <Loader2 size={14} className="animate-spin" /> : <FiZap size={14} />}
             RUN PIPELINE & SYNC
           </button>
 
-          {/* SEGUNDO BOTÓN SOLICITADO (Modificado para interceptar y pedir confirmación) */}
+          {/* SEGUNDO BOTÓN REESTRUCTURADO Y CONECTADO */}
           <button 
-            onClick={solicitarConfirmacionSegundoProceso}
-            disabled={(!file && !hasExistingData) || isProcessing}
+            onClick={ejecutarSegundoProceso}
+            disabled={(!file && !hasExistingData) || estadoProcesando}
             className="w-full bg-[#5b5fc7] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
-            {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Cpu size={14} />}
+            {estadoProcesando && showSecondPopup ? <Loader2 size={14} className="animate-spin" /> : <Cpu size={14} />}
             EXECUTE REESTRUCTURE XML AND CATALGE COMPARE
           </button>
 
