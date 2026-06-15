@@ -11,7 +11,8 @@ import {
   DownloadCloud, 
   X, 
   Zap, 
-  Terminal
+  Terminal,
+  AlertTriangle
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
@@ -46,6 +47,36 @@ const SVXUnifiedPlatform = () => {
   const [data, setData] = useState([]); 
   const [sanitizedJsonData, setSanitizedJsonData] = useState([]); // Estructura JSON limpia (Array de Objetos)
   
+  // --- STATE FOR EXISTING CLOUD DATA DETECTOR ---
+  const [hasExistingData, setHasExistingData] = useState(false);
+  const [isLoadingCheck, setIsLoadingCheck] = useState(true);
+
+  // --- DETECTAR SI YA EXISTE INFORMACIÓN EN CSV_NEW_RAW ---
+  useEffect(() => {
+    const checkExistingData = async () => {
+      try {
+        setIsLoadingCheck(true);
+        const { data: cloudRecord, error } = await supabase
+          .from(targetTableName)
+          .select('csv_new_raw')
+          .eq('company_name', currentTenant)
+          .maybeSingle();
+
+        if (!error && cloudRecord && cloudRecord.csv_new_raw && Array.isArray(cloudRecord.csv_new_raw) && cloudRecord.csv_new_raw.length > 0) {
+          setHasExistingData(true);
+        } else {
+          setHasExistingData(false);
+        }
+      } catch (err) {
+        console.error('[-] Error verificando registros existentes:', err);
+      } finally {
+        setIsLoadingCheck(false);
+      }
+    };
+
+    checkExistingData();
+  }, [currentTenant, targetTableName]);
+
   // --- PAGINATION STATES (DINÁMICA PARA TODO EL CSV) ---
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -54,56 +85,6 @@ const SVXUnifiedPlatform = () => {
   const [alert, setAlert] = useState({ show: false, message: '', type: 'info' });
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
-
-  // =========================================================================
-  // --- EFECTO DE VERIFICACIÓN AUTOMÁTICA EN LA COLUMNA DE SUPABASE ---
-  // =========================================================================
-  useEffect(() => {
-    const checkAndLoadExistingData = async () => {
-      if (!currentTenant) return;
-      
-      try {
-        const { data: dbData, error } = await supabase
-          .from(targetTableName)
-          .select('csv_new_raw')
-          .eq('company_name', currentTenant)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        // Si existe información en csv_new_raw y es un Array válido con registros
-        if (dbData && dbData.csv_new_raw && Array.isArray(dbData.csv_new_raw) && dbData.csv_new_raw.length > 0) {
-          console.log('[+] Información detectada en Supabase (csv_new_raw). Reconstruyendo matriz visual...');
-          
-          const jsonArray = dbData.csv_new_raw;
-          // Extraemos los headers de las llaves del primer objeto
-          const headers = Object.keys(jsonArray[0]).filter(h => h !== '_orphaned_fields');
-          
-          // Reconstruimos la matriz fila por fila asignando los valores de forma posicional
-          const reconstructedMatrix = [headers];
-          
-          jsonArray.forEach(obj => {
-            const row = headers.map(h => obj[h]);
-            if (obj._orphaned_fields && Array.isArray(obj._orphaned_fields)) {
-              row.push(`[ORPHANED]: ${obj._orphaned_fields.join(' | ')}`);
-            }
-            reconstructedMatrix.push(row);
-          });
-
-          // Seteamos los estados simulando el arrastre exitoso
-          setData(reconstructedMatrix);
-          setSanitizedJsonData(jsonArray);
-          setFileName(`Supabase Matrix Cluster (${currentTenant})`);
-          setFile({ name: `Supabase_${currentTenant}.csv` }); // Mock para activar los contenedores condicionales
-          setBackendSuccess(true);
-        }
-      } catch (err) {
-        console.error('[-] Error en la validación inicial de almacenamiento remoto:', err);
-      }
-    };
-
-    checkAndLoadExistingData();
-  }, [currentTenant, targetTableName]);
 
   // =========================================================================
   // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (IGUALADO A PYTHON) ---
@@ -243,9 +224,10 @@ const SVXUnifiedPlatform = () => {
 
       console.log(`[+] Sincronizando con la tabla ${targetTableName} para tenant: ${currentTenant}`);
       
+      // Creamos el payload asignando directamente el array estructurado JSON sin convertirlo a texto plano por comas
       const payload = { 
         company_name: currentTenant, 
-        csv_new_raw: sanitizedJsonData, 
+        csv_new_raw: sanitizedJsonData, // Se inyecta la matriz limpia serializada en objetos idéntica a insertXM
         created_at: new Date().toISOString()
       };
 
@@ -253,6 +235,7 @@ const SVXUnifiedPlatform = () => {
         payload.user_id = user.id;
       }
 
+      // Realizamos el upsert apuntando explícitamente sobre el índice único de tu DDL: company_name
       const { error: supabaseError } = await supabase
         .from(targetTableName)
         .upsert(payload, { onConflict: 'company_name' });
@@ -262,6 +245,7 @@ const SVXUnifiedPlatform = () => {
       }
 
       setBackendSuccess(true);
+      setHasExistingData(true); // Bloquear futuras cargas accidentales tras guardar con éxito
       showAlert("CSV matrix successfully processed and saved to csv_new_raw", "success");
     } catch (err) {
       console.error('[-] Error crítico en la persistencia cloud de Supabase:', err);
@@ -327,13 +311,34 @@ const SVXUnifiedPlatform = () => {
         </div>
       </div>
       <div className="flex-grow overflow-auto">
-        {!file ? (
-          <div className="h-full flex flex-col items-center justify-center opacity-40">
-            <DownloadCloud size={40} />
-            <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
-            <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
-            <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
+        {isLoadingCheck ? (
+          <div className="h-full flex flex-col items-center justify-center opacity-60">
+            <Loader2 size={32} className="animate-spin text-[#464775]" />
+            <p className="text-[10px] font-bold mt-2 uppercase tracking-wider text-gray-500">Verificando estado en Supabase...</p>
           </div>
+        ) : !file ? (
+          hasExistingData ? (
+            <div className="h-full flex flex-col items-center justify-center p-6 text-center bg-amber-50/20">
+              <AlertTriangle size={44} className="text-amber-500 animate-bounce mb-3" />
+              <h4 className="text-xs font-black text-amber-700 uppercase tracking-wider mb-1">Registro Existente Detectado</h4>
+              <p className="text-[11px] font-bold text-gray-600 max-w-md leading-relaxed">
+                La columna <span className="font-mono text-xs bg-amber-100 px-1 py-0.5 rounded text-amber-800">csv_new_raw</span> ya contiene información estructurada para este tenant. Por favor, revise el Excel updated o resetee la secuencia si requiere sobrescribir.
+              </p>
+              <button 
+                onClick={() => setHasExistingData(false)} 
+                className="mt-5 px-3 py-1.5 border border-amber-300 bg-white hover:bg-amber-50 text-amber-700 text-[9px] font-black tracking-wider rounded uppercase transition-colors shadow-sm"
+              >
+                Forzar Carga de Nuevo Archivo
+              </button>
+            </div>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center opacity-40">
+              <DownloadCloud size={40} />
+              <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
+              <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
+              <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
+            </div>
+          )
         ) : (
           <div className="flex flex-col h-full justify-between">
             <div className="overflow-auto flex-grow">
