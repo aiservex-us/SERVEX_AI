@@ -57,7 +57,11 @@ const EJECUTOR_PLAY = ({
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      const targetCompany = currentTenant === 'WBT' ? 'WBT' : currentTenant;
+      // Saneamiento estructural: Si es 'WBT' o contiene variantes de 'WB', se fuerza 'WBT' que es el nombre real en base de datos
+      const targetCompany = (currentTenant === 'WBT' || currentTenant?.toUpperCase().includes('WB')) 
+        ? 'WBT' 
+        : currentTenant;
+
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
