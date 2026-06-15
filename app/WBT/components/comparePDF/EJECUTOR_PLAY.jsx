@@ -62,7 +62,7 @@ const EJECUTOR_PLAY = ({
       formData.append('company_name', targetCompany);
   
       // CAMBIO CLAVE: Forzar el apunte directo al puerto local de FastAPI 8000
-      const baseUrl = 'http://localhost:8000'; 
+      const baseUrl = 'https://servex-ai-back.onrender.com'; 
   
       console.log(`[+] Despachando payload atómico a: ${baseUrl}/api/v1/pipeline/compare-only`);
   
