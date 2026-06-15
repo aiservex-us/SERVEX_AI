@@ -10,7 +10,8 @@ const EJECUTOR_PLAY = ({
   handleFullReset, 
   file, 
   isProcessing,
-  currentTenant
+  currentTenant,
+  hasExistingData // <--- Nueva prop recibida del padre
 }) => {
   const [showStatusPopup, setShowStatusPopup] = useState(false);
   const [showSecondPopup, setShowSecondPopup] = useState(false); // <--- Estado para el popup del nuevo botón
@@ -147,10 +148,10 @@ const EJECUTOR_PLAY = ({
             RUN PIPELINE & SYNC
           </button>
 
-          {/* SEGUNDO BOTÓN SOLICITADO */}
+          {/* SEGUNDO BOTÓN SOLICITADO (Modificado para evaluar info en Supabase) */}
           <button 
             onClick={ejecutarSegundoProceso}
-            disabled={!file || isProcessing}
+            disabled={(!file && !hasExistingData) || isProcessing}
             className="w-full bg-[#5b5fc7] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Cpu size={14} />}

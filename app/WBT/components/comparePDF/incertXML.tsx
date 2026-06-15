@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useTransition } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { 
   FileCode, 
@@ -28,17 +28,22 @@ export default function UploadClientXML() {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null); 
+  
+  // React Transition para prevenir bloqueos de renderizado en hilos de UI al cargar datasets grandes
+  const [, startTransition] = useTransition();
 
   // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (Equivalente al Script de Python) ---
   const sanitizeCSV = (rawCsvText: string): any[] => {
     if (!rawCsvText || !rawCsvText.trim()) return [];
 
-    // 1. Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
+    // Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
     const lines: string[] = [];
     let currentLine = '';
     let insideQuotes = false;
 
-    for (let i = 0; i < rawCsvText.length; i++) {
+    // Bucle iterativo directo optimizado para reducir la latencia de procesamiento de cadenas
+    const len = rawCsvText.length;
+    for (let i = 0; i < len; i++) {
       const char = rawCsvText[i];
       if (char === '"') {
         insideQuotes = !insideQuotes;
@@ -81,12 +86,10 @@ export default function UploadClientXML() {
 
     const fullRawHeader = rawHeaderAccum.join('\n');
     
-    // Limpieza ultra-sofisticada de columnas (Preservado e igualado a la lógica Python)
+    // Limpieza de columnas preservada e igualada a la lógica de Python
     const tokens = fullRawHeader.split(';');
     const cleanedTokens = tokens.map(token => {
-      // Remover saltos de línea internos, comillas dobles y simples
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
-      // Normalizar espacios múltiples duplicados intermedios
       tClean = tClean.split(/\s+/).join(' ').trim();
       return tClean;
     });
@@ -94,32 +97,35 @@ export default function UploadClientXML() {
     const perfectHeaders = cleanedTokens;
     const dataLines = lines.slice(dataStartIndex);
     const sanitizedJson: any[] = [];
+    const headersLen = perfectHeaders.length;
 
-    // Re-estructurar la matriz de datos mapeando contra los headers perfectos
-    dataLines.forEach(line => {
-      if (!line.trim()) return; // Ignorar líneas vacías
+    // Optimización con bucles indexados for para mitigar penalizaciones por Garbage Collection en memoria
+    for (let i = 0; i < dataLines.length; i++) {
+      const line = dataLines[i];
+      if (!line.trim()) continue; // Ignorar líneas vacías
       const currentCells = line.split(';');
       const rowObject: any = {};
 
-      perfectHeaders.forEach((header, index) => {
-        let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
-        // Preservar valores nulos reales de columnas vacías según las directrices de Servex
+      for (let j = 0; j < headersLen; j++) {
+        const header = perfectHeaders[j];
+        let cellValue = currentCells[j] !== undefined ? currentCells[j] : '';
+        
         if (cellValue === '') {
           rowObject[header] = null;
         } else {
-          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); // Remover comillas envolventes
+          cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); 
           rowObject[header] = cellValue;
         }
-      });
+      }
 
-      // Implementación del `restkey` de Python para atrapar campos huérfanos por desalineación
-      if (currentCells.length > perfectHeaders.length) {
-        const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
+      // Implementación del restkey de Python
+      if (currentCells.length > headersLen) {
+        const orphaned = currentCells.slice(headersLen).map(c => c.replace(/^["']|["']$/g, '').trim());
         rowObject['_orphaned_fields'] = orphaned;
       }
 
       sanitizedJson.push(rowObject);
-    });
+    }
 
     return sanitizedJson;
   };
@@ -133,9 +139,11 @@ export default function UploadClientXML() {
     setReadingXml(true);
     const reader = new FileReader();
     reader.onload = (e) => {
-      setXmlContent(e.target?.result as string);
-      setMessage({ text: 'XML file loaded successfully', type: 'success' });
-      setReadingXml(false);
+      startTransition(() => {
+        setXmlContent(e.target?.result as string);
+        setMessage({ text: 'XML file loaded successfully', type: 'success' });
+        setReadingXml(false);
+      });
     };
     reader.readAsText(file);
   };
@@ -148,9 +156,11 @@ export default function UploadClientXML() {
     setReadingCsv(true);
     const reader = new FileReader();
     reader.onload = (e) => {
-      setCsvContent(e.target?.result as string);
-      setMessage({ text: 'CSV file loaded successfully', type: 'success' });
-      setReadingCsv(false);
+      startTransition(() => {
+        setCsvContent(e.target?.result as string);
+        setMessage({ text: 'CSV file loaded successfully', type: 'success' });
+        setReadingCsv(false);
+      });
     };
     reader.readAsText(file);
   };
@@ -177,6 +187,10 @@ export default function UploadClientXML() {
       return;
     }
     setLoading(true);
+
+    // Permitir el cambio de estado visual de UI de manera inmediata
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { 
@@ -184,22 +198,21 @@ export default function UploadClientXML() {
         return; 
       }
 
-      // 1. Ejecutar el Saneamiento en memoria antes de guardar
       console.log('[+] Iniciando saneamiento estructural sobre los contenidos CSV...');
       const sanitizedCsvJson = sanitizeCSV(csvContent);
 
-      // 2. Definir el Payload Unificado preparado para campos JSONB en Supabase
       const payload = {
         company_name: 'WBT', 
         xml_raw: xmlContent, 
-        csv_raw: sanitizedCsvJson,      // Se inyecta la estructura JSON limpia
+        csv_raw: sanitizedCsvJson,      
         user_id: user.id,
       };
 
-      // 3. Persistencia en la tabla principal (con control de conflictos)
-      const { error } = await supabase.from('ClientsSERVEX_WBT').upsert(payload, { 
-        onConflict: 'company_name' 
-      });
+      // Modificación de red limpia y tipada: Evita el eco masivo de datos de vuelta por la red HTTP
+      const { error } = await supabase
+        .from('ClientsSERVEX_WBT')
+        .upsert(payload, { onConflict: 'company_name' })
+        .select('');
 
       if (error) {
         console.error('Supabase Full Error:', error);

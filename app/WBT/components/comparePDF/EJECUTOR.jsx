@@ -512,23 +512,24 @@ const SVXUnifiedPlatform = () => {
       </header>
 
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
-        <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">
-          <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
-            <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
-            <div className="space-y-6">
-              <Step icon={<FiUploadCloud size={14}/>} title="Data Ingestion" desc={fileName ? "Sanitized Matrix" : "Waiting for CSV"} active={!!file} />
-              <Step icon={<Zap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />
-            </div>
-          </div>
+      <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">
+  <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
+    <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
+    <div className="space-y-6">
+      <Step icon={<FiUploadCloud size={14}/>} title="Data Ingestion" desc={fileName ? "Sanitized Matrix" : "Waiting for CSV"} active={!!file} />
+      <Step icon={<Zap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />
+    </div>
+  </div>
 
-          <EJECUTOR_PLAY 
-            handleUnifiedProcess={handleUnifiedProcess}
-            handleFullReset={handleFullReset}
-            file={file}
-            isProcessing={isProcessing}
-            currentTenant={currentTenant}
-          />
-        </aside>
+  <EJECUTOR_PLAY 
+    handleUnifiedProcess={handleUnifiedProcess}
+    handleFullReset={handleFullReset}
+    file={file}
+    isProcessing={isProcessing}
+    currentTenant={currentTenant}
+    hasExistingData={hasExistingData} // <--- Inyección de la prop aquí
+  />
+</aside>
 
         <div className="col-span-9 flex flex-col h-full min-h-0">
           <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
