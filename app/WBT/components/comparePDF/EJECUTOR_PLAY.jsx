@@ -185,7 +185,7 @@ const EJECUTOR_PLAY = ({
           <button 
             onClick={ejecutarSegundoProceso}
             disabled={(!file && !hasExistingData) || estadoProcesando}
-            className="w-full bg-[#5b5fc7] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
+            className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             {estadoProcesando && showSecondPopup ? <Loader2 size={14} className="animate-spin" /> : <Cpu size={14} />}
             EXECUTE REESTRUCTURE XML AND CATALGE COMPARE
