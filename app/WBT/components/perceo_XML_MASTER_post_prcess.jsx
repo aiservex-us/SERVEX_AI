@@ -47,7 +47,7 @@ const WBDDataMatrix = () => {
       }
 
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
+      const xmlDoc = parser.parseFromString(data.xml_actualizer_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBT XML structure");
