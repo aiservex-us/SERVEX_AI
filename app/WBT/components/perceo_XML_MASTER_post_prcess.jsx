@@ -48,6 +48,28 @@ const WBDDataMatrix = () => {
         return;
       }
 
+      // --- AGREGADO DE INYECCIÓN DE DESCARGA ---
+      // Registra una función global en window para descargar el XML exacto sin alterar la interfaz
+      if (typeof window !== 'undefined') {
+        window.downloadWBTXML = () => {
+          try {
+            const blob = new Blob([data.xml_actualizer_raw], { type: 'text/xml;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'WBT.XML');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            console.log("WBT.XML descargado con éxito directamente de la fuente de Supabase.");
+          } catch (downloadErr) {
+            console.error("Error al descargar el XML desde el objeto global:", downloadErr);
+          }
+        };
+      }
+      // ----------------------------------------
+
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.xml_actualizer_raw, "text/xml");
       
@@ -88,6 +110,13 @@ const WBDDataMatrix = () => {
 
   useEffect(() => {
     processXML();
+    
+    // Limpieza de la función global al desmontar el componente
+    return () => {
+      if (typeof window !== 'undefined' && window.downloadWBTXML) {
+        delete window.downloadWBTXML;
+      }
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -227,8 +256,6 @@ const WBDDataMatrix = () => {
                       
                       return (
                         <motion.tr 
-                          // 2. ADVERTENCIA DE SEGURIDAD: Usar realIndex en conjunto con p.sku previene saltos 
-                          // de renderizado si el XML colapsado tiene SKUs duplicados vacíos.
                           key={`${p.sku}-${realIndex}`}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
