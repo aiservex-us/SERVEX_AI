@@ -41,7 +41,9 @@ const WBDDataMatrix = () => {
         .maybeSingle();
 
       if (dbError) throw dbError;
-      if (!data?.xml_raw) {
+      
+      // 1. CORRECCIÓN CRÍTICA: Validar la columna exacta que se seleccionó
+      if (!data?.xml_actualizer_raw) {
         setProducts([]);
         return;
       }
@@ -184,7 +186,7 @@ const WBDDataMatrix = () => {
                 onClick={processXML}
                 type="button"
                 className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161] transition-colors"
-                title="Sincronizar y recalcular matrices desde xml_raw"
+                title="Sincronizar y recalcular matrices desde xml_actualizer_raw"
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
@@ -225,7 +227,9 @@ const WBDDataMatrix = () => {
                       
                       return (
                         <motion.tr 
-                          key={p.sku || realIndex}
+                          // 2. ADVERTENCIA DE SEGURIDAD: Usar realIndex en conjunto con p.sku previene saltos 
+                          // de renderizado si el XML colapsado tiene SKUs duplicados vacíos.
+                          key={`${p.sku}-${realIndex}`}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -307,7 +311,7 @@ const WBDDataMatrix = () => {
 
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                WBD ETL Pipeline V2 (Oauth Verified)
+                WBT ETL Pipeline V2 (Oauth Verified)
               </div>
             </div>
           </div>
