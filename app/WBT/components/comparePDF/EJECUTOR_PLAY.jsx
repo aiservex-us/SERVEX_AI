@@ -18,7 +18,7 @@ const EJECUTOR_PLAY = ({
   const [localProcessing, setLocalProcessing] = useState(false);
 
   // Obtener fecha actual formateada
-  const currentDate = new Date().toLocaleDateString('es-ES', { 
+  const currentDate = new Date().toLocaleDateString('en-US', { 
     day: '2-digit', 
     month: 'long', 
     year: 'numeric' 
@@ -109,20 +109,20 @@ const EJECUTOR_PLAY = ({
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Proceso de Actualización Iniciado</h3>
-              <p className="text-[11px] text-gray-500 font-medium">Catálogo ({currentTenant}): {currentDate}</p>
+              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Update Process Initiated</h3>
+              <p className="text-[11px] text-gray-500 font-medium">Catalog ({currentTenant}): {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
               <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={16} />
               <p className="text-[10px] text-amber-800 leading-tight">
-                <strong>IMPORTANTE:</strong> El sistema está sincronizando datos críticos en Supabase. <strong>No cambies de sección</strong> ni reinicios la aplicación hasta que el monitor de salida finalice.
+                <strong>IMPORTANT:</strong> The system is synchronizing critical data within SVX. <strong>Do not switch sections</strong> or restart the application until the output monitor finishes.
               </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
               <Loader2 size={12} className="animate-spin" />
-              <span className="uppercase tracking-widest">Sincronizando con Supabase...</span>
+              <span className="uppercase tracking-widest">Synchronizing with CRUD...</span>
             </div>
           </div>
         </div>
@@ -142,20 +142,20 @@ const EJECUTOR_PLAY = ({
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Proceso Secundario Iniciado</h3>
-              <p className="text-[11px] text-gray-500 font-medium">Módulo ({currentTenant}): {currentDate}</p>
+              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Secondary Process Initiated</h3>
+              <p className="text-[11px] text-gray-500 font-medium">Module ({currentTenant}): {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
               <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={16} />
               <p className="text-[10px] text-amber-800 leading-tight">
-                <strong>ADVERTENCIA:</strong> Ejecutando mapeo alternativo de matriz. Por favor, espere a que termine la carga de datos sin interrumpir el proceso.
+                <strong>WARNING:</strong> Storing new catalog data. Please wait for the data upload to complete without interrupting the process.
               </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#464775]">
               <Loader2 size={12} className="animate-spin" />
-              <span className="uppercase tracking-widest">Procesando registros Cloud...</span>
+              <span className="uppercase tracking-widest">Processing Cloud Records...</span>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ const EJECUTOR_PLAY = ({
             className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             {estadoProcesando && showStatusPopup ? <Loader2 size={14} className="animate-spin" /> : <FiZap size={14} />}
-            RUN PIPELINE & SYNC
+            SAVE NEW DATA IN SYSTEM (FIRST STEP)
           </button>
 
           {/* SEGUNDO BOTÓN REESTRUCTURADO Y CONECTADO */}
@@ -188,7 +188,7 @@ const EJECUTOR_PLAY = ({
             className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             {estadoProcesando && showSecondPopup ? <Loader2 size={14} className="animate-spin" /> : <Cpu size={14} />}
-            EXECUTE REESTRUCTURE XML AND CATALGE COMPARE
+            EXECUTE XML RESTRUCTURE AND CATALOG COMPARE (SECOND STEP)
           </button>
 
           {/* BOTÓN DE RESET TRASERO */}

@@ -80,7 +80,7 @@ const SVXUnifiedPlatform = () => {
 
       setHasExistingData(false);
       handleFullReset();
-      showAlert("Registro anterior eliminado. Puede proceder a cargar el nuevo CSV.", "success");
+      showAlert("Previous record cleared. You may proceed to upload the new CSV.", "success");
     } catch (err) {
       console.error('[-] Error al vaciar la columna csv_new_raw:', err);
       showAlert(`Error: ${err.message}`, "error");
@@ -91,7 +91,7 @@ const SVXUnifiedPlatform = () => {
 
   // --- CONTROLADOR PARA ELIMINAR LA FILA COMPLETA DE LA TABLA ---
   const handleDeleteCompleteRow = async () => {
-    const confirmDelete = window.confirm(`¿Está seguro de que desea eliminar por completo la fila asociada a la empresa ${currentTenant} de la base de datos? Esta acción no se puede deshacer.`);
+    const confirmDelete = window.confirm(`Are you sure you want to completely delete the row associated with company ${currentTenant} from the database? This action cannot be undone.`);
     if (!confirmDelete) return;
 
     setIsDeletingRow(true);
@@ -105,10 +105,10 @@ const SVXUnifiedPlatform = () => {
 
       setHasExistingData(false);
       handleFullReset();
-      showAlert(`Fila completa de ${currentTenant} eliminada exitosamente.`, "success");
+      showAlert(`Complete row for ${currentTenant} has been successfully deleted.`, "success");
     } catch (err) {
       console.error('[-] Error crítico al eliminar la fila completa:', err);
-      showAlert(`Error al eliminar: ${err.message}`, "error");
+      showAlert(`Deletion failed: ${err.message}`, "error");
     } finally {
       setIsDeletingRow(false);
     }
@@ -364,10 +364,10 @@ const SVXUnifiedPlatform = () => {
               </div>
               <div className="space-y-2">
                 <h3 className="text-xs font-black uppercase tracking-wider text-[#464775] bg-[#464775]/10 inline-block px-2.5 py-1 rounded">
-                  Registro de Catálogo Activo
+                  Active Catalog Record
                 </h3>
                 <p className="text-[12px] text-gray-600 leading-relaxed font-medium">
-                  Se detectó información guardada en la columna <code className="font-mono bg-gray-100 px-1 py-0.5 rounded border border-gray-200 text-[#464775]">csv_new_raw</code> para este tenant. Por favor revise el archivo excel updated ya existente.
+                  Stored information was detected in the <code className="font-mono bg-gray-100 px-1 py-0.5 rounded border border-gray-200 text-[#464775]">csv_new_raw</code> column for this tenant. Please review the existing updated Excel/CSV file.
                 </p>
               </div>
               <div className="pt-2">
@@ -378,10 +378,10 @@ const SVXUnifiedPlatform = () => {
                 >
                   {isClearingBackend ? (
                     <>
-                      <Loader2 size={14} className="animate-spin" /> Procesando servidor...
+                      <Loader2 size={14} className="animate-spin" /> Processing Server...
                     </>
                   ) : (
-                    "Ignorar y Cargar Nuevo CSV"
+                    "Ignore & Load New CSV"
                   )}
                 </button>
               </div>
@@ -425,24 +425,24 @@ const SVXUnifiedPlatform = () => {
 
             <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2.5 flex items-center justify-between text-[11px] font-medium text-gray-600">
               <div>
-                Mostrando del <span className="font-bold text-[#464775]">{getCurrentRangeLabels().start}</span> al <span className="font-bold text-[#464775]">{getCurrentRangeLabels().end}</span> de un total de <span className="font-bold">{data.length - 1}</span> productos.
+                Showing <span className="font-bold text-[#464775]">{getCurrentRangeLabels().start}</span> to <span className="font-bold text-[#464775]">{getCurrentRangeLabels().end}</span> of <span className="font-bold">{data.length - 1}</span> products.
               </div>
               <div className="flex items-center gap-15">
-                <span className="text-[10px] text-gray-400 font-bold uppercase">Página {currentPage} de {getTotalPages()}</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase">Page {currentPage} of {getTotalPages()}</span>
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
                     className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all shadow-sm"
                   >
-                    <FiChevronLeft size={12} /> Anterior
+                    <FiChevronLeft size={12} /> Previous
                   </button>
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, getTotalPages()))}
                     disabled={currentPage === getTotalPages()}
                     className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white text-[10px] font-bold uppercase transition-all shadow-sm"
                   >
-                    Siguiente <FiChevronRight size={12} />
+                    Next <FiChevronRight size={12} />
                   </button>
                 </div>
               </div>
@@ -490,7 +490,7 @@ const SVXUnifiedPlatform = () => {
         <div className="flex items-center gap-4">
           <img src={`/logosEmpresas/WB.webp`} alt={currentTenant} className="w-15 h-15 rounded object-contain" onError={(e) => { e.target.src = "/logosEmpresas/default.webp"; }} />
           <div>
-            <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
+            <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified WBT Hub</h1>
             <p className="text-[10px] text-gray-500 font-medium">{currentTenant} Strategic Control</p>
           </div>
         </div>
@@ -506,7 +506,7 @@ const SVXUnifiedPlatform = () => {
             ) : (
               <Trash2 size={12}/>
             )}
-            {isDeletingRow ? "Eliminando..." : `Eliminar Tenant ${currentTenant}`}
+            {isDeletingRow ? "Deleting..." : `Delete Tenant ${currentTenant}`}
           </button>
         </nav>
       </header>
