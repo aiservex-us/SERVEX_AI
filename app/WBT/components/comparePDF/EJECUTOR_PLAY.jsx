@@ -9,7 +9,7 @@ const EJECUTOR_PLAY = ({
   handleFullReset, 
   file, 
   isProcessing,
-  setIsProcessing, // Se asume que el padre puede proveerlo o usamos control de carga local
+  setIsProcessing, 
   currentTenant,
   hasExistingData 
 }) => {
@@ -57,23 +57,31 @@ const EJECUTOR_PLAY = ({
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      // Saneamiento estructural: Si es 'WBT' o contiene variantes de 'WB', se fuerza 'WBT' que es el nombre real en base de datos
-      const targetCompany = (currentTenant === 'WBT' || currentTenant?.toUpperCase().includes('WB')) 
-        ? 'WBT' 
-        : currentTenant;
+      // CORRECCIÓN DE SANEAMIENTO: Validación estricta para evitar que WBO sea absorbido por WBT
+      const tenantUpper = currentTenant?.toUpperCase() || '';
+      let targetCompany = currentTenant;
+      
+      if (tenantUpper === 'WBO' || tenantUpper.includes('WBO')) {
+        targetCompany = 'WBO';
+      } else if (tenantUpper === 'WBT' || tenantUpper.includes('WBT') || tenantUpper === 'WB') {
+        targetCompany = 'WBT';
+      }
 
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
-      // CAMBIO CLAVE: Forzar el apunte directo al puerto local de FastAPI 8000
       const baseUrl = 'https://servex-ai-back.onrender.com'; 
+      
+      // ARQUITECTURA ELÁSTICA: Inyección dinámica del segmento multi-tenant para el Gateway Engine
+      const tenantPrefix = targetCompany.toLowerCase();
+      const endpointUrl = `${baseUrl}/${tenantPrefix}/api/v1/pipeline/compare-only`;
   
-      console.log(`[+] Despachando payload atómico a: ${baseUrl}/api/v1/pipeline/compare-only`);
+      console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
   
-      const response = await fetch(`${baseUrl}/api/v1/pipeline/compare-only`, {
+      const response = await fetch(endpointUrl, {
         method: 'POST',
         body: formData,
-        // No agregues headers de Content-Type manuales, el navegador debe setear el boundary del FormData automáticamente
+        // Dejar que el navegador configure el boundary del FormData automáticamente
       });
   
       if (!response.ok) {
@@ -217,7 +225,6 @@ const EJECUTOR_PLAY = ({
               <FiTrash2 size={12} />
               RESET SYSTEM
             </button>
-          
           </div>
         </div>
       </div>
