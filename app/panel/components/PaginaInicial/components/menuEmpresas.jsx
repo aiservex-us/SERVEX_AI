@@ -16,16 +16,7 @@ export default function Calendar() {
 
   // 🔹 Array de datos idéntico a tus tarjetas para poder filtrar dinámicamente
   const companies = [
-    {
-      company: "WB Accesories",
-      logo: "/logosEmpresas/WB.webp",
-      role: "Industrial Components & Modular Add-ons",
-      description: "Componentes estructurales, brazos articulados, iluminación LED integrada y sistemas de soporte diseñados para optimizar el espacio de trabajo del operador.",
-      tags: ['Accessories', 'Ergonomics', 'Customization'],
-      status: "Active contract",
-      location: "United States",
-      onOpen: () => router.push('/WBA')
-    },
+
     {
       company: "WB Tables",
       logo: "/logosEmpresas/WB.webp",
@@ -75,6 +66,16 @@ export default function Calendar() {
       status: "Active contract",
       location: "United States",
       onOpen: () => router.push('/WBD')
+    },
+        {
+      company: "WB Accesories",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Industrial Components & Modular Add-ons",
+      description: "Componentes estructurales, brazos articulados, iluminación LED integrada y sistemas de soporte diseñados para optimizar el espacio de trabajo del operador.",
+      tags: ['Accessories', 'Ergonomics', 'Customization'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBA')
     },
     {
       company: "LESRO",

@@ -16,7 +16,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-const LesroPricingFix = () => {
+const WBTPricingFix = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -105,7 +105,7 @@ const LesroPricingFix = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = "LESRO_PRICING_2026.csv";
+    a.download = "WBT_PRICING_2026.csv";
     a.click();
   };
 
@@ -140,7 +140,7 @@ const LesroPricingFix = () => {
             </div>
             <h1 className="text-2xl font-semibold text-[#242424] tracking-tight">Automated Catalog Synchronizer</h1>
             <p className="text-[13px] text-[#616161] mt-1 max-w-xl">
-              Process official Lesro PDF catalogs to extract SKUs and grade-based pricing. 
+              Process official WBT PDF catalogs to extract SKUs and grade-based pricing. 
               Outputs a structured CSV optimized for SVX engine integration.
             </p>
           </div>
@@ -169,7 +169,7 @@ const LesroPricingFix = () => {
               </h3>
               <div className="space-y-6">
                 {[
-                  { icon: FileText, t: "Upload Catalog", d: "Select the original Lesro price list PDF." },
+                  { icon: FileText, t: "Upload Catalog", d: "Select the original WBT price list PDF." },
                   { icon: RefreshCw, t: "Automated Analysis", d: "SVX identifies SKUs and Grade (G2-G13) values." },
                   { icon: Download, t: "Instant Export", d: "CSV is generated and downloaded automatically." }
                 ].map((step, i) => (
@@ -208,7 +208,7 @@ const LesroPricingFix = () => {
               </div>
               
               <h3 className="text-base font-semibold text-[#242424] mb-2">Import Price Catalog</h3>
-              <p className="text-[#616161] text-[13px] mb-8">Drag and drop or browse for the Lesro PDF file</p>
+              <p className="text-[#616161] text-[13px] mb-8">Drag and drop or browse for the WBT PDF file</p>
               
               <div className="relative">
                 <input 
@@ -319,4 +319,4 @@ const LesroPricingFix = () => {
   );
 };
 
-export default LesroPricingFix;
+export default WBTPricingFix;

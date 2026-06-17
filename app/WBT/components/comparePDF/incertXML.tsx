@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML() {
-  const [companyName, setCompanyName] = useState('WBT');
+  const [companyName] = useState('WBT');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,12 @@ export default function UploadClientXML() {
   const [, startTransition] = useTransition();
 
   // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (Equivalente al Script de Python) ---
-  const sanitizeCSV = (rawCsvText: string): any[] => {
+  interface CsvRow {
+    [key: string]: string | null | string[] | undefined;
+    _orphaned_fields?: string[];
+  }
+  
+  const sanitizeCSV = (rawCsvText: string): CsvRow[] => {
     if (!rawCsvText || !rawCsvText.trim()) return [];
 
     // Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
@@ -96,7 +101,7 @@ export default function UploadClientXML() {
 
     const perfectHeaders = cleanedTokens;
     const dataLines = lines.slice(dataStartIndex);
-    const sanitizedJson: any[] = [];
+    const sanitizedJson: CsvRow[] = [];
     const headersLen = perfectHeaders.length;
 
     // Optimización con bucles indexados for para mitigar penalizaciones por Garbage Collection en memoria
@@ -104,7 +109,7 @@ export default function UploadClientXML() {
       const line = dataLines[i];
       if (!line.trim()) continue; // Ignorar líneas vacías
       const currentCells = line.split(';');
-      const rowObject: any = {};
+      const rowObject: CsvRow = {};
 
       for (let j = 0; j < headersLen; j++) {
         const header = perfectHeaders[j];
@@ -222,7 +227,7 @@ export default function UploadClientXML() {
         setXmlContent(''); 
         setCsvContent(''); 
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setMessage({ text: 'Unexpected client-side error', type: 'error' });
     } finally { 

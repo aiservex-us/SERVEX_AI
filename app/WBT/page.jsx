@@ -14,7 +14,7 @@ import Csvs_updated from './components/comparePDF/csvs_updated.jsx';
 import PrecentMain from './components/PrecentMain';
 // --- IMPORTACIÓN SOLICITADA ---
 import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
-import AIReporting from './components/comparePDF/presentation_LESRO'
+import AIReporting from './components/comparePDF/presentation_WBT'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 
@@ -127,7 +127,7 @@ export default function MenuInicial() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the LESRO management area. Any temporary changes in this view will be closed.
+                  You are about to leave the WBT management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>

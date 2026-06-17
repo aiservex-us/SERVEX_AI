@@ -12,7 +12,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const WBDDataMatrix = () => {
+const WBTDataMatrix = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +33,7 @@ const WBDDataMatrix = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated user found");
 
-      // Ingestión desde la tabla correcta configurada en Supabase para WBD
+      // Ingestión desde la tabla correcta configurada en Supabase para WBT
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_WBT')
         .select('xml_actualizer_raw')
@@ -349,4 +349,4 @@ const WBDDataMatrix = () => {
   );
 };
 
-export default WBDDataMatrix;
+export default WBTDataMatrix;

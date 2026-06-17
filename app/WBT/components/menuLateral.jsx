@@ -93,7 +93,7 @@ export default function MenuLateral({
               ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
             `}>
               <span className="font-bold text-[12px] tracking-tight text-slate-800 whitespace-nowrap uppercase">
-                DATA LESRO
+                DATA WBT
               </span>
             </div>
           </div>

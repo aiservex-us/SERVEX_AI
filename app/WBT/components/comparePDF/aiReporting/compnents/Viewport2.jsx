@@ -271,7 +271,7 @@ const Viewport = () => {
             
             <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100 relative">
               <button type="button" onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 text-[10px] font-bold text-gray-600 bg-white border border-gray-200 px-2 py-1 rounded hover:bg-gray-50">
-                <Database size={12} className="text-[#464775]" /> CONTEXT LESRO AI PROTOCOL <ChevronDown size={0} />
+                <Database size={12} className="text-[#464775]" /> CONTEXT WBT AI PROTOCOL <ChevronDown size={0} />
               </button>
            
               <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-bold ml-auto"><Zap size={10} className="text-yellow-500 fill-yellow-500" /> SVX ENGINE READY</div>
