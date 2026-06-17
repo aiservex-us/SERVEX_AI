@@ -10,10 +10,11 @@ import Dashboard from './components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from './components/perceo_XML_MASTER_pre_prosses.jsx';
 import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
+import Csvs_updated from './components/comparePDF/csvs_updated.jsx'; 
 import PrecentMain from './components/PrecentMain';
 // --- IMPORTACIÓN SOLICITADA ---
 import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
-import AIReporting from './components/comparePDF/presentation_LESRO'
+import AIReporting from './components/comparePDF/presentation_WBO'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 
@@ -22,8 +23,19 @@ export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
   const [collapsed, setCollapsed] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
 
   const router = useRouter();
+
+  // Detectar el tamaño de pantalla de manera segura para el renderizado del lado del cliente
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileScreen(window.innerWidth < 700);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
 {/*
   // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
@@ -57,17 +69,31 @@ export default function MenuInicial() {
   };
 
   const renderContent = () => {
+    // Si intenta renderizar notifications en un celular, se bloquea la vista
+    if (active === 'notifications' && isMobileScreen) {
+      return (
+        <div className="p-6 flex flex-col items-center justify-center h-full text-center bg-slate-50">
+          <AlertCircle className="text-amber-500 mb-2" size={32} />
+          <h3 className="text-[14px] font-bold text-slate-800 uppercase tracking-wider">Panel bloqueado</h3>
+          <p className="text-[12px] text-slate-500 max-w-xs mt-1">
+            La sección Change Tracker está disponible únicamente para entornos de escritorio (PC).
+          </p>
+        </div>
+      );
+    }
+
     switch (active) {
       case 'dashboard': return <Dashboard />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
+      case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
       // --- RENDERIZADO DEL COMPONENTE DE COMPARACIÓN ---
       case 'notifications': return <UploadFileCmpare />; 
       case 'reporting': return <AIReporting />; 
-      case 'compare': return <Compare />
-      case 'AI_reporter': return <Responce_ai />
+      case 'compare': return <Compare />;
+      case 'AI_reporter': return <Responce_ai />;
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
     }
@@ -101,7 +127,7 @@ export default function MenuInicial() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the LESRO management area. Any temporary changes in this view will be closed.
+                  You are about to leave the WBT management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>
@@ -124,7 +150,8 @@ export default function MenuInicial() {
         </div>
       )}
 
-      <main className="w-full h-[95vh] p-0 flex">
+      {/* Se remueve el padding rígido y overflow restrictivo en móvil para el flujo de la barra lateral fixed */}
+      <main className="w-full h-[95vh] p-0 flex relative overflow-hidden">
         <MenuLateral
           active={active}
           setActive={setActive}
@@ -132,7 +159,8 @@ export default function MenuInicial() {
           setCollapsed={setCollapsed}
         />
 
-        <div className="relative group flex-1 h-full">
+        {/* md:ml-0 previene saltos bruscos cuando el menú lateral pasa a fixed en móviles */}
+        <div className="relative group flex-1 h-full w-full min-w-0">
           <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
           <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
             <div className="p-1 w-full h-full">
