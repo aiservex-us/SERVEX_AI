@@ -514,7 +514,7 @@ const SVXUnifiedPlatform = () => {
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
       <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">
   <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
-    <h3 className="text-[10px] font-black text-[#464775] mb-6 uppercase">Execution Pipeline</h3>
+    <h3 className=""></h3>
     <div className="space-y-6">
       <Step icon={<FiUploadCloud size={14}/>} title="Data Ingestion" desc={fileName ? "Sanitized Matrix" : "Waiting for CSV"} active={!!file} />
       <Step icon={<Zap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />

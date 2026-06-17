@@ -93,29 +93,29 @@ const EJECUTOR_PLAY = ({
   };
 
   return (
-    <div className="flex flex-col gap-3 font-sans antialiased text-[#242424]">
+    <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 font-sans antialiased text-[#242424]">
       
       {/* --- POPUP 1: PROCESO UNIFICADO --- */}
       {showStatusPopup && (
-        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-2xl p-6 max-w-sm w-full text-center space-y-4 transform animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
             <div className="flex justify-center">
               <div className="relative">
                 <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
-                <div className="relative bg-white border border-gray-100 p-3 rounded-full shadow-sm">
-                  <FiZap className="text-[#5b5fc7] animate-pulse" size={24} />
+                <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
+                  <FiZap className="text-[#5b5fc7] animate-pulse" size={20} />
                 </div>
               </div>
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Update Process Initiated</h3>
-              <p className="text-[11px] text-gray-500 font-medium">Catalog ({currentTenant}): {currentDate}</p>
+              <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Update Process Initiated</h3>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Catalog ({currentTenant}): {currentDate}</p>
             </div>
 
-            <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
-              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={16} />
-              <p className="text-[10px] text-amber-800 leading-tight">
+            <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
+              <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
                 <strong>IMPORTANT:</strong> The system is synchronizing critical data within SVX. <strong>Do not switch sections</strong> or restart the application until the output monitor finishes.
               </p>
             </div>
@@ -130,25 +130,25 @@ const EJECUTOR_PLAY = ({
 
       {/* --- POPUP 2: SEGUNDO PROCESO --- */}
       {showSecondPopup && (
-        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-2xl p-6 max-w-sm w-full text-center space-y-4 transform animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
             <div className="flex justify-center">
               <div className="relative">
                 <div className="absolute inset-0 bg-[#464775]/10 rounded-full animate-ping"></div>
-                <div className="relative bg-white border border-gray-100 p-3 rounded-full shadow-sm">
-                  <FiCpu className="text-[#464775] animate-pulse" size={24} />
+                <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
+                  <FiCpu className="text-[#464775] animate-pulse" size={20} />
                 </div>
               </div>
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Secondary Process Initiated</h3>
-              <p className="text-[11px] text-gray-500 font-medium">Module ({currentTenant}): {currentDate}</p>
+              <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Secondary Process Initiated</h3>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module ({currentTenant}): {currentDate}</p>
             </div>
 
-            <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
-              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={16} />
-              <p className="text-[10px] text-amber-800 leading-tight">
+            <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
+              <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
                 <strong>WARNING:</strong> Storing new catalog data. Please wait for the data upload to complete without interrupting the process.
               </p>
             </div>
@@ -162,43 +162,63 @@ const EJECUTOR_PLAY = ({
       )}
 
       {/* --- ACTION CONTAINER --- */}
-      <div className="bg-white border border-[#e0e0e0] rounded-lg p-4 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="bg-white border border-[#e0e0e0] rounded-lg p-3 sm:p-4 lg:p-5 shadow-sm flex flex-col h-full gap-3 sm:gap-4">
+        <div className="flex items-center gap-2">
           <div className="text-[#5b5fc7]">
-            <Zap size={14} fill="currentColor" />
+            <Zap size={12} className="sm:hidden" fill="currentColor" />
+            <Zap size={14} className="hidden sm:inline" fill="currentColor" />
           </div>
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#616161]">System Actions</h4>
+          <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#616161]">System Actions</h4>
         </div>
         
-        <div className="flex flex-col gap-1.5">
-          {/* PRIMER BOTÓN ORIGINAL */}
-          <button 
-            onClick={ejecutarConConsola}
-            disabled={!file || estadoProcesando}
-            className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
-          >
-            {estadoProcesando && showStatusPopup ? <Loader2 size={14} className="animate-spin" /> : <FiZap size={14} />}
-            SAVE NEW DATA IN SYSTEM (FIRST STEP)
-          </button>
+        <div className="flex flex-col gap-3 sm:gap-4 flex-1">
+          {/* PRIMER BOTÓN CON DESCRIPCIÓN */}
+          <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
+            <button 
+              onClick={ejecutarConConsola}
+              disabled={!file || estadoProcesando}
+              className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
+            >
+              {estadoProcesando && showStatusPopup ? <Loader2 size={12} className="animate-spin" /> : <FiZap size={12} />}
+              <span className="line-clamp-2">SAVE NEW DATA IN SYSTEM (FIRST STEP)</span>
+            </button>
+            <div className="px-1 py-1 sm:py-2">
+              <p className="text-[8px] sm:text-[9px] font-bold text-[#5b5fc7] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
+              <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed line-clamp-3 sm:line-clamp-none">
+                Uploads your CSV catalog data to the cloud database and synchronizes it with the CRUD system. This step validates, sanitizes, and stores the new pricing information.
+              </p>
+            </div>
+          </div>
 
-          {/* SEGUNDO BOTÓN REESTRUCTURADO Y CONECTADO */}
-          <button 
-            onClick={ejecutarSegundoProceso}
-            disabled={(!file && !hasExistingData) || estadoProcesando}
-            className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 px-3 rounded font-semibold text-[11px] transition-all flex items-center justify-center gap-2 shadow-sm"
-          >
-            {estadoProcesando && showSecondPopup ? <Loader2 size={14} className="animate-spin" /> : <Cpu size={14} />}
-            EXECUTE XML RESTRUCTURE AND CATALOG COMPARE (SECOND STEP)
-          </button>
+          {/* SEGUNDO BOTÓN CON DESCRIPCIÓN */}
+          <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
+            <button 
+              onClick={ejecutarSegundoProceso}
+              disabled={(!file && !hasExistingData) || estadoProcesando}
+              className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
+            >
+              {estadoProcesando && showSecondPopup ? <Loader2 size={12} className="animate-spin" /> : <Cpu size={12} />}
+              <span className="line-clamp-2">EXECUTE XML RESTRUCTURE AND CATALOG COMPARE (SECOND STEP)</span>
+            </button>
+            <div className="px-1 py-1 sm:py-2">
+              <p className="text-[8px] sm:text-[9px] font-bold text-[#464775] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
+              <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed line-clamp-3 sm:line-clamp-none">
+                Restructures the XML catalog format and compares it against master records. Generates an audit report highlighting changes, differences, and validation results for CET Designer approval.
+              </p>
+            </div>
+          </div>
 
-          {/* BOTÓN DE RESET TRASERO */}
-          <button 
-            onClick={handleFullReset} 
-            className="w-full mt-1 py-1.5 px-3 text-[10px] font-medium text-[#616161] hover:text-[#c4314b] hover:bg-[#f5f5f5] rounded transition-all flex items-center justify-center gap-2"
-          >
-            <FiTrash2 size={13} />
-            Reset System
-          </button>
+          {/* BOTÓN DE RESET CON DESCRIPCIÓN */}
+          <div className="flex flex-col gap-1.5 sm:gap-2 mt-auto">
+            <button 
+              onClick={handleFullReset} 
+              className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-[9px] sm:text-[10px] font-medium text-[#616161] hover:text-[#c4314b] hover:bg-[#f5f5f5] border border-[#e0e0e0] rounded-md transition-all flex items-center justify-center gap-1 sm:gap-2"
+            >
+              <FiTrash2 size={12} />
+              RESET SYSTEM
+            </button>
+          
+          </div>
         </div>
       </div>
 
