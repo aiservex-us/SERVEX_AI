@@ -8,6 +8,15 @@ export default function AuditReportViewer() {
   const [error, setError] = useState(null);
   const [selectedRecordId, setSelectedRecordId] = useState(null);
 
+  // Función auxiliar para calcular el porcentaje de diferencia
+  const calculatePercentage = (oldVal, newVal) => {
+    const oldNum = parseFloat(oldVal);
+    const newNum = parseFloat(newVal);
+    if (isNaN(oldNum) || isNaN(newNum) || oldNum === 0) return null;
+    const diff = ((newNum - oldNum) / Math.abs(oldNum)) * 100;
+    return diff.toFixed(1) + '%';
+  };
+
   useEffect(() => {
     async function fetchAuditData() {
       try {
@@ -41,7 +50,6 @@ export default function AuditReportViewer() {
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6 bg-[#F5F5F5] min-h-screen text-[#323130] font-sans">
-      {/* Header Estilo Fluent */}
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-[#201F1E] mb-1">Centro de Auditoría SERVEX_AI</h1>
         <div className="flex items-center gap-4 text-sm text-[#605E5C]">
@@ -57,7 +65,6 @@ export default function AuditReportViewer() {
         </div>
       </header>
 
-      {/* KPI Section */}
       {reportData?.summary_metrics && (
         <section className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           {[
@@ -75,7 +82,6 @@ export default function AuditReportViewer() {
         </section>
       )}
 
-      {/* Tabla Principal */}
       <div className="bg-white border border-[#E1DFDD] shadow-sm">
         <div className="p-4 border-b border-[#E1DFDD]">
           <h2 className="font-semibold text-[#323130]">Historial de Modificaciones</h2>
@@ -83,21 +89,31 @@ export default function AuditReportViewer() {
         <table className="w-full text-left border-collapse text-sm">
           <thead className="bg-[#F8F9FA] text-[#605E5C]">
             <tr>
-              {['Model ID', 'Nodo', 'Valor Original', 'Nuevo Valor', 'Index'].map(h => (
+              {['Model ID', 'Nodo', 'Valor Original', 'Nuevo Valor', '% Dif', 'Index'].map(h => (
                 <th key={h} className="p-3 font-medium uppercase text-[11px]">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E1DFDD]">
-            {reportData?.detected_changes?.map((c, i) => (
-              <tr key={i} className="hover:bg-[#F3F2F1]">
-                <td className="p-3 font-mono font-bold text-[#464775]">{c.model_id}</td>
-                <td className="p-3">{c.column_name}</td>
-                <td className="p-3 text-[#A4262C] line-through">{c.old_value}</td>
-                <td className="p-3 font-semibold text-[#107C10]">{c.new_value}</td>
-                <td className="p-3 text-[#605E5C]">{c.positional_index}</td>
-              </tr>
-            ))}
+            {reportData?.detected_changes?.map((c, i) => {
+              const diff = calculatePercentage(c.old_value, c.new_value);
+              return (
+                <tr key={i} className="hover:bg-[#F3F2F1]">
+                  <td className="p-3 font-mono font-bold text-[#464775]">{c.model_id}</td>
+                  <td className="p-3">{c.column_name}</td>
+                  <td className="p-3 text-[#A4262C] line-through">{c.old_value}</td>
+                  <td className="p-3 font-semibold text-[#107C10]">{c.new_value}</td>
+                  <td className="p-3 font-medium text-[#323130]">
+                    {diff ? (
+                      <span className={parseFloat(diff) >= 0 ? "text-[#107C10]" : "text-[#A4262C]"}>
+                        {diff}
+                      </span>
+                    ) : '-'}
+                  </td>
+                  <td className="p-3 text-[#605E5C]">{c.positional_index}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
