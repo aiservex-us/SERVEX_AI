@@ -13,7 +13,7 @@ export default function Dashboard() {
         {/* Contenedor Report.jsx (65% en escritorio, 100% en móvil) */}
         {/* Usamos 'w-full' para que siempre sea full responsive */}
         <div className="w-full lg:w-[65%] overflow-hidden">
-          <div className="bg-white border border-[#E1DFDD] shadow-sm min-h-[400px]">
+          <div className="bg-white ">
             <AuditReportViewer />
           </div>
         </div>
@@ -22,7 +22,7 @@ export default function Dashboard() {
         {/* 'hidden' por defecto, se muestra como 'block' solo si el ancho es >= 400px */}
         {/* En pantallas grandes (lg), mantenemos el 35% */}
         <div className="hidden min-[400px]:block w-full lg:w-[35%]">
-          <div className="bg-white border border-[#E1DFDD] shadow-sm p-4 h-full">
+          <div className="bg-white ">
             <AuditAnalyticsDashboard />
           </div>
         </div>
