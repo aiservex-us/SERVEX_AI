@@ -20,7 +20,7 @@ const WBDDataMatrix = () => {
   
   // Estado para controlar la página actual
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 35;
 
   // Cabeceras estrictas requeridas para mostrar del XML
   const baseHeaders = ["SKU", "Description", "Classification", "Base Price"];
