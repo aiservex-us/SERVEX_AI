@@ -1,7 +1,7 @@
 'use client';
 // Importamos el cliente de trabajadores asignado a la plataforma
 import { supabase } from '@/app/lib/supabaseClient';
-
+import React, { useState, useEffect } from 'react';
 export default function AuditReportViewer() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
