@@ -36,7 +36,7 @@ export default function AuditReportViewer() {
   if (loading) return <div className="p-10 text-sm text-[#616161]">Cargando auditoría...</div>;
 
   return (
-    <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
+    <div className="min-h-[85vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           

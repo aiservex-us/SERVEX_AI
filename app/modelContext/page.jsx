@@ -170,7 +170,7 @@ export default function PanelPage() {
 
           {activeView !== 'chat' && (
             <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-              Vista "{activeView}"
+              Vista {activeView}
             </div>
           )}
         </div>
