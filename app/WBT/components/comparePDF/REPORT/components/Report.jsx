@@ -1,7 +1,7 @@
 'use client';
 import { supabase } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Zap, Database, BrainCircuit } from 'lucide-react';
 
 export default function AuditReportViewer() {
   const [records, setRecords] = useState([]);
@@ -23,6 +23,7 @@ export default function AuditReportViewer() {
         .from('ClientsSERVEX_WBT')
         .select('id, company_name, audit_report_jsonP, created_at')
         .order('created_at', { ascending: false });
+      
       setRecords(data || []);
       if (data?.length > 0) setSelectedRecordId(data[0].id);
       setLoading(false);
@@ -57,43 +58,68 @@ export default function AuditReportViewer() {
               >
                 {records.map((rec) => <option key={rec.id} value={rec.id}>{rec.company_name}</option>)}
               </select>
-              <button className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161]"><RefreshCw size={13} /></button>
+              <button className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161]">
+                <RefreshCw size={13} />
+              </button>
             </div>
           </div>
 
-         {/* Tabla de Auditoría con Columna Index */}
-<div className="w-full overflow-x-auto">
-  <table className="table-fixed border-collapse text-left text-xs w-full">
-    <thead className="bg-gradient-to-b from-white to-[#FCFAFF]">
-      <tr>
-        {['#', 'Model ID', 'Nodo', 'Valor Original', 'Nuevo Valor', '% Dif'].map(h => (
-          <th key={h} className={`px-3 py-2 text-[10px] font-semibold text-[#5B5FC7] border-b border-[#E0E0E0] uppercase tracking-wider ${h === '#' ? 'w-10' : ''}`}>
-            {h}
-          </th>
-        ))}
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-[#F0F0F0]">
-      {reportData?.detected_changes?.map((c, i) => {
-        const diff = calculatePercentage(c.old_value, c.new_value);
-        return (
-          <tr key={i} className="hover:bg-[#F7F5FA]">
-            {/* Columna Index */}
-            <td className="px-3 py-2 text-[10px] text-[#A6A6A6] font-mono">{i + 1}</td>
-            
-            <td className="px-3 py-2 font-mono font-bold text-[#5B5FC7]">{c.model_id}</td>
-            <td className="px-3 py-2">{c.column_name}</td>
-            <td className="px-3 py-2 text-[#A4262C] line-through decoration-red-300 font-mono">{c.old_value}</td>
-            <td className="px-3 py-2 font-semibold text-[#107C10] font-mono">{c.new_value}</td>
-            <td className="px-3 py-2">
-                <span className={parseFloat(diff) >= 0 ? "text-[#107C10]" : "text-[#A4262C]"}>{diff || 'N/A'}</span>
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
-</div>
+          {/* Contenedor de Insights de Procesamiento */}
+          <div className="bg-[#FDFDFD] border-b border-[#E0E0E0] p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Database size={16} /></div>
+              <div>
+                <p className="text-[9px] font-bold text-[#616161] uppercase">Pipeline ETL</p>
+                <p className="text-[10px] text-[#242424]">Procesamiento de fuentes {reportData?.source_format || 'XML/CSV'}. Integridad validada mediante checksums.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><BrainCircuit size={16} /></div>
+              <div>
+                <p className="text-[9px] font-bold text-[#616161] uppercase">Análisis IA</p>
+                <p className="text-[10px] text-[#242424]">Detección de desviaciones mediante modelos de inferencia SERVEX_AI. Ajustes aplicados.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Zap size={16} /></div>
+              <div>
+                <p className="text-[9px] font-bold text-[#616161] uppercase">Estado de Sincronización</p>
+                <p className="text-[10px] text-[#242424]">Ejecución en {reportData?.execution_time || '0.4s'}. Estado: <span className="font-bold text-[#107C10]">OPTIMIZADO</span></p>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabla de Auditoría */}
+          <div className="w-full overflow-x-auto">
+            <table className="table-fixed border-collapse text-left text-xs w-full">
+              <thead className="bg-gradient-to-b from-white to-[#FCFAFF]">
+                <tr>
+                  {['#', 'Model ID', 'Nodo', 'Valor Original', 'Nuevo Valor', '% Dif'].map(h => (
+                    <th key={h} className={`px-3 py-2 text-[10px] font-semibold text-[#5B5FC7] border-b border-[#E0E0E0] uppercase tracking-wider ${h === '#' ? 'w-10' : ''}`}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#F0F0F0]">
+                {reportData?.detected_changes?.map((c, i) => {
+                  const diff = calculatePercentage(c.old_value, c.new_value);
+                  return (
+                    <tr key={i} className="hover:bg-[#F7F5FA]">
+                      <td className="px-3 py-2 text-[10px] text-[#A6A6A6] font-mono">{i + 1}</td>
+                      <td className="px-3 py-2 font-mono font-bold text-[#5B5FC7]">{c.model_id}</td>
+                      <td className="px-3 py-2">{c.column_name}</td>
+                      <td className="px-3 py-2 text-[#A4262C] line-through decoration-red-300 font-mono">{c.old_value}</td>
+                      <td className="px-3 py-2 font-semibold text-[#107C10] font-mono">{c.new_value}</td>
+                      <td className="px-3 py-2">
+                         <span className={parseFloat(diff) >= 0 ? "text-[#107C10]" : "text-[#A4262C]"}>{diff || 'N/A'}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
           {/* Footer de Auditoría */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between">

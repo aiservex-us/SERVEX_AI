@@ -69,7 +69,7 @@ export default function TeamsAgentChat() {
     <div className="w-full h-[80vh] flex flex-col bg-white font-sans text-gray-800 relative overflow-hidden">
       
 {/* --- TOP BAR (CLEAN WHITE STYLE) --- */}
-<div className="h-10 bg-white w-full flex items-center justify-between px-4 text-[#242424] shadow-[0_1px_0_0_#E0E0E0] shrink-0 z-50">
+<div className="h-13 bg-white w-full flex items-center justify-between px-4 text-[#242424] shadow-[0_1px_0_0_#E0E0E0] shrink-0 z-50">
   <div className="flex items-center gap-4">
     <div className="rounded p-0.5 border border-[#E0E0E0]">
       <img src="/logo2.png" alt="SVX" className="h-5 w-auto" />
