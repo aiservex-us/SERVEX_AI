@@ -73,8 +73,14 @@ const EJECUTOR_PLAY = ({
       const baseUrl = 'https://servex-ai-back.onrender.com'; 
       
       // ARQUITECTURA ELÁSTICA: Inyección dinámica del segmento multi-tenant para el Gateway Engine
-      const tenantPrefix = targetCompany.toLowerCase();
-      const endpointUrl = `${baseUrl}/${tenantPrefix}/api/v1/pipeline/compare-only`;
+      // La URL final debe incluir el prefijo correcto del tenant mapeado en main.py
+      let endpointUrl;
+      if (targetCompany === 'WBO') {
+        endpointUrl = `${baseUrl}/wbo/api/v1/pipeline/compare-only-WBO`;
+      } else {
+        // Por defecto WBT
+        endpointUrl = `${baseUrl}/wbt/api/v1/pipeline/compare-only`;
+      }
   
       console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
   
