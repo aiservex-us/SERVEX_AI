@@ -17,7 +17,7 @@ import UploadFileCmpare from './components/comparePDF/EJECUTOR';
 import AIReporting from './components/comparePDF/presentation_WBT'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
-import Report from './components/comparePDF/Report.jsx';
+import Report from './components/comparePDF/REPORT/dashboard.jsx';
 
 
 export default function MenuInicial() {
