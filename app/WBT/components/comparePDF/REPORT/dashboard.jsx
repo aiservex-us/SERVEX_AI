@@ -25,7 +25,7 @@ export default function Dashboard() {
         {/* 'w-full' permite que se apile correctamente en móvil */}
         <div className="lg:w-[35%] w-full">
           <div className="bg-white border border-[#E1DFDD] shadow-sm p-4 h-full">
-            <h2 className="text-sm font-semibold text-[#323130] mb-4">Analítica de Datos</h2>
+
             <AuditAnalyticsDashboard />
           </div>
         </div>
