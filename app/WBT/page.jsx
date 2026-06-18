@@ -17,6 +17,7 @@ import UploadFileCmpare from './components/comparePDF/EJECUTOR';
 import AIReporting from './components/comparePDF/presentation_WBT'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
+import Report from './components/comparePDF/Report.jsx';
 
 
 export default function MenuInicial() {
@@ -75,9 +76,9 @@ export default function MenuInicial() {
         <div className="p-6 flex flex-col items-center justify-center h-full text-center bg-slate-50">
           <AlertCircle className="text-amber-500 mb-2" size={32} />
           <h3 className="text-[14px] font-bold text-slate-800 uppercase tracking-wider">Panel bloqueado</h3>
-          <p className="text-[12px] text-slate-500 max-w-xs mt-1">
-            La sección "Change Tracker" está disponible únicamente para entornos de escritorio (PC).
-          </p>
+        <p className={"text-[12px] text-slate-500 max-w-xs mt-1"}>
+  La sección Change Tracker está disponible únicamente para entornos de escritorio (PC).
+</p>
         </div>
       );
     }
@@ -89,7 +90,7 @@ export default function MenuInicial() {
       case 'inbox': return <Csvs />;
       case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
-      // --- RENDERIZADO DEL COMPONENTE DE COMPARACIÓN ---
+       case 'report': return <Report />;
       case 'notifications': return <UploadFileCmpare />; 
       case 'reporting': return <AIReporting />; 
       case 'compare': return <Compare />;
