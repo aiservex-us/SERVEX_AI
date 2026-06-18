@@ -39,6 +39,41 @@ export default function AuditReportViewer() {
   return (
     <div className="min-h-[85vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
+        
+        {/* Header de Centro de Análisis Avanzado */}
+        <div className="mb-6 bg-gradient-to-br from-[#1A1A1A] to-[#2D2D2D] rounded-md p-6 border border-[#404040] shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#5B5FC7] opacity-10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-3">
+                <BrainCircuit className="text-[#5B5FC7]" size={28} />
+                Centro de Análisis de Desarrollo
+              </h1>
+              <p className="text-[#A6A6A6] text-xs mt-1 max-w-lg leading-relaxed">
+                Arquitectura de inteligencia avanzada para la gestión de datos críticos en <span className="text-[#E8EBFA] font-semibold">SVX Enterprise Systems</span>. 
+                Módulos de auditoría, trazabilidad y optimización en tiempo real.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 bg-[#000000]/30 px-4 py-2 rounded-sm border border-[#404040]">
+              <div className="flex -space-x-2">
+                <div className="w-6 h-6 rounded-full bg-[#5B5FC7] border border-white/20 flex items-center justify-center text-[8px] text-white font-bold">AI</div>
+                <div className="w-6 h-6 rounded-full bg-[#107C10] border border-white/20 flex items-center justify-center text-[8px] text-white font-bold">ETL</div>
+              </div>
+              <div className="h-6 w-[1px] bg-[#404040] mx-1" />
+              <div className="flex flex-col">
+                <span className="text-[9px] text-[#A6A6A6] uppercase tracking-wider">Estado de Servidor</span>
+                <span className="text-[10px] text-[#107C10] font-bold flex items-center gap-1">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#107C10] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#107C10]"></span>
+                  </span>
+                  SISTEMA OPERATIVO
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
           {/* Header de Operaciones */}
