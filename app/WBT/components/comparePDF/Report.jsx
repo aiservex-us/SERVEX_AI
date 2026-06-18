@@ -8,7 +8,6 @@ export default function AuditReportViewer() {
   const [error, setError] = useState(null);
   const [selectedRecordId, setSelectedRecordId] = useState(null);
 
-  // Función auxiliar para calcular el porcentaje de diferencia
   const calculatePercentage = (oldVal, newVal) => {
     const oldNum = parseFloat(oldVal);
     const newNum = parseFloat(newVal);
@@ -39,7 +38,7 @@ export default function AuditReportViewer() {
   }, []);
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[400px] text-[#464775]">
+    <div className="flex items-center justify-center min-h-[400px] text-[#464775]" style={{ fontFamily: '"Segoe UI", Tahoma, sans-serif' }}>
       <div className="w-6 h-6 border-2 border-[#464775] border-t-transparent rounded-full animate-spin mr-3"></div>
       <span className="text-sm font-medium">Cargando reporte...</span>
     </div>
@@ -49,7 +48,7 @@ export default function AuditReportViewer() {
   const reportData = activeRecord?.audit_report_jsonP;
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-6 bg-[#F5F5F5] min-h-screen text-[#323130] font-sans">
+    <div className="w-full max-w-7xl mx-auto p-6 bg-[#FFF] min-h-[90vh] text-[#323130]" style={{ fontFamily: '"Segoe UI", Tahoma, sans-serif' }}>
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-[#201F1E] mb-1">Centro de Auditoría SERVEX_AI</h1>
         <div className="flex items-center gap-4 text-sm text-[#605E5C]">
@@ -65,14 +64,13 @@ export default function AuditReportViewer() {
         </div>
       </header>
 
+      {/* Grid de KPIs simplificado */}
       {reportData?.summary_metrics && (
-        <section className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Cambios', value: reportData.summary_metrics.total_cell_changes },
-            { label: 'Updates XML', value: reportData.summary_metrics.xml_successful_updates },
-            { label: 'Evaluados', value: reportData.summary_metrics.evaluated_common_models },
-            { label: 'Añadidos', value: reportData.summary_metrics.added_models_count },
-            { label: 'Eliminados', value: reportData.summary_metrics.deleted_models_count }
+            { label: 'Cambios totales', value: reportData.summary_metrics.total_cell_changes },
+            { label: 'Updates XML validados', value: reportData.summary_metrics.xml_successful_updates },
+            { label: 'Modelos en evaluación', value: reportData.summary_metrics.evaluated_common_models }
           ].map((kpi, i) => (
             <div key={i} className="bg-white p-4 border border-[#E1DFDD] hover:border-[#464775] transition-colors">
               <p className="text-[10px] uppercase font-bold text-[#605E5C] tracking-wide">{kpi.label}</p>
@@ -82,6 +80,15 @@ export default function AuditReportViewer() {
         </section>
       )}
 
+      {/* Contenedor informativo adicional */}
+      <div className="mb-8 p-4 bg-[#EDF2FB] border-l-4 border-[#464775] text-[#323130] shadow-sm">
+        <h3 className="font-semibold text-sm mb-1">Nota de Sistema: Auditoría Proactiva</h3>
+        <p className="text-xs text-[#464775]">
+          El motor SERVEX_AI ha completado la validación de integridad. Las métricas mostradas reflejan los cambios detectados en el último ciclo de pipeline contra el modelo base definido en el manifiesto corporativo.
+        </p>
+      </div>
+
+      {/* Tabla Principal */}
       <div className="bg-white border border-[#E1DFDD] shadow-sm">
         <div className="p-4 border-b border-[#E1DFDD]">
           <h2 className="font-semibold text-[#323130]">Historial de Modificaciones</h2>
