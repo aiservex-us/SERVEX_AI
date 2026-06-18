@@ -96,7 +96,7 @@ export default function AuditReportViewer() {
           {/* Footer de Auditoría */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between">
             <span>TOTAL CAMBIOS DETECTADOS: {reportData?.detected_changes?.length || 0}</span>
-            <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] uppercase">Sistema de Integridad SERVEX_AI</div>
+            <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] uppercase">Sistema de Integridad SERVEX_AI.</div>
           </div>
         </div>
       </div>
