@@ -11,8 +11,7 @@ import {
   DownloadCloud, 
   X, 
   Zap, 
-  Terminal,
-  Trash2
+  Terminal
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
@@ -20,6 +19,7 @@ import { supabase } from '../../../lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EJECUTOR_PLAY from './EJECUTOR_PLAY';
+
 
 const SVXUnifiedPlatform = () => {
   // --- CONFIGURACIÓN MULTI-TENANT DINÁMICA ---
@@ -32,14 +32,12 @@ const SVXUnifiedPlatform = () => {
   // --- ESTADOS PARA VERIFICACIÓN DE CATÁLOGO ACTIVO ---
   const [hasExistingData, setHasExistingData] = useState(false);
   const [isClearingBackend, setIsClearingBackend] = useState(false);
-  const [isDeletingRow, setIsDeletingRow] = useState(false);
 
   useEffect(() => {
     const hasSeenTutorial = sessionStorage.getItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`);
     if (!hasSeenTutorial) {
       setShowTutorial(true);
     }
-    // Verificar si la columna csv_new_raw tiene información en Supabase para este tenant
     checkExistingCatalog();
   }, [currentTenant]);
 
@@ -48,7 +46,6 @@ const SVXUnifiedPlatform = () => {
     sessionStorage.setItem(`servex_audit_tutorial_${currentTenant.toLowerCase()}`, 'true');
   };
 
-  // --- COMPROBACIÓN EN BACKEND ---
   const checkExistingCatalog = async () => {
     try {
       const { data: record, error } = await supabase
@@ -67,7 +64,6 @@ const SVXUnifiedPlatform = () => {
     }
   };
 
-  // --- CONTROLADOR PARA BORRAR LA COLUMNA EXCLUSIVAMENTE ---
   const handleIgnoreAndClear = async () => {
     setIsClearingBackend(true);
     try {
@@ -86,31 +82,6 @@ const SVXUnifiedPlatform = () => {
       showAlert(`Error: ${err.message}`, "error");
     } finally {
       setIsClearingBackend(false);
-    }
-  };
-
-  // --- CONTROLADOR PARA ELIMINAR LA FILA COMPLETA DE LA TABLA ---
-  const handleDeleteCompleteRow = async () => {
-    const confirmDelete = window.confirm(`Are you sure you want to completely delete the row associated with company ${currentTenant} from the database? This action cannot be undone.`);
-    if (!confirmDelete) return;
-
-    setIsDeletingRow(true);
-    try {
-      const { error } = await supabase
-        .from(targetTableName)
-        .delete()
-        .eq('company_name', currentTenant);
-
-      if (error) throw error;
-
-      setHasExistingData(false);
-      handleFullReset();
-      showAlert(`Complete row for ${currentTenant} has been successfully deleted.`, "success");
-    } catch (err) {
-      console.error('[-] Error crítico al eliminar la fila completa:', err);
-      showAlert(`Deletion failed: ${err.message}`, "error");
-    } finally {
-      setIsDeletingRow(false);
     }
   };
 
@@ -234,6 +205,7 @@ const SVXUnifiedPlatform = () => {
   const handleFullReset = () => {
     setData([]); setSanitizedJsonData([]); setFile(null); setFileName("");
     setBackendSuccess(false); setCurrentPage(1);
+    setHasExistingData(false);
   };
 
   const getPaginatedData = () => {
@@ -337,7 +309,6 @@ const SVXUnifiedPlatform = () => {
   return (
     <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
       
-      {/* ALERTA INTEGRADA */}
       {alert.show && createPortal(
         <div className="fixed top-6 right-6 z-[9999] p-4 rounded-lg shadow-2xl border flex items-center gap-3 animate-in slide-in-from-right-5 duration-300 bg-white border-[#EDEBE9] min-w-[300px]">
           <div className={`w-2 h-full absolute left-0 rounded-l-lg ${alert.type === 'success' ? 'bg-emerald-500' : alert.type === 'error' ? 'bg-rose-500' : 'bg-amber-500'}`} />
@@ -375,7 +346,8 @@ const SVXUnifiedPlatform = () => {
           </div>
         </div>
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
-          <button onClick={handleDeleteCompleteRow} disabled={isDeletingRow} className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#444791] shadow-sm hover:bg-rose-50 hover:text-rose-600 transition-all disabled:opacity-50">{isDeletingRow ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12}/>}{isDeletingRow ? "Deleting..." : `Delete Tenant ${currentTenant}`}</button>
+         hola
+         
         </nav>
       </header>
 

@@ -18,6 +18,7 @@ import {
 const menuItems = [
   { id: 'reporting', label: 'WBT HOME', icon: LayoutDashboard, sub: 'Analysis' },
   { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
+   { id: 'incert_delete', label: 'Incert & delete DATA', icon: FileDiff, sub: 'Logs' },
   { id: 'report', label: 'Report Update Cataloge', icon: KanbanSquare, sub: 'Information' },
   { id: 'inbox', label: 'Base Excel', icon: Inbox, sub: 'Visualization' },
   { id: 'kanban', label: 'XML Pre Prosses', icon: KanbanSquare, sub: 'Structure' },
