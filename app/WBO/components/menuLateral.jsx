@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'reporting', label: 'WBT HOME', icon: LayoutDashboard, sub: 'Analysis' },
+  { id: 'reporting', label: 'WBO HOME', icon: LayoutDashboard, sub: 'Analysis' },
   { id: 'incert_delete', label: 'Incert & configure data', icon: FileDiff, sub: 'Logs' },
   { id: 'notifications', label: 'Incert & configure data', icon: FileDiff, sub: 'Logs' },
   { id: 'report', label: 'Report Update Cataloge', icon: KanbanSquare, sub: 'Information' },
@@ -95,7 +95,7 @@ export default function MenuLateral({
               ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
             `}>
               <span className="font-bold text-[12px] tracking-tight text-slate-800 whitespace-nowrap uppercase">
-                DATA WBT
+                DATA WBO
               </span>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function MenuLateral({
             transition-all duration-[400ms] overflow-hidden pt-1
             ${collapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
           `}>
-            <p className="text-[7px] text-slate-400 leading-tight tracking-tight px-1 uppercase font-medium">
+            <p className="text-[12px] text-slate-400 leading-tight tracking-tight px-1 uppercase font-medium">
               © 2025 GLYNNE S.A.S
             </p>
           </div>
