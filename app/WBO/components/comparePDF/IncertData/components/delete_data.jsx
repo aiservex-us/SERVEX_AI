@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Trash2, Loader2, AlertTriangle, X } from 'lucide-react';
 import { supabase } from '../../../../../lib/supabaseClient';
 
-const DeleteTenantButton = ({ currentTenant = 'WBT', onDeleted }) => {
+const DeleteTenantButton = ({ currentTenant = 'WBO', onDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
