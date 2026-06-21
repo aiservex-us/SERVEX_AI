@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Trash2, Loader2, FileCode, FileSpreadsheet, AlertTriangle } from 'lucide-react';
 // Importamos la instancia configurada para trabajadores
-import { supabase } from '@/lib/supabaseClient'; 
+import { supabase } from '../../../../../lib/supabaseClient'; 
 
 const DeleteTenantButton = ({ currentTenant, onDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);
