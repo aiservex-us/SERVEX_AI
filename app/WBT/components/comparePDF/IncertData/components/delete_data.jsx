@@ -1,70 +1,42 @@
 'use client';
 
-import { useState } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import React, { useState } from 'react';
+import { Trash2, Loader2 } from 'lucide-react';
+import { supabase } from '../../../../../lib/supabaseClient';
 
-export default function DeleteClientRow({ companyName, onDeleteSuccess }) {
+const DeleteTenantButton = ({ currentTenant = 'WBT', onDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Validación: Solo necesitamos que exista el companyName
-  const isInvalid = !companyName || companyName.trim() === '';
-
   const handleDelete = async () => {
-    if (isInvalid) {
-      alert('Error: No se ha especificado un nombre de compañía válido para eliminar.');
-      return;
-    }
-
-    if (!confirm(`⚠️ ¿Deseas eliminar permanentemente a "${companyName}" y toda su información asociada? Esta acción no se puede deshacer.`)) {
-      return;
-    }
-
     setIsDeleting(true);
 
     try {
-      // Eliminamos basándonos ÚNICAMENTE en la columna 'company_name'
+      // Eliminación directa filtrando por la columna 'company_name' con el valor 'WBT'
       const { error } = await supabase
         .from('ClientsSERVEX_WBT')
         .delete()
-        .eq('company_name', companyName);
+        .eq('company_name', currentTenant); // currentTenant es 'WBT'
 
       if (error) throw error;
-
-      if (onDeleteSuccess) onDeleteSuccess();
-      alert(`Éxito: Se ha eliminado el registro de "${companyName}".`);
+      
+      if (onDeleted) onDeleted();
     } catch (err) {
-      console.error('❌ Error al eliminar en Supabase:', err);
-      alert(`Error al eliminar: ${err.message}`);
+      console.error(`[SERVEX_AI] Fallo en la eliminación del registro ${currentTenant}:`, err);
     } finally {
       setIsDeleting(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-2 p-3 border border-gray-200 rounded-lg bg-white shadow-sm max-w-sm">
-      <div className="text-xs text-gray-500">
-        <p className="font-semibold text-gray-700">Administración de datos</p>
-        <p>
-          {isInvalid 
-            ? <span className="text-red-500 font-bold">⚠️ Error: Nombre de compañía no detectado.</span>
-            : <>Al eliminar, toda la información asociada a <strong>{companyName}</strong> será borrada permanentemente.</>
-          }
-        </p>
-      </div>
-
-      <button
-        onClick={handleDelete}
-        disabled={isDeleting || isInvalid}
-        className={`flex items-center justify-center px-4 py-1.5 text-sm font-medium rounded transition-colors border ${
-          isDeleting
-            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-            : isInvalid
-            ? 'bg-red-100 text-red-600 border-red-300'
-            : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:border-red-300'
-        }`}
-      >
-        {isDeleting ? 'Procesando...' : 'Eliminar registro'}
-      </button>
-    </div>
+    <button 
+      onClick={handleDelete} 
+      disabled={isDeleting} 
+      className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#444791] shadow-sm hover:bg-rose-50 hover:text-rose-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isDeleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12}/>}
+      {isDeleting ? "Eliminando..." : `Delete Tenant ${currentTenant}`}
+    </button>
   );
-}
+};
+
+export default DeleteTenantButton;
