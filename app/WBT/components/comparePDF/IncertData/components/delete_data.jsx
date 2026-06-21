@@ -2,64 +2,48 @@
 
 import React, { useState } from 'react';
 import { Trash2, Loader2, FileCode, FileSpreadsheet, AlertTriangle } from 'lucide-react';
-// Importamos la instancia configurada para trabajadores
 import { supabase } from '../../../../../lib/supabaseClient'; 
 
 const DeleteTenantButton = ({ currentTenant, onDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'xml' | 'csv' | 'all'
+  const [confirmAction, setConfirmAction] = useState(null); 
   
   const targetTableName = 'ClientsSERVEX_WBT';
 
-  const handlePartialDelete = async (type) => {
-    setIsDeleting(true);
-    try {
-      // Definimos el payload de limpieza según la columna solicitada
-      const updatePayload = type === 'xml' 
-        ? { xml_raw: null } 
-        : { csv_raw: null };
+  const handleAction = async (type) => {
+    if (!currentTenant) {
+      alert("Error: No se ha identificado el tenant (currentTenant está vacío).");
+      return;
+    }
 
-      const { error } = await supabase
-        .from(targetTableName)
-        .update(updatePayload)
-        .eq('company_name', currentTenant);
+    setIsDeleting(true);
+    console.log(`[DEBUG] Iniciando ${type} para:`, currentTenant);
+
+    try {
+      let query;
+
+      if (type === 'all') {
+        // Borrado completo de la fila
+        query = supabase.from(targetTableName).delete().eq('company_name', currentTenant);
+      } else {
+        // Limpieza parcial (UPDATE)
+        const updatePayload = type === 'xml' ? { xml_raw: null } : { csv_raw: null };
+        query = supabase.from(targetTableName).update(updatePayload).eq('company_name', currentTenant);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
+
+      console.log(`[DEBUG] Operación ${type} completada con éxito.`);
       if (onDeleted) onDeleted();
+      
     } catch (err) {
-      console.error(`[-] Error al limpiar ${type}:`, err);
-      alert(`Error al limpiar ${type}: ${err.message}`);
+      console.error(`[-] Error crítico en operación ${type}:`, err);
+      alert(`Error al realizar ${type}: ${err.message || 'Error desconocido'}`);
     } finally {
       setIsDeleting(false);
       setConfirmAction(null);
-    }
-  };
-
-  const handleFullDeleteConfirmed = async () => {
-    setIsDeleting(true);
-    try {
-      // Borrado completo de la fila
-      const { error } = await supabase
-        .from(targetTableName)
-        .delete()
-        .eq('company_name', currentTenant);
-
-      if (error) throw error;
-      if (onDeleted) onDeleted();
-    } catch (err) {
-      console.error('[-] Error al eliminar registro completo:', err);
-      alert(`Error al eliminar: ${err.message}`);
-    } finally {
-      setIsDeleting(false);
-      setConfirmAction(null);
-    }
-  };
-
-  const handleConfirm = () => {
-    if (confirmAction === 'xml' || confirmAction === 'csv') {
-      handlePartialDelete(confirmAction);
-    } else if (confirmAction === 'all') {
-      handleFullDeleteConfirmed();
     }
   };
 
@@ -74,7 +58,7 @@ const DeleteTenantButton = ({ currentTenant, onDeleted }) => {
       <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-1">
         <AlertTriangle size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
         <p className="text-[10px] text-amber-800 leading-relaxed">
-          Gestión de datos crudos (LESRO). Las acciones de limpieza solo vacían el campo específico, el registro del tenant permanecerá.
+          Gestión de datos crudos. Las acciones de limpieza solo vacían el campo específico.
         </p>
       </div>
 
@@ -116,7 +100,7 @@ const DeleteTenantButton = ({ currentTenant, onDeleted }) => {
             </div>
             <div className="flex justify-end gap-2 px-5 py-3 bg-[#FAF9F8] border-t border-gray-100">
               <button onClick={() => setConfirmAction(null)} disabled={isDeleting} className="px-4 py-1.5 rounded text-[11px] font-bold text-[#242424] bg-white border border-gray-200">Cancel</button>
-              <button onClick={handleConfirm} disabled={isDeleting} className="flex items-center gap-2 px-4 py-1.5 rounded text-[11px] font-bold text-white bg-rose-600">
+              <button onClick={() => handleAction(confirmAction)} disabled={isDeleting} className="flex items-center gap-2 px-4 py-1.5 rounded text-[11px] font-bold text-white bg-rose-600">
                 {isDeleting ? <Loader2 size={12} className="animate-spin" /> : confirmConfig[confirmAction].actionLabel}
               </button>
             </div>
