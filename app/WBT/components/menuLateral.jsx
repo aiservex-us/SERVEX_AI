@@ -17,12 +17,12 @@ import {
 
 const menuItems = [
   { id: 'reporting', label: 'WBT HOME', icon: LayoutDashboard, sub: 'Analysis' },
-     { id: 'incert_delete', label: 'Incert & delete DATA', icon: FileDiff, sub: 'Logs' },
-  { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
+  { id: 'incert_delete', label: 'Incert & configure data', icon: FileDiff, sub: 'Logs' },
+  { id: 'notifications', label: 'Incert & configure data', icon: FileDiff, sub: 'Logs' },
   { id: 'report', label: 'Report Update Cataloge', icon: KanbanSquare, sub: 'Information' },
-  { id: 'inbox', label: 'Base Excel', icon: Inbox, sub: 'Visualization' },
+  { id: 'inbox', label: 'Explore Changes', icon: Inbox, sub: 'Visualization' },
   { id: 'kanban', label: 'XML Pre Prosses', icon: KanbanSquare, sub: 'Structure' },
-  { id: 'inbox_updated', label: 'Excel updated', icon: Inbox, sub: 'Visualization_updated' },
+  { id: 'inbox_updated', label: 'Explore data', icon: Inbox, sub: 'Visualization_updated' },
   { id: 'dashboard', label: 'XML Post Prosses', icon:  KanbanSquare, sub: 'Statistics' },
   { id: 'AI_reporter', label: 'AI Reporte', icon:  KanbanSquare, sub: 'Statistics' },
 ];
@@ -100,7 +100,6 @@ export default function MenuLateral({
             </div>
           </div>
 
-          {/* El botón original ahora solo se renderiza en pantallas MD o superiores */}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="hidden md:flex absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-100 rounded-full items-center justify-center shadow-sm hover:shadow-md transition-all z-50 text-slate-400 hover:text-[#464775]"
@@ -142,7 +141,6 @@ export default function MenuLateral({
                 key={item.id}
                 onClick={() => {
                   setActive(item.id);
-                  // Cierra el menú automáticamente tras seleccionar en móvil
                   if (typeof window !== 'undefined' && window.innerWidth < 768) {
                     setCollapsed(true);
                   }

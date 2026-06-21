@@ -21,11 +21,11 @@ export default function Dashboard() {
         {/* Contenedor Graphics.jsx (35%) */}
         {/* 'hidden' por defecto, se muestra como 'block' solo si el ancho es >= 400px */}
         {/* En pantallas grandes (lg), mantenemos el 35% */}
-        <div className="hidden min-[400px]:block w-full lg:w-[35%]">
-          <div className="bg-white ">
-            <AuditAnalyticsDashboard />
-          </div>
-        </div>
+    <div className="hidden min-[400px]:block w-full lg:w-[35%] border border-gray-100 rounded-lg shadow-sm overflow-hidden">
+  <div className="bg-white">
+    <AuditAnalyticsDashboard />
+  </div>
+</div>
         
       </div>
     </div>
