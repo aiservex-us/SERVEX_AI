@@ -9,6 +9,13 @@ const DeleteTenantButton = ({ targetTableName, currentTenant, onDeleted }) => {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleDelete = async () => {
+    // Validación de seguridad
+    if (!targetTableName) {
+      console.error('[-] Error: targetTableName está vacío o no definido.');
+      alert('Error de configuración: No se ha especificado la tabla de destino.');
+      return;
+    }
+
     setIsDeleting(true);
     try {
       const { error } = await supabase
@@ -30,7 +37,7 @@ const DeleteTenantButton = ({ targetTableName, currentTenant, onDeleted }) => {
 
   return (
     <div className="w-full space-y-3">
-      {/* Sección de aviso informativo - Estilo claro */}
+      {/* Sección de aviso informativo */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-2">
           <Info size={16} className="text-gray-400" />
@@ -41,11 +48,11 @@ const DeleteTenantButton = ({ targetTableName, currentTenant, onDeleted }) => {
         </p>
       </div>
 
-      {/* Botón de acción - Estilo minimalista con acento en rojo */}
+      {/* Botón de acción */}
       <button 
         onClick={() => setShowConfirm(true)} 
-        disabled={isDeleting} 
-        className="w-full flex items-center gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:border-rose-200 hover:bg-rose-50/30 transition-all text-left shadow-sm group"
+        disabled={isDeleting || !targetTableName} // Deshabilitado si no hay tabla
+        className="w-full flex items-center gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:border-rose-200 hover:bg-rose-50/30 transition-all text-left shadow-sm group disabled:opacity-50"
       >
         <Trash2 size={20} className="text-gray-400 group-hover:text-rose-500 transition-colors" />
         <div>
