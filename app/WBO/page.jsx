@@ -12,12 +12,12 @@ import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
 import Csvs_updated from './components/comparePDF/csvs_updated.jsx'; 
 import PrecentMain from './components/PrecentMain';
-// --- IMPORTACIÓN SOLICITADA ---
 import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
 import AIReporting from './components/comparePDF/presentation_WBO'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
-
+import Report from './components/comparePDF/REPORT/dashboard.jsx';
+import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
@@ -27,7 +27,6 @@ export default function MenuInicial() {
 
   const router = useRouter();
 
-  // Detectar el tamaño de pantalla de manera segura para el renderizado del lado del cliente
   useEffect(() => {
     const checkMobile = () => {
       setIsMobileScreen(window.innerWidth < 700);
@@ -37,17 +36,6 @@ export default function MenuInicial() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-{/*
-  // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data?.user) {
-        router.replace('/login');
-      }
-    }); 
-  }, [router]); */}
-
-  // --- EXIT ATTEMPT DETECTION LOGIC ---
   useEffect(() => {
     window.history.pushState(null, null, window.location.pathname);
 
@@ -69,13 +57,12 @@ export default function MenuInicial() {
   };
 
   const renderContent = () => {
-    // Si intenta renderizar notifications en un celular, se bloquea la vista
     if (active === 'notifications' && isMobileScreen) {
       return (
         <div className="p-6 flex flex-col items-center justify-center h-full text-center bg-slate-50">
           <AlertCircle className="text-amber-500 mb-2" size={32} />
           <h3 className="text-[14px] font-bold text-slate-800 uppercase tracking-wider">Panel bloqueado</h3>
-          <p className="text-[12px] text-slate-500 max-w-xs mt-1">
+          <p className={"text-[12px] text-slate-500 max-w-xs mt-1"}>
             La sección Change Tracker está disponible únicamente para entornos de escritorio (PC).
           </p>
         </div>
@@ -84,12 +71,13 @@ export default function MenuInicial() {
 
     switch (active) {
       case 'dashboard': return <Dashboard />;
+      case 'incert_delete': return <IncertDelete />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
       case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
-      // --- RENDERIZADO DEL COMPONENTE DE COMPARACIÓN ---
+      case 'report': return <Report />;
       case 'notifications': return <UploadFileCmpare />; 
       case 'reporting': return <AIReporting />; 
       case 'compare': return <Compare />;
@@ -102,7 +90,6 @@ export default function MenuInicial() {
   return (
     <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
 
-      {/* MICROSOFT TEAMS STYLE MODAL */}
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
           <div 
@@ -150,7 +137,6 @@ export default function MenuInicial() {
         </div>
       )}
 
-      {/* Se remueve el padding rígido y overflow restrictivo en móvil para el flujo de la barra lateral fixed */}
       <main className="w-full h-[95vh] p-0 flex relative overflow-hidden">
         <MenuLateral
           active={active}
@@ -159,7 +145,6 @@ export default function MenuInicial() {
           setCollapsed={setCollapsed}
         />
 
-        {/* md:ml-0 previene saltos bruscos cuando el menú lateral pasa a fixed en móviles */}
         <div className="relative group flex-1 h-full w-full min-w-0">
           <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
           <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">

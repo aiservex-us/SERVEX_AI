@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/modelContext/page.jsx", "app/panel/components/PaginaInicial/components/incertXML.jsx"  ],
+, "app/modelContext/page.jsx", "app/panel/components/PaginaInicial/components/incertXML.jsx", "app/WBT/components/comparePDF/IncertData/components/delete_data.jsx"  ],
   "exclude": ["node_modules"]
 }
