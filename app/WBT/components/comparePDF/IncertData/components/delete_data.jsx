@@ -15,7 +15,7 @@ const DeleteTenantButton = ({ targetTableName, currentTenant, onDeleted }) => {
     }
 
     setIsDeleting(true);
-    
+
     // Limpieza de datos por si acaso hay espacios ocultos
     const cleanTenant = String(currentTenant).trim();
     console.log(`[DEBUG] Intentando eliminar en tabla: ${targetTableName} | Con valor: '${cleanTenant}'`);
@@ -28,7 +28,7 @@ const DeleteTenantButton = ({ targetTableName, currentTenant, onDeleted }) => {
         .eq('company_name', cleanTenant);
 
       if (error) throw error;
-      
+
       console.log(`[DEBUG] Operación finalizada. Filas afectadas: ${count}`);
 
       if (count === 0) {
@@ -59,9 +59,9 @@ const DeleteTenantButton = ({ targetTableName, currentTenant, onDeleted }) => {
       </div>
 
       {/* Botón de acción */}
-      <button 
-        onClick={() => setShowConfirm(true)} 
-        disabled={isDeleting}
+      <button
+        onClick={() => setShowConfirm(true)}
+        disabled={isDeleting || !targetTableName || !currentTenant}
         className="w-full flex items-center gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:border-rose-200 hover:bg-rose-50/30 transition-all text-left shadow-sm group disabled:opacity-50"
       >
         <Trash2 size={20} className="text-gray-400 group-hover:text-rose-500 transition-colors" />
@@ -85,16 +85,16 @@ const DeleteTenantButton = ({ targetTableName, currentTenant, onDeleted }) => {
               </p>
             </div>
             <div className="flex justify-end gap-2 px-5 py-3 bg-gray-50/50 border-t border-gray-100">
-              <button 
-                onClick={() => setShowConfirm(false)} 
-                disabled={isDeleting} 
+              <button
+                onClick={() => setShowConfirm(false)}
+                disabled={isDeleting}
                 className="px-4 py-1.5 rounded text-[11px] font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50"
               >
                 Cancel
               </button>
-              <button 
-                onClick={handleDelete} 
-                disabled={isDeleting} 
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
                 className="flex items-center gap-2 px-4 py-1.5 rounded text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors"
               >
                 {isDeleting ? <Loader2 size={12} className="animate-spin" /> : "Confirmar Eliminación"}
