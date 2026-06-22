@@ -33,7 +33,7 @@ const HeroSection = () => {
       </div>
 
       {/* 3. CONTENIDO PRINCIPAL */}
-      <div className="relative z-20 max-w-7xl mx-auto w-full">
+      <div className="relative z-20 max-w-[100vw] mx-auto w-full">
         
         {/* Título Principal - Enfocado en Svx Copilot & Command */}
         <h1 className="text-4xl md:text-[300%] font-light text-[#1a1a1a] leading-[1.1] tracking-tighter max-w-3xl">
