@@ -17,7 +17,7 @@ import AIReporting from './components/comparePDF/presentation_WBS'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
-import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
+import IncertDelete from './components/comparePDF/IncertData/Incert_data.tsx'
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
