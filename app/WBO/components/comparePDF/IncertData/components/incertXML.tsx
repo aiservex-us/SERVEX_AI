@@ -217,7 +217,7 @@ export default function UploadClientXML() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[#242424]">WBO Catalog Upload</h1>
-              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección directa en la columna csv_raw</p>
+              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección directa en la columna csv_raw.</p>
             </div>
           </div>
         </div>
