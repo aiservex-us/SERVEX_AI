@@ -33,7 +33,7 @@ const WBDDataMatrix = () => {
       // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad WBS
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_WBS')
-        .select('xml_raw')
+        .select('xml_actualizer_raw')
         .eq('company_name', 'WBS')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -46,7 +46,7 @@ const WBDDataMatrix = () => {
       }
 
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
+      const xmlDoc = parser.parseFromString(data.xml_actualizer_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBS XML structure");
