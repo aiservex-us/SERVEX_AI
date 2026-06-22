@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 // Importamos el componente desde la misma carpeta
-import InsertXML from './incertXML';
+
 
 const WBmfgAdminHero = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,10 +42,7 @@ const WBmfgAdminHero = () => {
               </button>
             </div>
             
-            {/* Contenido del Componente InsertXML */}
-            <div className="p-1 overflow-y-auto max-h-[90vh]">
-              <InsertXML />
-            </div>
+        
           </div>
         </div>
       )}
@@ -93,13 +90,7 @@ const WBmfgAdminHero = () => {
 
             {/* Botón que dispara el modal */}
             <div className="flex flex-col items-center gap-8">
-              <button 
-                onClick={toggleModal}
-                className="inline-flex items-center justify-center rounded-full bg-[#464775] px-12 py-4 text-sm font-bold text-white shadow-xl shadow-[#464775]/20 transition-all hover:scale-[1.05] hover:bg-[#3b3c63] active:scale-[0.98]"
-              >
-                Insert the data
-              </button>
-              
+  
               <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-black/30">
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>

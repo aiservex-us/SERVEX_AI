@@ -206,7 +206,7 @@ export default function UploadClientXML() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex font-sans text-[#242424] relative">
+    <div className="min-h-[70vh] bg-white flex font-sans text-[#242424] relative">
       <div className="flex-1 flex flex-col">
         
         {/* --- NAVBAR --- */}
