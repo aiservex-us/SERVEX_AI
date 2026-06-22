@@ -17,6 +17,7 @@ const EJECUTOR_PLAY = ({
   const [showSecondPopup, setShowSecondPopup] = useState(false);
   const [localProcessing, setLocalProcessing] = useState(false);
 
+  // Obtener fecha actual formateada
   const currentDate = new Date().toLocaleDateString('en-US', { 
     day: '2-digit', 
     month: 'long', 
@@ -25,6 +26,7 @@ const EJECUTOR_PLAY = ({
 
   const estadoProcesando = isProcessing || localProcessing;
 
+  // Cerrar el popup de proceso unificado automáticamente
   useEffect(() => {
     if (!estadoProcesando && showStatusPopup) {
       const timer = setTimeout(() => setShowStatusPopup(false), 2000);
@@ -32,6 +34,7 @@ const EJECUTOR_PLAY = ({
     }
   }, [estadoProcesando, showStatusPopup]);
 
+  // Cerrar el popup del segundo proceso automáticamente
   useEffect(() => {
     if (!estadoProcesando && showSecondPopup) {
       const timer = setTimeout(() => setShowSecondPopup(false), 2000);
@@ -54,31 +57,49 @@ const EJECUTOR_PLAY = ({
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      // --- CONEXIÓN DIRECTA Y EXCLUSIVA PARA WBS ---
-      const targetCompany = 'WBS';
-      const baseUrl = 'https://servex-ai-back.onrender.com'; 
-      const endpointUrl = `${baseUrl}/wbs/api/v1/pipeline/compare-only-WBS`;
-  
+      // CORRECCIÓN DE SANEAMIENTO: Validación estricta para evitar que WBO sea absorbido por WBT
+      const tenantUpper = currentTenant?.toUpperCase() || '';
+      let targetCompany = currentTenant;
+      
+      if (tenantUpper === 'WBS' || tenantUpper.includes('WBS')) {
+        targetCompany = 'WBS';
+      } else if (tenantUpper === 'WBS' || tenantUpper.includes('WBS') || tenantUpper === 'WB') {
+        targetCompany = 'WBS';
+      }
+
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
-      console.log(`[+] Despachando payload atómico WBS a: ${endpointUrl}`);
+      const baseUrl = 'https://servex-ai-back.onrender.com'; 
+      
+      // ARQUITECTURA ELÁSTICA: Inyección dinámica del segmento multi-tenant para el Gateway Engine
+      // La URL final debe incluir el prefijo correcto del tenant mapeado en main.py
+      let endpointUrl;
+      if (targetCompany === 'WBS') {
+        endpointUrl = `${baseUrl}/wbs/api/v1/pipeline/compare-only-WBS`;
+      } else {
+        // Por defecto WBT
+        endpointUrl = `${baseUrl}/wbt/api/v1/pipeline/compare-only`;
+      }
+  
+      console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
   
       const response = await fetch(endpointUrl, {
         method: 'POST',
         body: formData,
+        // Dejar que el navegador configure el boundary del FormData automáticamente
       });
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Falla en la respuesta del motor WBS');
+        throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación');
       }
   
       const result = await response.json();
-      console.log('[✓] Respuesta de SERVEX_AI WBS Engine:', result);
+      console.log('[✓] Respuesta de SERVEX_AI Engine:', result);
   
     } catch (err) {
-      console.error(`WBS Process halted: ${err.message}`);
+      console.error(`Secondary Process halted: ${err.message}`);
     } finally {
       setLocalProcessing(false);
       if (setIsProcessing) setIsProcessing(false);
@@ -88,78 +109,132 @@ const EJECUTOR_PLAY = ({
   return (
     <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 font-sans antialiased text-[#242424]">
       
-      {/* --- POPUP 1 --- */}
+      {/* --- POPUP 1: PROCESO UNIFICADO --- */}
       {showStatusPopup && (
         <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 transform animate-in zoom-in-95 duration-200">
-            <div className="relative bg-white border border-gray-100 p-3 rounded-full shadow-sm inline-block">
-              <FiZap className="text-[#5b5fc7] animate-pulse" size={20} />
+          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
+                <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
+                  <FiZap className="text-[#5b5fc7] animate-pulse" size={20} />
+                </div>
+              </div>
             </div>
-            <h3 className="text-sm font-bold text-gray-800 uppercase">WBS Update Process Initiated</h3>
-            <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl text-left">
-              <p className="text-[10px] text-amber-800">Synchronizing critical WBS data. Please do not interrupt.</p>
+            
+            <div className="space-y-1">
+              <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Update Process Initiated</h3>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Catalog ({currentTenant}): {currentDate}</p>
             </div>
+
+            <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
+              <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
+                <strong>IMPORTANT:</strong> The system is synchronizing critical data within SVX. <strong>Do not switch sections</strong> or restart the application until the output monitor finishes.
+              </p>
+            </div>
+
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
               <Loader2 size={12} className="animate-spin" />
-              <span>SYNCING WBS...</span>
+              <span className="uppercase tracking-widest">Synchronizing with CRUD...</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- POPUP 2 --- */}
+      {/* --- POPUP 2: SEGUNDO PROCESO --- */}
       {showSecondPopup && (
         <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 transform animate-in zoom-in-95 duration-200">
-            <div className="relative bg-white border border-gray-100 p-3 rounded-full shadow-sm inline-block">
-              <FiCpu className="text-[#464775] animate-pulse" size={20} />
+          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[#464775]/10 rounded-full animate-ping"></div>
+                <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
+                  <FiCpu className="text-[#464775] animate-pulse" size={20} />
+                </div>
+              </div>
             </div>
-            <h3 className="text-sm font-bold text-gray-800 uppercase">WBS Engine Processing</h3>
-            <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl text-left">
-              <p className="text-[10px] text-amber-800">Executing WBS XML Restructure & Audit.</p>
+            
+            <div className="space-y-1">
+              <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Secondary Process Initiated</h3>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module ({currentTenant}): {currentDate}</p>
             </div>
+
+            <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
+              <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
+                <strong>WARNING:</strong> Storing new catalog data. Please wait for the data upload to complete without interrupting the process.
+              </p>
+            </div>
+
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#464775]">
               <Loader2 size={12} className="animate-spin" />
-              <span>PROCESSING WBS CLOUD RECORDS...</span>
+              <span className="uppercase tracking-widest">Processing Cloud Records...</span>
             </div>
           </div>
         </div>
       )}
 
-      <div className="bg-white border border-[#e0e0e0] rounded-lg p-4 shadow-sm flex flex-col h-full gap-4">
+      {/* --- ACTION CONTAINER --- */}
+      <div className="bg-white border border-[#e0e0e0] rounded-lg p-3 sm:p-4 lg:p-5 shadow-sm flex flex-col h-full gap-3 sm:gap-4">
         <div className="flex items-center gap-2">
-          <Zap size={14} className="text-[#5b5fc7]" fill="currentColor" />
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#616161]">WBS System Actions</h4>
+          <div className="text-[#5b5fc7]">
+            <Zap size={12} className="sm:hidden" fill="currentColor" />
+            <Zap size={14} className="hidden sm:inline" fill="currentColor" />
+          </div>
+          <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#616161]">System Actions</h4>
         </div>
         
-        <div className="flex flex-col gap-4">
-          <button 
-            onClick={ejecutarConConsola}
-            disabled={!file || estadoProcesando}
-            className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] text-white py-2 rounded-md font-semibold text-[11px] flex items-center justify-center gap-2"
-          >
-            {estadoProcesando && showStatusPopup ? <Loader2 size={12} className="animate-spin" /> : <FiZap size={12} />}
-            SAVE NEW WBS DATA
-          </button>
+        <div className="flex flex-col gap-3 sm:gap-4 flex-1">
+          {/* PRIMER BOTÓN CON DESCRIPCIÓN */}
+          <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
+            <button 
+              onClick={ejecutarConConsola}
+              disabled={!file || estadoProcesando}
+              className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
+            >
+              {estadoProcesando && showStatusPopup ? <Loader2 size={12} className="animate-spin" /> : <FiZap size={12} />}
+              <span className="line-clamp-2">SAVE NEW DATA IN SYSTEM (FIRST STEP)</span>
+            </button>
+            <div className="px-1 py-1 sm:py-2">
+              <p className="text-[8px] sm:text-[9px] font-bold text-[#5b5fc7] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
+              <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed line-clamp-3 sm:line-clamp-none">
+                Uploads your CSV catalog data to the cloud database and synchronizes it with the CRUD system. This step validates, sanitizes, and stores the new pricing information.
+              </p>
+            </div>
+          </div>
 
-          <button 
-            onClick={ejecutarSegundoProceso}
-            disabled={(!file && !hasExistingData) || estadoProcesando}
-            className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] text-white py-2 rounded-md font-semibold text-[11px] flex items-center justify-center gap-2"
-          >
-            {estadoProcesando && showSecondPopup ? <Loader2 size={12} className="animate-spin" /> : <Cpu size={12} />}
-            WBS RESTRUCTURE & AUDIT
-          </button>
+          {/* SEGUNDO BOTÓN CON DESCRIPCIÓN */}
+          <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
+            <button 
+              onClick={ejecutarSegundoProceso}
+              disabled={(!file && !hasExistingData) || estadoProcesando}
+              className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
+            >
+              {estadoProcesando && showSecondPopup ? <Loader2 size={12} className="animate-spin" /> : <Cpu size={12} />}
+              <span className="line-clamp-2">EXECUTE XML RESTRUCTURE AND CATALOG COMPARE (SECOND STEP)</span>
+            </button>
+            <div className="px-1 py-1 sm:py-2">
+              <p className="text-[8px] sm:text-[9px] font-bold text-[#464775] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
+              <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed line-clamp-3 sm:line-clamp-none">
+                Restructures the XML catalog format and compares it against master records. Generates an audit report highlighting changes, differences, and validation results for CET Designer approval.
+              </p>
+            </div>
+          </div>
 
-          <button 
-            onClick={handleFullReset} 
-            className="w-full py-2 text-[10px] font-medium text-[#616161] hover:text-[#c4314b] border border-[#e0e0e0] rounded-md flex items-center justify-center gap-2"
-          >
-            <FiTrash2 size={12} />
-            RESET WBS SYSTEM
-          </button>
+          {/* BOTÓN DE RESET CON DESCRIPCIÓN */}
+          <div className="flex flex-col gap-1.5 sm:gap-2 mt-auto">
+            <button 
+              onClick={handleFullReset} 
+              className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-[9px] sm:text-[10px] font-medium text-[#616161] hover:text-[#c4314b] hover:bg-[#f5f5f5] border border-[#e0e0e0] rounded-md transition-all flex items-center justify-center gap-1 sm:gap-2"
+            >
+              <FiTrash2 size={12} />
+              RESET SYSTEM
+            </button>
+          </div>
         </div>
       </div>
+
     </div>
   );
 };
