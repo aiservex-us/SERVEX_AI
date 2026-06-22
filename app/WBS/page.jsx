@@ -131,7 +131,7 @@ export default function MenuInicial() {
                 onClick={handleConfirmExit}
                 className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#5B5FC7] rounded hover:bg-[#4F52B2] transition-all shadow-md"
               >
-                Confirm and return
+                Confirm and return.
               </button>
             </div>
           </div>
