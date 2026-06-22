@@ -177,9 +177,9 @@ export default function Calendar() {
       {/* 🔹 HEADER (TEAMS STYLE) */}
       {/* ===================== */}
       <div className="flex items-center justify-between mb-6 border-b border-slate-200 pb-4">
-        <h2 className="text-lg font-semibold text-slate-800 tracking-tight">
-          SVX Data Matrix Manager
-        </h2>
+        <h2 className="text-lg font-semibold text-slate-500 tracking-tight">
+  SVX
+</h2>
 
         {/* 🔹 INPUT DE FILTRADO AGREGADO AL HEADER */}
         <div className="relative w-64">
