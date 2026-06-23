@@ -23,7 +23,7 @@ import EJECUTOR_PLAY from './EJECUTOR_PLAY';
 
 const SVXUnifiedPlatform = () => {
   // --- CONFIGURACIÓN MULTI-TENANT DINÁMICA ---
-  const [currentTenant] = useState('WBT'); 
+  const [currentTenant] = useState('WBG'); 
   const [targetTableName] = useState('ClientsSERVEX_WBG');
 
   // --- TUTORIAL ALERT STATE ---
