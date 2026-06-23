@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 // Importamos el componente desde la misma carpeta
-import InsertXML from './incertXML';
+
 
 const WBmfgAdminHero = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,10 +42,7 @@ const WBmfgAdminHero = () => {
               </button>
             </div>
             
-            {/* Contenido del Componente InsertXML */}
-            <div className="p-1 overflow-y-auto max-h-[90vh]">
-              <InsertXML />
-            </div>
+   
           </div>
         </div>
       )}
