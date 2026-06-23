@@ -18,9 +18,9 @@ import {
 
 const menuItems = [
   { id: 'reporting', label: 'WBT Home', icon: LayoutDashboard, sub: 'Dashboard' },
+    { id: 'report', label: 'List Price Changes', icon: UploadCloud, sub: 'Execution' },
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: FileSpreadsheet, sub: 'Ingestion' },
   { id: 'notifications', label: 'Import new excel', icon: FileCode, sub: 'Ingestion' },
-  { id: 'report', label: 'List Price Changes', icon: UploadCloud, sub: 'Execution' },
   { id: 'inbox', label: 'cataloge base', icon: BrainCircuit, sub: 'Intelligence' },
   { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
