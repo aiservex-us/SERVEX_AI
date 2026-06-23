@@ -190,10 +190,12 @@ export default function UploadClientXML() {
         user_id: user.id,
       };
 
-      const { error } = await supabase
-        .from('ClientsSERVEX_WBG')
-        .insert([payload]);
-
+      // ... dentro de handleSave
+const { error } = await supabase
+  .from('ClientsSERVEX_WBG')
+  .upsert([payload], { 
+    onConflict: 'company_name' // Esto ahora funcionará porque el CONSTRAINT ya existe
+  });
       if (error) {
         console.error('Supabase Core Error:', error);
         setMessage({ text: `DB Error [${error.code}]: ${error.message}`, type: 'error' });
