@@ -1,184 +1,140 @@
 'use client';
 
-import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
-import {
-  FileCode,
-  Building2,
-  CheckCircle2,
+import { 
+  FileCode, 
+  Building2, 
+  CheckCircle2, 
   AlertCircle,
   UploadCloud,
   FileSpreadsheet,
-  RefreshCw,
-  Info,
-  DatabaseZap
+  RefreshCw, 
+  Info
 } from 'lucide-react';
 
 export default function UploadClientXML() {
-  const [companyName] = useState('WBG');
+  const [companyName, setCompanyName] = useState('WBG'); 
   const [xmlContent, setXmlContent] = useState('');
-  const [csvContent, setCsvContent] = useState('');
+  const [csvContent, setCsvContent] = useState(''); 
   const [loading, setLoading] = useState(false);
-
+  
   const [readingXml, setReadingXml] = useState(false);
   const [readingCsv, setReadingCsv] = useState(false);
 
-  // --- Estado de verificación de columnas existentes en BD ---
-  const [checkingExisting, setCheckingExisting] = useState(true);
-  const [existingXml, setExistingXml] = useState(false);
-  const [existingCsv, setExistingCsv] = useState(false);
-
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
-  const [dragActive, setDragActive] = useState(false);
-  const [dragActiveCSV, setDragActiveCSV] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const csvInputRef = useRef<HTMLInputElement | null>(null);
+  const csvInputRef = useRef<HTMLInputElement | null>(null); 
 
-  // React Transition para prevenir bloqueos de renderizado en hilos de UI al cargar datasets grandes
-  const [, startTransition] = useTransition();
-
-  // --- Verificar si ya existe un registro con XML/CSV guardados para esta compañía ---
-  const checkExistingFiles = useCallback(async () => {
-    setCheckingExisting(true);
-    try {
-      const { data, error } = await supabase
-        .from('ClientsSERVEX_WBG')
-        .select('xml_raw, csv_raw')
-        .eq('company_name', companyName)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error checking existing files:', error);
-        setExistingXml(false);
-        setExistingCsv(false);
-      } else if (data) {
-        const hasXml = !!data.xml_raw && String(data.xml_raw).trim().length > 0;
-        const hasCsv = !!data.csv_raw &&
-          (Array.isArray(data.csv_raw) ? data.csv_raw.length > 0 : String(data.csv_raw).trim().length > 0);
-        setExistingXml(hasXml);
-        setExistingCsv(hasCsv);
-      } else {
-        setExistingXml(false);
-        setExistingCsv(false);
-      }
-    } catch (err) {
-      console.error('Unexpected error checking existing files:', err);
-      setExistingXml(false);
-      setExistingCsv(false);
-    } finally {
-      setCheckingExisting(false);
-    }
-  }, [companyName]);
-
-  useEffect(() => {
-    checkExistingFiles();
-  }, [checkExistingFiles]);
-
-  // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (Equivalente al Script de Python) ---
-  interface CsvRow {
-    [key: string]: string | null | string[] | undefined;
-    _orphaned_fields?: string[];
-  }
-
-  const sanitizeCSV = (rawCsvText: string): CsvRow[] => {
-    if (!rawCsvText || !rawCsvText.trim()) return [];
-
-    // Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
-    const lines: string[] = [];
-    let currentLine = '';
+  /**
+   * PARSER DE CSV ULTRA-ROBUSTO OPTIMIZADO
+   * Procesa saltos de línea embebidos y previene bucles infinitos.
+   */
+  const parseCSVToRows = (text: string): string[][] => {
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+    let currentCell = '';
     let insideQuotes = false;
 
-    // Bucle iterativo directo optimizado para reducir la latencia de procesamiento de cadenas
-    const len = rawCsvText.length;
-    for (let i = 0; i < len; i++) {
-      const char = rawCsvText[i];
+    // Normalizar saltos de línea para evitar desajustes de carro
+    const normalizedText = text.replace(/\r\n/g, '\n');
+
+    for (let i = 0; i < normalizedText.length; i++) {
+      const char = normalizedText[i];
+
       if (char === '"') {
-        insideQuotes = !insideQuotes;
-        currentLine += char;
-      } else if ((char === '\n' || char === '\r') && !insideQuotes) {
-        if (char === '\r' && rawCsvText[i + 1] === '\n') {
-          i++; // Omitir el siguiente \n de la secuencia \r\n
+        // Manejo de comillas dobles escapadas ("")
+        if (insideQuotes && normalizedText[i + 1] === '"') {
+          currentCell += '"';
+          i++; 
+        } else {
+          insideQuotes = !insideQuotes; 
         }
-        lines.push(currentLine);
-        currentLine = '';
+      } else if (char === ';' && !insideQuotes) {
+        currentRow.push(currentCell);
+        currentCell = '';
+      } else if (char === '\n' && !insideQuotes) {
+        currentRow.push(currentCell);
+        rows.push(currentRow);
+        currentRow = [];
+        currentCell = '';
       } else {
-        currentLine += char;
+        currentCell += char;
       }
     }
-    if (currentLine || rawCsvText.endsWith('\n') || rawCsvText.endsWith('\r')) {
-      lines.push(currentLine);
+    
+    // Insertar última línea residual si existe
+    if (currentCell || currentRow.length > 0) {
+      currentRow.push(currentCell);
+      rows.push(currentRow);
     }
+    return rows;
+  };
 
-    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return [];
+  /**
+   * SANEADOR ESTRUCTURAL DE MATRICES Y RESOLUCIÓN DE COLISIONES
+   */
+  const sanitizeCSV = (rawCsvText: string): any[] => {
+    if (!rawCsvText || !rawCsvText.trim()) return [];
 
-    const rawHeaderAccum: string[] = [];
-    let dataStartIndex = 0;
-    let openQuotes = false;
+    const allRows = parseCSVToRows(rawCsvText);
+    if (allRows.length === 0) return [];
 
-    // Detectar si la cabecera está rota en múltiples líneas por comillas abiertas
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      rawHeaderAccum.push(line);
-
-      const quoteCount = (line.match(/"/g) || []).length;
-      if (quoteCount % 2 !== 0) {
-        openQuotes = !openQuotes;
-      }
-
-      if (!openQuotes) {
-        dataStartIndex = i + 1;
-        break;
-      }
-    }
-
-    const fullRawHeader = rawHeaderAccum.join('\n');
-
-    // Limpieza de columnas preservada e igualada a la lógica de Python
-    const tokens = fullRawHeader.split(';');
-    const cleanedTokens = tokens.map(token => {
-      let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
-      tClean = tClean.split(/\s+/).join(' ').trim();
-      return tClean;
+    // Limpieza agresiva de encabezados
+    const rawHeaders = allRows[0];
+    const cleanedHeaders = rawHeaders.map(header => {
+      let hClean = header.replace(/[\r\n]+/g, ' ');
+      hClean = hClean.replace(/["']/g, '');
+      hClean = hClean.replace(/\s+/g, ' ').trim();
+      
+      return hClean || 'unnamed_column';
     });
 
-    const perfectHeaders = cleanedTokens;
-    const dataLines = lines.slice(dataStartIndex);
-    const sanitizedJson: CsvRow[] = [];
-    const headersLen = perfectHeaders.length;
+    // Control de columnas repetidas para JSONB seguro
+    const perfectHeaders: string[] = [];
+    const headerCounts: { [key: string]: number } = {};
 
-    // Optimización con bucles indexados for para mitigar penalizaciones por Garbage Collection en memoria
-    for (let i = 0; i < dataLines.length; i++) {
-      const line = dataLines[i];
-      if (!line.trim()) continue; // Ignorar líneas vacías
-      const currentCells = line.split(';');
-      const rowObject: CsvRow = {};
+    cleanedHeaders.forEach(header => {
+      if (headerCounts[header] === undefined) {
+        headerCounts[header] = 0;
+        perfectHeaders.push(header);
+      } else {
+        headerCounts[header]++;
+        perfectHeaders.push(`${header}_${headerCounts[header]}`);
+      }
+    });
 
-      for (let j = 0; j < headersLen; j++) {
-        const header = perfectHeaders[j];
-        let cellValue = currentCells[j] !== undefined ? currentCells[j] : '';
+    const dataRows = allRows.slice(1);
+    const sanitizedJson: any[] = [];
+
+    dataRows.forEach(row => {
+      if (row.length === 0 || (row.length === 1 && row[0].trim() === '')) return;
+
+      const rowObject: any = {};
+
+      perfectHeaders.forEach((header, index) => {
+        let cellValue = row[index] !== undefined ? row[index] : '';
+        cellValue = cellValue.trim();
 
         if (cellValue === '') {
           rowObject[header] = null;
         } else {
-          cellValue = cellValue.replace(/^["']|["']$/g, '').trim();
-          rowObject[header] = cellValue;
+          rowObject[header] = cellValue.replace(/^["']|["']$/g, '').trim();
         }
-      }
+      });
 
-      // Implementación del restkey de Python
-      if (currentCells.length > headersLen) {
-        const orphaned = currentCells.slice(headersLen).map(c => c.replace(/^["']|["']$/g, '').trim());
-        rowObject['_orphaned_fields'] = orphaned;
+      if (row.length > perfectHeaders.length) {
+        rowObject['_orphaned_fields'] = row.slice(perfectHeaders.length).map(c => c.trim());
       }
 
       sanitizedJson.push(rowObject);
-    }
+    });
 
     return sanitizedJson;
   };
 
-  // --- Lógica de Lectura de Archivos ---
+  // --- Handlers de carga de archivos ---
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
       setMessage({ text: 'Only XML files are allowed', type: 'error' });
@@ -187,11 +143,9 @@ export default function UploadClientXML() {
     setReadingXml(true);
     const reader = new FileReader();
     reader.onload = (e) => {
-      startTransition(() => {
-        setXmlContent(e.target?.result as string);
-        setMessage({ text: 'XML file loaded successfully', type: 'success' });
-        setReadingXml(false);
-      });
+      setXmlContent(e.target?.result as string);
+      setMessage({ text: 'XML file loaded successfully', type: 'success' });
+      setReadingXml(false);
     };
     reader.readAsText(file);
   };
@@ -204,30 +158,14 @@ export default function UploadClientXML() {
     setReadingCsv(true);
     const reader = new FileReader();
     reader.onload = (e) => {
-      startTransition(() => {
-        setCsvContent(e.target?.result as string);
-        setMessage({ text: 'CSV file loaded successfully', type: 'success' });
-        setReadingCsv(false);
-      });
+      setCsvContent(e.target?.result as string);
+      setMessage({ text: 'CSV file loaded successfully', type: 'success' });
+      setReadingCsv(false);
     };
     reader.readAsText(file);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); e.stopPropagation();
-    setDragActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) readXMLFile(file);
-  };
-
-  const handleDropCSV = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); e.stopPropagation();
-    setDragActiveCSV(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) readCSVFile(file);
-  };
-
-  // --- Lógica de Saneamiento y Guardado ---
+  // --- Orquestador de Persistencia ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!xmlContent.trim()) {
@@ -235,212 +173,129 @@ export default function UploadClientXML() {
       return;
     }
     setLoading(true);
-
-    // Permitir el cambio de estado visual de UI de manera inmediata
-    await new Promise(resolve => setTimeout(resolve, 0));
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setMessage({ text: 'User not authorized', type: 'error' });
-        return;
+      if (!user) { 
+        setMessage({ text: 'User not authorized', type: 'error' }); 
+        return; 
       }
 
-      console.log('[+] Iniciando saneamiento estructural sobre los contenidos CSV...');
+      console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
       const sanitizedCsvJson = sanitizeCSV(csvContent);
 
       const payload = {
-        company_name: 'WBT',
-        xml_raw: xmlContent,
-        csv_raw: sanitizedCsvJson,
+        company_name: 'WBG',
+        xml_raw: xmlContent, 
+        csv_raw: JSON.stringify(sanitizedCsvJson),
         user_id: user.id,
       };
 
-      // Modificación de red limpia y tipada: Evita el eco masivo de datos de vuelta por la red HTTP
       const { error } = await supabase
-        .from('ClientsSERVEX_WBT')
-        .upsert(payload, { onConflict: 'company_name' })
-        .select('');
+        .from('ClientsSERVEX_WBG')
+        .insert([payload]);
 
       if (error) {
-        console.error('Supabase Full Error:', error);
-        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
+        console.error('Supabase Core Error:', error);
+        setMessage({ text: `DB Error [${error.code}]: ${error.message}`, type: 'error' });
       } else {
-        setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
-        setXmlContent('');
-        setCsvContent('');
-        // Refrescar el estado de columnas existentes tras guardar
-        await checkExistingFiles();
+        setMessage({ text: 'WBG Catalog Data successfully sanitized and stored in ClientsSERVEX_WBG', type: 'success' });
+        setXmlContent(''); 
+        setCsvContent(''); 
       }
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error(err);
-      setMessage({ text: 'Unexpected client-side error', type: 'error' });
-    } finally {
-      setLoading(false);
+      setMessage({ text: 'Unexpected client-side application error', type: 'error' });
+    } finally { 
+      setLoading(false); 
     }
   };
 
-  // Determina si la zona debe mostrar el aviso de "ya existe en BD"
-  const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
-  const showCsvExistingNotice = existingCsv && !csvContent && !readingCsv;
-return (
-    <div className="min-h-[80vh] bg-[#FFF] flex font-sans text-[#242424] relative">
+  return (
+    <div className="min-h-screen bg-white flex font-sans text-[#242424] relative">
       <div className="flex-1 flex flex-col">
-
-        {/* --- PAGE HEADER --- */}
+        
+        {/* --- NAVBAR --- */}
         <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#464775]/10 rounded-md flex items-center justify-center">
-              <FileCode className="text-[#464775]" size={20} />
+            <div className="w-10 h-10 bg-[#E8EAF6] rounded-md flex items-center justify-center">
+              <FileCode className="text-[#5B5FC7]" size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#242424]">WBT Catalog Upload</h1>
-              <p className="text-[11px] text-[#616161]">Upload master files to the Servex ecosystem</p>
+              <h1 className="text-lg font-bold text-[#242424]">WBD Catalog Upload</h1>
+              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección para la tabla ClientsSERVEX_WBD</p>
             </div>
           </div>
         </div>
 
-        {/* --- INFO BANNER: Propósito del catálogo --- */}
-        <div className="bg-[#464775]/10 border-b border-[#464775]/20 px-8 py-3">
-          <p className="text-[11px] text-[#464775] leading-relaxed max-w-4xl">
-            Aquí podrás almacenar y reemplazar todos los datos crudos y bases del{' '}
-            <span className="font-bold">LESRO</span> correspondientes a los catálogos WBT de esta entidad.
-          </p>
-        </div>
-
-        {/* --- CONTENT GRID --- */}
+        {/* --- BODY DESIGN --- */}
         <div className="p-8 grid grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
-
-          {/* Status Column */}
+          
+          {/* Status Tracker */}
           <div className="col-span-12 lg:col-span-4 space-y-4">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Upload Progress</h3>
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Etapas de Saneamiento</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent || existingXml ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>1</div>
-                  <span className="text-xs font-medium">XML File</span>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>1</div>
+                  <span className="text-xs font-medium">XML Raw Target</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent || existingCsv ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">CSV File (Will be Sanitized)</span>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
+                  <span className="text-xs font-medium">CSV Optimizer Raw (JSON)</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <div className="flex items-center gap-2 text-[#464775] mb-3">
+              <div className="flex items-center gap-2 text-[#5B5FC7] mb-3">
                 <Info size={16} />
-                <span className="text-xs font-bold">Encrypted & Sanitized</span>
+                <span className="text-xs font-bold">Alineación de Entidad</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                Your data is parsed, structural breaks are fixed in-memory, and stored securely as compliant datasets.
+                Los datos se enlazan de forma centralizada bajo la firma corporativa <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">WBD</code> en la base de datos de producción.
               </p>
-
-              {/* --- NUEVO: explicación de cada archivo --- */}
-              <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                <div>
-                  <p className="text-[10px] font-bold text-[#464775]">XML — Catalog Creator</p>
-                  <p className="text-[10px] text-[#616161] leading-relaxed">
-                    Es el catálogo generado por Catalog Creator. Representa la versión final/estructurada del catálogo.
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-[#464775]">CSV — Catálogo Base</p>
-                  <p className="text-[10px] text-[#616161] leading-relaxed">
-                    Es el catálogo base con el que arranca el proceso: el paso anterior al último, previo a la generación del XML final.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* Main Upload Column */}
+          {/* Interfaz de Upload */}
           <div className="col-span-12 lg:col-span-8">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-6 space-y-6">
-
+                
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-[#242424]">Target Entity</label>
                   <div className="relative group">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-[#464775]" size={14} />
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B5FC7]" size={14} />
                     <input
-                      className="w-full text-sm rounded border border-gray-100 bg-gray-50 pl-9 pr-4 py-2 outline-none font-bold text-[#464775] cursor-default"
+                      className="w-full text-sm rounded border border-gray-100 bg-gray-50 pl-9 pr-4 py-2 outline-none font-bold text-[#5B5FC7] cursor-default"
                       value={companyName}
                       readOnly
                     />
                   </div>
                 </div>
 
-                {/* Drop Zones */}
+                {/* Slots para Archivos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div
-                    onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-                    onDragLeave={() => setDragActive(false)}
-                    onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
-                      ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-green-300 bg-green-50 hover:bg-green-100' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                    className="border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]"
                   >
-                    {readingXml ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
-                    ) : checkingExisting ? (
-                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
-                    ) : showXmlExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-2 text-green-600" size={20} />
-                    ) : (
-                      <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
-                    )}
-                    <p className={`text-[10px] font-bold ${showXmlExistingNotice ? 'text-green-700' : 'text-[#242424]'}`}>
-                      {readingXml
-                        ? 'Reading...'
-                        : checkingExisting
-                          ? 'Checking...'
-                          : showXmlExistingNotice
-                            ? 'File already exists in DB'
-                            : 'Upload XML'}
-                    </p>
-                    <p className="text-[8px] text-[#9CA3AF] mt-0.5">Catálogo de Catalog Creator</p>
-                    {showXmlExistingNotice && (
-                      <p className="text-[9px] text-green-600 mt-1">Click or drop to replace</p>
-                    )}
+                    {readingXml ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <UploadCloud className="mx-auto mb-2 text-gray-400" size={20} />}
+                    <p className="text-[10px] font-bold text-[#242424]">{readingXml ? 'Leyendo...' : 'Cargar XML'}</p>
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
 
                   <div
-                    onDragOver={(e) => { e.preventDefault(); setDragActiveCSV(true); }}
-                    onDragLeave={() => setDragActiveCSV(false)}
-                    onDrop={handleDropCSV}
                     onClick={() => csvInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
-                      ${dragActiveCSV ? 'border-[#464775] bg-[#464775]/5' : showCsvExistingNotice ? 'border-green-300 bg-green-50 hover:bg-green-100' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                    className="border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]"
                   >
-                    {readingCsv ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
-                    ) : checkingExisting ? (
-                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
-                    ) : showCsvExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-2 text-green-600" size={20} />
-                    ) : (
-                      <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
-                    )}
-                    <p className={`text-[10px] font-bold ${showCsvExistingNotice ? 'text-green-700' : 'text-[#242424]'}`}>
-                      {readingCsv
-                        ? 'Reading...'
-                        : checkingExisting
-                          ? 'Checking...'
-                          : showCsvExistingNotice
-                            ? 'File already exists in DB'
-                            : 'Upload CSV'}
-                    </p>
-                    <p className="text-[8px] text-[#9CA3AF] mt-0.5">Catálogo base — inicio del proceso</p>
-                    {showCsvExistingNotice && (
-                      <p className="text-[9px] text-green-600 mt-1">Click or drop to replace</p>
-                    )}
+                    {readingCsv ? <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} /> : <FileSpreadsheet className="mx-auto mb-2 text-gray-400" size={20} />}
+                    <p className="text-[10px] font-bold text-[#242424]">{readingCsv ? 'Leyendo...' : 'Cargar CSV'}</p>
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
                 </div>
 
-                {/* Previews */}
+                {/* Previews de Buffer */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
@@ -453,7 +308,7 @@ return (
                 </div>
 
                 {message.type && (
-                  <div className={`p-3 rounded flex items-center gap-3 text-xs font-semibold border-l-4
+                  <div className={`p-3 rounded flex items-center gap-3 text-xs font-semibold border-l-4 
                     ${message.type === 'success' ? 'bg-green-50 border-l-green-600 text-green-800' : 'bg-red-50 border-l-red-600 text-red-800'}`}>
                     {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
                     {message.text}
@@ -465,15 +320,16 @@ return (
                 <button
                   onClick={handleSave}
                   disabled={loading}
-                  className="bg-[#464775] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#36375a] transition-all shadow-sm active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                  className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'Sanitizing & Saving...' : 'Save Catalog Data'}
+                  {loading ? 'Saneando y Guardando...' : 'Guardar Datos en WBD'}
                 </button>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
-  );
+  ); 
 }
