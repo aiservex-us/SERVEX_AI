@@ -20,7 +20,7 @@ export default function AuditReportViewer() {
     async function fetchAuditData() {
       setLoading(true);
       const { data } = await supabase
-        .from('ClientsSERVEX_WBT')
+        .from('ClientsSERVEX_WBG')
         .select('id, company_name, audit_report_jsonP, created_at')
         .order('created_at', { ascending: false });
       

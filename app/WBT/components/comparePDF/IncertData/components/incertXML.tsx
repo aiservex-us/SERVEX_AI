@@ -284,7 +284,7 @@ export default function UploadClientXML() {
   const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
   const showCsvExistingNotice = existingCsv && !csvContent && !readingCsv;
 return (
-    <div className="min-h-[80vh] bg-[#FFF] flex font-sans text-[#242424] relative">
+    <div className="min-h-[60vh] bg-[#FFF] flex font-sans text-[#242424] relative">
       <div className="flex-1 flex flex-col">
 
         {/* --- PAGE HEADER --- */}

@@ -3,28 +3,29 @@ import React, { useState } from 'react';
 import {
   LayoutDashboard,
   SearchCode,
-  BarChart3,
-  Inbox,
-  KanbanSquare,
-  ListChecks,
   Headphones,
   Settings,
   ChevronLeft,
-  X,
-  LayoutTemplate,
-  FileDiff
+  FileDiff,
+  KanbanSquare,
+  Inbox,
+  FileCode,
+  FileSpreadsheet,
+  UploadCloud,
+  BrainCircuit,
+  CheckCircle2
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'reporting', label: 'WBO HOME', icon: LayoutDashboard, sub: 'Analysis' },
-  { id: 'incert_delete', label: 'Incert & configure data', icon: FileDiff, sub: 'Logs' },
-  { id: 'notifications', label: 'Incert & configure data', icon: FileDiff, sub: 'Logs' },
-  { id: 'report', label: 'Report Update Cataloge', icon: KanbanSquare, sub: 'Information' },
-  { id: 'inbox', label: 'Explore Changes', icon: Inbox, sub: 'Visualization' },
-  { id: 'kanban', label: 'XML Pre Prosses', icon: KanbanSquare, sub: 'Structure' },
-  { id: 'inbox_updated', label: 'Explore data', icon: Inbox, sub: 'Visualization_updated' },
-  { id: 'dashboard', label: 'XML Post Prosses', icon:  KanbanSquare, sub: 'Statistics' },
-  { id: 'AI_reporter', label: 'AI Reporte', icon:  KanbanSquare, sub: 'Statistics' },
+  { id: 'reporting', label: 'WBT Home', icon: LayoutDashboard, sub: 'Dashboard' },
+  { id: 'incert_delete', label: 'Import Base excel & XML', icon: FileSpreadsheet, sub: 'Ingestion' },
+  { id: 'notifications', label: 'Import new excel', icon: FileCode, sub: 'Ingestion' },
+  { id: 'report', label: 'List Price Changes', icon: UploadCloud, sub: 'Execution' },
+  { id: 'inbox', label: 'cataloge base', icon: BrainCircuit, sub: 'Intelligence' },
+  { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
+  { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
+  { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
+  { id: 'AI_reporter', label: 'AI Resumen', icon: CheckCircle2, sub: 'Output' },
 ];
 
 export default function MenuLateral({
@@ -95,7 +96,7 @@ export default function MenuLateral({
               ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
             `}>
               <span className="font-bold text-[12px] tracking-tight text-slate-800 whitespace-nowrap uppercase">
-                DATA WBO
+                DATA WBT
               </span>
             </div>
           </div>
@@ -235,7 +236,7 @@ export default function MenuLateral({
             transition-all duration-[400ms] overflow-hidden pt-1
             ${collapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
           `}>
-            <p className="text-[12px] text-slate-400 leading-tight tracking-tight px-1 uppercase font-medium">
+            <p className="text-[7px] text-slate-400 leading-tight tracking-tight px-1 uppercase font-medium">
               © 2025 GLYNNE S.A.S
             </p>
           </div>

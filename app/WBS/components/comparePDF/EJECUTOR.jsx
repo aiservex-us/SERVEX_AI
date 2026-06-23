@@ -367,7 +367,7 @@ const SVXUnifiedPlatform = () => {
           </div>
         </div>
         <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
-         hola
+
          
         </nav>
       </header>

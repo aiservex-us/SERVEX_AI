@@ -11,9 +11,7 @@ const IncertData = () => {
       <div className="flex flex-col gap-8">
         {/* Sección de Inserción XML */}
         <section className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-          <div className="mb-4 flex items-center gap-2 text-[#464775]">
-            <span className="font-bold uppercase text-[12px] tracking-widest">XML Ingestion</span>
-          </div>
+      
           <InsertXML />
         </section>
 
