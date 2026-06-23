@@ -57,49 +57,36 @@ const EJECUTOR_PLAY = ({
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      // CORRECCIÓN DE SANEAMIENTO: Validación estricta para evitar que WBO sea absorbido por WBT
-      const tenantUpper = currentTenant?.toUpperCase() || '';
-      let targetCompany = currentTenant;
-      
-      if (tenantUpper === 'WBO' || tenantUpper.includes('WBO')) {
-        targetCompany = 'WBO';
-      } else if (tenantUpper === 'WBT' || tenantUpper.includes('WBT') || tenantUpper === 'WB') {
-        targetCompany = 'WBT';
-      }
+      // SANEAMIENTO MULTI-TENANT: Forzamos la identificación limpia de WBO para este sub-motor
+      const targetCompany = 'WBO';
 
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
+      // Cluster Base Distribuidor de SERVEX_AI
       const baseUrl = 'https://servex-ai-back.onrender.com'; 
       
-      // ARQUITECTURA ELÁSTICA: Inyección dinámica del segmento multi-tenant para el Gateway Engine
-      // La URL final debe incluir el prefijo correcto del tenant mapeado en main.py
-      let endpointUrl;
-      if (targetCompany === 'WBO') {
-        endpointUrl = `${baseUrl}/wbo/api/v1/pipeline/compare-only-WBO`;
-      } else {
-        // Por defecto WBT
-        endpointUrl = `${baseUrl}/wbt/api/v1/pipeline/compare-only`;
-      }
+      // SOLUCIÓN AL 404: Endpoint modificado con el sufijo -WBO mapeado en el backend
+      const endpointUrl = `${baseUrl}/wbo/api/v1/pipeline/compare-only-WBO`;
   
       console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
   
       const response = await fetch(endpointUrl, {
         method: 'POST',
         body: formData,
-        // Dejar que el navegador configure el boundary del FormData automáticamente
+        // El navegador gestiona el boundary multipart/form-data automáticamente al omitir Content-Type
       });
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación');
+        throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación WBO');
       }
   
       const result = await response.json();
-      console.log('[✓] Respuesta de SERVEX_AI Engine:', result);
+      console.log('[✓] Respuesta de SERVEX_AI Engine (WBO):', result);
   
     } catch (err) {
-      console.error(`Secondary Process halted: ${err.message}`);
+      console.error(`Secondary Process halted (WBO): ${err.message}`);
     } finally {
       setLocalProcessing(false);
       if (setIsProcessing) setIsProcessing(false);
