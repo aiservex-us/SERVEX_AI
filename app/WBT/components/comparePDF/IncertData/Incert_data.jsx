@@ -6,7 +6,7 @@ import InsertXML from './components/incertXML';
 
 const IncertData = () => {
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 font-sans">
+    <div className="p-8 max-w-8xl mx-auto space-y-8 font-sans">
 
       <div className="flex flex-col gap-8">
         {/* Sección de Inserción XML */}
