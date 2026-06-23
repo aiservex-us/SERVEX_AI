@@ -57,8 +57,8 @@ const EJECUTOR_PLAY = ({
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      // SANEAMIENTO MULTI-TENANT: Forzamos la identificación limpia de WBO para este sub-motor
-      const targetCompany = 'WBO';
+      // SANEAMIENTO MULTI-TENANT: Forzamos la identificación limpia de WBG para este sub-motor
+      const targetCompany = 'WBG';
 
       const formData = new FormData();
       formData.append('company_name', targetCompany);
@@ -66,8 +66,8 @@ const EJECUTOR_PLAY = ({
       // Cluster Base Distribuidor de SERVEX_AI
       const baseUrl = 'https://servex-ai-back.onrender.com'; 
       
-      // SOLUCIÓN AL 404: Endpoint modificado con el sufijo -WBO mapeado en el backend
-      const endpointUrl = `${baseUrl}/wbo/api/v1/pipeline/compare-only-WBO`;
+      // SOLUCIÓN AL 404: Endpoint modificado con el sufijo -WBG mapeado en el backend
+      const endpointUrl = `${baseUrl}/wbg/api/v1/pipeline/compare-only-WBG`;
   
       console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
   
@@ -79,14 +79,14 @@ const EJECUTOR_PLAY = ({
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación WBO');
+        throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación WBG');
       }
   
       const result = await response.json();
-      console.log('[✓] Respuesta de SERVEX_AI Engine (WBO):', result);
+      console.log('[✓] Respuesta de SERVEX_AI Engine (WBG):', result);
   
     } catch (err) {
-      console.error(`Secondary Process halted (WBO): ${err.message}`);
+      console.error(`Secondary Process halted (WBG): ${err.message}`);
     } finally {
       setLocalProcessing(false);
       if (setIsProcessing) setIsProcessing(false);
