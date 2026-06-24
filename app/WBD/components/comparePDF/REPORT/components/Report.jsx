@@ -1,12 +1,16 @@
 'use client';
 import { supabase } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Zap, Database, BrainCircuit, Activity } from 'lucide-react';
+import { RefreshCw, Zap, Database, BrainCircuit, Activity, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function AuditReportViewer() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecordId, setSelectedRecordId] = useState(null);
+  
+  // Estado para controlar la paginación de los cambios
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
 
   const calculatePercentage = (oldVal, newVal) => {
     const oldNum = parseFloat(oldVal);
@@ -31,10 +35,21 @@ export default function AuditReportViewer() {
     fetchAuditData();
   }, []);
 
+  // Reiniciar a la página 1 si cambia el registro seleccionado
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedRecordId]);
+
   const activeRecord = records.find(r => r.id === selectedRecordId);
   const reportData = activeRecord?.audit_report_jsonP;
   const metrics = reportData?.summary_metrics;
   const changes = reportData?.xml_injection_manifest || [];
+
+  // Lógica de segmentación para la paginación
+  const totalPages = Math.ceil(changes.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentChanges = changes.slice(indexOfFirstItem, indexOfLastItem);
 
   if (loading) return <div className="p-10 text-sm text-[#616161]">Cargando auditoría...</div>;
 
@@ -44,7 +59,6 @@ export default function AuditReportViewer() {
         
         {/* Header - Mismo diseño */}
         <div className="mb-6 bg-white rounded-md p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-           {/* ... (Header content igual al anterior) ... */}
            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
             <BrainCircuit className="text-[#4F46E5]" size={28} />
             Centro de Análisis de Desarrollo: {reportData?.pipeline_metadata?.system_engine}
@@ -89,11 +103,12 @@ export default function AuditReportViewer() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F0F0F0]">
-                {changes.map((c, i) => {
+                {currentChanges.map((c, i) => {
+                  const actualIndex = indexOfFirstItem + i;
                   const diff = calculatePercentage(c.injected_value_old, c.injected_value_new);
                   return (
-                    <tr key={i} className="hover:bg-[#F7F5FA]">
-                      <td className="px-3 py-2 text-[10px] text-[#A6A6A6] font-mono">{i + 1}</td>
+                    <tr key={actualIndex} className="hover:bg-[#F7F5FA]">
+                      <td className="px-3 py-2 text-[10px] text-[#A6A6A6] font-mono">{actualIndex + 1}</td>
                       <td className="px-3 py-2 font-mono font-bold text-[#5B5FC7]">{c.model_id}</td>
                       <td className="px-3 py-2">{c.target_node}</td>
                       <td className="px-3 py-2 text-[#A4262C] line-through decoration-red-300 font-mono">{c.injected_value_old}</td>
@@ -108,8 +123,32 @@ export default function AuditReportViewer() {
             </table>
           </div>
 
-          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between">
+          {/* Footer Original conservado con Controles de Paginación limpios añadidos */}
+          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-3 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex flex-col sm:flex-row justify-between items-center gap-3">
             <span>TOTAL CAMBIOS APLICADOS: {changes.length}</span>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2 bg-white px-2 py-1 rounded border border-[#E0E0E0] shadow-sm">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-1 rounded text-[#5B5FC7] hover:bg-[#F3F2F1] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <span className="font-mono px-1">
+                  Pág. {currentPage} de {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-1 rounded text-[#5B5FC7] hover:bg-[#F3F2F1] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
+
             <span className="uppercase text-[#5B5FC7] font-bold">{reportData?.pipeline_metadata?.company_processed}</span>
           </div>
         </div>
