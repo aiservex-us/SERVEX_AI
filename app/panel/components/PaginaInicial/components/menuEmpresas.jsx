@@ -38,17 +38,7 @@ export default function Calendar() {
       onOpen: () => router.push('/WBS')
     },
 
-    {
-      company: "WB Tables",
-      logo: "/logosEmpresas/WB.webp",
-      role: "Heavy-Duty Production Worksurfaces",
-      description: "Mesas de uso rudo y superficies de alta resistencia mecánica, diseñadas específicamente para soportar cargas pesadas en entornos de manufactura y ensamble.",
-      tags: ['Manufacturing', 'Heavy-Duty', 'Production'],
-      status: "Active contract",
-      location: "United States",
-      onOpen: () => router.push('/WBT')
-    },
- 
+
     {
       company: "WB Desks",
       logo: "/logosEmpresas/WB.webp",
@@ -59,6 +49,17 @@ export default function Calendar() {
       location: "United States",
       onOpen: () => router.push('/WBD')
     },
+        {
+      company: "WB Tables",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Heavy-Duty Production Worksurfaces",
+      description: "Mesas de uso rudo y superficies de alta resistencia mecánica, diseñadas específicamente para soportar cargas pesadas en entornos de manufactura y ensamble.",
+      tags: ['Manufacturing', 'Heavy-Duty', 'Production'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBT')
+    },
+ 
         {
       company: "WB Accesories",
       logo: "/logosEmpresas/WB.webp",

@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'reporting', label: 'WBT Home', icon: LayoutDashboard, sub: 'Dashboard' },
+  { id: 'reporting', label: 'WBO Home', icon: LayoutDashboard, sub: 'Dashboard' },
     { id: 'report', label: 'List Price Changes', icon: UploadCloud, sub: 'Execution' },
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: FileSpreadsheet, sub: 'Ingestion' },
   { id: 'notifications', label: 'Import new excel', icon: FileCode, sub: 'Ingestion' },
@@ -96,7 +96,7 @@ export default function MenuLateral({
               ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
             `}>
               <span className="font-bold text-[12px] tracking-tight text-slate-800 whitespace-nowrap uppercase">
-                DATA WBT
+                DATA WBO
               </span>
             </div>
           </div>
