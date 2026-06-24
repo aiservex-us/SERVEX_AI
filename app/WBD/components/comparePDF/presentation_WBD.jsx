@@ -109,7 +109,7 @@ const WBmfgAdminHero = () => {
       </div>
 
       {/* --- LADO DERECHO (VISUAL) --- */}
-      <div className="hidden lg:flex w-[35%] h-full bg-[#464775] relative items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex w-[35%] h-full bg-[#464775] relative items-center justify-center overflow-hidden rounded-xl">
         <div className="absolute top-12 right-12 cursor-pointer group z-10">
           <div className="w-6 h-[1.5px] bg-white mb-1.5 transition-all group-hover:w-8" />
           <div className="w-4 h-[1.5px] bg-white ml-auto" />
