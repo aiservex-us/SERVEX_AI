@@ -119,7 +119,7 @@ export default function AuditReportViewer() {
             <div className="flex items-start gap-3">
               <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Zap size={16} /></div>
               <div>
-                <p className="text-[9px] font-bold text-[#616161] uppercase">Estado de Sincronización</p>
+                <p className="text-[9px] font-bold text-[#616161] uppercase">Estado de Sincronización.</p>
                 <p className="text-[10px] text-[#242424]">Ejecución en {reportData?.execution_time || '0.4s'}. Estado: <span className="font-bold text-[#107C10]">OPTIMIZADO</span></p>
               </div>
             </div>
