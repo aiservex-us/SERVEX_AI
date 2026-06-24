@@ -21,7 +21,7 @@ export default function DataViewer() {
   const [loading, setLoading] = useState(true);
   
   // Mapeado exacto a las columnas de la tabla: se cambia 'csv_optimizer_raw' por 'csv_raw'
-  const [activeTab, setActiveTab] = useState('csv_raw'); 
+  const [activeTab, setActiveTab] = useState('csv_new_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
@@ -49,7 +49,7 @@ export default function DataViewer() {
       // Consulta exacta alineada al DDL y filtrada por la entidad corporativa WBD
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBD')
-        .select('company_name, csv_raw, informa_agent_raw, created_at')
+        .select('company_name, csv_new_raw, informa_agent_raw, created_at')
         .eq('company_name', 'WBD')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -178,7 +178,7 @@ export default function DataViewer() {
               <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('csv_raw')}
+                  onClick={() => setActiveTab('csv_new_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
                     activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
