@@ -192,7 +192,7 @@ export default function DataViewer() {
                     activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
-                  PDF Intelligence
+                  PDF Intelligence.
                 </button>
               </div>
 
