@@ -138,15 +138,15 @@ export default function AuditReportViewer() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F0F0F0]">
-                {reportData?.detected_changes?.map((c, i) => {
-                  const diff = calculatePercentage(c.old_value, c.new_value);
+                {reportData?.xml_injection_manifest?.map((c, i) => {
+                  const diff = calculatePercentage(c.injected_value_old, c.injected_value_new);
                   return (
                     <tr key={i} className="hover:bg-[#F7F5FA]">
                       <td className="px-3 py-2 text-[10px] text-[#A6A6A6] font-mono">{i + 1}</td>
                       <td className="px-3 py-2 font-mono font-bold text-[#5B5FC7]">{c.model_id}</td>
-                      <td className="px-3 py-2">{c.column_name}</td>
-                      <td className="px-3 py-2 text-[#A4262C] line-through decoration-red-300 font-mono">{c.old_value}</td>
-                      <td className="px-3 py-2 font-semibold text-[#107C10] font-mono">{c.new_value}</td>
+                      <td className="px-3 py-2">{c.target_node}</td>
+                      <td className="px-3 py-2 text-[#A4262C] line-through decoration-red-300 font-mono">{c.injected_value_old}</td>
+                      <td className="px-3 py-2 font-semibold text-[#107C10] font-mono">{c.injected_value_new}</td>
                       <td className="px-3 py-2">
                          <span className={parseFloat(diff) >= 0 ? "text-[#107C10]" : "text-[#A4262C]"}>{diff || 'N/A'}</span>
                       </td>
@@ -159,7 +159,7 @@ export default function AuditReportViewer() {
 
           {/* Footer de Auditoría */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between">
-            <span>TOTAL CAMBIOS DETECTADOS: {reportData?.detected_changes?.length || 0}</span>
+            <span>TOTAL CAMBIOS DETECTADOS: {reportData?.xml_injection_manifest?.length || 0}</span>
             <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] uppercase">Sistema de Integridad SERVEX_AI.</div>
           </div>
         </div>
