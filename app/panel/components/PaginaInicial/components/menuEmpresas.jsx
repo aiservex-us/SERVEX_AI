@@ -18,16 +18,6 @@ export default function Calendar() {
   const companies = [
 
     {
-      company: "WB Tables",
-      logo: "/logosEmpresas/WB.webp",
-      role: "Heavy-Duty Production Worksurfaces",
-      description: "Mesas de uso rudo y superficies de alta resistencia mecánica, diseñadas específicamente para soportar cargas pesadas en entornos de manufactura y ensamble.",
-      tags: ['Manufacturing', 'Heavy-Duty', 'Production'],
-      status: "Active contract",
-      location: "United States",
-      onOpen: () => router.push('/WBT')
-    },
-    {
       company: "WB Workstations",
       logo: "/logosEmpresas/WB.webp",
       role: "Ergonomic Tech & ESD Workstations",
@@ -47,16 +37,18 @@ export default function Calendar() {
       location: "United States",
       onOpen: () => router.push('/WBS')
     },
+
     {
-      company: "WB Storage",
+      company: "WB Tables",
       logo: "/logosEmpresas/WB.webp",
-      role: "Modular Cabinets & High-Density Storage",
-      description: "Sistemas de almacenamiento industrial robustos, gabinetes modulares y cajoneras de alta capacidad organizativa para herramientas e inventarios bajo metodologías 5S.",
-      tags: ['Storage', 'Inventory', 'Lean-5S'],
+      role: "Heavy-Duty Production Worksurfaces",
+      description: "Mesas de uso rudo y superficies de alta resistencia mecánica, diseñadas específicamente para soportar cargas pesadas en entornos de manufactura y ensamble.",
+      tags: ['Manufacturing', 'Heavy-Duty', 'Production'],
       status: "Active contract",
       location: "United States",
-      onOpen: () => router.push('/WBG')
+      onOpen: () => router.push('/WBT')
     },
+ 
     {
       company: "WB Desks",
       logo: "/logosEmpresas/WB.webp",
@@ -76,6 +68,16 @@ export default function Calendar() {
       status: "Active contract",
       location: "United States",
       onOpen: () => router.push('/WBA')
+    },
+       {
+      company: "WB Storage",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Modular Cabinets & High-Density Storage",
+      description: "Sistemas de almacenamiento industrial robustos, gabinetes modulares y cajoneras de alta capacidad organizativa para herramientas e inventarios bajo metodologías 5S.",
+      tags: ['Storage', 'Inventory', 'Lean-5S'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBG')
     },
     {
       company: "LESRO",
