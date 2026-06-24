@@ -12,7 +12,7 @@ const DeleteTenantButton = ({ currentTenant = 'WBO', onDeleted }) => {
     setIsDeleting(true);
     try {
       const { error } = await supabase
-        .from('ClientsSERVEX_WBO')
+        .from('ClientsSERVEX_WBD')
         .delete()
         .eq('company_name', currentTenant);
 

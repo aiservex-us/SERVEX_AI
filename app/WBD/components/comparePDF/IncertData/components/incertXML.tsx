@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML() {
-  const [companyName, setCompanyName] = useState('WBO'); 
+  const [companyName, setCompanyName] = useState('WBD'); 
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState(''); 
   const [loading, setLoading] = useState(false);
@@ -81,12 +81,17 @@ export default function UploadClientXML() {
 
     const rawHeaders = allRows[0];
     const cleanedHeaders = rawHeaders.map(header => {
-      let hClean = header.replace(/\n/g, ' ').replace(/\r/g, ' ');
-      hClean = hClean.replace(/"/g, '').replace(/'/g, '');
-      hClean = hClean.split(/\s+/).join(' ').trim();
+      // 1. Reemplazar saltos de línea y retornos por espacios simples
+      let hClean = header.replace(/[\r\n]+/g, ' ');
+      // 2. Eliminar todas las comillas dobles y simples residuales
+      hClean = hClean.replace(/["']/g, '');
+      // 3. Colapsar múltiples espacios en uno solo y limpiar los extremos
+      hClean = hClean.replace(/\s+/g, ' ').trim();
+      
       return hClean || 'unnamed_column';
     });
 
+    // SISTEMA DE LLAVES UNICAS PARA CAMPOS JSONB (Previene sobreescrituras de columnas repetidas)
     const perfectHeaders: string[] = [];
     const headerCounts: { [key: string]: number } = {};
 
@@ -160,7 +165,7 @@ export default function UploadClientXML() {
     reader.readAsText(file);
   };
 
-  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBO ---
+  // --- Orquestador de Persistencia e Inyección en ClientsSERVEX_WBD ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
     if (!xmlContent.trim()) {
@@ -178,14 +183,19 @@ export default function UploadClientXML() {
       console.log('[+] Ejecutando pipelines ETL sobre estructuras CSV...');
       const sanitizedCsvJson = sanitizeCSV(csvContent);
 
+      /**
+       * PAYLOAD ESTRUCTURADO SEGÚN TU DDL DE POSTGRESQL:
+       * - csv_raw: Almacena directamente la estructura JSON del CSV principal ya saneado.
+       */
       const payload = {
-        company_name: 'WBO',
+        company_name: 'WBD',
         xml_raw: xmlContent, 
         csv_raw: JSON.stringify(sanitizedCsvJson), 
         user_id: user.id,
       };
 
-      const { error } = await supabase.from('ClientsSERVEX_WBO').upsert(payload, { 
+      // Persistencia exacta apuntando a tu esquema e identificador de tabla corregido: ClientsSERVEX_WBD
+      const { error } = await supabase.from('ClientsSERVEX_WBD').upsert(payload, { 
         onConflict: 'id' 
       });
 
@@ -193,7 +203,7 @@ export default function UploadClientXML() {
         console.error('Supabase Core Error:', error);
         setMessage({ text: `DB Error [${error.code}]: ${error.message}`, type: 'error' });
       } else {
-        setMessage({ text: 'WBO Catalog Data successfully sanitized and stored in csv_raw', type: 'success' });
+        setMessage({ text: 'WBD Catalog Data successfully sanitized and stored in ClientsSERVEX_WBD', type: 'success' });
         setXmlContent(''); 
         setCsvContent(''); 
       }
@@ -206,7 +216,7 @@ export default function UploadClientXML() {
   };
 
   return (
-    <div className="min-h-[60vh] bg-white flex font-sans text-[#242424] relative">
+    <div className="min-h-screen bg-white flex font-sans text-[#242424] relative">
       <div className="flex-1 flex flex-col">
         
         {/* --- NAVBAR --- */}
@@ -216,8 +226,8 @@ export default function UploadClientXML() {
               <FileCode className="text-[#5B5FC7]" size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[#242424]">WBO Catalog Upload</h1>
-              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección directa en la columna csv_raw.</p>
+              <h1 className="text-lg font-bold text-[#242424]">WBD Catalog Upload</h1>
+              <p className="text-[11px] text-[#616161]">Saneamiento avanzado e inyección para la tabla ClientsSERVEX_WBD</p>
             </div>
           </div>
         </div>
@@ -236,8 +246,7 @@ export default function UploadClientXML() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  {/* Línea 247 Corregida de forma segura usando un string de JS literal */}
-                  <span className="text-xs font-medium">{"Sanitize -> Guardar en csv_raw"}</span>
+                  <span className="text-xs font-medium">CSV Optimizer Raw (JSON)</span>
                 </div>
               </div>
             </div>
@@ -248,7 +257,7 @@ export default function UploadClientXML() {
                 <span className="text-xs font-bold">Alineación de Entidad</span>
               </div>
               <p className="text-[11px] text-[#616161] leading-relaxed">
-                Los datos procesados se guardan de forma limpia como una matriz JSON válida dentro de <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">csv_raw</code> para evitar errores de sintaxis en el visor.
+                Los datos se enlazan de forma centralizada bajo la firma corporativa <code className="font-mono bg-gray-100 px-1 rounded text-[#5B5FC7]">WBD</code> en la base de datos de producción.
               </p>
             </div>
           </div>
@@ -318,7 +327,7 @@ export default function UploadClientXML() {
                   disabled={loading}
                   className="bg-[#5B5FC7] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#4E52B1] transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                 >
-                  {loading ? 'Saneando y Guardando...' : 'Guardar Datos en WBO'}
+                  {loading ? 'Saneando y Guardando...' : 'Guardar Datos en WBD'}
                 </button>
               </div>
             </div>
