@@ -28,7 +28,7 @@ const TeamsCopilotStyle = () => {
     <div className="min-h-screen bg-[#FFF] flex flex-col font-sans text-gray-800">
       
       {/* --- TOP BAR (REEMPLAZADO CON #464775) --- */}
-      <div className="h-12 bg-[#464775] w-full flex items-center justify-between px-4 text-white shadow-md">
+      <div className="h-12 bg-[#FFF] w-full flex items-center justify-between px-4 text-white shadow-md">
         <div className="flex items-center gap-4">
           <div className="bg-white rounded p-0.5">
             <img src="/logo2.png" alt="SVX" className="h-5 w-auto" />

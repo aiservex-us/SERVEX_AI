@@ -23,14 +23,14 @@ const InitPage = () => {
     switch (activeView) {
       case 'home':
         return (
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+          <div key="home" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Content />
           </div>
         );
 
       case 'dashboard':
         return (
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+          <div key="dashboard" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Content />
             <Chart />
           </div>
@@ -38,28 +38,28 @@ const InitPage = () => {
 
       case 'calendar':
         return (
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+          <div key="calendar" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Calendar />
           </div>
         );
 
       case 'products':
         return (
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+          <div key="products" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Products />
           </div>
         );
 
       case 'settings':
         return (
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+          <div key="settings" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Settings />
           </div>
         );
 
       default:
         return (
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+          <div key="default" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Content />
             <Chart />
           </div>
@@ -69,6 +69,24 @@ const InitPage = () => {
 
   return (
     <div className="flex h-[90vh] bg-[#FFF] font-sans overflow-hidden text-slate-700">
+      {/* INYECCIÓN DE ANIMACIÓN PREMIUM AUTÓNOMA */}
+      <style>{`
+        @keyframes subtleFadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-view-fade {
+          animation: subtleFadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          will-change: transform, opacity;
+        }
+      `}</style>
+
       {/* SIDEBAR */}
       <Sidebar activeView={activeView} setActiveView={setActiveView} />
 
