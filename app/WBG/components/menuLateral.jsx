@@ -17,16 +17,15 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'reporting', label: 'WBG Home', icon: LayoutDashboard, sub: 'Dashboard' },
-    { id: 'report', label: 'List Price Changes', icon: UploadCloud, sub: 'Execution' },
-  { id: 'incert_delete', label: 'Import Base excel & XML', icon: FileSpreadsheet, sub: 'Ingestion' },
-  { id: 'inbox', label: 'cataloge base', icon: BrainCircuit, sub: 'Intelligence' },
+  { id: 'reporting', label: 'WBS Home', icon: LayoutDashboard, sub: 'Dashboard' },
+    { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud , sub: 'Ingestion' },
+    { id: 'report', label: 'List Price Changes', icon: BrainCircuit, sub: 'Execution' },
+  { id: 'inbox', label: 'cataloge base', icon:   FileCode, sub: 'Intelligence' },
   { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
+  { id: 'inbox_updated', label: 'Current Catalog', icon:  FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'AI_reporter', label: 'AI Resumen', icon: CheckCircle2, sub: 'Output' },
 ];
-
 export default function MenuLateral({
   active,
   setActive,
