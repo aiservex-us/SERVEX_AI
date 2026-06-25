@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML() {
-  const [companyName] = useState('WBT');
+  const [companyName] = useState('WBS');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState('');
   const [loading, setLoading] = useState(false);
@@ -250,7 +250,7 @@ export default function UploadClientXML() {
       const sanitizedCsvJson = sanitizeCSV(csvContent);
 
       const payload = {
-        company_name: 'WBT',
+        company_name: 'WBS',
         xml_raw: xmlContent,
         csv_raw: sanitizedCsvJson,
         user_id: user.id,
@@ -258,7 +258,7 @@ export default function UploadClientXML() {
 
       // Modificación de red limpia y tipada: Evita el eco masivo de datos de vuelta por la red HTTP
       const { error } = await supabase
-        .from('ClientsSERVEX_WBT')
+        .from('ClientsSERVEX_WBS')
         .upsert(payload, { onConflict: 'company_name' })
         .select('');
 
@@ -304,7 +304,7 @@ return (
         <div className="bg-[#464775]/10 border-b border-[#464775]/20 px-8 py-3">
           <p className="text-[11px] text-[#464775] leading-relaxed max-w-4xl">
             Aquí podrás almacenar y reemplazar todos los datos crudos y bases del{' '}
-            <span className="font-bold">WBT</span> correspondientes a los catálogos WBT de esta entidad.
+            <span className="font-bold">WBS</span> correspondientes a los catálogos WBS de esta entidad.
           </p>
         </div>
 
