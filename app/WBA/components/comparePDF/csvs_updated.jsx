@@ -19,14 +19,12 @@ import {
 export default function DataViewer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // Mapeado exacto a las columnas reales del DDL de la tabla ClientsSERVEX_WBA
-  const [activeTab, setActiveTab] = useState('csv_raw'); 
+  const [activeTab, setActiveTab] = useState('csv_new_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 30;
+  const ITEMS_PER_PAGE = 35;
 
   useEffect(() => {
     fetchLatestData();
@@ -46,11 +44,9 @@ export default function DataViewer() {
   const fetchLatestData = async () => {
     setLoading(true);
     try {
-      // Consulta corregida alineada estrictamente al DDL provisto para la entidad WBA
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBA')
-        .select('company_name, csv_raw, xml_raw, created_at')
-        .eq('company_name', 'WBA')
+        .select('company_name, csv_new_raw, csvpdf_raw, created_at')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -58,28 +54,26 @@ export default function DataViewer() {
       if (error) throw error;
       setData(record);
     } catch (error) {
-      console.error('Error fetching WBA data:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB / TEXT ---
+  // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB ---
   const getSanitizedData = (record, tab) => {
     if (!record || !record[tab]) return [];
     
-    // Si Supabase ya lo parseó automáticamente como Array de objetos
     if (Array.isArray(record[tab])) {
       return record[tab];
     }
     
-    // Si viene como string debido a la serialización o formato plano de la base de datos
     try {
       if (typeof record[tab] === 'string') {
         return JSON.parse(record[tab]);
       }
     } catch (e) {
-      console.error("Error interpretando JSONB / Text slot:", e);
+      console.error("Error interpretando JSONB slot:", e);
     }
     
     return [];
@@ -99,22 +93,14 @@ export default function DataViewer() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedData = filteredData.slice(startIndex, endIndex);
 
-  // --- OBTENER TODOS LOS HEADERS POSIBLES DEL DATASET ---
-  const getDatasetHeaders = () => {
-    if (currentCsvData.length === 0) return [];
-    // Buscamos el objeto con más llaves para evitar pérdidas por registros truncados
-    const masterRow = currentCsvData.reduce((max, row) => Object.keys(row).length > Object.keys(max).length ? row : max, currentCsvData[0]);
-    return Object.keys(masterRow).filter(h => h !== '_orphaned_fields');
-  };
-
-  const tableHeaders = getDatasetHeaders();
-
   // --- LOGICA DE DESCARGA E INYECCIÓN EN ARCHIVO CSV ---
   const handleDownloadCSV = () => {
-    if (filteredData.length === 0 || tableHeaders.length === 0) return;
+    if (filteredData.length === 0) return;
 
+    const headers = Object.keys(filteredData[0]);
+    
     const csvRows = filteredData.map(row => 
-      tableHeaders.map(header => {
+      headers.map(header => {
         let val = row[header];
         if (val === null || val === undefined) {
           val = '';
@@ -124,21 +110,21 @@ export default function DataViewer() {
           val = String(val);
         }
         
-        if (val.includes(',') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
+        if (val.includes(';') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
           val = `"${val.replace(/"/g, '""')}"`;
         }
         return val;
-      }).join(',')
+      }).join(';')
     );
 
-    const csvContent = [tableHeaders.join(','), ...csvRows].join('\n');
+    const csvContent = [headers.join(';'), ...csvRows].join('\n');
     
     const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     
     const link = document.createElement('a');
     link.href = url;
-    const filename = `${data?.company_name || 'WBA'}_${activeTab === 'csv_raw' ? 'Sanitized_Manual' : 'Raw_Data'}_${new Date().toISOString().slice(0,10)}.csv`;
+    const filename = `${data?.company_name || 'Catalog'}_${activeTab}_${new Date().toISOString().slice(0,10)}.csv`;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
@@ -150,14 +136,14 @@ export default function DataViewer() {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix for WBA...
+        Retrieving master data matrix...
       </div>
     </div>
   );
 
   if (!data) return (
     <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
-      <span className="font-bold">Synchronization error:</span> No active matrix found for entity "WBA" in ClientsSERVEX_WBA.
+      <span className="font-bold">Synchronization error:</span> No records were found in the database.
     </div>
   );
 
@@ -171,18 +157,18 @@ export default function DataViewer() {
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#242424]">Entity: {data.company_name}</span>
+                <span className="text-xs font-bold text-[#242424]">{data.company_name}</span>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
-                  Saneamiento Activo
+                  Read Only
                 </span>
               </div>
               <span className="text-[10px] text-[#616161]">
-                Last data sync: {new Date(data.created_at).toLocaleString()}
+                Last updated: {new Date(data.created_at).toLocaleDateString()}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Tab Selector mapeado a las columnas JSONB / Text del DDL */}
+              {/* Tab Selector */}
               <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
                 <button
                   type="button"
@@ -191,7 +177,16 @@ export default function DataViewer() {
                     activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
-                  Manual Optimizer
+                  Manual Sync
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('csvpdf_raw')}
+                  className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
+                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                  }`}
+                >
+                  PDF Intelligence
                 </button>
               </div>
 
@@ -228,7 +223,7 @@ export default function DataViewer() {
           {/* Table Container */}
           {paginatedData.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No matching analytical records found inside {activeTab}.
+              No matching records found.
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
@@ -238,7 +233,7 @@ export default function DataViewer() {
                     <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-30 border-r border-b border-[#E0E0E0] select-none">
                       Index
                     </th>
-                    {tableHeaders.map((header) => (
+                    {Object.keys(currentCsvData[0]).map((header) => (
                       <th
                         key={header}
                         className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
@@ -254,6 +249,7 @@ export default function DataViewer() {
 
                 <tbody className="bg-white divide-y divide-[#F0F0F0]">
                   {paginatedData.map((row, relativeIdx) => {
+                    // Cálculo del índice global real de la fila para que no se reinicie en cada página
                     const absoluteIdx = startIndex + relativeIdx;
                     return (
                       <tr key={absoluteIdx} className="hover:bg-[#F7F5FA] transition-colors duration-75">
@@ -261,7 +257,7 @@ export default function DataViewer() {
                           {absoluteIdx + 1}
                         </td>
 
-                        {tableHeaders.map((header) => {
+                        {Object.keys(currentCsvData[0]).map((header) => {
                           const cellValue = row[header];
                           return (
                             <td key={header} className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
@@ -289,10 +285,11 @@ export default function DataViewer() {
           {/* Pagination Controls & Information Footer */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
-              <span className="uppercase tracking-tight">ATTRIBUTES: {tableHeaders.length}</span>
+              <span className="uppercase tracking-tight">ATTRIBUTES: {currentCsvData.length > 0 ? Object.keys(currentCsvData[0]).length : 0}</span>
               <span className="uppercase tracking-tight">SHOWING: {startIndex + 1}-{Math.min(endIndex, filteredData.length)} OF {filteredData.length}</span>
             </div>
 
+            {/* CONTROLES DE INTERFAZ DE PAGINACIÓN */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -319,7 +316,7 @@ export default function DataViewer() {
             
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                {activeTab === 'csv_raw' ? 'Dataset: Sanitized Manual ERP' : 'Dataset: Raw Matrix'}
+                {activeTab === 'csv_raw' ? 'Source: ERP Manual' : 'Source: AI PDF Extraction'}
               </div>
             </div>
           </div>

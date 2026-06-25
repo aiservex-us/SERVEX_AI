@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Sidebar from './components/main/loogout';
+// Cambiaste el nombre del archivo o alias, se inyectan las props aquí
+import Sidebar from './components/main/loogout'; 
 import Header from './components/main/Header';
 
 // VISTAS / COMPONENTES
@@ -18,6 +19,8 @@ import Footer from './components/main/footer';
 
 const InitPage = () => {
   const [activeView, setActiveView] = useState('dashboard');
+  // NUEVO: Estado para controlar si el menú está colapsado o no
+  const [collapsed, setCollapsed] = useState(false);
 
   const renderMainContent = () => {
     switch (activeView) {
@@ -87,8 +90,15 @@ const InitPage = () => {
         }
       `}</style>
 
-      {/* SIDEBAR */}
-      <Sidebar activeView={activeView} setActiveView={setActiveView} />
+      {/* SIDEBAR: Ahora recibe el estado y el manejador del colapso */}
+      <Sidebar 
+        activeView={activeView} 
+        setActiveView={setActiveView} 
+        active={activeView}          // Mapeo por si tu componente interno usa 'active'
+        setActive={setActiveView}    // Mapeo por si tu componente interno usa 'setActive'
+        collapsed={collapsed} 
+        setCollapsed={setCollapsed} 
+      />
 
       <main className="flex-1 h-full flex flex-col overflow-hidden">
         <Header />

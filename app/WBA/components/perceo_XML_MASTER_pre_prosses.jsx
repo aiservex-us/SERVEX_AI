@@ -52,7 +52,7 @@ const WBDDataMatrix = () => {
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBD XML structure");
+      if (parserError) throw new Error("Error parsing WBA XML structure");
 
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
