@@ -256,7 +256,7 @@ const SVXUnifiedPlatform = () => {
 
   const renderVisualizerContent = () => (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-shrink-0 p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
+      <div className="flex-shrink-0  p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
         <div className="flex items-center gap-2">
           <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Viewer</h2>
           <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
