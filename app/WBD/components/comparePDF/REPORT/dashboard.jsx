@@ -13,7 +13,7 @@ export default function Dashboard() {
       style={{ fontFamily: '"Segoe UI", Tahoma, sans-serif' }}
     >
       
-      {/* Grid Layout */}
+      {/* Grid*/}
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
         
         {/* Contenedor Report.jsx (65% en escritorio, 100% en móvil) */}
