@@ -60,16 +60,7 @@ export default function Calendar() {
       onOpen: () => router.push('/WBT')
     },
  
-        {
-      company: "WBA Accesories",
-      logo: "/logosEmpresas/WB.webp",
-      role: "Industrial Components & Modular Add-ons",
-      description: "Structural components, articulating arms, integrated LED lighting, and support systems designed to optimize the operator's workspace.",
-      tags: ['Accessories', 'Ergonomics', 'Customization'],
-      status: "Active contract",
-      location: "United States",
-      onOpen: () => router.push('/WBA')
-    },
+   
        {
       company: "WBG Storage",
       logo: "/logosEmpresas/WB.webp",
