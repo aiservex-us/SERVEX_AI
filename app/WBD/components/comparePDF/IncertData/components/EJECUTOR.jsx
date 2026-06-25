@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase } from '../../../../../lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EJECUTOR_PLAY from './EJECUTOR_PLAY';
@@ -486,30 +486,7 @@ const SVXUnifiedPlatform = () => {
         </div>
       )}
 
-      <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
-        <div className="flex items-center gap-4">
-          <img src={`/logosEmpresas/WB.webp`} alt={currentTenant} className="w-15 h-15 rounded object-contain" onError={(e) => { e.target.src = "/logosEmpresas/default.webp"; }} />
-          <div>
-            <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified WBT Hub</h1>
-            <p className="text-[10px] text-gray-500 font-medium">{currentTenant} Strategic Control</p>
-          </div>
-        </div>
-
-        <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
-          <button 
-            onClick={handleDeleteCompleteRow}
-            disabled={isDeletingRow}
-            className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#444791] shadow-sm hover:bg-rose-50 hover:text-rose-600 transition-all disabled:opacity-50"
-          >
-            {isDeletingRow ? (
-              <Loader2 size={12} className="animate-spin" />
-            ) : (
-              <Trash2 size={12}/>
-            )}
-            {isDeletingRow ? "Deleting..." : `Delete Tenant ${currentTenant}`}
-          </button>
-        </nav>
-      </header>
+      
 
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
       <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">

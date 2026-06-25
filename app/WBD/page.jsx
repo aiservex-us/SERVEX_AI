@@ -12,7 +12,7 @@ import CatalogParser from './components/PDFsection';
 import Csvs from './components/comparePDF/csvs'; 
 import Csvs_updated from './components/comparePDF/csvs_updated.jsx'; 
 import PrecentMain from './components/PrecentMain';
-import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
+import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx'; 
 import AIReporting from './components/comparePDF/presentation_WBD'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'

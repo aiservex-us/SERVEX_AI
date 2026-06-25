@@ -3,6 +3,7 @@
 import React from 'react';
 import DeleteData from './components/delete_data';
 import InsertXML from './components/incertXML';
+import Ejecutor from './components/EJECUTOR'
 
 const IncertData = () => {
   return (
@@ -11,8 +12,12 @@ const IncertData = () => {
       <div className="flex flex-col gap-8">
         {/* Sección de Inserción XML */}
         <section className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-      
+        
           <InsertXML />
+        </section>
+         <section className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+        
+          <Ejecutor  />
         </section>
 
         {/* Sección de Eliminación */}
