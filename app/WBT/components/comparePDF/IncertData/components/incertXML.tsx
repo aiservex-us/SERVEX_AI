@@ -304,7 +304,7 @@ return (
         <div className="bg-[#464775]/10 border-b border-[#464775]/20 px-8 py-3">
           <p className="text-[11px] text-[#464775] leading-relaxed max-w-4xl">
             Aquí podrás almacenar y reemplazar todos los datos crudos y bases del{' '}
-            <span className="font-bold">LESRO</span> correspondientes a los catálogos WBT de esta entidad.
+            <span className="font-bold">WBT</span> correspondientes a los catálogos WBT de esta entidad.
           </p>
         </div>
 

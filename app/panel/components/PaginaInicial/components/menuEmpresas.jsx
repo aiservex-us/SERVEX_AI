@@ -40,6 +40,16 @@ export default function Calendar() {
       location: "United States",
       onOpen: () => router.push('/WBD')
     },
+     {
+      company: "WBO Workstations",
+      logo: "/logosEmpresas/WB.webp",
+      role: "Ergonomic Tech & ESD Workstations",
+      description: "Advanced workstations with integrated antistatic protection, smart cable management, and connectivity solutions for laboratories and electronics.",
+      tags: ['Assembly', 'ESD-Protection', 'Tech-Design'],
+      status: "Active contract",
+      location: "United States",
+      onOpen: () => router.push('/WBO')
+    },
         {
       company: "WBT Tables",
       logo: "/logosEmpresas/WB.webp",
@@ -50,16 +60,7 @@ export default function Calendar() {
       location: "United States",
       onOpen: () => router.push('/WBT')
     },
- {
-      company: "WBO Workstations",
-      logo: "/logosEmpresas/WB.webp",
-      role: "Ergonomic Tech & ESD Workstations",
-      description: "Advanced workstations with integrated antistatic protection, smart cable management, and connectivity solutions for laboratories and electronics.",
-      tags: ['Assembly', 'ESD-Protection', 'Tech-Design'],
-      status: "Active contract",
-      location: "United States",
-      onOpen: () => router.push('/WBO')
-    },
+
    
        {
       company: "WBG Storage",
