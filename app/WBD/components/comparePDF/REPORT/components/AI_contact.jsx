@@ -150,7 +150,7 @@ export default function TeamsAgentChat() {
                   transition={{ delay: 0.3, duration: 0.5 }}
                 >
                   {[
-                    { label: "Documents",  value: "Servex client" },
+                    { label: "Documents",  value: "client" },
                     { label: "Accuracy", value: "98.4%" },
                     { label: "Sync",  value: "Real-time" },
                   ].map((m, i) => (
