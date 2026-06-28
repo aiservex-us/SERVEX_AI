@@ -65,7 +65,7 @@ const HeroSection = () => {
           
           {/* Card XML */}
           <Link 
-            href="/WBT/Actualizer_XML"
+            href="/WBT/Actualizer_XML_Tables"
             className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-xl p-5 md:p-6 hover:bg-white hover:border-[#BDBDBD] hover:shadow-md transition-all duration-200 backdrop-blur-sm"
           >
             <div className="mb-3 md:mb-4 text-[#6264A7]">
@@ -80,7 +80,7 @@ const HeroSection = () => {
 
           {/* Card Excel/CSV */}
           <Link 
-            href="/WBT/Actualizer_Excel"
+            href="/WBT/Actualizer_Excel_Tables"
             className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-xl p-5 md:p-6 hover:bg-white hover:border-[#BDBDBD] hover:shadow-md transition-all duration-200 backdrop-blur-sm"
           >
             <div className="mb-3 md:mb-4 text-[#46A160]">
@@ -95,7 +95,7 @@ const HeroSection = () => {
 
           {/* Card Alysa & CET Integration Hub */}
           <Link 
-            href="/WBT/Alysa_Hub"
+            href="/WBT/Alysa_Hub_Tables"
             className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-xl p-5 md:p-6 hover:bg-white hover:border-[#BDBDBD] hover:shadow-md transition-all duration-200 backdrop-blur-sm"
           >
             <div className="mb-3 md:mb-4 text-[#5B5FC7]">
