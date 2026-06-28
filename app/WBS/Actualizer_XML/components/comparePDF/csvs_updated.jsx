@@ -19,12 +19,12 @@ import {
 export default function DataViewer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('csv_raw'); 
+  const [activeTab, setActiveTab] = useState('csv_new_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 30;
+  const ITEMS_PER_PAGE = 35;
 
   useEffect(() => {
     fetchLatestData();
@@ -45,8 +45,8 @@ export default function DataViewer() {
     setLoading(true);
     try {
       const { data: record, error } = await supabase
-        .from('ClientsSERVEX_WBT')
-        .select('company_name, csv_raw, csvpdf_raw, created_at')
+        .from('ClientsSERVEX_WBS')
+        .select('company_name, csv_new_raw, csvpdf_raw, created_at')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -174,7 +174,7 @@ export default function DataViewer() {
                   type="button"
                   onClick={() => setActiveTab('csv_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'csv_new_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
                   Manual Sync

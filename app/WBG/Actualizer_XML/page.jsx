@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient'; 
+import { supabase } from '../../lib/supabaseClient.js'; 
 import { X, AlertCircle } from 'lucide-react';
 
 import MenuLateral from './components/menuLateral';
@@ -13,7 +13,7 @@ import Csvs from './components/comparePDF/csvs';
 import Csvs_updated from './components/comparePDF/csvs_updated.jsx'; 
 import PrecentMain from './components/PrecentMain';
 import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx'; 
-import AIReporting from './components/comparePDF/presentation_WBT'
+import AIReporting from './components/comparePDF/presentation_WBG'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';

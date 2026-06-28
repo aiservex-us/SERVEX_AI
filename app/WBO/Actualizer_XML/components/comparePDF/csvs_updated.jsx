@@ -19,12 +19,12 @@ import {
 export default function DataViewer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('csv_raw'); 
+  const [activeTab, setActiveTab] = useState('csv_new_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 30;
+  const ITEMS_PER_PAGE = 35;
 
   useEffect(() => {
     fetchLatestData();
@@ -45,8 +45,8 @@ export default function DataViewer() {
     setLoading(true);
     try {
       const { data: record, error } = await supabase
-        .from('ClientsSERVEX_WBT')
-        .select('company_name, csv_raw, csvpdf_raw, created_at')
+        .from('ClientsSERVEX_WBO')
+        .select('company_name, csv_new_raw, csvpdf_raw, created_at')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();

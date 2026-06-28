@@ -19,6 +19,8 @@ import {
 export default function DataViewer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Mapeado exacto a la columna donde acabas de guardar los datos saneados
   const [activeTab, setActiveTab] = useState('csv_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -44,9 +46,11 @@ export default function DataViewer() {
   const fetchLatestData = async () => {
     setLoading(true);
     try {
+      // Consulta exacta alineada al DDL y filtrada por la entidad corporativa WBG
       const { data: record, error } = await supabase
-        .from('ClientsSERVEX_WBT')
-        .select('company_name, csv_raw, csvpdf_raw, created_at')
+        .from('ClientsSERVEX_WBG')
+        .select('company_name, csv_raw, informa_agent_raw, created_at')
+        .eq('company_name', 'WBG')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -54,7 +58,7 @@ export default function DataViewer() {
       if (error) throw error;
       setData(record);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching WBG data:', error);
     } finally {
       setLoading(false);
     }
@@ -64,10 +68,12 @@ export default function DataViewer() {
   const getSanitizedData = (record, tab) => {
     if (!record || !record[tab]) return [];
     
+    // Si Supabase ya lo parseó automáticamente como Array de objetos
     if (Array.isArray(record[tab])) {
       return record[tab];
     }
     
+    // Si viene como string debido a la serialización previa
     try {
       if (typeof record[tab] === 'string') {
         return JSON.parse(record[tab]);
@@ -124,7 +130,7 @@ export default function DataViewer() {
     
     const link = document.createElement('a');
     link.href = url;
-    const filename = `${data?.company_name || 'Catalog'}_${activeTab}_${new Date().toISOString().slice(0,10)}.csv`;
+    const filename = `${data?.company_name || 'WBG'}_${activeTab === 'csv_raw' ? 'Sanitized_Manual' : 'Sanitized_PDF'}_${new Date().toISOString().slice(0,10)}.csv`;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
@@ -136,14 +142,14 @@ export default function DataViewer() {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix...
+        Retrieving master data matrix for WBG...
       </div>
     </div>
   );
 
   if (!data) return (
     <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
-      <span className="font-bold">Synchronization error:</span> No records were found in the database.
+      <span className="font-bold">Synchronization error:</span> No ,active matrix found for entity "WBG" in ClientsSERVEX_WBG.
     </div>
   );
 
@@ -157,18 +163,18 @@ export default function DataViewer() {
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#242424]">{data.company_name}</span>
+                <span className="text-xs font-bold text-[#242424]">Entity: {data.company_name}</span>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
-                  Read Only
+                  Saneamiento Activo
                 </span>
               </div>
               <span className="text-[10px] text-[#616161]">
-                Last updated: {new Date(data.created_at).toLocaleDateString()}
+                Last data sync: {new Date(data.created_at).toLocaleString()}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Tab Selector */}
+              {/* Ajustado: Las pestañas ahora apuntan a columnas físicas reales del DDL de tu tabla */}
               <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
                 <button
                   type="button"
@@ -177,13 +183,13 @@ export default function DataViewer() {
                     activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
-                  Manual Sync
+                  Manual Optimizer
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('csvpdf_raw')}
+                  onClick={() => setActiveTab('informa_agent_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'informa_agent_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
                   PDF Intelligence
@@ -223,7 +229,7 @@ export default function DataViewer() {
           {/* Table Container */}
           {paginatedData.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No matching records found.
+              No matching matching analytical records found inside {activeTab}.
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
@@ -249,7 +255,6 @@ export default function DataViewer() {
 
                 <tbody className="bg-white divide-y divide-[#F0F0F0]">
                   {paginatedData.map((row, relativeIdx) => {
-                    // Cálculo del índice global real de la fila para que no se reinicie en cada página
                     const absoluteIdx = startIndex + relativeIdx;
                     return (
                       <tr key={absoluteIdx} className="hover:bg-[#F7F5FA] transition-colors duration-75">
@@ -289,7 +294,6 @@ export default function DataViewer() {
               <span className="uppercase tracking-tight">SHOWING: {startIndex + 1}-{Math.min(endIndex, filteredData.length)} OF {filteredData.length}</span>
             </div>
 
-            {/* CONTROLES DE INTERFAZ DE PAGINACIÓN */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -316,7 +320,7 @@ export default function DataViewer() {
             
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                {activeTab === 'csv_raw' ? 'Source: ERP Manual' : 'Source: AI PDF Extraction'}
+                {activeTab === 'csv_raw' ? 'Dataset: Sanitized Manual ERP' : 'Dataset: AI PDF Extraction'}
               </div>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient'; 
+import { supabase } from '../../lib/supabaseClient.js'; 
 import { X, AlertCircle } from 'lucide-react';
 
 import MenuLateral from './components/menuLateral';
@@ -13,7 +13,7 @@ import Csvs from './components/comparePDF/csvs';
 import Csvs_updated from './components/comparePDF/csvs_updated.jsx'; 
 import PrecentMain from './components/PrecentMain';
 import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx'; 
-import AIReporting from './components/comparePDF/presentation_WBT'
+import AIReporting from './components/comparePDF/presentation_WBD'
 import Compare from './components/comparePDF/UploadFileCmpare'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
@@ -97,7 +97,7 @@ export default function MenuInicial() {
             onClick={() => setShowExitModal(false)} 
           />
           
-          <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-white w-[440px] shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <span className="text-[14px] font-bold text-[#242424]">Confirm exit</span>
               <button onClick={() => setShowExitModal(false)} className="text-slate-400 hover:text-slate-600">
@@ -147,7 +147,7 @@ export default function MenuInicial() {
 
         <div className="relative group flex-1 h-full w-full min-w-0">
           <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-          <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
+          <div className="relative bg-white border-y md:border border-slaete-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
             <div className="p-1 w-full h-full">
               {renderContent()}
             </div>
