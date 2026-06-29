@@ -5,10 +5,10 @@ import Main1 from './components/main';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#FFF] text-[#242424] p-8 md:p-16">
+    <main className="min-h-[90vh] bg-[#FFF] text-[#242424] p-8 md:p-16">
       
       {/* Contenedor Sección Hero / Principal */}
-      <section className="w-full">
+      <section className="w-full ">
         <Main1 />
       </section>
 

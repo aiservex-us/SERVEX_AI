@@ -9,19 +9,22 @@ const HeroSection = () => {
   return (
     /* Responsiveness Adjustments on Parent:
       - Changed `min-h-[60vh]` to `min-h-fit` to prevent content overflow on mobile.
-      - Dynamic Padding: `pt-20 pb-12 px-4` on mobile, scaling to `md:px-12 md:pb-16 md:pt-28 lg:px-16 lg:pb-20 lg:pt-32`.
+      - Dynamic Padding: `pt-16 pb-10 px-4` on mobile, scaling to `md:px-10 md:pb-12 md:pt-24 lg:px-12 lg:pb-14 lg:pt-28`.
       - Adaptive Border Radius: `rounded-2xl` on mobile, `md:rounded-3xl` on large screens.
     */
-    <section className="relative min-h-fit w-[95%] max-w-9xl mx-auto flex flex-col justify-end overflow-hidden bg-white px-4 pb-12 pt-20 md:px-12 md:pb-16 md:pt-28 lg:px-16 lg:pb-20 lg:pt-32 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm">
+    <section className="relative min-h-[80vh] w-[95%] max-w-9xl mx-auto flex flex-col justify-end overflow-hidden bg-white px-4 pb-10 pt-16 md:px-10 md:pb-12 md:pt-24 lg:px-12 lg:pb-14 lg:pt-28 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm">
       
-      {/* 1. BASE BACKGROUND IMAGE */}
-      <div className="absolute inset-0 z-0">
-        <img 
-          src="/_.jpeg" 
-          alt="Background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-white/35" />
+      {/* 1. BASE BACKGROUND IMAGE (Cambiado a fondo blanco con figura rara, morada y difuminada con mayor intensidad) */}
+      <div className="absolute inset-0 z-0 bg-white">
+        {/* Figura abstracta/rara morada principal con fuerte difuminado - Opacidad al 35% */}
+        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[80%] rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] bg-[#464775]/35 blur-[120px] pointer-events-none" />
+        
+        {/* Segunda figura complementaria para dar la forma irregular al fondo - Opacidad al 30% */}
+        <div className="absolute bottom-[-10%] right-[-5%] w-[60%] h-[70%] rounded-[50%_30%_52%_48%_/_40%_60%_40%_60%] bg-[#464775]/30 blur-[140px] pointer-events-none" />
+        
+        {/* Destellos y difuminados blancos encima para suavizar y fusionar la composición */}
+        <div className="absolute top-[20%] left-[30%] w-[40%] h-[40%] rounded-full bg-white/60 blur-[90px] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-white/40 pointer-events-none" />
       </div>
 
       {/* 2. GRADIENT & PANEL LAYER */}
@@ -43,109 +46,108 @@ const HeroSection = () => {
       {/* 3. MAIN CONTENT */}
       <div className="relative z-20 w-full flex flex-col items-center text-center">
         
-        {/* AI Assistant Badge */}
-        <div className="inline-flex items-center gap-2 bg-[#5B5FC7]/10 border border-[#5B5FC7]/20 text-[#5B5FC7] px-3 py-1 rounded-full mb-6 backdrop-blur-sm">
-          <FaRobot className="text-[10px] md:text-xs" />
-          <span className="text-[9px] md:text-[11px] font-semibold uppercase tracking-wider font-sans">
+        {/* AI Assistant Badge - Compact size */}
+        <div className="inline-flex items-center gap-1.5 bg-[#5B5FC7]/10 border border-[#5B5FC7]/20 text-[#5B5FC7] px-2.5 py-0.5 rounded-full mb-4 backdrop-blur-sm">
+          <FaRobot className="text-[9px] md:text-[10px]" />
+          <span className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider font-sans">
             Guided by Alysa AI Assistant
           </span>
         </div>
 
         {/* Main Title - Fluid size control */}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-[#1a1a1a] leading-tight tracking-tighter max-w-3xl mx-auto mb-4 px-2">
-          <span className="font-bold">WBT Catalog Engine:</span>
-  
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light text-[#1a1a1a] leading-tight tracking-tighter max-w-2xl mx-auto mb-3 px-2">
+          <span className="font-bold">WBO Catalog Engine:</span>
         </h1>
 
-        {/* Descriptive Text */}
-        <p className="text-xs sm:text-sm lg:text-base font-light text-gray-500 mb-10 md:mb-12 max-w-xl md:max-w-2xl leading-relaxed mx-auto px-2">
+        {/* Descriptive Text - Conservando la información exacta */}
+        <p className="text-xs md:text-sm text-[#424242] leading-relaxed max-w-2xl mx-auto mb-8 px-4">
           Intelligently optimizes the <span className="text-black font-normal">WB Manufacturing catalog architecture</span>. Upload your legacy matrices in XML and CSV to cross-reference them against new datasets; our platform structurally analyzes variations, generates new rows or columns, and instantly executes price delta audits. Continuously powered by <span className="text-[#5B5FC7] font-normal">Alysa</span>, it compiles and deploys clean, custom-tailored XML schemas for direct integration and dynamic adjustment within <span className="text-black font-normal">Configura CET Designer</span>.
         </p> 
 
         {/* 4. INTEGRATED MODULE CARDS - Responsive Grid (1 col on mobile, 3 cols on desktop) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 w-full mb-12 md:mb-16 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 w-full mb-10 md:mb-12 text-left">
           
-          {/* Card XML */}
+          {/* Card XML - Conservando href de Workstations y aplicando morado #464775 */}
           <Link 
             href="/WBO/Actualizer_XML_Workstations"
-            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-xl p-5 md:p-6 hover:bg-white hover:border-[#BDBDBD] hover:shadow-md transition-all duration-200 backdrop-blur-sm"
+            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-lg p-4 md:p-5 hover:bg-white hover:border-[#BDBDBD] hover:shadow-sm transition-all duration-200 backdrop-blur-sm"
           >
-            <div className="mb-3 md:mb-4 text-[#6264A7]">
-              <FileCode size={26} className="md:w-[28px] md:h-[28px]" />
+            <div className="mb-2 md:mb-3 text-[#464775]">
+              <FileCode size={20} className="md:w-[22px] md:h-[22px]" />
             </div>
-            <h2 className="text-base md:text-lg font-semibold mb-1 text-[#1a1a1a]">XML Actualizer</h2>
-            <p className="text-xs md:text-sm text-[#616161] mb-5 md:mb-6 flex-grow">Advanced management and parsing for XML format catalogs and complex workflows.</p>
-            <div className="flex items-center text-[#6264A7] text-xs md:text-sm font-medium mt-auto">
-              Go to module <ArrowRight className="ml-2" size={14} />
+            <h2 className="text-sm md:text-base font-semibold mb-1 text-[#1a1a1a]">XML Actualizer</h2>
+            <p className="text-[11px] md:text-xs text-[#616161] mb-4 md:mb-5 flex-grow leading-normal">Advanced management and parsing for XML format catalogs and complex workflows.</p>
+            <div className="flex items-center text-[#464775] text-[11px] md:text-xs font-medium mt-auto">
+              Go to module <ArrowRight className="ml-1.5" size={12} />
             </div>
           </Link>
 
-          {/* Card Excel/CSV */}
+          {/* Card Excel/CSV - Cambiado color verde a morado #464775 */}
           <Link 
             href="/WBO/Actualizer_Excel_Workstations"
-            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-xl p-5 md:p-6 hover:bg-white hover:border-[#BDBDBD] hover:shadow-md transition-all duration-200 backdrop-blur-sm"
+            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-lg p-4 md:p-5 hover:bg-white hover:border-[#BDBDBD] hover:shadow-sm transition-all duration-200 backdrop-blur-sm"
           >
-            <div className="mb-3 md:mb-4 text-[#46A160]">
-              <FileSpreadsheet size={26} className="md:w-[28px] md:h-[28px]" />
+            <div className="mb-2 md:mb-3 text-[#464775]">
+              <FileSpreadsheet size={20} className="md:w-[22px] md:h-[22px]" />
             </div>
-            <h2 className="text-base md:text-lg font-semibold mb-1 text-[#1a1a1a]">CSV/Excel Actualizer</h2>
-            <p className="text-xs md:text-sm text-[#616161] mb-5 md:mb-6 flex-grow">Processing, transformation, and normalization of structured data files.</p>
-            <div className="flex items-center text-[#46A160] text-xs md:text-sm font-medium mt-auto">
-              Go to module <ArrowRight className="ml-2" size={14} />
+            <h2 className="text-sm md:text-base font-semibold mb-1 text-[#1a1a1a]">CSV/Excel Actualizer</h2>
+            <p className="text-[11px] md:text-xs text-[#616161] mb-4 md:mb-5 flex-grow leading-normal">Processing, transformation, and normalization of structured data files.</p>
+            <div className="flex items-center text-[#464775] text-[11px] md:text-xs font-medium mt-auto">
+              Go to module <ArrowRight className="ml-1.5" size={12} />
             </div>
           </Link>
 
-          {/* Card Alysa & CET Integration Hub */}
+          {/* Card Alysa & CET Integration Hub - Cambiado color a morado #464775 */}
           <Link 
             href="/WBO/Alysa_Hub_Workstations"
-            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-xl p-5 md:p-6 hover:bg-white hover:border-[#BDBDBD] hover:shadow-md transition-all duration-200 backdrop-blur-sm"
+            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-lg p-4 md:p-5 hover:bg-white hover:border-[#BDBDBD] hover:shadow-sm transition-all duration-200 backdrop-blur-sm"
           >
-            <div className="mb-3 md:mb-4 text-[#5B5FC7]">
-              <Sparkles size={26} className="md:w-[28px] md:h-[28px]" />
+            <div className="mb-2 md:mb-3 text-[#464775]">
+              <Sparkles size={20} className="md:w-[22px] md:h-[22px]" />
             </div>
-            <h2 className="text-base md:text-lg font-semibold mb-1 text-[#1a1a1a]">Alysa Intelligence Hub</h2>
-            <p className="text-xs md:text-sm text-[#616161] mb-5 md:mb-6 flex-grow">AI-guided delta auditing, structural schema insertion, and direct synchronization with CET Designer.</p>
-            <div className="flex items-center text-[#5B5FC7] text-xs md:text-sm font-medium mt-auto">
-              Go to module <ArrowRight className="ml-2" size={14} />
+            <h2 className="text-sm md:text-base font-semibold mb-1 text-[#1a1a1a]">Alysa Intelligence Hub</h2>
+            <p className="text-[11px] md:text-xs text-[#616161] mb-4 md:mb-5 flex-grow leading-normal">AI-guided delta auditing, structural schema insertion, and direct synchronization with CET Designer.</p>
+            <div className="flex items-center text-[#464775] text-[11px] md:text-xs font-medium mt-auto">
+              Go to module <ArrowRight className="ml-1.5" size={12} />
             </div>
           </Link>
 
         </div>
 
         {/* 5. HERO FOOTER / METADATA - Restructured to be Full Responsive */}
-        <div className="flex flex-col md:grid md:grid-cols-12 gap-6 md:gap-4 lg:gap-8 items-center md:items-end border-t border-gray-900/10 pt-8 font-sans w-full text-center md:text-left">
+        <div className="flex flex-col md:grid md:grid-cols-12 gap-5 md:gap-3 lg:gap-6 items-center md:items-end border-t border-gray-900/10 pt-6 font-sans w-full text-center md:text-left">
           
           {/* Left Subtext */}
-          <div className="md:col-span-5 lg:col-span-4 flex items-start gap-4">
-            <p className="text-[10px] md:text-[11px] text-gray-500 leading-relaxed uppercase tracking-wider font-medium max-w-sm md:max-w-none">
+          <div className="md:col-span-5 lg:col-span-4 flex items-start gap-3">
+            <p className="text-[9px] md:text-[10px] text-gray-500 leading-relaxed uppercase tracking-wider font-medium max-w-sm md:max-w-none">
               Delta Data Analysis: Upload source files <br className="hidden lg:block" />
               and automate row, column, and pricing integration.
             </p>
             <div className="mt-0.5 hidden md:block">
-              <FaArrowRight className="text-gray-400 text-[10px]" />
+              <FaArrowRight className="text-gray-400 text-[9px]" />
             </div>
           </div>
 
           {/* Central Subtext */}
           <div className="md:col-span-4 lg:col-span-4">
-            <p className="text-[10px] md:text-[11px] text-gray-400 leading-relaxed uppercase tracking-wider font-medium opacity-70 max-w-sm md:max-w-none mx-auto md:mx-0">
+            <p className="text-[9px] md:text-[10px] text-gray-400 leading-relaxed uppercase tracking-wider font-medium opacity-70 max-w-sm md:max-w-none mx-auto md:mx-0">
               Robust Sync with CET Designer. Configure new <br className="hidden lg:block" />
               products and validate catalog modifications in real time.
             </p>
           </div>
 
-          {/* Ratings / Trust - Adaptive alignment (center on mobile, right on desktop) */}
-          <div className="md:col-span-3 lg:col-span-4 flex flex-col items-center md:items-end gap-1.5 w-full">
+          {/* Ratings / Trust - Adaptive alignment */}
+          <div className="md:col-span-3 lg:col-span-4 flex flex-col items-center md:items-end gap-1 w-full">
             <div className="flex items-center gap-1">
-              <span className="text-[10px] font-bold text-gray-900 mr-1.5 uppercase tracking-tighter">Mission Critical</span>
+              <span className="text-[9px] font-bold text-gray-900 mr-1 uppercase tracking-tighter">Mission Critical</span>
               <div className="flex gap-0.5">
                 {[...Array(5)].map((_, i) => (
-                  <FaStar key={i} className="text-[#5B5FC7] text-[8px]" />
+                  <FaStar key={i} className="text-[#464775] text-[7px]" />
                 ))}
               </div>
             </div>
-            <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold">
-              Automated Infrastructure for <span className="text-gray-900">Servex US & WBT</span>
+            <p className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">
+              Automated Infrastructure for <span className="text-gray-900">Servex US & WBO</span>
             </p>
           </div>
  
