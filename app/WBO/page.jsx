@@ -1,4 +1,4 @@
-import Link from 'next/link';
+
 
 import Main1 from './components/main';
 
