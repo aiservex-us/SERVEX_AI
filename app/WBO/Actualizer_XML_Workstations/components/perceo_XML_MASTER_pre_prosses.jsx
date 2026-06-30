@@ -22,8 +22,8 @@ const WBDDataMatrix = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 35;
 
-  // Cabeceras estrictas requeridas para mostrar del XML
-  const baseHeaders = ["SKU", "Description", "Classification", "Base Price"];
+  // Cabeceras estrictas adaptadas para incluir variantes de acabados
+  const baseHeaders = ["SKU / Variante", "Description", "Classification", "Finish Type", "Calculated Price"];
 
   const processXML = async () => {
     try {
@@ -46,36 +46,103 @@ const WBDDataMatrix = () => {
         return;
       }
 
+      // --- REGISTRO DE DESCARGA GLOBAL ---
+      if (typeof window !== 'undefined') {
+        window.downloadWBDXML = () => {
+          try {
+            const blob = new Blob([data.xml_raw], { type: 'text/xml;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'WBD.XML');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            console.log("WBD.XML descargado con éxito directamente de la fuente.");
+          } catch (downloadErr) {
+            console.error("Error al descargar el XML:", downloadErr);
+          }
+        };
+      }
+
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBD XML structure");
 
+      // 1. Mapear de forma eficiente los Features globales e indexar sus deltas de opciones
+      const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      const featureDeltasMap = {}; // { FEATURE_CODE: { 'C': delta_c, 'P': delta_p } }
+
+      for (const f of featuresXML) {
+        const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+        if (!fCode) continue;
+
+        featureDeltasMap[fCode] = { 'C': 0, 'P': 0 };
+
+        const options = Array.from(f.getElementsByTagName("Option"));
+        for (const o of options) {
+          const oCode = o.getElementsByTagName("Code")[0]?.textContent; // 'C' o 'P'
+          if (oCode === 'C' || oCode === 'P') {
+            const deltaValue = parseFloat(o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "0");
+            featureDeltasMap[fCode][oCode] = deltaValue;
+          }
+        }
+      }
+
+      // 2. Procesar los Productos y expandirlos por acabado (Classic y Premium)
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
 
       for (const p of productsXML) {
-        const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
+        const skuBase = p.getElementsByTagName("Code")[0]?.textContent || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
         const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
           || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
           || "N/A";
         
-        // Extracción del valor numérico del precio base (<Price><Value>...</Value></Price>)
+        // Precio Base del Producto
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
+        // Buscar a qué Feature pertenece para extraer los sobrecostos
+        const featureRef = p.getElementsByTagName("Features")[0]?.getElementsByTagName("FeatureRef")[0]?.textContent || "";
+        
+        // Extraemos deltas si existen en nuestro mapa global, de lo contrario por defecto es 0
+        const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
+        const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
+
+        // Variante Classic (/C)
         extracted.push({
-          sku,
+          id: `${skuBase}-C`,
+          sku: `${skuBase}/C`,
+          skuBase,
           description,
           classification,
-          basePrice
+          finishType: "Classic",
+          finishCode: "C",
+          calculatedPrice: basePrice + deltaC,
+          isPremium: false
+        });
+
+        // Variante Premium (/P)
+        extracted.push({
+          id: `${skuBase}-P`,
+          sku: `${skuBase}/P`,
+          skuBase,
+          description,
+          classification,
+          finishType: "Premium",
+          finishCode: "P",
+          calculatedPrice: basePrice + deltaP,
+          isPremium: true
         });
       }
       
       setProducts(extracted);
-      setCurrentPage(1); // Reiniciar a la primera página tras una recarga exitosa
+      setCurrentPage(1);
     } catch (err) {
       console.error("Error en procesamiento de matriz de datos WBD:", err);
       setError(err.message || "Error al procesar la información de catálogos WBD.");
@@ -86,23 +153,28 @@ const WBDDataMatrix = () => {
 
   useEffect(() => {
     processXML();
+    return () => {
+      if (typeof window !== 'undefined' && window.downloadWBDXML) {
+        delete window.downloadWBDXML;
+      }
+    };
   }, []);
 
+  // Búsqueda elástica por SKU base, variante o tipo de acabado
   const filtered = useMemo(() => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
     return products.filter(p => 
       p.sku.toLowerCase().includes(cleanSearch) ||
-      p.description.toLowerCase().includes(cleanSearch)
+      p.description.toLowerCase().includes(cleanSearch) ||
+      p.finishType.toLowerCase().includes(cleanSearch)
     );
   }, [products, searchTerm]);
 
-  // Al cambiar el término de búsqueda, devolvemos la vista a la primera página automáticamente
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  // Segmentación de los datos en bloques exactos de 20 para el renderizado
   const paginatedProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filtered.slice(startIndex, startIndex + itemsPerPage);
@@ -115,7 +187,7 @@ const WBDDataMatrix = () => {
   const stats = useMemo(() => {
     const total = products.length;
     const avgPrice = total 
-      ? Math.round(products.reduce((acc, p) => acc + p.basePrice, 0) / total) 
+      ? Math.round(products.reduce((acc, p) => acc + p.calculatedPrice, 0) / total) 
       : 0;
     return { total, filtered: filtered.length, avgPrice };
   }, [products, filtered]);
@@ -124,7 +196,7 @@ const WBDDataMatrix = () => {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix from WBD Engine...
+        Retrieving master data matrix with variants (Classic / Premium) from WBD Engine...
       </div>
     </div>
   );
@@ -155,36 +227,36 @@ const WBDDataMatrix = () => {
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-[#242424]">WBD Data Matrix Master</span>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
-                  WBD Schema Engine Live
+                  Classic & Premium Dynamic Split
                 </span>
               </div>
               <span className="text-[10px] text-[#616161]">
-                Automated Ingestion Pipeline & Structured Data Mapping
+                Automated Ingestion Pipeline & Structured Data Mapping (Product + Feature Delta Resolution)
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 bg-[#F5F5F5] border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[10px] text-[#616161] font-medium select-none">
-                <span>PRODUCTS: <strong className="text-[#242424] font-bold">{stats.total}</strong></span>
+                <span>TOTAL VARIANTS: <strong className="text-[#242424] font-bold">{stats.total}</strong></span>
                 <span className="text-[#D2D2D2]">|</span>
                 <span>FILTERED: <strong className="text-[#242424] font-bold">{stats.filtered}</strong></span>
                 <span className="text-[#D2D2D2]">|</span>
-                <span>AVG BASE PRICE: <strong className="text-[#242424] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
+                <span>AVG PRICE: <strong className="text-[#242424] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
               </div>
 
               <input
                 type="text"
-                placeholder="Search matrix..."
+                placeholder="Search SKU, name, classic, premium..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[180px]"
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[240px]"
               />
 
               <button 
                 onClick={processXML}
                 type="button"
                 className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161] transition-colors"
-                title="Sincronizar y recalcular matrices desde xml_raw"
+                title="Sincronizar y recalcular matrices"
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
@@ -194,7 +266,7 @@ const WBDDataMatrix = () => {
           {/* Table Matrix */}
           {filtered.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No se encontraron coincidencias de SKU o productos en el esquema actual.
+              No se encontraron coincidencias de SKU o variantes en el esquema actual.
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
@@ -207,7 +279,7 @@ const WBDDataMatrix = () => {
                     {baseHeaders.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
+                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[150px] max-w-[320px] whitespace-nowrap truncate uppercase tracking-wider"
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
@@ -225,43 +297,55 @@ const WBDDataMatrix = () => {
                       
                       return (
                         <motion.tr 
-                          key={p.sku || realIndex}
+                          key={p.id}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          transition={{ duration: 0.15 }}
+                          transition={{ duration: 0.1 }}
                           className="hover:bg-[#F7F5FA] transition-colors duration-75 group"
                         >
-                          {/* Index Column */}
+                          {/* Column Index */}
                           <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 bg-white group-hover:bg-[#FCFAFF] border-b border-[#F0F0F0]">
                             {realIndex}
                           </td>
 
-                          {/* SKU */}
-                          <td className="p-0 text-[#5B5FC7] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
+                          {/* SKU con variante (/C o /P) */}
+                          <td className="p-0 text-[#5B5FC7] border-r border-b border-[#F0F0F0] min-w-[180px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] font-bold whitespace-nowrap truncate" title={p.sku}>
-                              {p.sku}
+                              {p.skuBase}
+                              <span className={`ml-1 px-1 rounded-sm text-[10px] ${p.isPremium ? 'bg-[#FFF0F6] text-[#D01A6A] border border-[#FFD6E7]' : 'bg-[#EBF3FF] text-[#106EBE] border border-[#CCE3FF]'}`}>
+                                /{p.finishCode}
+                              </span>
                             </div>
                           </td>
 
                           {/* Description */}
-                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
+                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[250px] max-w-[350px]">
                             <div className="px-3 py-1.5 font-sans text-[11px] font-medium whitespace-nowrap truncate" title={p.description}>
                               {p.description}
                             </div>
                           </td>
 
                           {/* Classification */}
-                          <td className="p-0 text-[#616161] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
+                          <td className="p-0 text-[#616161] border-r border-b border-[#F0F0F0] min-w-[130px] max-w-[200px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate" title={p.classification}>
                               {p.classification}
                             </div>
                           </td>
 
-                          {/* Base Price */}
-                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
-                            <div className="px-3 py-1.5 font-mono text-[11px] font-extrabold bg-[#F9F9F9]/50 whitespace-nowrap truncate">
-                              ${p.basePrice.toLocaleString()}
+                          {/* Finish Type Label */}
+                          <td className="p-0 border-r border-b border-[#F0F0F0] min-w-[120px] max-w-[160px]">
+                            <div className="px-3 py-1.5">
+                              <span className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded-full ${p.isPremium ? 'text-[#D01A6A] bg-[#FFF0F6]' : 'text-[#106EBE] bg-[#EBF3FF]'}`}>
+                                {p.finishType}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Calculated Price */}
+                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[200px]">
+                            <div className={`px-3 py-1.5 font-mono text-[11px] font-extrabold whitespace-nowrap truncate ${p.isPremium ? 'bg-[#FFF5FA]/40 text-[#A20E4E]' : 'bg-[#F4F8FA]/60 text-[#242424]'}`}>
+                              ${p.calculatedPrice.toLocaleString()}
                             </div>
                           </td>
                         </motion.tr>
@@ -277,10 +361,10 @@ const WBDDataMatrix = () => {
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
               <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length}</span>
-              <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
+              <span className="uppercase tracking-tight">VARIANTS RENDERED: {filtered.length} of {products.length}</span>
             </div>
             
-            {/* Controles de paginación de 20 en 20 */}
+            {/* Controles de paginación */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -307,7 +391,7 @@ const WBDDataMatrix = () => {
 
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                WBD ETL Pipeline V2 (Oauth Verified)
+                WBD ETL Pipeline V3 (Dynamic Matrix Split)
               </div>
             </div>
           </div>
