@@ -59,7 +59,7 @@ const WBDDataMatrix = () => {
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            console.log("WBD.XML descargado con éxito directamente de la fuente.");
+            console.log("WBD.XML descargado con éxito.");
           } catch (downloadErr) {
             console.error("Error al descargar el XML:", downloadErr);
           }
@@ -72,19 +72,20 @@ const WBDDataMatrix = () => {
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBD XML structure");
 
-      // 1. Mapear de forma eficiente los Features globales e indexar sus deltas de opciones
+      // 1. Mapear Features globales aplicando .trim() estricto en las claves
       const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
       const featureDeltasMap = {}; // { FEATURE_CODE: { 'C': delta_c, 'P': delta_p } }
 
       for (const f of featuresXML) {
-        const fCode = f.getElementsByTagName("Code")[0]?.textContent;
-        if (!fCode) continue;
-
+        const rawCode = f.getElementsByTagName("Code")[0]?.textContent;
+        if (!rawCode) continue;
+        
+        const fCode = rawCode.trim(); // Sanitización clave
         featureDeltasMap[fCode] = { 'C': 0, 'P': 0 };
 
         const options = Array.from(f.getElementsByTagName("Option"));
         for (const o of options) {
-          const oCode = o.getElementsByTagName("Code")[0]?.textContent; // 'C' o 'P'
+          const oCode = o.getElementsByTagName("Code")[0]?.textContent?.trim(); // 'C' o 'P'
           if (oCode === 'C' || oCode === 'P') {
             const deltaValue = parseFloat(o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "0");
             featureDeltasMap[fCode][oCode] = deltaValue;
@@ -92,12 +93,12 @@ const WBDDataMatrix = () => {
         }
       }
 
-      // 2. Procesar los Productos y expandirlos por acabado (Classic y Premium)
+      // 2. Procesar los Productos y expandirlos resolviendo las referencias limpias
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
 
       for (const p of productsXML) {
-        const skuBase = p.getElementsByTagName("Code")[0]?.textContent || "";
+        const skuBase = p.getElementsByTagName("Code")[0]?.textContent?.trim() || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
         const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
           || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
@@ -107,10 +108,11 @@ const WBDDataMatrix = () => {
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        // Buscar a qué Feature pertenece para extraer los sobrecostos
-        const featureRef = p.getElementsByTagName("Features")[0]?.getElementsByTagName("FeatureRef")[0]?.textContent || "";
+        // Obtener la referencia al Feature sanando espacios en blanco indeseados
+        const featureRefElement = p.getElementsByTagName("Features")[0]?.getElementsByTagName("FeatureRef")[0];
+        const featureRef = featureRefElement ? featureRefElement.textContent.trim() : "";
         
-        // Extraemos deltas si existen en nuestro mapa global, de lo contrario por defecto es 0
+        // Extraemos deltas cruzando datos con el mapa sanitizado
         const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
         const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
 
@@ -160,7 +162,7 @@ const WBDDataMatrix = () => {
     };
   }, []);
 
-  // Búsqueda elástica por SKU base, variante o tipo de acabado
+  // Búsqueda elástica
   const filtered = useMemo(() => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
@@ -309,11 +311,11 @@ const WBDDataMatrix = () => {
                             {realIndex}
                           </td>
 
-                          {/* SKU con variante (/C o /P) */}
+                          {/* SKU con variante visual real (/C o /P) */}
                           <td className="p-0 text-[#5B5FC7] border-r border-b border-[#F0F0F0] min-w-[180px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] font-bold whitespace-nowrap truncate" title={p.sku}>
                               {p.skuBase}
-                              <span className={`ml-1 px-1 rounded-sm text-[10px] ${p.isPremium ? 'bg-[#FFF0F6] text-[#D01A6A] border border-[#FFD6E7]' : 'bg-[#EBF3FF] text-[#106EBE] border border-[#CCE3FF]'}`}>
+                              <span className={`ml-1 px-1 rounded-sm text-[10px] font-mono font-bold ${p.isPremium ? 'bg-[#FFF0F6] text-[#D01A6A] border border-[#FFD6E7]' : 'bg-[#EBF3FF] text-[#106EBE] border border-[#CCE3FF]'}`}>
                                 /{p.finishCode}
                               </span>
                             </div>
@@ -364,7 +366,6 @@ const WBDDataMatrix = () => {
               <span className="uppercase tracking-tight">VARIANTS RENDERED: {filtered.length} of {products.length}</span>
             </div>
             
-            {/* Controles de paginación */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
