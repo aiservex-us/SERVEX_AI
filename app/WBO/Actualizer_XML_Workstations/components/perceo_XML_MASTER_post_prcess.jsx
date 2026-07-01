@@ -81,15 +81,25 @@ const WBTDataMatrix = () => {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
         if (!fCode) continue;
 
-        featureDeltasMap[fCode] = { 'C': 0, 'P': 0 };
-
         const options = Array.from(f.getElementsByTagName("Option"));
+        // Solo registramos el Feature en el mapa si REALMENTE define
+        // al menos una opción C o P. Así, más adelante, podemos usar la
+        // presencia en este mapa como señal de "este es el Feature de
+        // acabado", y no confundirlo con Features de color, herraje, etc.
+        let hasFinishOption = false;
+        const deltas = { 'C': 0, 'P': 0 };
+
         for (const o of options) {
           const oCode = o.getElementsByTagName("Code")[0]?.textContent; // 'C' o 'P'
           if (oCode === 'C' || oCode === 'P') {
             const deltaValue = parseFloat(o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "0");
-            featureDeltasMap[fCode][oCode] = deltaValue;
+            deltas[oCode] = deltaValue;
+            hasFinishOption = true;
           }
+        }
+
+        if (hasFinishOption) {
+          featureDeltasMap[fCode] = deltas;
         }
       }
 
@@ -108,9 +118,32 @@ const WBTDataMatrix = () => {
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        // Buscar a qué Feature pertenece para extraer los sobrecostos
-        const featureRef = p.getElementsByTagName("Features")[0]?.getElementsByTagName("FeatureRef")[0]?.textContent || "";
-        
+        // --- FIX: Selección correcta del FeatureRef que gobierna C/P ---
+        // Un producto puede tener varios <FeatureRef> (color, herraje,
+        // acabado, etc.). Antes se tomaba ciegamente el [0], que podía
+        // apuntar a un Feature sin opciones C/P, dejando ambos deltas en 0
+        // y mostrando el mismo precio en las dos variantes (C y P se veían
+        // "iguales"). Ahora recorremos TODAS las referencias del producto y
+        // usamos la primera que exista en featureDeltasMap, es decir, la
+        // que realmente define el sobrecosto de acabado Classic/Premium.
+        const featureRefNodes = Array.from(
+          p.getElementsByTagName("Features")[0]?.getElementsByTagName("FeatureRef") || []
+        );
+
+        let featureRef = "";
+        for (const frNode of featureRefNodes) {
+          const code = frNode.textContent?.trim();
+          if (code && featureDeltasMap[code]) {
+            featureRef = code;
+            break;
+          }
+        }
+        // Fallback: si ninguna referencia coincide con un Feature de acabado
+        // conocido, conservamos el comportamiento anterior (primera referencia).
+        if (!featureRef && featureRefNodes.length > 0) {
+          featureRef = featureRefNodes[0].textContent?.trim() || "";
+        }
+
         // Extraemos deltas si existen en nuestro mapa global, de lo contrario por defecto es 0
         const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
         const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
