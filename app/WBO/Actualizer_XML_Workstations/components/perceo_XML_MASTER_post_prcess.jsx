@@ -33,6 +33,7 @@ const WBTDataMatrix = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated user found");
 
+      // Ingestión desde la tabla correcta configurada en Supabase para WBT
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_WBO')
         .select('xml_actualizer_raw')
@@ -40,52 +41,83 @@ const WBTDataMatrix = () => {
         .maybeSingle();
 
       if (dbError) throw dbError;
+      
       if (!data?.xml_actualizer_raw) {
         setProducts([]);
         return;
       }
 
+      // --- REGISTRO DE DESCARGA GLOBAL ---
+      if (typeof window !== 'undefined') {
+        window.downloadWBTXML = () => {
+          try {
+            const blob = new Blob([data.xml_actualizer_raw], { type: 'text/xml;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'WBT.XML');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            console.log("WBT.XML descargado con éxito.");
+          } catch (downloadErr) {
+            console.error("Error al descargar el XML:", downloadErr);
+          }
+        };
+      }
+
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.xml_actualizer_raw, "text/xml");
       
-      // 1. Mapear deltas de opciones (Classic 'C' y Premium 'P')
-      const featureDeltasMap = {};
+      const parserError = xmlDoc.querySelector("parsererror");
+      if (parserError) throw new Error("Error parsing WBT XML structure");
+
+      // 1. Mapear de forma eficiente los Features globales e indexar sus deltas de opciones
       const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      const featureDeltasMap = {}; // { FEATURE_CODE: { 'C': delta_c, 'P': delta_p } }
 
       for (const f of featuresXML) {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
         if (!fCode) continue;
 
         featureDeltasMap[fCode] = { 'C': 0, 'P': 0 };
+
         const options = Array.from(f.getElementsByTagName("Option"));
         for (const o of options) {
-          const oCode = o.getElementsByTagName("Code")[0]?.textContent;
+          const oCode = o.getElementsByTagName("Code")[0]?.textContent; // 'C' o 'P'
           if (oCode === 'C' || oCode === 'P') {
-            const val = parseFloat(o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "0");
-            featureDeltasMap[fCode][oCode] = val;
+            const deltaValue = parseFloat(o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "0");
+            featureDeltasMap[fCode][oCode] = deltaValue;
           }
         }
       }
 
-      // 2. Procesar productos y forzar la separación visual
+      // 2. Procesar los Productos y expandirlos por acabado (Classic y Premium)
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
 
-      productsXML.forEach((p) => {
+      for (const p of productsXML) {
         const skuBase = p.getElementsByTagName("Code")[0]?.textContent || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
-        const classification = p.getElementsByTagName("ClassificationRef")[0]?.textContent || "N/A";
+        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
+          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
+          || "N/A";
         
+        // Precio Base del Producto
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
+
+        // Buscar a qué Feature pertenece para extraer los sobrecostos
         const featureRef = p.getElementsByTagName("Features")[0]?.getElementsByTagName("FeatureRef")[0]?.textContent || "";
         
+        // Extraemos deltas si existen en nuestro mapa global, de lo contrario por defecto es 0
         const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
         const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
 
-        // INSERTAR FILA CLASSIC
+        // Generamos Variante Classic (/C)
         extracted.push({
-          id: `${skuBase}-C-${Math.random()}`, // ID único para evitar colisiones
+          id: `${skuBase}-C`,
           sku: `${skuBase}/C`,
           skuBase,
           description,
@@ -96,9 +128,9 @@ const WBTDataMatrix = () => {
           isPremium: false
         });
 
-        // INSERTAR FILA PREMIUM
+        // Generamos Variante Premium (/P)
         extracted.push({
-          id: `${skuBase}-P-${Math.random()}`, // ID único para asegurar que React los vea como dos elementos distintos
+          id: `${skuBase}-P`,
           sku: `${skuBase}/P`,
           skuBase,
           description,
@@ -108,12 +140,13 @@ const WBTDataMatrix = () => {
           calculatedPrice: basePrice + deltaP,
           isPremium: true
         });
-      });
+      }
       
       setProducts(extracted);
       setCurrentPage(1);
     } catch (err) {
-      setError(err.message);
+      console.error("Error en procesamiento de matriz de datos WBT:", err);
+      setError(err.message || "Error al procesar la información de catálogos WBT.");
     } finally {
       setLoading(false);
     }
