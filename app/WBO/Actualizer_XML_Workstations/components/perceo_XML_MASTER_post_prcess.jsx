@@ -77,6 +77,13 @@ const WBTDataMatrix = () => {
       const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
       const featureDeltasMap = {}; // { FEATURE_CODE: { 'C': delta_c, 'P': delta_p } }
 
+      // --- DIAGNÓSTICO ---
+      // Registramos TODOS los códigos de Option que existen en el XML real
+      // (sin filtrar por 'C'/'P'), para confirmar si el dataset usa
+      // literalmente esas dos letras o códigos distintos (ej. 'STD'/'PREM',
+      // 'Classic'/'Premium', minúsculas, con espacios, etc.)
+      const allOptionCodesSeen = new Set();
+
       for (const f of featuresXML) {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
         if (!fCode) continue;
@@ -90,9 +97,13 @@ const WBTDataMatrix = () => {
         const deltas = { 'C': 0, 'P': 0 };
 
         for (const o of options) {
-          const oCode = o.getElementsByTagName("Code")[0]?.textContent; // 'C' o 'P'
+          const rawCode = o.getElementsByTagName("Code")[0]?.textContent;
+          const oCode = rawCode?.trim(); // 'C' o 'P' (esperado)
+          if (oCode) allOptionCodesSeen.add(oCode);
+
           if (oCode === 'C' || oCode === 'P') {
-            const deltaValue = parseFloat(o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "0");
+            const rawValue = o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent;
+            const deltaValue = parseFloat(rawValue || "0");
             deltas[oCode] = deltaValue;
             hasFinishOption = true;
           }
@@ -101,6 +112,14 @@ const WBTDataMatrix = () => {
         if (hasFinishOption) {
           featureDeltasMap[fCode] = deltas;
         }
+      }
+
+      // --- DIAGNÓSTICO: resumen en consola ---
+      console.log("[WBT DIAGNOSTIC] Total <Feature> en XML:", featuresXML.length);
+      console.log("[WBT DIAGNOSTIC] Features con Option C/P detectada:", Object.keys(featureDeltasMap).length);
+      console.log("[WBT DIAGNOSTIC] Codigos de Option REALES encontrados en todo el XML (revisa si aqui aparece 'C' y 'P' literalmente, o algo distinto):", Array.from(allOptionCodesSeen).sort());
+      if (Object.keys(featureDeltasMap).length === 0) {
+        console.warn("[WBT DIAGNOSTIC] NINGUN Feature tiene una Option con codigo exactamente 'C' o 'P'. Esto explica por que todos los precios Classic/Premium salen iguales: el filtro busca un codigo que no existe en tu XML. Revisa la lista de 'Codigos de Option REALES' de arriba.");
       }
 
       // 2. Procesar los Productos y expandirlos por acabado (Classic y Premium)
@@ -147,6 +166,16 @@ const WBTDataMatrix = () => {
         // Extraemos deltas si existen en nuestro mapa global, de lo contrario por defecto es 0
         const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
         const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
+
+        // --- DIAGNÓSTICO: log detallado solo para los primeros productos ---
+        // para no saturar la consola en catálogos con miles de items.
+        if (extracted.length < 10) {
+          console.log(`[WBT DIAGNOSTIC] Producto ${skuBase}: FeatureRefs disponibles =`,
+            featureRefNodes.map(n => n.textContent?.trim()),
+            "| FeatureRef elegido =", featureRef || "(ninguno)",
+            "| deltaC =", deltaC, "| deltaP =", deltaP
+          );
+        }
 
         // Generamos Variante Classic (/C)
         extracted.push({
