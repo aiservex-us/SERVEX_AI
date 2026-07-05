@@ -72,26 +72,36 @@ const WBDDataMatrix = () => {
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBD XML structure");
 
-      // 1. Mapear Features globales aplicando .trim() estricto en las claves
+      // 1. Mapear de forma eficiente los Features globales e indexar sus deltas de opciones
       const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
-      // normalize keys to uppercase
       const featureDeltasMap = {}; // { FEATURE_CODE_UPPER: { 'C': delta_c, 'P': delta_p } }
 
+      // --- CORRECCIÓN APLICADA ---
+      // Solo agregamos al mapa los Features que realmente poseen variantes C o P
       for (const f of featuresXML) {
         const rawCode = f.getElementsByTagName("Code")[0]?.textContent;
         if (!rawCode) continue;
-
-        const fCode = rawCode.trim().toUpperCase(); // Sanitización clave
-        featureDeltasMap[fCode] = { 'C': 0, 'P': 0 };
-
+        
+        const fCode = rawCode.trim().toUpperCase();
         const options = Array.from(f.getElementsByTagName("Option"));
+        
+        let hasFinishOption = false;
+        const deltas = { 'C': 0, 'P': 0 };
+
         for (const o of options) {
-          const oCodeRaw = o.getElementsByTagName("Code")[0]?.textContent?.trim(); // 'C' o 'P'
+          const oCodeRaw = o.getElementsByTagName("Code")[0]?.textContent?.trim();
           const oCode = oCodeRaw?.toUpperCase();
+          
           if (oCode === 'C' || oCode === 'P') {
-            const deltaValue = parseFloat(o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "0");
-            featureDeltasMap[fCode][oCode] = deltaValue;
+            const rawValue = o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent;
+            const deltaValue = parseFloat(rawValue || "0");
+            deltas[oCode] = deltaValue;
+            hasFinishOption = true;
           }
+        }
+
+        if (hasFinishOption) {
+          featureDeltasMap[fCode] = deltas;
         }
       }
 
@@ -110,10 +120,11 @@ const WBDDataMatrix = () => {
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        // Recolectamos todas las referencias a Features bajo el Product (no solo la primera <Features>)
+        // Recolectamos todas las referencias a Features bajo el Product
         const featureRefNodes = Array.from(p.getElementsByTagName("FeatureRef") || []);
 
         let featureRef = "";
+        
         // Intento 1: match exacto normalizado
         for (const frNode of featureRefNodes) {
           const codeRaw = frNode.textContent?.trim();
@@ -136,12 +147,7 @@ const WBDDataMatrix = () => {
           }
         }
 
-        // Fallback final: usar la primera referencia (normalizada)
-        if (!featureRef && featureRefNodes.length > 0) {
-          featureRef = featureRefNodes[0].textContent?.trim().toUpperCase() || "";
-        }
-
-        // Extraemos deltas cruzando datos con el mapa sanitizado
+        // Extraemos deltas cruzando datos con el mapa sanitizado (ahora purgado de ruido)
         const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
         const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
 
