@@ -74,18 +74,20 @@ const WBDDataMatrix = () => {
 
       // 1. Mapear Features globales aplicando .trim() estricto en las claves
       const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
-      const featureDeltasMap = {}; // { FEATURE_CODE: { 'C': delta_c, 'P': delta_p } }
+      // normalize keys to uppercase
+      const featureDeltasMap = {}; // { FEATURE_CODE_UPPER: { 'C': delta_c, 'P': delta_p } }
 
       for (const f of featuresXML) {
         const rawCode = f.getElementsByTagName("Code")[0]?.textContent;
         if (!rawCode) continue;
-        
-        const fCode = rawCode.trim(); // Sanitización clave
+
+        const fCode = rawCode.trim().toUpperCase(); // Sanitización clave
         featureDeltasMap[fCode] = { 'C': 0, 'P': 0 };
 
         const options = Array.from(f.getElementsByTagName("Option"));
         for (const o of options) {
-          const oCode = o.getElementsByTagName("Code")[0]?.textContent?.trim(); // 'C' o 'P'
+          const oCodeRaw = o.getElementsByTagName("Code")[0]?.textContent?.trim(); // 'C' o 'P'
+          const oCode = oCodeRaw?.toUpperCase();
           if (oCode === 'C' || oCode === 'P') {
             const deltaValue = parseFloat(o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "0");
             featureDeltasMap[fCode][oCode] = deltaValue;
@@ -108,10 +110,37 @@ const WBDDataMatrix = () => {
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        // Obtener la referencia al Feature sanando espacios en blanco indeseados
-        const featureRefElement = p.getElementsByTagName("Features")[0]?.getElementsByTagName("FeatureRef")[0];
-        const featureRef = featureRefElement ? featureRefElement.textContent.trim() : "";
-        
+        // Recolectamos todas las referencias a Features bajo el Product (no solo la primera <Features>)
+        const featureRefNodes = Array.from(p.getElementsByTagName("FeatureRef") || []);
+
+        let featureRef = "";
+        // Intento 1: match exacto normalizado
+        for (const frNode of featureRefNodes) {
+          const codeRaw = frNode.textContent?.trim();
+          const code = codeRaw?.toUpperCase();
+          if (code && featureDeltasMap[code]) {
+            featureRef = code;
+            break;
+          }
+        }
+
+        // Intento 2: matching tolerante (includes / startsWith)
+        if (!featureRef && featureRefNodes.length > 0) {
+          const keys = Object.keys(featureDeltasMap);
+          for (const frNode of featureRefNodes) {
+            const codeRaw = frNode.textContent?.trim();
+            const code = codeRaw?.toUpperCase();
+            if (!code) continue;
+            const match = keys.find(k => k.includes(code) || code.includes(k) || k.startsWith(code) || code.startsWith(k));
+            if (match) { featureRef = match; break; }
+          }
+        }
+
+        // Fallback final: usar la primera referencia (normalizada)
+        if (!featureRef && featureRefNodes.length > 0) {
+          featureRef = featureRefNodes[0].textContent?.trim().toUpperCase() || "";
+        }
+
         // Extraemos deltas cruzando datos con el mapa sanitizado
         const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
         const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
