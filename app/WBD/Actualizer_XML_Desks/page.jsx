@@ -5,16 +5,16 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js'; 
 import { X, AlertCircle } from 'lucide-react';
 
-import MenuLateral from './components/menuLateral';
+import MenuLateral from './components/menuLateral.jsx';
 import Dashboard from './components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from './components/perceo_XML_MASTER_pre_prosses.jsx';
-import CatalogParser from './components/PDFsection';
-import Csvs from './components/comparePDF/csvs'; 
+import CatalogParser from './components/PDFsection.jsx';
+import Csvs from './components/comparePDF/csvs.jsx'; 
 import Csvs_updated from './components/comparePDF/csvs_updated.jsx'; 
-import PrecentMain from './components/PrecentMain';
+import PrecentMain from './components/PrecentMain.jsx';
 import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx'; 
-import AIReporting from './components/comparePDF/presentation_WBD'
-import Compare from './components/comparePDF/UploadFileCmpare'
+import AIReporting from './components/comparePDF/presentation_WBD.jsx'
+import Compare from './components/comparePDF/UploadFileCmpare.jsx'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
 import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'

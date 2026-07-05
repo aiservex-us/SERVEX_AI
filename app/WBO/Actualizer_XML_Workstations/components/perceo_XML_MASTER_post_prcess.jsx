@@ -75,18 +75,17 @@ const WBTDataMatrix = () => {
 
       // 1. Mapear de forma eficiente los Features globales e indexar sus deltas de opciones
       const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
-      const featureDeltasMap = {}; // { FEATURE_CODE: { 'C': delta_c, 'P': delta_p } }
+      // Normalize feature codes to uppercase keys to make matching tolerant
+      const featureDeltasMap = {}; // { FEATURE_CODE_UPPER: { 'C': delta_c, 'P': delta_p } }
 
       // --- DIAGNÓSTICO ---
       // Registramos TODOS los códigos de Option que existen en el XML real
-      // (sin filtrar por 'C'/'P'), para confirmar si el dataset usa
-      // literalmente esas dos letras o códigos distintos (ej. 'STD'/'PREM',
-      // 'Classic'/'Premium', minúsculas, con espacios, etc.)
       const allOptionCodesSeen = new Set();
 
       for (const f of featuresXML) {
-        const fCode = f.getElementsByTagName("Code")[0]?.textContent;
-        if (!fCode) continue;
+        const fCodeRaw = f.getElementsByTagName("Code")[0]?.textContent;
+        if (!fCodeRaw) continue;
+        const fCode = fCodeRaw.trim().toUpperCase();
 
         const options = Array.from(f.getElementsByTagName("Option"));
         // Solo registramos el Feature en el mapa si REALMENTE define
@@ -98,7 +97,7 @@ const WBTDataMatrix = () => {
 
         for (const o of options) {
           const rawCode = o.getElementsByTagName("Code")[0]?.textContent;
-          const oCode = rawCode?.trim(); // 'C' o 'P' (esperado)
+          const oCode = rawCode?.trim().toUpperCase(); // normalize
           if (oCode) allOptionCodesSeen.add(oCode);
 
           if (oCode === 'C' || oCode === 'P') {
@@ -145,22 +144,38 @@ const WBTDataMatrix = () => {
         // "iguales"). Ahora recorremos TODAS las referencias del producto y
         // usamos la primera que exista en featureDeltasMap, es decir, la
         // que realmente define el sobrecosto de acabado Classic/Premium.
-        const featureRefNodes = Array.from(
-          p.getElementsByTagName("Features")[0]?.getElementsByTagName("FeatureRef") || []
-        );
+        // Recolectamos todas las referencias a Features bajo el Product (no solo la primera <Features>)
+        const featureRefNodes = Array.from(p.getElementsByTagName("FeatureRef") || []);
 
         let featureRef = "";
+        // Intento 1: match exacto normalizado
         for (const frNode of featureRefNodes) {
-          const code = frNode.textContent?.trim();
+          const codeRaw = frNode.textContent?.trim();
+          const code = codeRaw?.toUpperCase();
           if (code && featureDeltasMap[code]) {
             featureRef = code;
             break;
           }
         }
-        // Fallback: si ninguna referencia coincide con un Feature de acabado
-        // conocido, conservamos el comportamiento anterior (primera referencia).
+
+        // Intento 2: matching tolerante (includes / startsWith)
         if (!featureRef && featureRefNodes.length > 0) {
-          featureRef = featureRefNodes[0].textContent?.trim() || "";
+          const keys = Object.keys(featureDeltasMap);
+          for (const frNode of featureRefNodes) {
+            const codeRaw = frNode.textContent?.trim();
+            const code = codeRaw?.toUpperCase();
+            if (!code) continue;
+            const match = keys.find(k => k.includes(code) || code.includes(k) || k.startsWith(code) || code.startsWith(k));
+            if (match) {
+              featureRef = match;
+              break;
+            }
+          }
+        }
+
+        // Fallback final: usar la primera referencia (normalizada)
+        if (!featureRef && featureRefNodes.length > 0) {
+          featureRef = featureRefNodes[0].textContent?.trim().toUpperCase() || "";
         }
 
         // Extraemos deltas si existen en nuestro mapa global, de lo contrario por defecto es 0
