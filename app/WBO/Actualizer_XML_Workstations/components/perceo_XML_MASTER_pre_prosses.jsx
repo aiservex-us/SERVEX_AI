@@ -12,7 +12,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const WBDDataMatrix = () => {
+const WBTDataMatrix = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +33,7 @@ const WBDDataMatrix = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated user found");
 
-      // Ingestión desde la tabla correcta configurada en Supabase para WBD
+      // Ingestión desde la tabla correcta configurada en Supabase para WBT
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_WBO')
         .select('xml_raw')
@@ -41,6 +41,7 @@ const WBDDataMatrix = () => {
         .maybeSingle();
 
       if (dbError) throw dbError;
+      
       if (!data?.xml_raw) {
         setProducts([]);
         return;
@@ -48,18 +49,18 @@ const WBDDataMatrix = () => {
 
       // --- REGISTRO DE DESCARGA GLOBAL ---
       if (typeof window !== 'undefined') {
-        window.downloadWBDXML = () => {
+        window.downloadWBTXML = () => {
           try {
             const blob = new Blob([data.xml_raw], { type: 'text/xml;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'WBD.XML');
+            link.setAttribute('download', 'WBT.XML');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            console.log("WBD.XML descargado con éxito.");
+            console.log("WBT.XML descargado con éxito.");
           } catch (downloadErr) {
             console.error("Error al descargar el XML:", downloadErr);
           }
@@ -70,28 +71,35 @@ const WBDDataMatrix = () => {
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBD XML structure");
+      if (parserError) throw new Error("Error parsing WBT XML structure");
 
       // 1. Mapear de forma eficiente los Features globales e indexar sus deltas de opciones
       const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      // Normalize feature codes to uppercase keys to make matching tolerant
       const featureDeltasMap = {}; // { FEATURE_CODE_UPPER: { 'C': delta_c, 'P': delta_p } }
 
-      // --- CORRECCIÓN APLICADA ---
-      // Solo agregamos al mapa los Features que realmente poseen variantes C o P
+      // --- DIAGNÓSTICO ---
+      // Registramos TODOS los códigos de Option que existen en el XML real
+      const allOptionCodesSeen = new Set();
+
       for (const f of featuresXML) {
-        const rawCode = f.getElementsByTagName("Code")[0]?.textContent;
-        if (!rawCode) continue;
-        
-        const fCode = rawCode.trim().toUpperCase();
+        const fCodeRaw = f.getElementsByTagName("Code")[0]?.textContent;
+        if (!fCodeRaw) continue;
+        const fCode = fCodeRaw.trim().toUpperCase();
+
         const options = Array.from(f.getElementsByTagName("Option"));
-        
+        // Solo registramos el Feature en el mapa si REALMENTE define
+        // al menos una opción C o P. Así, más adelante, podemos usar la
+        // presencia en este mapa como señal de "este es el Feature de
+        // acabado", y no confundirlo con Features de color, herraje, etc.
         let hasFinishOption = false;
         const deltas = { 'C': 0, 'P': 0 };
 
         for (const o of options) {
-          const oCodeRaw = o.getElementsByTagName("Code")[0]?.textContent?.trim();
-          const oCode = oCodeRaw?.toUpperCase();
-          
+          const rawCode = o.getElementsByTagName("Code")[0]?.textContent;
+          const oCode = rawCode?.trim().toUpperCase(); // normalize
+          if (oCode) allOptionCodesSeen.add(oCode);
+
           if (oCode === 'C' || oCode === 'P') {
             const rawValue = o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent;
             const deltaValue = parseFloat(rawValue || "0");
@@ -105,12 +113,20 @@ const WBDDataMatrix = () => {
         }
       }
 
-      // 2. Procesar los Productos y expandirlos resolviendo las referencias limpias
+      // --- DIAGNÓSTICO: resumen en consola ---
+      console.log("[WBT DIAGNOSTIC] Total <Feature> en XML:", featuresXML.length);
+      console.log("[WBT DIAGNOSTIC] Features con Option C/P detectada:", Object.keys(featureDeltasMap).length);
+      console.log("[WBT DIAGNOSTIC] Codigos de Option REALES encontrados en todo el XML (revisa si aqui aparece 'C' y 'P' literalmente, o algo distinto):", Array.from(allOptionCodesSeen).sort());
+      if (Object.keys(featureDeltasMap).length === 0) {
+        console.warn("[WBT DIAGNOSTIC] NINGUN Feature tiene una Option con codigo exactamente 'C' o 'P'. Esto explica por que todos los precios Classic/Premium salen iguales: el filtro busca un codigo que no existe en tu XML. Revisa la lista de 'Codigos de Option REALES' de arriba.");
+      }
+
+      // 2. Procesar los Productos y expandirlos por acabado (Classic y Premium)
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
 
       for (const p of productsXML) {
-        const skuBase = p.getElementsByTagName("Code")[0]?.textContent?.trim() || "";
+        const skuBase = p.getElementsByTagName("Code")[0]?.textContent || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
         const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
           || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
@@ -120,11 +136,18 @@ const WBDDataMatrix = () => {
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        // Recolectamos todas las referencias a Features bajo el Product
+        // --- FIX: Selección correcta del FeatureRef que gobierna C/P ---
+        // Un producto puede tener varios <FeatureRef> (color, herraje,
+        // acabado, etc.). Antes se tomaba ciegamente el [0], que podía
+        // apuntar a un Feature sin opciones C/P, dejando ambos deltas en 0
+        // y mostrando el mismo precio en las dos variantes (C y P se veían
+        // "iguales"). Ahora recorremos TODAS las referencias del producto y
+        // usamos la primera que exista en featureDeltasMap, es decir, la
+        // que realmente define el sobrecosto de acabado Classic/Premium.
+        // Recolectamos todas las referencias a Features bajo el Product (no solo la primera <Features>)
         const featureRefNodes = Array.from(p.getElementsByTagName("FeatureRef") || []);
 
         let featureRef = "";
-        
         // Intento 1: match exacto normalizado
         for (const frNode of featureRefNodes) {
           const codeRaw = frNode.textContent?.trim();
@@ -143,15 +166,33 @@ const WBDDataMatrix = () => {
             const code = codeRaw?.toUpperCase();
             if (!code) continue;
             const match = keys.find(k => k.includes(code) || code.includes(k) || k.startsWith(code) || code.startsWith(k));
-            if (match) { featureRef = match; break; }
+            if (match) {
+              featureRef = match;
+              break;
+            }
           }
         }
 
-        // Extraemos deltas cruzando datos con el mapa sanitizado (ahora purgado de ruido)
+        // Fallback final: usar la primera referencia (normalizada)
+        if (!featureRef && featureRefNodes.length > 0) {
+          featureRef = featureRefNodes[0].textContent?.trim().toUpperCase() || "";
+        }
+
+        // Extraemos deltas si existen en nuestro mapa global, de lo contrario por defecto es 0
         const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
         const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
 
-        // Variante Classic (/C)
+        // --- DIAGNÓSTICO: log detallado solo para los primeros productos ---
+        // para no saturar la consola en catálogos con miles de items.
+        if (extracted.length < 10) {
+          console.log(`[WBT DIAGNOSTIC] Producto ${skuBase}: FeatureRefs disponibles =`,
+            featureRefNodes.map(n => n.textContent?.trim()),
+            "| FeatureRef elegido =", featureRef || "(ninguno)",
+            "| deltaC =", deltaC, "| deltaP =", deltaP
+          );
+        }
+
+        // Generamos Variante Classic (/C)
         extracted.push({
           id: `${skuBase}-C`,
           sku: `${skuBase}/C`,
@@ -164,7 +205,7 @@ const WBDDataMatrix = () => {
           isPremium: false
         });
 
-        // Variante Premium (/P)
+        // Generamos Variante Premium (/P)
         extracted.push({
           id: `${skuBase}-P`,
           sku: `${skuBase}/P`,
@@ -181,8 +222,8 @@ const WBDDataMatrix = () => {
       setProducts(extracted);
       setCurrentPage(1);
     } catch (err) {
-      console.error("Error en procesamiento de matriz de datos WBD:", err);
-      setError(err.message || "Error al procesar la información de catálogos WBD.");
+      console.error("Error en procesamiento de matriz de datos WBT:", err);
+      setError(err.message || "Error al procesar la información de catálogos WBT.");
     } finally {
       setLoading(false);
     }
@@ -191,13 +232,13 @@ const WBDDataMatrix = () => {
   useEffect(() => {
     processXML();
     return () => {
-      if (typeof window !== 'undefined' && window.downloadWBDXML) {
-        delete window.downloadWBDXML;
+      if (typeof window !== 'undefined' && window.downloadWBTXML) {
+        delete window.downloadWBTXML;
       }
     };
   }, []);
 
-  // Búsqueda elástica
+  // Búsqueda elástica: Permite buscar tanto por SKU base como "CLN7110.../P" o por tipo "classic"
   const filtered = useMemo(() => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
@@ -233,7 +274,7 @@ const WBDDataMatrix = () => {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix with variants (Classic / Premium) from WBD Engine...
+        Retrieving master data matrix with variants (Classic / Premium) from WBT Engine...
       </div>
     </div>
   );
@@ -262,7 +303,7 @@ const WBDDataMatrix = () => {
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#242424]">WBD Data Matrix Master</span>
+                <span className="text-xs font-bold text-[#242424]">WBT Data Matrix Master</span>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
                   Classic & Premium Dynamic Split
                 </span>
@@ -346,11 +387,11 @@ const WBDDataMatrix = () => {
                             {realIndex}
                           </td>
 
-                          {/* SKU con variante visual real (/C o /P) */}
+                          {/* SKU con variante (/C o /P) */}
                           <td className="p-0 text-[#5B5FC7] border-r border-b border-[#F0F0F0] min-w-[180px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] font-bold whitespace-nowrap truncate" title={p.sku}>
                               {p.skuBase}
-                              <span className={`ml-1 px-1 rounded-sm text-[10px] font-mono font-bold ${p.isPremium ? 'bg-[#FFF0F6] text-[#D01A6A] border border-[#FFD6E7]' : 'bg-[#EBF3FF] text-[#106EBE] border border-[#CCE3FF]'}`}>
+                              <span className={`ml-1 px-1 rounded-sm text-[10px] ${p.isPremium ? 'bg-[#FFF0F6] text-[#D01A6A] border border-[#FFD6E7]' : 'bg-[#EBF3FF] text-[#106EBE] border border-[#CCE3FF]'}`}>
                                 /{p.finishCode}
                               </span>
                             </div>
@@ -379,7 +420,7 @@ const WBDDataMatrix = () => {
                             </div>
                           </td>
 
-                          {/* Calculated Price */}
+                          {/* Calculated Price (Base + Delta de Acabado) */}
                           <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[200px]">
                             <div className={`px-3 py-1.5 font-mono text-[11px] font-extrabold whitespace-nowrap truncate ${p.isPremium ? 'bg-[#FFF5FA]/40 text-[#A20E4E]' : 'bg-[#F4F8FA]/60 text-[#242424]'}`}>
                               ${p.calculatedPrice.toLocaleString()}
@@ -401,6 +442,7 @@ const WBDDataMatrix = () => {
               <span className="uppercase tracking-tight">VARIANTS RENDERED: {filtered.length} of {products.length}</span>
             </div>
             
+            {/* Controles de paginación */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -427,7 +469,7 @@ const WBDDataMatrix = () => {
 
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                WBD ETL Pipeline V3 (Dynamic Matrix Split)
+                WBT ETL Pipeline V3 (Dynamic Matrix Split)
               </div>
             </div>
           </div>
@@ -438,4 +480,4 @@ const WBDDataMatrix = () => {
   );
 };
 
-export default WBDDataMatrix;
+export default WBTDataMatrix;
