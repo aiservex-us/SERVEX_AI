@@ -49,18 +49,18 @@ const WBTDataMatrix = () => {
 
       // --- REGISTRO DE DESCARGA GLOBAL ---
       if (typeof window !== 'undefined') {
-        window.downloadWBTXML = () => {
+        window.downloadWBOXML = () => {
           try {
             const blob = new Blob([data.xml_raw], { type: 'text/xml;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'WBT.XML');
+            link.setAttribute('download', 'WBO.XML');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            console.log("WBT.XML descargado con éxito.");
+            console.log("WBO.XML descargado con éxito.");
           } catch (downloadErr) {
             console.error("Error al descargar el XML:", downloadErr);
           }
@@ -71,7 +71,7 @@ const WBTDataMatrix = () => {
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBT XML structure");
+      if (parserError) throw new Error("Error parsing WBO XML structure");
 
       // 1. Mapear de forma eficiente los Features globales e indexar sus deltas de opciones
       const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
