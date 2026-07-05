@@ -45,7 +45,7 @@ export default function AuditReportViewer() {
   const summaryRaw = reportDataRaw?.summary;
   const metadataRaw = reportDataRaw?.metadata;
 
-  if (loading) return <div className="p-10 text-sm text-[#616161]">Cargando auditoría...</div>;
+  if (loading) return <div className="p-10 text-sm text-[#616161]">Loading audit...</div>;
 
   return (
     <div className="min-h-[85vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
@@ -55,10 +55,10 @@ export default function AuditReportViewer() {
         <div className="mb-6 bg-white rounded-md p-6 border border-slate-200 shadow-sm relative overflow-hidden">
            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
             <BrainCircuit className="text-[#4F46E5]" size={28} />
-            Centro de Análisis de Desarrollo: {reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}
+            Development Analysis Center: {reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}
            </h1>
            <p className="text-xs text-[#616161] mt-1">
-             {metadataRaw?.title || 'Monitoreo de sincronización y conciliación posicional de catálogos.'}
+             {metadataRaw?.title || 'Synchronization monitoring and catalog positional reconciliation.'}
            </p>
         </div>
 
@@ -75,7 +75,7 @@ export default function AuditReportViewer() {
               </div>
               <ArrowRight size={14} className="text-[#A6A6A6]" />
               <div className="bg-white px-3 py-1 rounded border border-[#E0E0E0] font-mono text-[11px]">
-                <span className="text-[#616161] font-sans mr-1">Entrante:</span> {metadataRaw.new_file}
+                <span className="text-[#616161] font-sans mr-1">Incoming:</span> {metadataRaw.new_file}
               </div>
             </div>
             <div className="text-[11px] font-semibold text-[#5B5FC7] bg-[#EFEEFC] px-2 py-0.5 rounded">
@@ -89,36 +89,36 @@ export default function AuditReportViewer() {
           <div className="bg-white border border-[#E0E0E0] rounded-md p-3 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex items-start gap-3">
             <div className="p-2 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Database size={18} /></div>
             <div>
-              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Total Evaluados</p>
+              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Total Evaluated</p>
               <p className="text-base font-bold text-[#242424]">{summaryRaw?.total_common_models_evaluated || metricsP?.evaluated_common_models || 0}</p>
-              <p className="text-[10px] text-[#A6A6A6]">Modelos cruzados en matriz</p>
+              <p className="text-[10px] text-[#A6A6A6]">Cross-matrix models</p>
             </div>
           </div>
 
           <div className="bg-white border border-[#E0E0E0] rounded-md p-3 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex items-start gap-3">
             <div className="p-2 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Activity size={18} /></div>
             <div>
-              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Cambios Detectados</p>
+              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Changes Detected</p>
               <p className="text-base font-bold text-[#242424]">{summaryRaw?.cell_changes_detected_count || metricsP?.total_cell_changes || 0}</p>
-              <p className="text-[10px] text-[#107C10] font-semibold">✓ {metricsP?.xml_successful_updates || 0} Inyectados al XML</p>
+              <p className="text-[10px] text-[#107C10] font-semibold">✓ {metricsP?.xml_successful_updates || 0} Injected into XML</p>
             </div>
           </div>
 
           <div className="bg-white border border-[#E0E0E0] rounded-md p-3 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex items-start gap-3">
             <div className="p-2 bg-[#FDF3F3] rounded-sm text-[#A4262C]"><MinusCircle size={18} /></div>
             <div>
-              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Modelos Eliminados</p>
+              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Deleted Models</p>
               <p className="text-base font-bold text-[#A4262C]">{summaryRaw?.deleted_models_detected_count || 0}</p>
-              <p className="text-[10px] text-[#616161]">Removidos del origen</p>
+              <p className="text-[10px] text-[#616161]">Removed from source</p>
             </div>
           </div>
 
           <div className="bg-white border border-[#E0E0E0] rounded-md p-3 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex items-start gap-3">
             <div className="p-2 bg-[#F1F9F1] rounded-sm text-[#107C10]"><PlusCircle size={18} /></div>
             <div>
-              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Modelos Nuevos</p>
+              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">New Models</p>
               <p className="text-base font-bold text-[#107C10]">{summaryRaw?.new_models_detected_count || 0}</p>
-              <p className="text-[10px] text-[#616161]">Nuevas entradas de SKU</p>
+              <p className="text-[10px] text-[#616161]">New SKU entries</p>
             </div>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function AuditReportViewer() {
               }`}
             >
               <Zap size={14} />
-              Variaciones de List Price ({changesP.length})
+              List Price Variations ({changesP.length})
             </button>
             <button
               onClick={() => setActiveTab('inventory_flux')}
@@ -147,7 +147,7 @@ export default function AuditReportViewer() {
               }`}
             >
               <RefreshCw size={14} />
-              Flujo de Altas y Bajas ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })
+              Inventory Flow ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })
             </button>
           </div>
 
@@ -157,7 +157,7 @@ export default function AuditReportViewer() {
               <table className="table-fixed border-collapse text-left text-xs w-full">
                 <thead className="bg-[#FDFDFD]">
                   <tr>
-                    {['#', 'Model ID', 'Nodo / Columna', 'Valor Original', 'Nuevo Valor', '% Dif'].map(h => (
+                    {['#', 'Model ID', 'Node / Column', 'Original Value', 'New Value', '% Diff'].map(h => (
                       <th key={h} className="px-3 py-2 text-[10px] font-semibold text-[#5B5FC7] border-b border-[#E0E0E0] uppercase tracking-wider">
                         {h}
                       </th>
@@ -188,7 +188,7 @@ export default function AuditReportViewer() {
                   })}
                   {changesP.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-[#616161]">No se registraron cambios en las celdas del List Price.</td>
+                      <td colSpan={6} className="text-center py-8 text-[#616161]">No changes registered in List Price cells.</td>
                     </tr>
                   )}
                 </tbody>
@@ -204,18 +204,18 @@ export default function AuditReportViewer() {
               <div className="bg-white border border-[#E0E0E0] rounded-sm shadow-sm overflow-hidden">
                 <div className="bg-[#F1F9F1] px-3 py-2 border-b border-[#E0E0E0] flex items-center gap-2">
                   <PlusCircle size={14} className="text-[#107C10]" />
-                  <span className="text-[11px] font-bold text-[#107C10] uppercase tracking-wider">Modelos Nuevos Detectados en Origen</span>
+                  <span className="text-[11px] font-bold text-[#107C10] uppercase tracking-wider">New Models Detected in Source</span>
                 </div>
                 <div className="p-2 max-h-[400px] overflow-y-auto divide-y divide-[#F3F2F1]">
                   {summaryRaw?.new_models_list && summaryRaw.new_models_list.length > 0 ? (
                     summaryRaw.new_models_list.map((model, idx) => (
                       <div key={idx} className="py-2 px-1 flex items-center justify-between font-mono text-xs hover:bg-[#F9FAFB]">
                         <span className="text-[#242424] font-bold">{model}</span>
-                        <span className="text-[10px] text-[#107C10] bg-[#E1F4E1] px-1.5 py-0.5 rounded font-sans font-medium">Nuevo SKU</span>
+                        <span className="text-[10px] text-[#107C10] bg-[#E1F4E1] px-1.5 py-0.5 rounded font-sans font-medium">New SKU</span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-[#616161] p-4 text-center">No se detectaron nuevos modelos introducidos.</p>
+                    <p className="text-xs text-[#616161] p-4 text-center">No new models introduced detected.</p>
                   )}
                 </div>
               </div>
@@ -224,18 +224,18 @@ export default function AuditReportViewer() {
               <div className="bg-white border border-[#E0E0E0] rounded-sm shadow-sm overflow-hidden">
                 <div className="bg-[#FDF3F3] px-3 py-2 border-b border-[#E0E0E0] flex items-center gap-2">
                   <MinusCircle size={14} className="text-[#A4262C]" />
-                  <span className="text-[11px] font-bold text-[#A4262C] uppercase tracking-wider">Modelos Removidos / No Encontrados</span>
+                  <span className="text-[11px] font-bold text-[#A4262C] uppercase tracking-wider">Removed / Not Found Models</span>
                 </div>
                 <div className="p-2 max-h-[400px] overflow-y-auto divide-y divide-[#F3F2F1]">
                   {summaryRaw?.deleted_models_list && summaryRaw.deleted_models_list.length > 0 ? (
                     summaryRaw.deleted_models_list.map((model, idx) => (
                       <div key={idx} className="py-2 px-1 flex items-center justify-between font-mono text-xs hover:bg-[#F9FAFB]">
                         <span className="text-[#A4262C] font-semibold line-through decoration-red-200">{model}</span>
-                        <span className="text-[10px] text-[#A4262C] bg-[#FDE7E9] px-1.5 py-0.5 rounded font-sans font-medium">Fuera de Catálogo</span>
+                        <span className="text-[10px] text-[#A4262C] bg-[#FDE7E9] px-1.5 py-0.5 rounded font-sans font-medium">Out of Catalog</span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-[#616161] p-4 text-center">No se detectaron modelos removidos del catálogo.</p>
+                    <p className="text-xs text-[#616161] p-4 text-center">No models removed from catalog detected.</p>
                   )}
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function AuditReportViewer() {
 
           {/* Footer del Panel */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between items-center">
-            <span>TOTAL CAMBIOS INYECTADOS EN PASO ACTUAL: {changesP.length}</span>
+            <span>TOTAL CHANGES INJECTED IN CURRENT STEP: {changesP.length}</span>
             <span className="uppercase text-[#5B5FC7] font-bold tracking-wider">
               {reportDataP?.pipeline_metadata?.company_processed || activeRecord?.company_name || 'SERVEX US'}
             </span>
