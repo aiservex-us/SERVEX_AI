@@ -27,7 +27,7 @@ export default function TeamsAgentChat() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://generative-glynne-motor.onrender.com";
+  const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -53,10 +53,18 @@ export default function TeamsAgentChat() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${apiURL}/dynamic/agent/chat/full`, {
+      // Mapear el historial de mensajes al formato esperado por el backend
+      const historyPayload = messages.map(msg => ({
+        role: msg.from === "user" ? "user" : "assistant",
+        content: msg.text
+      }));
+      // Agregar el mensaje actual
+      historyPayload.push({ role: "user", content: queryToSend });
+
+      const res = await fetch(`${apiURL}/wbg/api/v1/agent/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensaje: queryToSend, agent_config: selectedAgent }),
+        body: JSON.stringify({ messages: historyPayload }),
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -208,24 +216,31 @@ export default function TeamsAgentChat() {
                   const isUser = msg.from === 'user';
                   return (
                     <motion.div
+                      layout
                       key={idx}
-                      initial={{ opacity: 0, y: 18, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                      initial={{ opacity: 0, y: 20, x: isUser ? 20 : -20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+                      transition={{ 
+                        duration: 0.5, 
+                        ease: [0.23, 1, 0.32, 1],
+                        layout: { duration: 0.3, ease: "easeOut" }
+                      }}
                       className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : ''}`}
                     >
                       {/* Avatar */}
-                      <div className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold
+                      <motion.div 
+                        whileHover={{ scale: 1.05, rotate: isUser ? 5 : -5 }}
+                        className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
                         ${isUser
-                          ? 'bg-gray-100 text-gray-500 border border-gray-200'
-                          : 'bg-indigo-50 text-indigo-500 border border-indigo-200'
+                          ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                          : 'bg-[#464775] text-white'
                         }`}
                       >
                         {isUser ? 'YOU' : <Brain size={15} />}
                         {!isUser && (
-                          <span className="absolute -inset-1 rounded-[14px] border border-indigo-300/50 avatar-pulse" />
+                          <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
                         )}
-                      </div>
+                      </motion.div>
 
                       {/* Bubble col */}
                       <div className={`flex flex-col max-w-[78%] gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
@@ -236,10 +251,12 @@ export default function TeamsAgentChat() {
                           <span className="text-[10px] text-gray-400">{msg.time}</span>
                         </div>
 
-                        <div className={`px-4 py-3 rounded-xl text-[13.5px] leading-relaxed border
+                        <motion.div 
+                          whileHover={{ y: -1 }}
+                          className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
                           ${isUser
-                            ? 'bg-indigo-50/70 border-indigo-100 text-gray-900 rounded-tr-sm'
-                            : 'bg-white border-gray-100 text-gray-800 rounded-tl-sm shadow-sm'
+                            ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
+                            : 'bg-white text-gray-800 rounded-tl-sm border border-gray-100'
                           }`}
                         >
                           {msg.from === "bot" ? (
@@ -250,7 +267,7 @@ export default function TeamsAgentChat() {
                           ) : (
                             <p className="whitespace-pre-wrap m-0">{msg.text}</p>
                           )}
-                        </div>
+                        </motion.div>
                       </div>
                     </motion.div>
                   );
@@ -260,25 +277,38 @@ export default function TeamsAgentChat() {
               {/* Typing indicator */}
               {isLoading && (
                 <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  layout
+                  initial={{ opacity: 0, y: 15, x: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                   className="flex gap-3 items-start"
                 >
-                  <div className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-indigo-50 text-indigo-500 border border-indigo-200">
+                  <motion.div 
+                    initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5 }}
+                    className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#464775] text-white shadow-sm"
+                  >
                     <Brain size={15} />
-                    <span className="absolute -inset-1 rounded-[14px] border border-indigo-300/50 avatar-pulse" />
-                  </div>
+                    <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
+                  </motion.div>
                   <div className="flex flex-col items-start gap-1">
                     <div className="flex items-baseline gap-2">
                       <span className="text-[12px] font-semibold text-gray-800">{selectedAgent.agent_name}</span>
-                      <span className="text-[10px] text-gray-400 animate-pulse">Processing…</span>
+                      <span className="text-[10px] text-gray-400 font-medium">Pensando...</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-4 py-3 bg-white border border-gray-100 rounded-xl rounded-tl-sm shadow-sm">
-                      {[0, 160, 320].map(delay => (
-                        <span
-                          key={delay}
-                          className="w-1.5 h-1.5 rounded-full bg-indigo-400 dot-bounce"
-                          style={{ animationDelay: `${delay}ms` }}
+                    <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm">
+                      {[0, 1, 2].map((i) => (
+                        <motion.span
+                          key={i}
+                          initial={{ opacity: 0.3, y: 0 }}
+                          animate={{ opacity: 1, y: [-2, 2, -2] }}
+                          transition={{
+                            duration: 0.8,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: i * 0.15
+                          }}
+                          className="w-1.5 h-1.5 rounded-full bg-[#464775]"
                         />
                       ))}
                     </div>
