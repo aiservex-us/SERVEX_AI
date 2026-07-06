@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   LayoutDashboard,
   Search,
@@ -51,7 +52,7 @@ export default function MenuLateral({
       `}
     >
       {/* HEADER: LOGO & TOGGLE */}
-      <div className="h-16 flex items-center px-4 shrink-0 relative">
+      <div className="h-20 flex items-center px-4 shrink-0 relative">
         <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
           <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#6264A7]/30 transition-colors">
             <img

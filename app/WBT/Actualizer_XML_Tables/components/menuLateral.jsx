@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   LayoutDashboard,
   SearchCode,
@@ -80,21 +81,21 @@ export default function MenuLateral({
         `}
       >
         {/* HEADER: LOGO & TOGGLE */}
-        <div className="h-16 flex items-center px-4 shrink-0 relative">
+        <div className="h-20 flex items-center px-4 shrink-0 relative">
           <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
-            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors">
+            <Link href="/panel" className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors cursor-pointer">
               <img
                 src="/logosEmpresas/WB.webp"
                 alt="Logo"
-                className={`object-contain transition-all duration-300 ${collapsed ? 'w-4 h-4' : 'w-5 h-5'}`}
+                className={`object-contain transition-all duration-300 ${collapsed ? 'w-5 h-5' : 'w-7 h-7'}`}
               />
-            </div>
+            </Link>
 
             <div className={`
               overflow-hidden transition-all duration-[400ms]
               ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
             `}>
-              <span className="font-bold text-[12px] tracking-tight text-slate-800 whitespace-nowrap uppercase">
+              <span className="font-black text-[15px] tracking-tight text-[#464775] whitespace-nowrap uppercase">
                 DATA WBT
               </span>
             </div>
@@ -165,7 +166,7 @@ export default function MenuLateral({
                   
                   {!collapsed && (
                     <div className="flex flex-col items-start overflow-hidden text-left w-full">
-                      <span className={`text-[10px] uppercase tracking-wider leading-none ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'}`}>
+                      <span className={`text-[9px] uppercase tracking-wider leading-none ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'}`}>
                         {item.label}
                       </span>
                       <div className="flex items-center gap-2 mt-1">
@@ -206,7 +207,7 @@ export default function MenuLateral({
                   overflow-hidden transition-all duration-[400ms]
                   ${collapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
                 `}>
-                  <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">{item.label}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap">{item.label}</span>
                 </div>
               </button>
             );
