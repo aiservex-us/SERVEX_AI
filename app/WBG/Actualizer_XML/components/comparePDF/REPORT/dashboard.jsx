@@ -29,8 +29,8 @@ export default function Dashboard() {
               <div className={`
                 bg-white border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] 
                 rounded-3xl w-full max-w-4xl p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-16
-                transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden relative pointer-events-auto
-                ${isAiActive ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-12 scale-95 opacity-0'}
+                transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden relative
+                ${isAiActive ? 'translate-y-0 scale-100 opacity-100 pointer-events-auto' : 'translate-y-12 scale-95 opacity-0 pointer-events-none'}
               `}>
                 
                 {/* Close Button */}
