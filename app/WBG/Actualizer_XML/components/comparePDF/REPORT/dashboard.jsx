@@ -6,6 +6,10 @@ import AuditAnalyticsDashboard from './components/AI_contact';
 export default function Dashboard() {
   // Estado para controlar si la sección de IA está activa/enfocada
   const [isAiActive, setIsAiActive] = useState(false);
+  // Estado para cerrar el modal permanentemente si el usuario hace clic en la X
+  const [isModalDismissed, setIsModalDismissed] = useState(false);
+
+  const showOverlay = !isAiActive && !isModalDismissed;
 
   return (
     <div
@@ -21,7 +25,7 @@ export default function Dashboard() {
 
           {/* Overlay del Logo e Información (Card) */}
           <div
-            className={`hidden min-[400px]:block absolute inset-0 z-10 pointer-events-none transition-all duration-500 ease-out ${isAiActive ? 'opacity-100 backdrop-blur-[2px]' : 'opacity-0'
+            className={`hidden min-[400px]:block absolute inset-0 z-10 pointer-events-none transition-all duration-500 ease-out ${showOverlay ? 'opacity-100 backdrop-blur-[2px]' : 'opacity-0'
               }`}
           >
             <div className="sticky top-0 h-[91vh] w-full flex items-center justify-center bg-white/95 rounded-xl p-6">
@@ -30,12 +34,12 @@ export default function Dashboard() {
                 bg-white border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] 
                 rounded-3xl w-full max-w-4xl p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-16
                 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden relative
-                ${isAiActive ? 'translate-y-0 scale-100 opacity-100 pointer-events-auto' : 'translate-y-12 scale-95 opacity-0 pointer-events-none'}
+                ${showOverlay ? 'translate-y-0 scale-100 opacity-100 pointer-events-auto' : 'translate-y-12 scale-95 opacity-0 pointer-events-none'}
               `}>
                 
                 {/* Close Button */}
                 <button 
-                  onClick={() => setIsAiActive(false)}
+                  onClick={() => setIsModalDismissed(true)}
                   className="absolute top-6 right-6 p-2 rounded-full text-slate-300 hover:text-slate-600 hover:bg-slate-50 transition-colors z-20"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -111,7 +115,10 @@ export default function Dashboard() {
           className={`hidden min-[400px]:block w-full border border-gray-100 rounded-lg overflow-hidden lg:sticky lg:top-6 transition-all duration-500 ease-out ${isAiActive ? 'lg:w-[45%] shadow-md ring-1 ring-gray-200/50' : 'lg:w-[30%] shadow-sm'
             }`}
           // Al hacer clic en el área de IA, se activa el enfoque y desenfoca el reporte
-          onClick={() => setIsAiActive(true)}
+          onClick={() => {
+            setIsAiActive(true);
+            setIsModalDismissed(true);
+          }}
         >
           <div className="bg-white">
             <AuditAnalyticsDashboard />
