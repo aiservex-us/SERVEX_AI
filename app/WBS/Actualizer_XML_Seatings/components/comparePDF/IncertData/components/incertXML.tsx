@@ -11,7 +11,8 @@ import {
   FileSpreadsheet,
   RefreshCw,
   Info,
-  DatabaseZap
+  DatabaseZap,
+  Loader2
 } from 'lucide-react';
 
 export default function UploadClientXML() {
@@ -286,6 +287,39 @@ export default function UploadClientXML() {
 return (
     <div className="min-h-[60vh] bg-[#FFF] flex font-sans text-[#242424] relative">
       <div className="flex-1 flex flex-col">
+
+        {/* --- POPUP PROCESANDO DATOS BASE --- */}
+        {loading && (
+          <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
+            <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
+                  <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
+                    <DatabaseZap className="text-[#5b5fc7] animate-pulse" size={20} />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">System Base Storage</h3>
+                <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module ({companyName})</p>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+                <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
+                <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
+                  <strong>IMPORTANT:</strong> Uploading base {companyName} files to Cloud Database. <strong>Do not close</strong> this window.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
+                <Loader2 size={12} className="animate-spin" />
+                <span className="uppercase tracking-widest">Saving to Cloud Database...</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* --- PAGE HEADER --- */}
         <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
