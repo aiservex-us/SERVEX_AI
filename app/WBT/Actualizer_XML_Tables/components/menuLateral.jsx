@@ -140,6 +140,10 @@ export default function MenuLateral({
               <button
                 key={item.id}
                 onClick={() => {
+                  if (item.id === 'incert_delete' && typeof window !== 'undefined' && window.innerWidth < 400) {
+                    alert("This feature is only available on desktop.");
+                    return;
+                  }
                   setActive(item.id);
                   if (typeof window !== 'undefined' && window.innerWidth < 768) {
                     setCollapsed(true);
@@ -148,24 +152,32 @@ export default function MenuLateral({
                 className={`
                   group relative flex flex-col transition-all duration-300 w-full rounded-xl border
                   ${collapsed ? 'items-center justify-center py-3' : 'p-3'}
-                  ${isActive
-                    ? 'bg-[#464775]/5 border-[#464775]/30 shadow-sm'
+                  ${isActive 
+                    ? 'bg-[#464775]/5 border-[#464775]/30 shadow-sm' 
                     : 'bg-white border-slate-100 shadow-sm hover:border-slate-200 hover:bg-slate-50/30'}
+                  ${item.id === 'incert_delete' ? 'max-[400px]:opacity-60 max-[400px]:bg-slate-50' : ''}
                 `}
               >
                 <div className={`flex items-center w-full ${collapsed ? 'justify-center' : 'gap-3'}`}>
                   <div className={`${isActive ? 'text-[#464775]' : 'text-slate-400'} transition-all duration-300`}>
                     <Icon size={collapsed ? 15 : 17} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
-
+                  
                   {!collapsed && (
                     <div className="flex flex-col items-start overflow-hidden text-left w-full">
                       <span className={`text-[10px] uppercase tracking-wider leading-none ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'}`}>
                         {item.label}
                       </span>
-                      <span className="text-[8px] text-slate-400 font-medium mt-1 uppercase tracking-tighter">
-                        {item.sub}
-                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[8px] text-slate-400 font-medium uppercase tracking-tighter">
+                          {item.sub}
+                        </span>
+                        {item.id === 'incert_delete' && (
+                          <span className="min-[400px]:hidden text-[8px] text-red-500/80 font-bold uppercase tracking-tighter bg-red-50 px-1.5 py-0.5 rounded-full border border-red-100">
+                            Desktop Only
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

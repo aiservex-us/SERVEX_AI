@@ -20,16 +20,25 @@ export default function Dashboard() {
         <div className={`relative w-full transition-all duration-500 ease-out ${isAiActive ? 'lg:w-[55%]' : 'lg:w-[70%]'}`}>
 
           {/* Overlay del Logo y Blur (sticky a la pantalla para mejor rendimiento y centrado perfecto) */}
+
           <div
-            className={`absolute inset-0 z-10 pointer-events-none transition-all duration-500 ease-out ${isAiActive ? 'opacity-100' : 'opacity-0'
+            className={`hidden min-[400px]:block absolute inset-0 z-10 pointer-events-none transition-all duration-500 ease-out ${isAiActive ? 'opacity-100' : 'opacity-0'
               }`}
           >
-            <div className="sticky top-0 h-[89vh] w-full flex items-center justify-center backdrop-blur-[4px] bg-white/30 rounded-xl">
+            <div className="sticky top-0 h-[91vh] w-full flex flex-col items-center justify-center bg-white/90 rounded-xl">
               <img
-                src="/logo.png"
+                src="/alysa_lg.png"
                 alt="Logo"
-                className={`w-64 h-auto object-contain drop-shadow-2xl transition-all duration-500 ease-out ${isAiActive ? 'scale-100' : 'scale-90'}`}
+                className={`w-96 h-auto object-contain drop-shadow-2xl transition-all duration-500 ease-out ${isAiActive ? 'scale-100' : 'scale-90'}`}
               />
+              <div className={`mt-8 text-center transition-all duration-700 delay-100 ease-out ${isAiActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                <h3 className="text-[#464775] text-2xl lg:text-3xl font-extralight tracking-[0.25em]">
+                  CET Change Development Tool
+                </h3>
+                <p className="text-gray-400 text-[10px] mt-4 font-light tracking-widest uppercase">
+                  Development of new technologies · Servex transition
+                </p>
+              </div>
             </div>
           </div>
 
