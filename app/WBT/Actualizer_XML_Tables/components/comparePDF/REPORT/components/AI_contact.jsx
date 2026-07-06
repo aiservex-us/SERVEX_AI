@@ -27,7 +27,7 @@ export default function TeamsAgentChat() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://generative-glynne-motor.onrender.com";
+  const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
