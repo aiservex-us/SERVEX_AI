@@ -147,7 +147,7 @@ export default function MenuInicial() {
 
         <div className="relative group flex-1 h-full w-full min-w-0">
           <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-          <div className="relative bg-white border-y md:border border-slaete-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
+          <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
             <div className="p-1 w-full h-full">
               {renderContent()}
             </div>
