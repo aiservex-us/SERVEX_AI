@@ -53,10 +53,18 @@ export default function TeamsAgentChat() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${apiURL}/dynamic/agent/chat/full`, {
+      // Mapear el historial de mensajes al formato esperado por el backend
+      const historyPayload = messages.map(msg => ({
+        role: msg.from === "user" ? "user" : "assistant",
+        content: msg.text
+      }));
+      // Agregar el mensaje actual
+      historyPayload.push({ role: "user", content: queryToSend });
+
+      const res = await fetch(`${apiURL}/wbt/api/v1/agent/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensaje: queryToSend, agent_config: selectedAgent }),
+        body: JSON.stringify({ messages: historyPayload }),
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
