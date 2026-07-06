@@ -25,7 +25,7 @@ export default function Dashboard() {
               }`}
           >
             <div className="sticky top-0 h-[91vh] w-full flex items-center justify-center bg-white/95 rounded-xl p-6">
-              
+
               <div className={`
                 bg-white border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] 
                 rounded-3xl w-full max-w-4xl p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-16
@@ -42,7 +42,7 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
-                
+
                 {/* Elementos decorativos de fondo de la card */}
                 <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#464775]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-sky-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
@@ -73,14 +73,14 @@ export default function Dashboard() {
                     <span className="w-1.5 h-1.5 rounded-full bg-[#464775] animate-pulse" />
                     <span className="text-[9px] font-bold tracking-widest text-[#464775] uppercase">Powered by SVX</span>
                   </div>
-                  
+
                   <h2 className="text-2xl lg:text-3xl font-light text-slate-800 tracking-tight mb-5 leading-tight">
                     Weeks of work.<br />
                     <strong className="font-semibold text-[#464775]">Done in seconds.</strong>
                   </h2>
-                  
+
                   <p className="text-sm text-slate-500 leading-relaxed font-light mb-8">
-                    Through a few simple actions, our system fully automates <strong className="font-medium text-slate-700">3 weeks of manual analysis, data comparison, updating, and strict verification</strong>. 
+                    Through a few simple actions, our system fully automates <strong className="font-medium text-slate-700">3 weeks of manual analysis, data comparison, updating, and strict verification</strong>.
                     The entire operational lifecycle that previously took weeks is now flawlessly executed in mere seconds by <strong className="font-semibold text-slate-700">Alysa SVX Copilot</strong>.
                   </p>
 

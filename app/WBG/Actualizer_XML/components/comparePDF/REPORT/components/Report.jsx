@@ -57,13 +57,66 @@ export default function AuditReportViewer() {
     <div className="min-h-[85vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
         
-        {/* Header - Mismo diseño */}
         <div className="mb-6 bg-white rounded-md p-6 border border-slate-200 shadow-sm relative overflow-hidden">
            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
             <BrainCircuit className="text-[#4F46E5]" size={28} />
             Centro de Análisis de Desarrollo: {reportData?.pipeline_metadata?.system_engine}
            </h1>
         </div>
+
+        {/* Contenido: Módulo 2 - Flujo de Inventario */}
+        {activeTab === 'inventory_flux' && (
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FCFCFC] mb-6 rounded-xl border border-slate-100">
+            
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+                <PlusCircle size={16} className="text-[#464775]" />
+                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Modelos Nuevos Detectados</span>
+              </div>
+              <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
+                {summaryRaw?.new_models_list && summaryRaw.new_models_list.length > 0 ? (
+                  summaryRaw.new_models_list.map((model, idx) => (
+                    <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
+                      <span className="text-slate-700 font-semibold">{model}</span>
+                      <span className="text-[10px] text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full font-sans font-semibold">Nuevo SKU</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2">
+                      <PlusCircle size={16} className="text-slate-300" />
+                    </div>
+                    <p className="text-xs text-slate-400">No se detectaron nuevos modelos en el origen.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+                <MinusCircle size={16} className="text-slate-400" />
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Modelos Removidos del Catálogo</span>
+              </div>
+              <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
+                {summaryRaw?.deleted_models_list && summaryRaw.deleted_models_list.length > 0 ? (
+                  summaryRaw.deleted_models_list.map((model, idx) => (
+                    <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
+                      <span className="text-slate-400 font-medium line-through decoration-slate-300">{model}</span>
+                      <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-sans font-medium">Descontinuado</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2">
+                      <MinusCircle size={16} className="text-slate-300" />
+                    </div>
+                    <p className="text-xs text-slate-400">No se detectaron modelos removidos.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           

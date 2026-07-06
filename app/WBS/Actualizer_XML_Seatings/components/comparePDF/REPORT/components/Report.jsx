@@ -196,46 +196,56 @@ export default function AuditReportViewer() {
             </div>
           )}
 
-          {/* Contenido: Módulo 2 - Flujo de Inventario (Nuevos vs Eliminados) */}
+          {/* Contenido: Módulo 2 - Flujo de Inventario (Nuevos vs Eliminados de audit_report_json) */}
           {activeTab === 'inventory_flux' && (
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FCFCFC]">
               
               {/* Columna Modelos Nuevos */}
-              <div className="bg-white border border-[#E0E0E0] rounded-sm shadow-sm overflow-hidden">
-                <div className="bg-[#F1F9F1] px-3 py-2 border-b border-[#E0E0E0] flex items-center gap-2">
-                  <PlusCircle size={14} className="text-[#107C10]" />
-                  <span className="text-[11px] font-bold text-[#107C10] uppercase tracking-wider">Modelos Nuevos Detectados en Origen</span>
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+                  <PlusCircle size={16} className="text-[#464775]" />
+                  <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Modelos Nuevos Detectados</span>
                 </div>
-                <div className="p-2 max-h-[400px] overflow-y-auto divide-y divide-[#F3F2F1]">
+                <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
                   {summaryRaw?.new_models_list && summaryRaw.new_models_list.length > 0 ? (
                     summaryRaw.new_models_list.map((model, idx) => (
-                      <div key={idx} className="py-2 px-1 flex items-center justify-between font-mono text-xs hover:bg-[#F9FAFB]">
-                        <span className="text-[#242424] font-bold">{model}</span>
-                        <span className="text-[10px] text-[#107C10] bg-[#E1F4E1] px-1.5 py-0.5 rounded font-sans font-medium">Nuevo SKU</span>
+                      <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
+                        <span className="text-slate-700 font-semibold">{model}</span>
+                        <span className="text-[10px] text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full font-sans font-semibold">Nuevo SKU</span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-[#616161] p-4 text-center">No se detectaron nuevos modelos introducidos.</p>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2">
+                        <PlusCircle size={16} className="text-slate-300" />
+                      </div>
+                      <p className="text-xs text-slate-400">No se detectaron nuevos modelos en el origen.</p>
+                    </div>
                   )}
                 </div>
               </div>
 
               {/* Columna Modelos Eliminados */}
-              <div className="bg-white border border-[#E0E0E0] rounded-sm shadow-sm overflow-hidden">
-                <div className="bg-[#FDF3F3] px-3 py-2 border-b border-[#E0E0E0] flex items-center gap-2">
-                  <MinusCircle size={14} className="text-[#A4262C]" />
-                  <span className="text-[11px] font-bold text-[#A4262C] uppercase tracking-wider">Modelos Removidos / No Encontrados</span>
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+                  <MinusCircle size={16} className="text-slate-400" />
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Modelos Removidos del Catálogo</span>
                 </div>
-                <div className="p-2 max-h-[400px] overflow-y-auto divide-y divide-[#F3F2F1]">
+                <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
                   {summaryRaw?.deleted_models_list && summaryRaw.deleted_models_list.length > 0 ? (
                     summaryRaw.deleted_models_list.map((model, idx) => (
-                      <div key={idx} className="py-2 px-1 flex items-center justify-between font-mono text-xs hover:bg-[#F9FAFB]">
-                        <span className="text-[#A4262C] font-semibold line-through decoration-red-200">{model}</span>
-                        <span className="text-[10px] text-[#A4262C] bg-[#FDE7E9] px-1.5 py-0.5 rounded font-sans font-medium">Fuera de Catálogo</span>
+                      <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
+                        <span className="text-slate-400 font-medium line-through decoration-slate-300">{model}</span>
+                        <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-sans font-medium">Descontinuado</span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-xs text-[#616161] p-4 text-center">No se detectaron modelos removidos del catálogo.</p>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2">
+                        <MinusCircle size={16} className="text-slate-300" />
+                      </div>
+                      <p className="text-xs text-slate-400">No se detectaron modelos removidos.</p>
+                    </div>
                   )}
                 </div>
               </div>
