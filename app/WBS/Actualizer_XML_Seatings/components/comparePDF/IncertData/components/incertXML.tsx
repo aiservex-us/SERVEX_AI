@@ -351,11 +351,11 @@ return (
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Upload Progress</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent || existingXml ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>1</div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent || existingXml ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>1</div>
                   <span className="text-xs font-medium">XML File</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent || existingCsv ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent || existingCsv ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>2</div>
                   <span className="text-xs font-medium">CSV File (Will be Sanitized)</span>
                 </div>
               </div>
@@ -413,18 +413,18 @@ return (
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
-                      ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-green-300 bg-green-50 hover:bg-green-100' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                      ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingXml ? (
                       <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
                     ) : checkingExisting ? (
                       <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
                     ) : showXmlExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-2 text-green-600" size={20} />
+                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={20} />
                     ) : (
                       <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
                     )}
-                    <p className={`text-[10px] font-bold ${showXmlExistingNotice ? 'text-green-700' : 'text-[#242424]'}`}>
+                    <p className={`text-[10px] font-bold ${showXmlExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
                       {readingXml
                         ? 'Reading...'
                         : checkingExisting
@@ -435,7 +435,7 @@ return (
                     </p>
                     <p className="text-[8px] text-[#9CA3AF] mt-0.5">Catálogo de Catalog Creator</p>
                     {showXmlExistingNotice && (
-                      <p className="text-[9px] text-green-600 mt-1">Click or drop to replace</p>
+                      <p className="text-[9px] text-[#464775]/80 mt-1 font-medium">Click or drop to replace</p>
                     )}
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
@@ -446,18 +446,18 @@ return (
                     onDrop={handleDropCSV}
                     onClick={() => csvInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
-                      ${dragActiveCSV ? 'border-[#464775] bg-[#464775]/5' : showCsvExistingNotice ? 'border-green-300 bg-green-50 hover:bg-green-100' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                      ${dragActiveCSV ? 'border-[#464775] bg-[#464775]/5' : showCsvExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingCsv ? (
                       <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
                     ) : checkingExisting ? (
                       <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
                     ) : showCsvExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-2 text-green-600" size={20} />
+                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={20} />
                     ) : (
                       <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
                     )}
-                    <p className={`text-[10px] font-bold ${showCsvExistingNotice ? 'text-green-700' : 'text-[#242424]'}`}>
+                    <p className={`text-[10px] font-bold ${showCsvExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
                       {readingCsv
                         ? 'Reading...'
                         : checkingExisting
@@ -468,7 +468,7 @@ return (
                     </p>
                     <p className="text-[8px] text-[#9CA3AF] mt-0.5">Catálogo base — inicio del proceso</p>
                     {showCsvExistingNotice && (
-                      <p className="text-[9px] text-green-600 mt-1">Click or drop to replace</p>
+                      <p className="text-[9px] text-[#464775]/80 mt-1 font-medium">Click or drop to replace</p>
                     )}
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>

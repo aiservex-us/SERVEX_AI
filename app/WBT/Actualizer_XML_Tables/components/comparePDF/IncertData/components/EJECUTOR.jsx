@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  FiUploadCloud, FiX, FiMaximize2, FiChevronLeft, FiChevronRight 
+  FiUploadCloud, FiX, FiMaximize2, FiChevronLeft, FiChevronRight, FiAlertCircle, FiDatabase 
 } from 'react-icons/fi';
 import { 
   FileText, 
@@ -308,6 +308,39 @@ const SVXUnifiedPlatform = () => {
 
   return (
     <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
+      
+      {/* --- POPUP PROCESANDO DATOS BASE --- */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
+                <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
+                  <FiDatabase className="text-[#5b5fc7] animate-pulse" size={20} />
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-1">
+              <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">System Base Storage</h3>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module ({currentTenant})</p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
+              <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
+                <strong>IMPORTANT:</strong> Uploading base {currentTenant} files to Cloud Database. <strong>Do not close</strong> this window or switch sections.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
+              <Loader2 size={12} className="animate-spin" />
+              <span className="uppercase tracking-widest">Saving to Cloud Database...</span>
+            </div>
+          </div>
+        </div>
+      )}
       
       {alert.show && createPortal(
         <div className="fixed top-6 right-6 z-[9999] p-4 rounded-lg shadow-2xl border flex items-center gap-3 animate-in slide-in-from-right-5 duration-300 bg-white border-[#EDEBE9] min-w-[300px]">

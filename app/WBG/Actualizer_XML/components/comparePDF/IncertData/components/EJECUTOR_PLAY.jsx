@@ -195,7 +195,8 @@ const EJECUTOR_PLAY = ({
           <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
             <button 
               onClick={ejecutarSegundoProceso}
-              disabled={(!file && !hasExistingData) || estadoProcesando}
+              disabled={!hasExistingData || !file || estadoProcesando}
+              title={!hasExistingData ? "Must complete the first step (upload base) before executing this step." : ""}
               className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
             >
               {estadoProcesando && showSecondPopup ? <Loader2 size={12} className="animate-spin" /> : <Cpu size={12} />}

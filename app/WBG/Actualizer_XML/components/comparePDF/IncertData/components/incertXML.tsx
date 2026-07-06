@@ -236,11 +236,11 @@ export default function UploadClientXML() {
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Etapas de Saneamiento</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>1</div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>1</div>
                   <span className="text-xs font-medium">XML Raw Target</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>2</div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>2</div>
                   <span className="text-xs font-medium">CSV Optimizer Raw (JSON)</span>
                 </div>
               </div>
