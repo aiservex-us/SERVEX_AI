@@ -12,21 +12,21 @@ import {
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const QUICK_PROMPTS = [
-  { icon: Shield,   label: "RBAC Permissions",    q: "How do I configure RBAC permissions on the platform?" },
-  { icon: Activity, label: "ETL Flows",        q: "Explain the architecture of the available ETL flows." },
-  ];
+  { icon: Shield, label: "RBAC Permissions", q: "How do I configure RBAC permissions on the platform?" },
+  { icon: Activity, label: "ETL Flows", q: "Explain the architecture of the available ETL flows." },
+];
 
 export default function TeamsAgentChat() {
   const [selectedAgent] = useState({ agent_name: "SVX Copilot", role: "AI Engine" });
-  const [messages, setMessages]     = useState([]);
-  const [input, setInput]           = useState("");
-  const [isLoading, setIsLoading]   = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [context, setContext]       = useState('Servex US');
-  const [charCount, setCharCount]   = useState(0);
+  const [context, setContext] = useState('Servex US');
+  const [charCount, setCharCount] = useState(0);
 
   const messagesEndRef = useRef(null);
-  const inputRef       = useRef(null);
+  const inputRef = useRef(null);
   const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://generative-glynne-motor.onrender.com";
 
   useEffect(() => { inputRef.current?.focus(); }, []);
@@ -53,7 +53,7 @@ export default function TeamsAgentChat() {
     setIsLoading(true);
 
     try {
-      const res  = await fetch(`${apiURL}/dynamic/agent/chat/full`, {
+      const res = await fetch(`${apiURL}/dynamic/agent/chat/full`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mensaje: queryToSend, agent_config: selectedAgent }),
@@ -93,7 +93,7 @@ export default function TeamsAgentChat() {
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400  animate-pulse" />
             Engine v4.10 · Online
           </div>
-      
+
           <button className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
             <Settings size={15} />
           </button>
@@ -127,39 +127,49 @@ export default function TeamsAgentChat() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {/* Orb */}
-                  <div className="relative w-16 h-16 mx-auto mb-7 flex items-center justify-center">
-                    <div className="absolute inset-0 rounded-2xl bg-indigo-100 border border-indigo-300 orb-ring-1" />
-                    <div className="absolute -inset-3 rounded-[20px] border border-indigo-200/50 orb-ring-2" />
-                    <Brain size={28} className="text-indigo-500 relative z-10" />
+                  <div className="flex justify-center mb-4 mt-2">
+                    <img src="/alysa.png" alt="Alysa Logo" className="h-33 w-auto object-contain" />
                   </div>
 
-           <h1 className="text-[32px] font-bold tracking-tight text-[#464775] leading-tight mb-3">
-  I am Alysa
-</h1>
-               <h2 className="text-[14px] ">
-                        (AI Autonomous Logic & Yield System Architect.)
-               </h2>
+                  <h2 className="text-[12px] text-gray-400 font-medium">
+                    (AI Autonomous Logic & Yield System Architect.)
+                  </h2>
                 </motion.div>
 
-                {/* Metrics */}
-                <motion.div
-                  className="flex mt-8 border border-gray-100 rounded-xl overflow-hidden bg-white shadow-sm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                >
-                  {[
-                    { label: "Documents",  value: "Clients" },
-                    { label: "Accuracy", value: "98.4%" },
-                    { label: "Sync",  value: "Real-time" },
-                  ].map((m, i) => (
-                    <div key={m.label} className={`flex-1 flex flex-col gap-1 py-4 px-6 text-center ${i < 2 ? 'border-r border-gray-100' : ''}`}>
-                      <span className="text-s font-bold tracking-tight text-gray-900">{m.value}</span>
-                      <span className="text-[11px] text-gray-400">{m.label}</span>
-                    </div>
-                  ))}
-                </motion.div>
+                {/* Metrics with living shadow */}
+                <div className="relative mx-auto max-w-sm mt-6">
+                  {/* Glowing background */}
+                  <motion.div
+                    className="absolute inset-0 bg-indigo-400/30 rounded-[30px] blur-[20px]"
+                    animate={{
+                      scale: [0.95, 1.05, 0.95],
+                      opacity: [0.4, 0.8, 0.4],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+
+                  <motion.div
+                    className="relative z-10 flex border border-gray-100/60 rounded-xl overflow-hidden bg-white/90 backdrop-blur-sm shadow-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                  >
+                    {[
+                      { label: "Documents", value: "Servex client" },
+                      { label: "Accuracy", value: "98.4%" },
+                      { label: "Sync", value: "Real-time" },
+                    ].map((m, i) => (
+                      <div key={m.label} className={`flex-1 flex flex-col gap-0.5 py-3 px-4 text-center ${i < 2 ? 'border-r border-gray-100' : ''}`}>
+                        <span className="text-[12px] font-semibold tracking-tight text-gray-700">{m.value}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-gray-400">{m.label}</span>
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
               </div>
 
               {/* Quick prompts */}
@@ -283,62 +293,20 @@ export default function TeamsAgentChat() {
       </main>
 
       {/* ── INPUT ── */}
-      <footer className="flex-shrink-0 px-5 py-3 pb-4 bg-gray-50 border-t border-gray-100">
-        <div className="max-w-[820px] mx-auto bg-white border border-gray-200 rounded-2xl relative focus-within:border-indigo-300 focus-within:ring-2 focus-within:ring-indigo-100 transition-all shadow-sm">
+      <footer className="flex-shrink-0 px-5 py-3 pb-4 bg-white border-t border-gray-100">
+        <div className="max-w-[820px] mx-auto bg-white border border-gray-200 rounded-2xl relative focus-within:border-indigo-400 shadow-sm">
 
           {/* Meta row */}
-          <div
-            className="flex items-center justify-between px-3.5 py-2 border-b border-gray-100"
-            onClick={() => setIsDropdownOpen(false)}
-          >
-            <div className="flex items-center gap-2.5">
-              {/* Context selector */}
-              <div
-                className="relative flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 cursor-pointer hover:border-indigo-300 transition-colors"
-                onClick={e => { e.stopPropagation(); setIsDropdownOpen(!isDropdownOpen); }}
-              >
-                <Database size={12} className="text-indigo-500" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Context</span>
-                <span className="text-[11px] font-semibold text-gray-700">{context}</span>
-                <ChevronDown
-                  size={12}
-                  className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
-                />
-
-                <AnimatePresence>
-                  {isDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.97 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-[calc(100%+6px)] left-0 w-44 bg-white border border-gray-200 rounded-xl overflow-hidden z-50 shadow-xl"
-                    >
-                      {CONTEXTS.map(ctx => (
-                        <button
-                          key={ctx}
-                          onClick={() => { setContext(ctx); setIsDropdownOpen(false); }}
-                          className="w-full flex items-center justify-between px-3.5 py-2.5 text-[12px] text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                        >
-                          {ctx}
-                          {context === ctx && <Check size={13} className="text-indigo-500" />}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div className="w-px h-4 bg-gray-200" />
-
-              <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                <Zap size={11} className="text-amber-400" />
-                Engine v4.10
-              </div>
+          <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50/80 border-b border-gray-100 rounded-t-2xl">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              <Zap size={12} className="text-indigo-400" />
+              <span>Engine v4.10</span>
             </div>
 
             {charCount > 0 && (
-              <span className="text-[10px] text-gray-400">{charCount}</span>
+              <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
+                {charCount}
+              </span>
             )}
           </div>
 
@@ -360,9 +328,9 @@ export default function TeamsAgentChat() {
           <div className="flex items-center justify-between px-3.5 py-2">
             <div className="flex items-center gap-0.5">
               {[
-                { icon: Plus,        title: "Attach" },
-                { icon: Mic,         title: "Voice" },
-                { icon: HelpCircle,  title: "Help" },
+                { icon: Plus, title: "Attach" },
+                { icon: Mic, title: "Voice" },
+                { icon: HelpCircle, title: "Help" },
               ].map(({ icon: Icon, title }) => (
                 <button
                   key={title}
@@ -396,7 +364,7 @@ export default function TeamsAgentChat() {
         </div>
 
         <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
-          SVX Copilot can make mistakes · Verify critical information with official sources
+          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of SVX Copilot and its underlying processes.
         </p>
       </footer>
 

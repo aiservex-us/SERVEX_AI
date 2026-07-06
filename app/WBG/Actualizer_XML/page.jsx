@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient.js'; 
+import { supabase } from '../../lib/supabaseClient.js';
 import { X, AlertCircle } from 'lucide-react';
 
 import MenuLateral from './components/menuLateral.jsx';
 import Dashboard from './components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from './components/perceo_XML_MASTER_pre_prosses.jsx';
 import CatalogParser from './components/PDFsection.jsx';
-import Csvs from './components/comparePDF/csvs.jsx'; 
-import Csvs_updated from './components/comparePDF/csvs_updated.jsx'; 
+import Csvs from './components/comparePDF/csvs.jsx';
+import Csvs_updated from './components/comparePDF/csvs_updated.jsx';
 import PrecentMain from './components/PrecentMain.jsx';
-import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx'; 
+import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx';
 import AIReporting from './components/comparePDF/presentation_WBG.jsx'
 import Compare from './components/comparePDF/UploadFileCmpare.jsx'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
@@ -21,7 +21,7 @@ import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [showExitModal, setShowExitModal] = useState(false);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
 
@@ -53,7 +53,7 @@ export default function MenuInicial() {
 
   const handleConfirmExit = () => {
     setShowExitModal(false);
-    router.push('/panel'); 
+    router.push('/panel');
   };
 
   const renderContent = () => {
@@ -78,8 +78,8 @@ export default function MenuInicial() {
       case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
       case 'report': return <Report />;
-      case 'notifications': return <UploadFileCmpare />; 
-      case 'reporting': return <AIReporting />; 
+      case 'notifications': return <UploadFileCmpare />;
+      case 'reporting': return <AIReporting />;
       case 'compare': return <Compare />;
       case 'AI_reporter': return <Responce_ai />;
       default:
@@ -92,11 +92,11 @@ export default function MenuInicial() {
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
-          <div 
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" 
-            onClick={() => setShowExitModal(false)} 
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            onClick={() => setShowExitModal(false)}
           />
-          
+
           <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <span className="text-[14px] font-bold text-[#242424]">Confirm exit</span>

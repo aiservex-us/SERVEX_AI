@@ -21,7 +21,7 @@ import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [showExitModal, setShowExitModal] = useState(false);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
 
