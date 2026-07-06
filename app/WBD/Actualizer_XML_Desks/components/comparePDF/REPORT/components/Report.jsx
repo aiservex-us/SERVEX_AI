@@ -87,40 +87,43 @@ export default function AuditReportViewer() {
         )}
 
         {/* Bloque de Indicadores (KPIs Métricos Superior) */}
-        <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-white border border-[#E0E0E0] rounded-md p-3 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex items-start gap-3">
-            <div className="p-2 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Database size={18} /></div>
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+            <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><Database size={18} /></div>
             <div>
-              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Total Evaluados</p>
-              <p className="text-base font-bold text-[#242424]">{summaryRaw?.total_common_models_evaluated || metricsP?.evaluated_common_models || 0}</p>
-              <p className="text-[10px] text-[#A6A6A6]">Modelos cruzados en matriz</p>
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Total Evaluados</p>
+              <p className="text-xl font-bold text-slate-800">{summaryRaw?.total_common_models_evaluated || metricsP?.evaluated_common_models || 0}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Modelos cruzados en matriz</p>
             </div>
           </div>
 
-          <div className="bg-white border border-[#E0E0E0] rounded-md p-3 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex items-start gap-3">
-            <div className="p-2 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Activity size={18} /></div>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+            <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><Activity size={18} /></div>
             <div>
-              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Cambios Detectados</p>
-              <p className="text-base font-bold text-[#242424]">{summaryRaw?.cell_changes_detected_count || metricsP?.total_cell_changes || 0}</p>
-              <p className="text-[10px] text-[#107C10] font-semibold">✓ {metricsP?.xml_successful_updates || 0} Exitosos</p>
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Cambios Detectados</p>
+              <p className="text-xl font-bold text-slate-800">{summaryRaw?.cell_changes_detected_count || metricsP?.total_cell_changes || 0}</p>
+              <p className="text-[10px] text-[#464775] mt-0.5 font-medium flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                {metricsP?.xml_successful_updates || 0} Inyectados al XML
+              </p>
             </div>
           </div>
 
-          <div className="bg-white border border-[#E0E0E0] rounded-md p-3 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex items-start gap-3">
-            <div className="p-2 bg-[#FDF3F3] rounded-sm text-[#A4262C]"><MinusCircle size={18} /></div>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+            <div className="p-2.5 bg-slate-50 rounded-full text-slate-400 ring-1 ring-slate-100"><MinusCircle size={18} /></div>
             <div>
-              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Modelos Eliminados</p>
-              <p className="text-base font-bold text-[#A4262C]">{summaryRaw?.deleted_models_detected_count || 0}</p>
-              <p className="text-[10px] text-[#616161]">Removidos del origen</p>
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Modelos Eliminados</p>
+              <p className="text-xl font-bold text-slate-800">{summaryRaw?.deleted_models_detected_count || 0}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Removidos del origen</p>
             </div>
           </div>
 
-          <div className="bg-white border border-[#E0E0E0] rounded-md p-3 shadow-[0_2px_4px_rgba(0,0,0,0.02)] flex items-start gap-3">
-            <div className="p-2 bg-[#F1F9F1] rounded-sm text-[#107C10]"><PlusCircle size={18} /></div>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+            <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><PlusCircle size={18} /></div>
             <div>
-              <p className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Modelos Nuevos</p>
-              <p className="text-base font-bold text-[#107C10]">{summaryRaw?.new_models_detected_count || 0}</p>
-              <p className="text-[10px] text-[#616161]">Nuevas entradas de SKU</p>
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Modelos Nuevos</p>
+              <p className="text-xl font-bold text-slate-800">{summaryRaw?.new_models_detected_count || 0}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Nuevas entradas de SKU</p>
             </div>
           </div>
         </div>
@@ -157,27 +160,27 @@ export default function AuditReportViewer() {
           {activeTab === 'changes' && (
             <div className="w-full overflow-x-auto">
               <table className="table-fixed border-collapse text-left text-xs w-full">
-                <thead className="bg-[#FDFDFD]">
+                <thead className="bg-slate-50/50">
                   <tr>
                     {['#', 'Model ID', 'Nodo', 'Valor Original', 'Nuevo Valor', '% Dif'].map(h => (
-                      <th key={h} className="px-3 py-2 text-[10px] font-semibold text-[#5B5FC7] border-b border-[#E0E0E0] uppercase tracking-wider">
+                      <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F0F0F0]">
+                <tbody className="divide-y divide-slate-100">
                   {changesP.map((c, i) => {
                     const diff = calculatePercentage(c.injected_value_old, c.injected_value_new);
                     return (
-                      <tr key={i} className="hover:bg-[#F7F5FA]">
-                        <td className="px-3 py-2 text-[10px] text-[#A6A6A6] font-mono">{i + 1}</td>
-                        <td className="px-3 py-2 font-mono font-bold text-[#5B5FC7]">{c.model_id}</td>
-                        <td className="px-3 py-2">{c.target_node}</td>
-                        <td className="px-3 py-2 text-[#A4262C] line-through decoration-red-300 font-mono">{c.injected_value_old}</td>
-                        <td className="px-3 py-2 font-semibold text-[#107C10] font-mono">{c.injected_value_new}</td>
-                        <td className="px-3 py-2">
-                           <span className={parseFloat(diff) >= 0 ? "text-[#107C10] font-semibold" : "text-[#A4262C] font-semibold"}>
+                      <tr key={i} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{i + 1}</td>
+                        <td className="px-4 py-3 font-mono font-bold text-slate-700">{c.model_id}</td>
+                        <td className="px-4 py-3 text-slate-600 text-[11px]">{c.target_node}</td>
+                        <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.injected_value_old}</td>
+                        <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.injected_value_new}</td>
+                        <td className="px-4 py-3">
+                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${parseFloat(diff) > 0 ? 'bg-[#464775]/10 text-[#464775]' : 'bg-slate-100 text-slate-500'}`}>
                              {diff ? (parseFloat(diff) > 0 ? `+${diff}` : diff) : 'N/A'}
                            </span>
                         </td>
@@ -186,7 +189,14 @@ export default function AuditReportViewer() {
                   })}
                   {changesP.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-[#616161]">No se registraron variaciones inyectadas.</td>
+                      <td colSpan={6} className="text-center py-12">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-3">
+                            <Zap size={16} className="text-slate-300" />
+                          </div>
+                          <p className="text-xs text-slate-400">No se registraron variaciones de precio.</p>
+                        </div>
+                      </td>
                     </tr>
                   )}
                 </tbody>

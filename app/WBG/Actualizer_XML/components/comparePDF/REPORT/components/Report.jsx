@@ -64,110 +64,66 @@ export default function AuditReportViewer() {
            </h1>
         </div>
 
-        {/* Contenido: Módulo 2 - Flujo de Inventario */}
-        {activeTab === 'inventory_flux' && (
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FCFCFC] mb-6 rounded-xl border border-slate-100">
-            
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-                <PlusCircle size={16} className="text-[#464775]" />
-                <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Modelos Nuevos Detectados</span>
-              </div>
-              <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
-                {summaryRaw?.new_models_list && summaryRaw.new_models_list.length > 0 ? (
-                  summaryRaw.new_models_list.map((model, idx) => (
-                    <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
-                      <span className="text-slate-700 font-semibold">{model}</span>
-                      <span className="text-[10px] text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full font-sans font-semibold">Nuevo SKU</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2">
-                      <PlusCircle size={16} className="text-slate-300" />
-                    </div>
-                    <p className="text-xs text-slate-400">No se detectaron nuevos modelos en el origen.</p>
-                  </div>
-                )}
-              </div>
-            </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-                <MinusCircle size={16} className="text-slate-400" />
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Modelos Removidos del Catálogo</span>
-              </div>
-              <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
-                {summaryRaw?.deleted_models_list && summaryRaw.deleted_models_list.length > 0 ? (
-                  summaryRaw.deleted_models_list.map((model, idx) => (
-                    <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
-                      <span className="text-slate-400 font-medium line-through decoration-slate-300">{model}</span>
-                      <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-sans font-medium">Descontinuado</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-2">
-                      <MinusCircle size={16} className="text-slate-300" />
-                    </div>
-                    <p className="text-xs text-slate-400">No se detectaron modelos removidos.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
-          <div className="bg-[#FDFDFD] border-b border-[#E0E0E0] p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Database size={16} /></div>
+          <div className="bg-white border-b border-slate-200 p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><Database size={18} /></div>
               <div>
-                <p className="text-[9px] font-bold text-[#616161] uppercase">Total Evaluados</p>
-                <p className="text-[10px] text-[#242424]">{metrics?.evaluated_common_models || 0} modelos</p>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Total Evaluados</p>
+                <p className="text-lg font-bold text-slate-800">{metrics?.evaluated_common_models || 0}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Modelos procesados</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Activity size={16} /></div>
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><Activity size={18} /></div>
               <div>
-                <p className="text-[9px] font-bold text-[#616161] uppercase">Cambios en Celdas</p>
-                <p className="text-[10px] text-[#242424]">{metrics?.total_cell_changes || 0} actualizaciones exitosas</p>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Cambios en Celdas</p>
+                <p className="text-lg font-bold text-slate-800">{metrics?.total_cell_changes || 0}</p>
+                <p className="text-[10px] text-[#464775] mt-0.5 font-medium flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  Actualizaciones exitosas
+                </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Zap size={16} /></div>
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 bg-slate-50 rounded-full text-slate-400 ring-1 ring-slate-100"><Zap size={18} /></div>
               <div>
-                <p className="text-[9px] font-bold text-[#616161] uppercase">Target</p>
-                <p className="text-[10px] text-[#242424]">{reportData?.pipeline_metadata?.execution_target || 'N/A'}</p>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Target</p>
+                <p className="text-lg font-bold text-slate-800">{reportData?.pipeline_metadata?.execution_target || 'N/A'}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Sistema de destino</p>
               </div>
             </div>
           </div>
 
           <div className="w-full overflow-x-auto">
             <table className="table-fixed border-collapse text-left text-xs w-full">
-              <thead className="bg-gradient-to-b from-white to-[#FCFAFF]">
+              <thead className="bg-slate-50/50">
                 <tr>
                   {['#', 'Model ID', 'Nodo', 'Valor Original', 'Nuevo Valor', '% Dif'].map(h => (
-                    <th key={h} className="px-3 py-2 text-[10px] font-semibold text-[#5B5FC7] border-b border-[#E0E0E0] uppercase tracking-wider">
+                    <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F0F0F0]">
+              <tbody className="divide-y divide-slate-100">
                 {currentChanges.map((c, i) => {
                   const actualIndex = indexOfFirstItem + i;
                   const diff = calculatePercentage(c.injected_value_old, c.injected_value_new);
                   return (
-                    <tr key={actualIndex} className="hover:bg-[#F7F5FA]">
-                      <td className="px-3 py-2 text-[10px] text-[#A6A6A6] font-mono">{actualIndex + 1}</td>
-                      <td className="px-3 py-2 font-mono font-bold text-[#5B5FC7]">{c.model_id}</td>
-                      <td className="px-3 py-2">{c.target_node}</td>
-                      <td className="px-3 py-2 text-[#A4262C] line-through decoration-red-300 font-mono">{c.injected_value_old}</td>
-                      <td className="px-3 py-2 font-semibold text-[#107C10] font-mono">{c.injected_value_new}</td>
-                      <td className="px-3 py-2">
-                         <span className={parseFloat(diff) >= 0 ? "text-[#107C10]" : "text-[#A4262C]"}>{diff || 'N/A'}</span>
+                    <tr key={actualIndex} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{actualIndex + 1}</td>
+                      <td className="px-4 py-3 font-mono font-bold text-slate-700">{c.model_id}</td>
+                      <td className="px-4 py-3 text-slate-600 text-[11px]">{c.target_node}</td>
+                      <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.injected_value_old}</td>
+                      <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.injected_value_new}</td>
+                      <td className="px-4 py-3">
+                         <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${parseFloat(diff) > 0 ? 'bg-[#464775]/10 text-[#464775]' : 'bg-slate-100 text-slate-500'}`}>
+                           {diff ? (parseFloat(diff) > 0 ? `+${diff}` : diff) : 'N/A'}
+                         </span>
                       </td>
                     </tr>
                   );
