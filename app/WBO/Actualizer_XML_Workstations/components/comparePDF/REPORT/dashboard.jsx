@@ -31,7 +31,7 @@ export default function Dashboard() {
             <div className="sticky top-0 h-[91vh] w-full flex items-center justify-center bg-white/95 rounded-xl p-6">
 
               <div className={`
-                bg-gradient-to-br from-[#464775]/10 via-[#464775]/5 to-white border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] backdrop-blur-sm 
+                bg-white border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] 
                 rounded-3xl w-full max-w-4xl p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-16
                 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden relative
                 ${showOverlay ? 'translate-y-0 scale-100 opacity-100 pointer-events-auto' : 'translate-y-12 scale-95 opacity-0 pointer-events-none'}
@@ -47,10 +47,9 @@ export default function Dashboard() {
                   </svg>
                 </button>
 
-                {/* Elementos decorativos sutiles de la card (estilo corporativo #464775) */}
-                <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#464775]/10 rounded-full blur-[80px] pointer-events-none" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-[#464775]/10 rounded-full blur-[80px] pointer-events-none" />
-                <div className="absolute top-[30%] left-[30%] w-[200px] h-[200px] bg-white/40 rounded-full blur-[60px] pointer-events-none" />
+                {/* Elementos decorativos de fondo de la card */}
+                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#464775]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-sky-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
 
                 {/* Izquierda: Logo y Textos Originales */}
                 <div className="flex-1 flex flex-col items-center justify-center relative z-10">
