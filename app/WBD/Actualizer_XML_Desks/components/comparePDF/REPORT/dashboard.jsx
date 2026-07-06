@@ -19,25 +19,23 @@ export default function Dashboard() {
         {/* Contenedor Report.jsx (dinámico: 70% inactivo, 55% activo en escritorio) */}
         <div className={`relative w-full transition-all duration-500 ease-out ${isAiActive ? 'lg:w-[55%]' : 'lg:w-[70%]'}`}>
 
-          {/* Overlay del Logo (visible solo cuando isAiActive es true) */}
+          {/* Overlay del Logo y Blur (sticky a la pantalla para mejor rendimiento y centrado perfecto) */}
           <div
-            className={`absolute inset-0 z-10 flex items-center justify-center transition-all duration-500 ease-out pointer-events-none ${isAiActive ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+            className={`absolute inset-0 z-10 pointer-events-none transition-all duration-500 ease-out ${isAiActive ? 'opacity-100' : 'opacity-0'
               }`}
           >
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="w-64 h-auto object-contain drop-shadow-2xl"
-            />
+            <div className="sticky top-0 h-[85vh] w-full flex items-center justify-center backdrop-blur-[4px] bg-white/30 rounded-xl">
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className={`w-64 h-auto object-contain drop-shadow-2xl transition-all duration-500 ease-out ${isAiActive ? 'scale-100' : 'scale-90'}`}
+              />
+            </div>
           </div>
 
           <div
-            // Se añaden clases dinámicas para el blur, opacidad y una transición suave
-            className={`w-full h-full overflow-hidden transition-all duration-500 ease-out ${isAiActive
-                ? 'blur-[4px] opacity-30 scale-[0.99] cursor-pointer'
-                : 'blur-none opacity-100 scale-100'
-              }`}
-            // Al hacer clic en el reporte, se desactiva el enfoque de la IA
+            // El reporte ya no se difumina en sí mismo (para evitar lag), el overlay de arriba hace el trabajo
+            className="w-full h-full overflow-hidden transition-all duration-500 ease-out"
             onClick={() => setIsAiActive(false)}
           >
             <div className="bg-white">
