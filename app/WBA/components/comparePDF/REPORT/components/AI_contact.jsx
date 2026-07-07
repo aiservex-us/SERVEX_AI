@@ -29,8 +29,15 @@ export default function TeamsAgentChat() {
     inputRef.current?.focus();
   }, []);
 
+  const scrollContainerRef = useRef(null);
+
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
   }, []);
 
   useEffect(() => { 
@@ -107,7 +114,7 @@ export default function TeamsAgentChat() {
       </div>
 
       {/* --- MAIN CONTENT AREA --- */}
-      <main className="flex-1 overflow-y-auto custom-scrollbar relative flex flex-col bg-white">
+      <main ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar relative flex flex-col bg-white">
         
         {/* Chat Container */}
         <div className="flex-1 w-full max-w-5xl mx-auto flex flex-col">

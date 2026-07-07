@@ -130,19 +130,22 @@ export default function Header() {
             <button
               onClick={handleMainButton}
               className={`
-                px-5 py-2
-                text-sm font-medium
+                relative overflow-hidden
+                px-6 py-2
+                text-sm font-semibold tracking-wide
                 rounded-full
-                shadow
-                transition hover:scale-[1.03]
+                transition-all duration-300 hover:scale-[1.03] group
                 ${
                   isAuthenticated
-                    ? 'bg-gray-600 text-white hover:bg-gray-700'
-                    : 'bg-black text-white'
+                    ? 'bg-gradient-to-b from-[#f8f9fa] to-[#e2e4e8] border border-[#d1d5db] text-[#374151] shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:shadow-[0_5px_15px_rgba(0,0,0,0.1)]'
+                    : 'bg-black text-white shadow'
                 }
               `}
             >
-              {isAuthenticated ? 'Dashboard' : 'Sign In'}
+              {isAuthenticated && (
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1200ms] ease-in-out bg-gradient-to-r from-transparent via-white/90 to-transparent skew-x-[-25deg]" />
+              )}
+              <span className="relative z-10">{isAuthenticated ? 'Dashboard' : 'Sign In'}</span>
             </button>
           </div>
 
@@ -236,15 +239,20 @@ export default function Header() {
                   handleMainButton();
                   setOpen(false);
                 }}
-                className={`w-full rounded-full px-6 py-3 text-sm font-medium text-white shadow transition active:scale-95
+                className={`
+                  relative overflow-hidden
+                  w-full rounded-full px-6 py-3 text-sm font-semibold tracking-wide shadow transition active:scale-95 group
                   ${
                     isAuthenticated
-                      ? 'bg-gray-600 hover:bg-gray-700'
-                      : 'bg-black'
+                      ? 'bg-gradient-to-b from-[#f8f9fa] to-[#e2e4e8] border border-[#d1d5db] text-[#374151]'
+                      : 'bg-black text-white'
                   }
                 `}
               >
-                {isAuthenticated ? 'Dashboard' : 'Sign In'}
+                {isAuthenticated && (
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1200ms] ease-in-out bg-gradient-to-r from-transparent via-white/90 to-transparent skew-x-[-25deg]" />
+                )}
+                <span className="relative z-10">{isAuthenticated ? 'Dashboard' : 'Sign In'}</span>
               </button>
             </div>
           </nav>
