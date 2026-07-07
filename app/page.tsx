@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  LayoutDashboard, 
-  RefreshCcw, 
-  FileCode, 
-  ShieldCheck, 
-  Database, 
-  Download, 
+import {
+  Users,
+  LayoutDashboard,
+  RefreshCcw,
+  FileCode,
+  ShieldCheck,
+  Database,
+  Download,
   ArrowRight,
   Grid,
   Search,
@@ -19,11 +19,13 @@ import {
 // Existing components
 import Header from './components/header';
 import Main1 from './components/main1';
+import Carrucel from './components/carrucel'
 import Main2 from './components/main2';
 import Cards from './components/cards';
 import Footer from './components/footer';
 import MainGif from './components/main3';
-
+import CardPC from './components/cardPC'
+import CardTex from './components/textSection'
 interface WelcomePopupProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,14 +33,14 @@ interface WelcomePopupProps {
 
 // --- PORTAL CARD COMPONENT (Teams Style with animations) ---
 const PortalSection = ({ title, subtitle, description, features, buttonText, onClick, colorClass, gradientClass, iconColor, delay }: any) => (
-  <div 
+  <div
     className="flex flex-col bg-white rounded-xl border border-gray-200 p-5 sm:p-6 shadow-sm hover:shadow-xl transition-all duration-500 group animate-in fade-in slide-in-from-bottom-6 fill-mode-both"
     style={{ animationDelay: `${delay}ms` }}
   >
     <div className="flex items-center gap-3 mb-4">
       <div className={`p-2.5 rounded-lg bg-gradient-to-br ${gradientClass} shadow-sm border border-white/20 group-hover:scale-110 transition-transform duration-300 shrink-0`}>
-        {title.includes("PARTNERS") || title.includes("COLABORATORS") ? 
-          <Users size={22} className="text-white" /> : 
+        {title.includes("PARTNERS") || title.includes("COLABORATORS") ?
+          <Users size={22} className="text-white" /> :
           <ShieldCheck size={22} className="text-white" />
         }
       </div>
@@ -47,7 +49,7 @@ const PortalSection = ({ title, subtitle, description, features, buttonText, onC
         <span className="text-[9px] sm:text-[10px] text-gray-400 font-bold tracking-widest uppercase">{subtitle}</span>
       </div>
     </div>
-    
+
     <p className="text-[12px] text-gray-600 mb-5 sm:mb-6 leading-relaxed">
       {description}
     </p>
@@ -64,7 +66,7 @@ const PortalSection = ({ title, subtitle, description, features, buttonText, onC
       ))}
     </div>
 
-    <button 
+    <button
       onClick={onClick}
       className={`w-full py-2.5 rounded text-white text-[12px] font-bold transition-all active:scale-[0.95] flex items-center justify-center gap-2 ${colorClass} hover:brightness-110 hover:gap-4`}
     >
@@ -82,16 +84,16 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-700 bg-cover bg-center"
-      style={{ 
-        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), url('')` 
+      style={{
+        backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), url('')`
       }}
     >
       <div className="absolute inset-0 bg-w backdrop-blur-[8px]"></div>
 
       <div className="relative w-full max-w-[950px] max-h-[90vh] md:max-h-none bg-white rounded-2xl shadow-[0_32px_120px_rgba(0,0,0,0.3)] border border-white/50 flex flex-col overflow-hidden animate-in zoom-in-95 duration-500 ease-out">
-        
+
         {/* Contenedor escrolleable sólo en móviles si la pantalla es muy pequeña */}
         <div className="p-6 sm:p-10 overflow-y-auto md:overflow-y-visible flex-1">
           <div className="text-center mb-6 sm:mb-10">
@@ -101,9 +103,9 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
 
             <p className="text-[13px] sm:text-[14px] text-gray-500 mt-2 animate-in fade-in duration-1000 delay-300 max-w-xl mx-auto">
               Welcome to the new era of data orchestrations at{' '}
-              <a 
-                href="https://servex-us.com" 
-                target="_blank" 
+              <a
+                href="https://servex-us.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"
               >
@@ -114,7 +116,7 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            <PortalSection 
+            <PortalSection
               title="SVX COPILOT"
               subtitle="(PARTNERS & SERVEX AGENTS AREA)"
               colorClass="bg-[#414141]"
@@ -123,15 +125,15 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
               delay={400}
               description="Automation engine for the new SERVEX-US furniture project. Technical orchestration and intelligent workflows."
               features={[
-                { icon: <FileCode size={16}/>, label: "XML Catalogs", desc: "Updates for CET Designer." },
-                { icon: <RefreshCcw size={16}/>, label: "Data Orchestration", desc: "Automated ETL pipelines." },
-                { icon: <LayoutDashboard size={16}/>, label: "Engineering Control", desc: "Real-time flow monitoring." }
+                { icon: <FileCode size={16} />, label: "XML Catalogs", desc: "Updates for CET Designer." },
+                { icon: <RefreshCcw size={16} />, label: "Data Orchestration", desc: "Automated ETL pipelines." },
+                { icon: <LayoutDashboard size={16} />, label: "Engineering Control", desc: "Real-time flow monitoring." }
               ]}
               buttonText="Enter Internal Portal"
               onClick={onClose}
             />
 
-            <PortalSection 
+            <PortalSection
               title="SVX COMMAND"
               subtitle="(CLIENT SERVEX/CET DESIGNER AREA)"
               colorClass="bg-[#464775]"
@@ -140,9 +142,9 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
               delay={600}
               description="Your Command Center for autonomous product management. Evolve your operations and leave Excel limitations behind."
               features={[
-                { icon: <Database size={16}/>, label: "Catalog Management", desc: "Total control without spreadsheets." },
-                { icon: <Download size={16}/>, label: "My Projects", desc: "Live integration status." },
-                { icon: <ShieldCheck size={16}/>, label: "Download Area", desc: "Manuals and corporate resources." }
+                { icon: <Database size={16} />, label: "Catalog Management", desc: "Total control without spreadsheets." },
+                { icon: <Download size={16} />, label: "My Projects", desc: "Live integration status." },
+                { icon: <ShieldCheck size={16} />, label: "Download Area", desc: "Manuals and corporate resources." }
               ]}
               buttonText="Access Client Area"
               onClick={handleClientRedirect}
@@ -184,7 +186,7 @@ export default function Home() {
 
     // Try to play immediately
     const playPromise = audio.play();
-    
+
     if (playPromise !== undefined) {
       playPromise.then(() => {
         // Autoplay allowed
@@ -204,7 +206,7 @@ export default function Home() {
     const timer = setTimeout(() => {
       setIsLoading(false);
       audioInstance.pause();
-      
+
       sessionStorage.setItem('svx_animation_seen', 'true');
     }, 4000);
   };
@@ -213,10 +215,10 @@ export default function Home() {
     return (
       <div className="fixed inset-0 z-[1000] bg-white flex items-center justify-center p-4">
         <div className="animate-in fade-in zoom-in duration-1000 max-w-[80%] flex flex-col items-center justify-center">
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            className="w-36 sm:w-48 h-auto object-contain transition-all duration-500 animate-pulse" 
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="w-36 sm:w-48 h-auto object-contain transition-all duration-500 animate-pulse"
           />
         </div>
       </div>
@@ -229,9 +231,14 @@ export default function Home() {
         <Header />
         <main className="flex flex-col w-full overflow-hidden">
           <section className="w-full"><Main1 /></section>
-          <section className="w-full"><Cards /></section>
+          <section className="w-full"><Carrucel /></section>
           <section className="w-full"><Main2 /></section>
           <section className="w-full"><MainGif /></section>
+          <section className="w-full"><Cards /></section>
+
+          <section className="w-full"><CardPC /></section>
+
+          <section className="w-full"><CardTex /></section>
           <Footer />
         </main>
       </div>

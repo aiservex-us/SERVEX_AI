@@ -71,7 +71,7 @@ export default function TeamsAgentChat() {
       const res = await fetch(`${apiURL}/wbo/api/v1/agent/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: historyPayload }),
+        body: JSON.stringify({ messages: historyPayload, company_name: context }),
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
