@@ -7,32 +7,32 @@ import { useRouter } from 'next/navigation';
 const BlogCard = ({ title, description, val, isActive, onClick, icon: Icon }) => (
   <div 
     onClick={onClick}
-    className={`p-5 rounded-xl shadow-sm flex flex-col justify-between h-48 border transition-all duration-300 cursor-pointer group font-sans ${
+    className={`p-5 rounded-xl flex flex-col justify-between h-48 border transition-all duration-500 cursor-pointer group font-sans relative overflow-hidden ${
       isActive 
-        ? 'bg-[#464775] border-[#464775] text-white scale-[1.02] shadow-md' 
+        ? 'border-[#464775]/30 bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white scale-[1.02] shadow-[0_10px_30px_-10px_rgba(70,71,117,0.3)]' 
         : 'bg-white border-slate-200/60 text-slate-800 hover:border-[#464775]/40 hover:shadow-md'
     }`}
   >
-    <div>
+    <div className="relative z-10">
       <div className="flex justify-between items-start mb-2">
-        <h3 className="font-semibold text-md leading-tight tracking-tight">{title}</h3>
-        <Icon size={16} className={isActive ? 'text-white/80' : 'text-[#464775]'} />
+        <h3 className={`font-semibold text-md leading-tight tracking-tight ${isActive ? 'text-[#2B2C4B]' : ''}`}>{title}</h3>
+        <Icon size={16} className={isActive ? 'text-[#464775]' : 'text-[#464775]'} />
       </div>
-      <p className={`text-[11px] leading-relaxed line-clamp-3 font-normal ${isActive ? 'text-white/80' : 'text-slate-500'}`}>
+      <p className={`text-[11px] leading-relaxed line-clamp-3 font-normal ${isActive ? 'text-[#2B2C4B]/80' : 'text-slate-500'}`}>
         {description}
       </p>
     </div>
     
-    <div className="flex justify-between items-center">
+    <div className="flex justify-between items-center relative z-10">
       <div className="flex -space-x-2">
         {[1, 2, 3].map(i => (
-          <div key={i} className={`w-7 h-7 rounded-full border-2 ${isActive ? 'border-[#464775]' : 'border-white'} bg-slate-200 overflow-hidden`}>
+          <div key={i} className={`w-7 h-7 rounded-full border-2 ${isActive ? 'border-white/80 shadow-sm' : 'border-white'} bg-slate-200 overflow-hidden`}>
             <img src={`https://i.pravatar.cc/100?u=${title + i}`} alt="user" />
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-1.5 text-[11px] font-medium tracking-tight">
-        <MousePointer2 size={12} className={isActive ? 'text-white' : 'text-[#464775]'} /> 
+      <div className={`flex items-center gap-1.5 text-[11px] font-medium tracking-tight ${isActive ? 'text-[#2B2C4B]' : ''}`}>
+        <MousePointer2 size={12} className={isActive ? 'text-[#464775]' : 'text-[#464775]'} /> 
         {val}
       </div>
     </div>
@@ -86,7 +86,7 @@ export default function Content() {
           <div className="flex flex-col sm:flex-row gap-3 w-full">
             <button 
               onClick={() => router.push('/modelContext')}
-              className="bg-[#464775] text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-[#3a3b61] transition-all shadow-sm hover:shadow-md w-full sm:w-auto text-center"
+              className="bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white text-[#2B2C4B] border border-[#464775]/30 px-6 py-2.5 rounded-lg text-sm font-bold hover:scale-[1.02] hover:shadow-[0_10px_30px_-10px_rgba(70,71,117,0.3)] transition-all w-full sm:w-auto text-center"
             >
               Start AI Context
             </button>

@@ -17,18 +17,74 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-white/35" />
       </div>
 
-      {/* 2. CAPA DE DEGRADADOS Y PANELES */}
+      {/* 2. CAPA DE DEGRADADOS, PANELES Y ESFERAS 3D */}
       <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/30 via-blue-100/15 to-orange-100/15" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/60 via-[#464775]/5 to-[#464775]/10" />
         
         <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[120%] rotate-[15deg]">
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-100/15 to-transparent border-l border-white/40 shadow-[1px_0_10px_rgba(0,0,0,0.03)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60 shadow-[1px_0_10px_rgba(0,0,0,0.03)]" />
         </div>
         <div className="absolute top-[5%] right-[15%] w-[40%] h-[100%] rotate-[15deg]">
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-100/10 to-transparent border-l border-white/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/5 to-transparent border-l border-white/50" />
         </div>
         <div className="absolute top-[-20%] left-[10%] w-[30%] h-[80%] rotate-[15deg]">
-          <div className="absolute inset-0 bg-gradient-to-b from-orange-100/15 to-transparent border-l border-white/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60" />
+        </div>
+
+        {/* Decorative Floating 3D Glass Spheres */}
+        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes float-bubble {
+              0%, 100% { transform: translateY(0) scale(1); }
+              50% { transform: translateY(-25px) scale(1.02); }
+            }
+          `}} />
+          
+          {/* Sphere 1: Back left - large and soft */}
+          <div 
+            className="absolute top-[10%] left-[2%] w-[250px] h-[250px] rounded-full backdrop-blur-[12px]"
+            style={{ 
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 20%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.5) 100%)',
+              boxShadow: 'inset -15px -15px 30px rgba(70, 71, 117, 0.15), inset 10px 10px 25px rgba(255,255,255,0.9), 0 20px 40px rgba(70,71,117,0.05)',
+              animation: 'float-bubble 8s ease-in-out infinite'
+            }} 
+          />
+          {/* Sphere 2: Main center - very large, crisp */}
+          <div 
+            className="absolute top-[15%] left-[25%] w-[380px] h-[380px] rounded-full backdrop-blur-[16px] z-10"
+            style={{ 
+              background: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 25%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0.7) 100%)',
+              boxShadow: 'inset -25px -25px 50px rgba(70, 71, 117, 0.2), inset 15px 15px 30px rgba(255,255,255,1), 0 30px 60px rgba(70,71,117,0.1)',
+              animation: 'float-bubble 12s ease-in-out infinite reverse'
+            }}
+          />
+          {/* Sphere 3: Top right - medium size */}
+          <div 
+            className="absolute top-[5%] right-[15%] w-[220px] h-[220px] rounded-full backdrop-blur-[8px]"
+            style={{ 
+              background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 25%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.4) 100%)',
+              boxShadow: 'inset -10px -10px 20px rgba(70, 71, 117, 0.15), inset 8px 8px 20px rgba(255,255,255,0.8), 0 15px 30px rgba(70,71,117,0.05)',
+              animation: 'float-bubble 9s ease-in-out infinite 2s'
+            }}
+          />
+          {/* Sphere 4: Bottom right - massive and slightly blurry */}
+          <div 
+            className="absolute bottom-[5%] right-[2%] w-[450px] h-[450px] rounded-full backdrop-blur-[20px]"
+            style={{ 
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0.02) 70%, rgba(255,255,255,0.4) 100%)',
+              boxShadow: 'inset -30px -30px 60px rgba(70, 71, 117, 0.1), inset 20px 20px 40px rgba(255,255,255,0.7), 0 40px 80px rgba(70,71,117,0.08)',
+              animation: 'float-bubble 15s ease-in-out infinite 1s'
+            }}
+          />
+          {/* Sphere 5: Foreground bottom left - smaller and out of focus */}
+          <div 
+            className="absolute bottom-[10%] left-[10%] w-[200px] h-[200px] rounded-full backdrop-blur-[10px] blur-[3px]"
+            style={{ 
+              background: 'radial-gradient(circle at 40% 40%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 20%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.6) 100%)',
+              boxShadow: 'inset -12px -12px 25px rgba(70, 71, 117, 0.2), inset 8px 8px 15px rgba(255,255,255,0.9), 0 15px 25px rgba(70,71,117,0.05)',
+              animation: 'float-bubble 10s ease-in-out infinite 3s'
+            }}
+          />
         </div>
       </div>
 
