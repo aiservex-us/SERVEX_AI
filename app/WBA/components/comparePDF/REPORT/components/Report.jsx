@@ -126,7 +126,7 @@ export default function AuditReportViewer() {
           </div>
 
           {/* Tabla de Auditoría */}
-          <div className="w-full overflow-x-auto">
+          <div className="w-full overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
             <table className="table-fixed border-collapse text-left text-xs w-full">
               <thead className="bg-gradient-to-b from-white to-[#FCFAFF]">
                 <tr>
