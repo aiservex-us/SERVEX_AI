@@ -253,12 +253,12 @@ function CompanyCard({
   onOpen
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col justify-between min-h-[200px] hover:border-[#6264A7] transition">
+    <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col justify-between min-h-[200px] hover:border-[#464775]/40 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 ease-out group">
 
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3">
           <div className="w-14 h-14 rounded-lg bg-white flex items-center justify-center">
-            <img src={logo} alt={company} className="max-h-10 max-w-10 object-contain" />
+            <img src={logo} alt={company} className="max-h-10 max-w-10 object-contain transition-transform duration-500 ease-out group-hover:scale-110" />
           </div>
 
           <div className="leading-tight mt-1">
@@ -289,8 +289,10 @@ function CompanyCard({
         <button
           onClick={onOpen}
           disabled={!onOpen}
-          className={`text-[11px] px-3 py-1 rounded-md transition
-            ${onOpen ? 'bg-[#6264A7] text-white hover:bg-[#4f52a3]' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+          className={`text-[11px] px-4 py-1.5 rounded-md font-semibold transition-all duration-300
+            ${onOpen 
+              ? 'bg-[#f2f3f8] text-[#464775] group-hover:bg-[#464775] group-hover:text-white hover:scale-105 active:scale-95 hover:shadow-[0_4px_12px_rgba(70,71,117,0.4)]' 
+              : 'bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed'}`}
         >
           Open panel
         </button>

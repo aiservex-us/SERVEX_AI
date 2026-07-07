@@ -14,17 +14,37 @@ const HeroSection = () => {
     */
     <section className="relative min-h-[80vh] w-[95%] max-w-9xl mx-auto flex flex-col justify-end overflow-hidden bg-white px-4 pb-10 pt-16 md:px-10 md:pb-12 md:pt-24 lg:px-12 lg:pb-14 lg:pt-28 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm">
       
-      {/* 1. BASE BACKGROUND IMAGE (Fondo limpio con las figuras abstractas moradas acentuadas) */}
-      <div className="absolute inset-0 z-0 bg-white">
-        {/* Figura abstracta/rara morada principal con fuerte difuminado - Opacidad al 35% */}
-        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[80%] rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] bg-[#464775]/35 blur-[120px] pointer-events-none" />
+            {/* 1. ULTRA-REALISTIC STATIC ABSTRACT GLASS BACKGROUND */}
+      <div className="absolute inset-0 z-0 bg-[#fbfbfc] overflow-hidden rounded-2xl md:rounded-3xl">
+        {/* Ambient background soft gradient */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/10" />
+
+        {/* Abstract 3D Glass Blob 1 */}
+        <div 
+          className="absolute top-[-10%] left-[-5%] w-[450px] h-[500px] rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] backdrop-blur-[12px] opacity-80"
+          style={{ 
+            background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 25%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.6) 100%)',
+            boxShadow: 'inset -15px -15px 30px rgba(70, 71, 117, 0.1), inset 15px 15px 30px rgba(255,255,255,1), 0 20px 50px rgba(70,71,117,0.05)'
+          }} 
+        />
         
-        {/* Segunda figura complementaria para dar la forma irregular al fondo - Opacidad al 30% */}
-        <div className="absolute bottom-[-10%] right-[-5%] w-[60%] h-[70%] rounded-[50%_30%_52%_48%_/_40%_60%_40%_60%] bg-[#464775]/30 blur-[140px] pointer-events-none" />
-        
-        {/* Destellos y difuminados blancos encima para suavizar y fusionar la composición */}
-        <div className="absolute top-[20%] left-[30%] w-[40%] h-[40%] rounded-full bg-white/60 blur-[90px] pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-white/40 pointer-events-none" />
+        {/* Abstract 3D Glass Blob 2 */}
+        <div 
+          className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[550px] rounded-[50%_30%_52%_48%_/_40%_60%_40%_60%] backdrop-blur-[16px] opacity-70"
+          style={{ 
+            background: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.1) 70%, rgba(255,255,255,0.8) 100%)',
+            boxShadow: 'inset -20px -20px 40px rgba(70, 71, 117, 0.15), inset 20px 20px 40px rgba(255,255,255,0.9), 0 30px 60px rgba(70,71,117,0.08)'
+          }}
+        />
+
+        {/* Abstract 3D Glass Blob 3 (Small accent) */}
+        <div 
+          className="absolute top-[30%] right-[20%] w-[250px] h-[220px] rounded-[60%_40%_30%_70%_/_60%_30%_70%_40%] backdrop-blur-[8px] opacity-60"
+          style={{ 
+            background: 'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.2) 40%, rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.5) 100%)',
+            boxShadow: 'inset -10px -10px 20px rgba(70, 71, 117, 0.08), inset 10px 10px 20px rgba(255,255,255,0.8), 0 10px 30px rgba(70,71,117,0.03)'
+          }}
+        />
       </div>
 
       {/* 2. GRADIENT & PANEL LAYER */}
@@ -64,51 +84,42 @@ const HeroSection = () => {
           Intelligently optimizes the <span className="text-black font-normal">WB Manufacturing catalog architecture</span>. Upload your legacy matrices in XML and CSV to cross-reference them against new datasets; our platform structurally analyzes variations, generates new rows or columns, and instantly executes price delta audits. Continuously powered by <span className="text-[#5B5FC7] font-normal">Alysa</span>, it compiles and deploys clean, custom-tailored XML schemas for direct integration and dynamic adjustment within <span className="text-black font-normal">Configura CET Designer</span>.
         </p> 
 
-        {/* 4. INTEGRATED MODULE CARDS - Grid optimizado y compacto sin rastros de verde */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 w-full mb-10 md:mb-12 text-left">
+                        {/* 4. INTEGRATED MODULE CARDS - Ultra Premium Minimalist Layout (Scaled Down) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-5 w-[90%] mx-auto mb-10 md:mb-12 text-left">
           
-          {/* Card XML - Rutas /WBG/ y acento morado #464775 */}
+          {/* Card XML */}
           <Link 
             href="/WBG/Actualizer_XML"
-            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-lg p-4 md:p-5 hover:bg-white hover:border-[#BDBDBD] hover:shadow-sm transition-all duration-200 backdrop-blur-sm"
+            className="group flex flex-col bg-white/40 backdrop-blur-2xl border border-white/60 rounded-3xl p-5 lg:p-7 hover:bg-white/80 hover:border-white hover:shadow-[0_20px_40px_rgba(70,71,117,0.08)] hover:-translate-y-1 transition-all duration-500 ease-out"
           >
-            <div className="mb-2 md:mb-3 text-[#464775]">
-              <FileCode size={20} className="md:w-[22px] md:h-[22px]" />
+            <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center text-[#464775] shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-50 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
+              <FileCode size={18} strokeWidth={1.5} />
             </div>
-            <h2 className="text-sm md:text-base font-semibold mb-1 text-[#1a1a1a]">XML Actualizer</h2>
-            <p className="text-[11px] md:text-xs text-[#616161] mb-4 md:mb-5 flex-grow leading-normal">Advanced management and parsing for XML format catalogs and complex workflows.</p>
-            <div className="flex items-center text-[#464775] text-[11px] md:text-xs font-medium mt-auto">
-              Go to module <ArrowRight className="ml-1.5" size={12} />
+            <h2 className="text-[15px] font-semibold mb-1.5 text-slate-800 tracking-tight">XML Actualizer</h2>
+            <p className="text-[11px] text-slate-500 leading-relaxed mb-6 flex-grow pr-4">
+              Advanced management and parsing for XML format catalogs and complex workflows.
+            </p>
+            <div className="flex items-center text-[#464775] text-[9px] font-extrabold tracking-[0.15em] uppercase mt-auto opacity-60 group-hover:opacity-100 transition-opacity duration-500">
+              Access Module 
+              <ArrowRight size={12} strokeWidth={2.5} className="ml-2 opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 ease-out" />
             </div>
           </Link>
 
-          {/* Card Excel/CSV - Removido verde, unificado al morado corporativo #464775 */}
-          <Link 
-            href="/WBG/Actualizer_Excel"
-            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-lg p-4 md:p-5 hover:bg-white hover:border-[#BDBDBD] hover:shadow-sm transition-all duration-200 backdrop-blur-sm"
-          >
-            <div className="mb-2 md:mb-3 text-[#464775]">
-              <FileSpreadsheet size={20} className="md:w-[22px] md:h-[22px]" />
-            </div>
-            <h2 className="text-sm md:text-base font-semibold mb-1 text-[#1a1a1a]">CSV/Excel Actualizer</h2>
-            <p className="text-[11px] md:text-xs text-[#616161] mb-4 md:mb-5 flex-grow leading-normal">Processing, transformation, and normalization of structured data files.</p>
-            <div className="flex items-center text-[#464775] text-[11px] md:text-xs font-medium mt-auto">
-              Go to module <ArrowRight className="ml-1.5" size={12} />
-            </div>
-          </Link>
-
-          {/* Card Alysa & CET Integration Hub */}
+          {/* Card Alysa Hub */}
           <Link 
             href="/WBG/Alysa_Hub"
-            className="flex flex-col bg-white/80 border border-[#E1E1E1] rounded-lg p-4 md:p-5 hover:bg-white hover:border-[#BDBDBD] hover:shadow-sm transition-all duration-200 backdrop-blur-sm"
+            className="group flex flex-col bg-white/40 backdrop-blur-2xl border border-white/60 rounded-3xl p-5 lg:p-7 hover:bg-white/80 hover:border-white hover:shadow-[0_20px_40px_rgba(70,71,117,0.08)] hover:-translate-y-1 transition-all duration-500 ease-out"
           >
-            <div className="mb-2 md:mb-3 text-[#464775]">
-              <Sparkles size={20} className="md:w-[22px] md:h-[22px]" />
+            <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center text-[#464775] shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-50 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
+              <Sparkles size={18} strokeWidth={1.5} />
             </div>
-            <h2 className="text-sm md:text-base font-semibold mb-1 text-[#1a1a1a]">Alysa Intelligence Hub</h2>
-            <p className="text-[11px] md:text-xs text-[#616161] mb-4 md:mb-5 flex-grow leading-normal">AI-guided delta auditing, structural schema insertion, and direct synchronization with CET Designer.</p>
-            <div className="flex items-center text-[#464775] text-[11px] md:text-xs font-medium mt-auto">
-              Go to module <ArrowRight className="ml-1.5" size={12} />
+            <h2 className="text-[15px] font-semibold mb-1.5 text-slate-800 tracking-tight">Alysa Intelligence Hub</h2>
+            <p className="text-[11px] text-slate-500 leading-relaxed mb-6 flex-grow pr-4">
+              AI-guided delta auditing, structural schema insertion, and direct synchronization with CET Designer.
+            </p>
+            <div className="flex items-center text-[#464775] text-[9px] font-extrabold tracking-[0.15em] uppercase mt-auto opacity-60 group-hover:opacity-100 transition-opacity duration-500">
+              Access Module 
+              <ArrowRight size={12} strokeWidth={2.5} className="ml-2 opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 ease-out" />
             </div>
           </Link>
 
