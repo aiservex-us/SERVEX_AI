@@ -49,18 +49,18 @@ const WBTDataMatrix = () => {
 
       // --- REGISTRO DE DESCARGA GLOBAL ---
       if (typeof window !== 'undefined') {
-        window.downloadWBTXML = () => {
+        window.downloadWBOXML = () => {
           try {
             const blob = new Blob([data.xml_actualizer_raw], { type: 'text/xml;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'WBT.XML');
+            link.setAttribute('download', 'WBO_SVX.XML');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            console.log("WBT.XML descargado con éxito.");
+            console.log("WBO_SVX.XML descargado con éxito.");
           } catch (downloadErr) {
             console.error("Error al descargar el XML:", downloadErr);
           }
@@ -232,8 +232,8 @@ const WBTDataMatrix = () => {
   useEffect(() => {
     processXML();
     return () => {
-      if (typeof window !== 'undefined' && window.downloadWBTXML) {
-        delete window.downloadWBTXML;
+      if (typeof window !== 'undefined' && window.downloadWBOXML) {
+        delete window.downloadWBOXML;
       }
     };
   }, []);

@@ -51,13 +51,13 @@ const WBTDataMatrix = () => {
       // --- AGREGADO DE INYECCIÓN DE DESCARGA ---
       // Registra una función global en window para descargar el XML exacto sin alterar la interfaz
       if (typeof window !== 'undefined') {
-        window.downloadWBTXML = () => {
+        window.downloadWBGXML = () => {
           try {
             const blob = new Blob([data.xml_actualizer_raw], { type: 'text/xml;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'WBT.XML');
+            link.setAttribute('download', 'WBG_SVX.XML');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -113,8 +113,8 @@ const WBTDataMatrix = () => {
     
     // Limpieza de la función global al desmontar el componente
     return () => {
-      if (typeof window !== 'undefined' && window.downloadWBTXML) {
-        delete window.downloadWBTXML;
+      if (typeof window !== 'undefined' && window.downloadWBGXML) {
+        delete window.downloadWBGXML;
       }
     };
   }, []);
