@@ -9,7 +9,7 @@ const BlogCard = ({ title, description, val, isActive, onClick, icon: Icon }) =>
     onClick={onClick}
     className={`p-5 rounded-xl flex flex-col justify-between h-48 border transition-all duration-500 cursor-pointer group font-sans relative overflow-hidden ${
       isActive 
-        ? 'border-[#464775]/30 bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white scale-[1.02] shadow-[0_10px_30px_-10px_rgba(70,71,117,0.3)]' 
+        ? 'border-[#464775]/30 bg-[#f2f3f8] scale-[1.02] shadow-[0_10px_30px_-10px_rgba(70,71,117,0.2)]' 
         : 'bg-white border-slate-200/60 text-slate-800 hover:border-[#464775]/40 hover:shadow-md'
     }`}
   >
@@ -86,7 +86,7 @@ export default function Content() {
           <div className="flex flex-col sm:flex-row gap-3 w-full">
             <button 
               onClick={() => router.push('/modelContext')}
-              className="bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white text-[#2B2C4B] border border-[#464775]/30 px-6 py-2.5 rounded-lg text-sm font-bold hover:scale-[1.02] hover:shadow-[0_10px_30px_-10px_rgba(70,71,117,0.3)] transition-all w-full sm:w-auto text-center"
+              className="bg-[#464775] text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-[#3a3b61] transition-all shadow-sm hover:shadow-md w-full sm:w-auto text-center"
             >
               Start AI Context
             </button>
