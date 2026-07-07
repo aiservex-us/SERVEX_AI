@@ -19,8 +19,8 @@ export default function Hero() {
           absolute inset-x-0 bottom-0
           h-[55%] sm:h-[60%] md:h-[65%]
           bg-gradient-to-t
-          from-pink-300 via-purple-200 to-transparent
-          opacity-70
+          from-[#464775]/30 via-[#464775]/5 to-transparent
+          opacity-90
         "
       />
 
@@ -71,25 +71,27 @@ export default function Hero() {
             src="/manocel.png"
             alt="App preview"
             className="
-              w-[260px]
-              max-[800px]:w-[340px]
-              sm:w-[300px]
-              md:w-[380px]
+              w-[300px]
+              max-[800px]:w-[380px]
+              sm:w-[360px]
+              md:w-[460px]
+              translate-y-4 sm:translate-y-6 md:translate-y-8
               drop-shadow-[0_40px_80px_rgba(0,0,0,0.25)]
             "
           />
         </div>
       </div>
 
-      {/* Fade blanco inferior */}
+      {/* Fade blanco inferior frontal */}
       <div
         className="
           absolute bottom-0 left-0
           w-full
-          h-28 sm:h-32 md:h-36
+          h-40 sm:h-56 md:h-64
           bg-gradient-to-t
-          from-white to-transparent
+          from-white via-white/80 to-transparent
           z-20
+          pointer-events-none
         "
       />
     </section>
