@@ -98,9 +98,9 @@ export default function AuditReportViewer() {
             </div>
           </div>
 
-          <div className="w-full overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
+          <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
             <table className="table-fixed border-collapse text-left text-xs w-full">
-              <thead className="bg-slate-50/95 sticky top-0 z-10 backdrop-blur-sm shadow-sm">
+              <thead className="bg-slate-50/95 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
                 <tr>
                   {['#', 'Model ID', 'Nodo', 'Original Value', 'New Value', '% Diff'].map(h => (
                     <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
