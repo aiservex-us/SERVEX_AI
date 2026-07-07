@@ -147,10 +147,10 @@ export default function DashboardRight() {
       </section>
 {/* PROMO SECTION: REFINED MICRO-CARD */}
 <section className="relative mt-32 mb-10 px-4 flex justify-center">
-        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-xl shadow-slate-200/60 relative flex flex-col items-center text-center max-w-[400px] w-full">
+        <div className="bg-white border border-slate-200 rounded-[2rem] p-6 pt-10 shadow-xl shadow-slate-200/60 relative flex flex-col items-center text-center max-w-[400px] w-full">
           
           {/* IMAGE CONTAINER: Más grande en móvil (85%) y tamaño original en desktop (60%) */}
-          <div className="absolute -top-24 min-[800px]:-top-20 left-1/2 -translate-x-1/2 w-[85%] min-[800px]:w-[65%] z-20">
+          <div className="absolute -top-28 min-[800px]:-top-24 left-1/2 -translate-x-1/2 w-[85%] min-[800px]:w-[65%] z-20">
             <img 
               src="/macMain.png" 
               alt="Expert Support" 
@@ -159,20 +159,20 @@ export default function DashboardRight() {
           </div>
 
           {/* SPACER: Ajustado para compensar el tamaño de la imagen en móvil */}
-          <div className="h-24 min-[800px]:h-20 w-full"></div>
+          <div className="h-32 min-[800px]:h-24 w-full"></div>
 
-          <div className="relative z-10 mt-4">
-            <h2 className="text-lg font-bold text-slate-800 mb-2 leading-snug">
+          <div className="relative z-10 mt-2">
+            <h2 className="text-xl font-bold text-slate-800 mb-3 leading-snug">
               Ready to optimize your profile?
             </h2>
             
-            <p className="text-slate-500 text-[13px] leading-relaxed mb-6 px-2">
+            <p className="text-slate-500 text-[14px] leading-relaxed mb-6 px-2">
               Get personalized technical assistance to ensure your digital practice looks impeccable and professional.
             </p>
 
-            <button className="bg-[#6264A7] text-white px-6 py-2.5 rounded-xl font-bold text-[12px] hover:bg-[#4b4d8a] transition-all flex items-center justify-center gap-2 group mx-auto">
+            <button className="bg-[#6264A7] text-white px-7 py-3 rounded-xl font-bold text-[13px] hover:bg-[#4b4d8a] transition-all flex items-center justify-center gap-2 group mx-auto">
               Contact Support
-              <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>

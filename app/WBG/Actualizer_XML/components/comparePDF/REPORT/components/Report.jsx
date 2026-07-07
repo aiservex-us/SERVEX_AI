@@ -51,7 +51,7 @@ export default function AuditReportViewer() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentChanges = changes.slice(indexOfFirstItem, indexOfLastItem);
 
-  if (loading) return <div className="p-10 text-sm text-[#616161]">Cargando auditoría...</div>;
+  if (loading) return <div className="p-10 text-sm text-[#616161]">Loading audit...</div>;
 
   return (
     <div className="min-h-[85vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
@@ -60,7 +60,7 @@ export default function AuditReportViewer() {
         <div className="mb-6 bg-white rounded-md p-6 border border-slate-200 shadow-sm relative overflow-hidden">
            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
             <BrainCircuit className="text-[#4F46E5]" size={28} />
-            Centro de Análisis de Desarrollo: {reportData?.pipeline_metadata?.system_engine}
+            Development Analysis Center: {reportData?.pipeline_metadata?.system_engine}
            </h1>
         </div>
 
@@ -72,7 +72,7 @@ export default function AuditReportViewer() {
             <div className="flex items-start gap-4">
               <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><Database size={18} /></div>
               <div>
-                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Total Evaluados</p>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Total Evaluated</p>
                 <p className="text-lg font-bold text-slate-800">{metrics?.evaluated_common_models || 0}</p>
                 <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Modelos procesados</p>
               </div>
@@ -102,7 +102,7 @@ export default function AuditReportViewer() {
             <table className="table-fixed border-collapse text-left text-xs w-full">
               <thead className="bg-slate-50/50">
                 <tr>
-                  {['#', 'Model ID', 'Nodo', 'Valor Original', 'Nuevo Valor', '% Dif'].map(h => (
+                  {['#', 'Model ID', 'Nodo', 'Original Value', 'New Value', '% Diff'].map(h => (
                     <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
                       {h}
                     </th>

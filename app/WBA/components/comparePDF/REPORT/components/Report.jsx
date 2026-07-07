@@ -34,7 +34,7 @@ export default function AuditReportViewer() {
   const activeRecord = records.find(r => r.id === selectedRecordId);
   const reportData = activeRecord?.audit_report_jsonP;
 
-  if (loading) return <div className="p-10 text-sm text-[#616161]">Cargando auditoría...</div>;
+  if (loading) return <div className="p-10 text-sm text-[#616161]">Loading audit...</div>;
 
   return (
     <div className="min-h-[85vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
@@ -47,11 +47,11 @@ export default function AuditReportViewer() {
     <div>
       <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
         <BrainCircuit className="text-[#4F46E5]" size={28} />
-        Centro de Análisis de Desarrollo
+        Development Analysis Center
       </h1>
       <p className="text-slate-500 text-xs mt-1 max-w-lg leading-relaxed">
-        Arquitectura de inteligencia avanzada para la gestión de datos críticos en <span className="text-slate-800 font-semibold">SVX Enterprise Systems</span>. 
-        Módulos de auditoría, trazabilidad y optimización en tiempo real.
+        Advanced intelligence architecture for critical data management in <span className="text-slate-800 font-semibold">SVX Enterprise Systems</span>. 
+        Audit, traceability and real-time optimization modules.
       </p>
     </div>
     
@@ -62,13 +62,13 @@ export default function AuditReportViewer() {
       </div>
       <div className="h-6 w-[1px] bg-slate-200 mx-1" />
       <div className="flex flex-col">
-        <span className="text-[9px] text-slate-400 uppercase tracking-wider">Estado de Servidor.</span>
+        <span className="text-[9px] text-slate-400 uppercase tracking-wider">Server Status.</span>
         <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
           <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-600"></span>
           </span>
-          SISTEMA OPERATIVO
+          OPERATING
         </span>
       </div>
     </div>
@@ -81,7 +81,7 @@ export default function AuditReportViewer() {
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#242424]">{activeRecord?.company_name || 'Seleccione Empresa'}</span>
+                <span className="text-xs font-bold text-[#242424]">{activeRecord?.company_name || 'Select Company'}</span>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10">Audit Log</span>
               </div>
             </div>
@@ -106,21 +106,21 @@ export default function AuditReportViewer() {
               <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Database size={16} /></div>
               <div>
                 <p className="text-[9px] font-bold text-[#616161] uppercase">Pipeline ETL</p>
-                <p className="text-[10px] text-[#242424]">Procesamiento de fuentes {reportData?.source_format || 'XML/CSV'}. Integridad validada mediante checksums.</p>
+                <p className="text-[10px] text-[#242424]">Processing sources {reportData?.source_format || 'XML/CSV'}. Integrity validated via checksums.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><BrainCircuit size={16} /></div>
               <div>
-                <p className="text-[9px] font-bold text-[#616161] uppercase">Análisis IA</p>
-                <p className="text-[10px] text-[#242424]">Detección de desviaciones mediante modelos de inferencia SERVEX_AI. Ajustes aplicados.</p>
+                <p className="text-[9px] font-bold text-[#616161] uppercase">AI Analysis</p>
+                <p className="text-[10px] text-[#242424]">Deviation detection via SERVEX_AI inference models. Adjustments applied.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <div className="p-1.5 bg-[#F3F2F1] rounded-sm text-[#5B5FC7]"><Zap size={16} /></div>
               <div>
-                <p className="text-[9px] font-bold text-[#616161] uppercase">Estado de Sincronización</p>
-                <p className="text-[10px] text-[#242424]">Ejecución en {reportData?.execution_time || '0.4s'}. Estado: <span className="font-bold text-[#107C10]">OPTIMIZADO</span></p>
+                <p className="text-[9px] font-bold text-[#616161] uppercase">Synchronization Status</p>
+                <p className="text-[10px] text-[#242424]">Execution in {reportData?.execution_time || '0.4s'}. Status: <span className="font-bold text-[#107C10]">OPTIMIZED</span></p>
               </div>
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function AuditReportViewer() {
             <table className="table-fixed border-collapse text-left text-xs w-full">
               <thead className="bg-gradient-to-b from-white to-[#FCFAFF]">
                 <tr>
-                  {['#', 'Model ID', 'Nodo', 'Valor Original', 'Nuevo Valor', '% Dif'].map(h => (
+                  {['#', 'Model ID', 'Nodo', 'Original Value', 'New Value', '% Diff'].map(h => (
                     <th key={h} className={`px-3 py-2 text-[10px] font-semibold text-[#5B5FC7] border-b border-[#E0E0E0] uppercase tracking-wider ${h === '#' ? 'w-10' : ''}`}>
                       {h}
                     </th>
@@ -159,8 +159,8 @@ export default function AuditReportViewer() {
 
           {/* Footer de Auditoría */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between">
-            <span>TOTAL CAMBIOS DETECTADOS: {reportData?.xml_injection_manifest?.length || 0}</span>
-            <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] uppercase">Sistema de Integridad SERVEX_AI.</div>
+            <span>TOTAL CHANGES DETECTED: {reportData?.xml_injection_manifest?.length || 0}</span>
+            <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] uppercase">SERVEX_AI Integrity System.</div>
           </div>
         </div>
       </div>
