@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js';
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle , Sparkles} from 'lucide-react';
+import TeamsAgentChat from './components/comparePDF/REPORT/components/AI_contact.jsx';
 
 import MenuLateral from './components/menuLateral.jsx';
 import Dashboard from './components/perceo_XML_MASTER_post_prcess.jsx';
@@ -55,6 +56,10 @@ export default function MenuInicial() {
     setShowExitModal(false);
     router.push('/panel');
   };
+
+  
+  const [isAiMenuExpanded, setIsAiMenuExpanded] = useState(true);
+  const showAiMenu = ['dashboard', 'kanban', 'inbox', 'inbox_updated'].includes(active);
 
   const renderContent = () => {
     if (active === 'notifications' && isMobileScreen) {
@@ -144,14 +149,42 @@ export default function MenuInicial() {
           collapsed={collapsed}
           setCollapsed={setCollapsed}
         />
+        {/* CONTENEDOR SPLIT */}
+        <div className="flex flex-1 h-full w-full min-w-0 p-2 gap-2 bg-slate-50">
+          
+          {/* Lado Izquierdo: Contenido Principal */}
+          <div className={`relative group transition-all duration-300 ease-in-out h-full ${(showAiMenu && isAiMenuExpanded) ? 'w-[65%]' : 'w-full'}`}>
+            <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+            <div className="relative bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-hidden flex flex-col">
+              
+              {/* Toolbar Superior (Sólo visible si corresponde el menú IA) */}
+              {showAiMenu && (
+                <div className="absolute top-3 right-3 z-[90]">
+                  <button 
+                    onClick={() => setIsAiMenuExpanded(!isAiMenuExpanded)}
+                    className={`flex items-center justify-center p-1.5 rounded-lg shadow-sm border transition-all ${isAiMenuExpanded ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                    title={isAiMenuExpanded ? 'Ocultar Copilot' : 'Mostrar Copilot'}
+                  >
+                    <Sparkles size={18} />
+                  </button>
+                </div>
+              )}
 
-        <div className="relative group flex-1 h-full w-full min-w-0">
-          <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-          <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
-            <div className="p-1 w-full h-full">
-              {renderContent()}
+              <div className="flex-1 w-full relative overflow-y-auto">
+                <div className="p-1 w-full h-full">
+                  {renderContent()}
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Lado Derecho: Asistente IA (Menú Lateral Derecho) */}
+          {(showAiMenu && isAiMenuExpanded) && (
+            <div className="relative w-[35%] h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col animate-in slide-in-from-right-8 duration-300">
+              <TeamsAgentChat />
+            </div>
+          )}
+          
         </div>
       </main>
     </div>
