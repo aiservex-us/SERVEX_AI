@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../../lib/supabaseClient';
-import { 
-  Database, 
-  FileSpreadsheet, 
-  FileText, 
-  RefreshCw, 
+import {
+  Database,
+  FileSpreadsheet,
+  FileText,
+  RefreshCw,
   Search,
   AlertCircle,
   Table as TableIcon,
@@ -19,9 +19,9 @@ import {
 export default function DataViewer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('csv_raw'); 
+  const [activeTab, setActiveTab] = useState('csv_raw');
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 30;
@@ -63,11 +63,11 @@ export default function DataViewer() {
   // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB ---
   const getSanitizedData = (record, tab) => {
     if (!record || !record[tab]) return [];
-    
+
     if (Array.isArray(record[tab])) {
       return record[tab];
     }
-    
+
     try {
       if (typeof record[tab] === 'string') {
         return JSON.parse(record[tab]);
@@ -75,14 +75,14 @@ export default function DataViewer() {
     } catch (e) {
       console.error("Error interpretando JSONB slot:", e);
     }
-    
+
     return [];
   };
 
   const currentCsvData = getSanitizedData(data, activeTab);
-  
-  const filteredData = currentCsvData.filter(row => 
-    Object.values(row).some(val => 
+
+  const filteredData = currentCsvData.filter(row =>
+    Object.values(row).some(val =>
       String(val).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
@@ -98,8 +98,8 @@ export default function DataViewer() {
     if (filteredData.length === 0) return;
 
     const headers = Object.keys(filteredData[0]);
-    
-    const csvRows = filteredData.map(row => 
+
+    const csvRows = filteredData.map(row =>
       headers.map(header => {
         let val = row[header];
         if (val === null || val === undefined) {
@@ -109,7 +109,7 @@ export default function DataViewer() {
         } else {
           val = String(val);
         }
-        
+
         if (val.includes(';') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
           val = `"${val.replace(/"/g, '""')}"`;
         }
@@ -118,13 +118,13 @@ export default function DataViewer() {
     );
 
     const csvContent = [headers.join(';'), ...csvRows].join('\n');
-    
+
     const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
-    const filename = `${data?.company_name || 'Catalog'}_${activeTab}_${new Date().toISOString().slice(0,10)}.csv`;
+    const filename = `${data?.company_name || 'Catalog'}_${activeTab}_${new Date().toISOString().slice(0, 10)}.csv`;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
@@ -150,9 +150,9 @@ export default function DataViewer() {
   return (
     <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
-        
+
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
-          
+
           {/* Operations / Filters Header */}
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
@@ -173,18 +173,16 @@ export default function DataViewer() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('csv_raw')}
-                  className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
-                  }`}
+                  className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    }`}
                 >
                   Manual Sync
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('csvpdf_raw')}
-                  className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
-                  }`}
+                  className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    }`}
                 >
                   PDF Intelligence
                 </button>
@@ -200,7 +198,7 @@ export default function DataViewer() {
               />
 
               {/* Actions */}
-              <button 
+              <button
                 onClick={fetchLatestData}
                 type="button"
                 className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161] transition-colors"
@@ -209,7 +207,7 @@ export default function DataViewer() {
                 <RefreshCw size={13} />
               </button>
 
-              <button 
+              <button
                 type="button"
                 onClick={handleDownloadCSV}
                 disabled={filteredData.length === 0}
@@ -261,7 +259,7 @@ export default function DataViewer() {
                           const cellValue = row[header];
                           return (
                             <td key={header} className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
-                              <div 
+                              <div
                                 className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate"
                                 title={cellValue?.toString() || ''}
                               >
@@ -299,7 +297,7 @@ export default function DataViewer() {
               >
                 <ChevronLeft size={14} />
               </button>
-              
+
               <span className="text-[11px] font-bold px-2 text-[#242424]">
                 PAGE {currentPage} OF {totalPages}
               </span>
@@ -313,7 +311,7 @@ export default function DataViewer() {
                 <ChevronRight size={14} />
               </button>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
                 {activeTab === 'csv_raw' ? 'Source: ERP Manual' : 'Source: AI PDF Extraction'}
