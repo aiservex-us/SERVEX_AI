@@ -1,15 +1,13 @@
 'use client';
 import React, { useState } from 'react';
 import AuditReportViewer from './components/Report';
-import AuditAnalyticsDashboard from './components/AI_contact';
 
 export default function Dashboard() {
   // Estado para controlar si la sección de IA está activa/enfocada
-  const [isAiActive, setIsAiActive] = useState(false);
-  // Estado para cerrar el modal permanentemente si el usuario hace clic en la X
+    // Estado para cerrar el modal permanentemente si el usuario hace clic en la X
   const [isModalDismissed, setIsModalDismissed] = useState(false);
 
-  const showOverlay = !isAiActive && !isModalDismissed;
+  const showOverlay = !isModalDismissed;
 
   return (
     <div
@@ -21,7 +19,7 @@ export default function Dashboard() {
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
         {/* Contenedor Report.jsx (dinámico: 70% inactivo, 55% activo en escritorio) */}
-        <div className={`relative w-full transition-all duration-500 ease-out ${isAiActive ? 'lg:w-[55%]' : 'lg:w-[70%]'}`}>
+        <div className="relative w-full transition-all duration-500 ease-out">
 
           {/* Overlay del Logo e Información (Card) */}
           <div
@@ -101,7 +99,7 @@ export default function Dashboard() {
           <div
             // El reporte ya no se difumina en sí mismo (para evitar lag), el overlay de arriba hace el trabajo
             className="w-full h-full overflow-hidden transition-all duration-500 ease-out"
-            onClick={() => setIsAiActive(false)}
+            
           >
             <div className="bg-white">
               <AuditReportViewer />
@@ -109,21 +107,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Contenedor de IA (dinámico: 30% inactivo, 45% activo en escritorio) -> Ahora se queda fijo al hacer scroll en escritorio */}
-        <div
-          // Se añade una sutil elevación (shadow) y más ancho cuando está activo para resaltar jerarquía
-          className={`hidden min-[400px]:block w-full border border-gray-100 rounded-lg overflow-hidden lg:sticky lg:top-6 transition-all duration-500 ease-out ${isAiActive ? 'lg:w-[45%] shadow-md ring-1 ring-gray-200/50' : 'lg:w-[30%] shadow-sm'
-            }`}
-          // Al hacer clic en el área de IA, se activa el enfoque y desenfoca el reporte
-          onClick={() => {
-            setIsAiActive(true);
-            setIsModalDismissed(true);
-          }}
-        >
-          <div className="bg-white">
-            <AuditAnalyticsDashboard />
-          </div>
-        </div>
+        
 
       </div>
     </div>

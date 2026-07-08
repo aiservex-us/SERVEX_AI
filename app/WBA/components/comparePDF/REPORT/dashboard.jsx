@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import AuditReportViewer from './components/Report';
-import AuditAnalyticsDashboard from './components/AI_contact';
 
 export default function Dashboard() {
   return (
@@ -17,12 +16,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Contenedor de IA (35%) -> Ahora se queda fijo al hacer scroll en escritorio */}
-        <div className="hidden min-[400px]:block w-full lg:w-[35%] border border-gray-100 rounded-lg shadow-sm overflow-hidden lg:sticky lg:top-6">
-          <div className="bg-white">
-            <AuditAnalyticsDashboard />
-          </div>
-        </div>
+        
         
       </div>
     </div>
