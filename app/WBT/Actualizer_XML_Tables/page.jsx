@@ -181,7 +181,7 @@ export default function MenuInicial() {
           {/* Lado Derecho: Asistente IA (Menú Lateral Derecho) */}
           {(showAiMenu && isAiMenuExpanded) && (
             <div className="relative w-[35%] h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col animate-in slide-in-from-right-8 duration-300">
-              <TeamsAgentChat />
+              <TeamsAgentChat currentSection={active} />
             </div>
           )}
           

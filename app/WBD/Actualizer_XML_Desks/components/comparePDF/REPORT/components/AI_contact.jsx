@@ -24,7 +24,7 @@ const QUICK_PROMPTS = [
   { icon: Activity, label: "ETL Flows", q: "Explain the architecture of the available ETL flows." },
 ];
 
-export default function TeamsAgentChat() {
+export default function TeamsAgentChat({ currentSection }) {
   const [selectedAgent] = useState({ agent_name: "SVX Copilot", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -93,7 +93,7 @@ export default function TeamsAgentChat() {
       const res = await fetch(`${apiURL}/wbd/api/v1/agent/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: historyPayload, company_name: context }),
+        body: JSON.stringify({ messages: historyPayload, company_name: context, current_section: currentSection }),
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
