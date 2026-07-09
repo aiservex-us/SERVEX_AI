@@ -6,10 +6,18 @@ import { marked } from "marked";
 import {
   Plus, Mic, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
-  Brain, Shield, Activity, Cpu
+  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
 } from 'lucide-react';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
+
+const SLASH_COMMANDS = [
+  { id: 'resumen', icon: BarChart2, label: '/resumen', desc: 'Ver resumen métrico y top variaciones' },
+  { id: 'bajas', icon: Trash2, label: '/bajas', desc: 'Ver lista de productos eliminados' },
+  { id: 'altas', icon: Plus, label: '/altas', desc: 'Ver lista de productos agregados' },
+  { id: 'cambios', icon: RefreshCw, label: '/cambios', desc: 'Ver todas las modificaciones' },
+  { id: 'modelo', icon: Search, label: '/modelo ', desc: 'Buscar un SKU específico' },
+];
 
 const QUICK_PROMPTS = [
   { icon: Shield, label: "RBAC Permissions", q: "How do I configure RBAC permissions on the platform?" },
@@ -24,6 +32,7 @@ export default function TeamsAgentChat() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [context, setContext] = useState('Servex US');
   const [charCount, setCharCount] = useState(0);
+  const [showSlashMenu, setShowSlashMenu] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -45,8 +54,21 @@ export default function TeamsAgentChat() {
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   const handleInputChange = (e) => {
-    setInput(e.target.value);
-    setCharCount(e.target.value.length);
+    const val = e.target.value;
+    setInput(val);
+    setCharCount(val.length);
+    if (val === "/") {
+      setShowSlashMenu(true);
+    } else if (!val.startsWith("/")) {
+      setShowSlashMenu(false);
+    }
+  };
+
+  const handleCommandSelect = (cmdLabel) => {
+    setInput(cmdLabel);
+    setCharCount(cmdLabel.length);
+    setShowSlashMenu(false);
+    inputRef.current?.focus();
   };
 
   const sendMessage = async (overrideText) => {
@@ -85,7 +107,8 @@ export default function TeamsAgentChat() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); setShowSlashMenu(false); }
+    if (e.key === 'Escape') { setShowSlashMenu(false); }
   };
 
   return (
@@ -330,7 +353,40 @@ export default function TeamsAgentChat() {
       </main>
 
       {/* ── INPUT ── */}
-      <footer className="flex-shrink-0 px-5 py-3 pb-4 bg-white border-t border-gray-100">
+      <footer className="flex-shrink-0 px-5 py-3 pb-4 bg-white border-t border-gray-100 relative">
+        {/* ── SLASH COMMANDS MENU ── */}
+        <AnimatePresence>
+          {showSlashMenu && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
+            >
+              <div className="p-2">
+                <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-1">
+                  Comandos de Auditoría
+                </div>
+                {SLASH_COMMANDS.map((cmd) => (
+                  <button
+                    key={cmd.id}
+                    onClick={() => handleCommandSelect(cmd.label)}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-left group"
+                  >
+                    <div className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500">
+                      <cmd.icon size={16} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-semibold text-gray-700 group-hover:text-indigo-700">{cmd.label}</span>
+                      <span className="text-[11px] text-gray-400 group-hover:text-indigo-400">{cmd.desc}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="max-w-[820px] mx-auto bg-white border border-gray-200 rounded-2xl relative focus-within:border-indigo-400 shadow-sm">
 
           {/* Meta row */}
