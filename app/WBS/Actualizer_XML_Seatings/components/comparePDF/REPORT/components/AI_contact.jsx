@@ -38,6 +38,22 @@ export default function TeamsAgentChat({ currentSection }) {
   const inputRef = useRef(null);
   const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
 
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch(`${apiURL}/wbs/api/v1/agent/history`);
+        const data = await res.json();
+        if (data.status === "success" && data.history) {
+          setMessages(data.history);
+        }
+      } catch (e) {
+        console.error("Failed to load chat history:", e);
+      }
+    };
+    fetchHistory();
+  }, [apiURL]);
+
+
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   const scrollContainerRef = useRef(null);
@@ -93,7 +109,7 @@ export default function TeamsAgentChat({ currentSection }) {
       const res = await fetch(`${apiURL}/wbs/api/v1/agent/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: historyPayload, company_name: context, current_section: currentSection }),
+        body: JSON.stringify({ messages: historyPayload, raw_messages: [...messages, { from: "user", text: queryToSend, time: now }], company_name: context, current_section: currentSection }),
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -137,7 +153,12 @@ export default function TeamsAgentChat({ currentSection }) {
           </button>
           {messages.length > 0 && (
             <button
-              onClick={() => setMessages([])}
+              onClick={async () => {
+                setMessages([]);
+                try {
+                  await fetch(`${apiURL}/wbs/api/v1/agent/history`, { method: "DELETE" });
+                } catch (e) {}
+              }}
               className="text-[11px] font-medium text-gray-400 border border-gray-200 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-400 hover:bg-red-50 transition-colors"
             >
               Clear
