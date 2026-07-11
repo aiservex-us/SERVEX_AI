@@ -128,10 +128,22 @@ export default function TeamsAgentChat({ currentSection }) {
   };
 
   return (
-    <div className="w-full h-[88vh] flex flex-col bg-white font-sans text-gray-900 overflow-hidden">
+    <div className="relative w-full h-[88vh] flex flex-col font-sans text-gray-900 overflow-hidden">
+      {/* --- FONDO ESTILO MAIN1 (SIN ANIMACIONES) --- */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-60" />
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/15" />
+        <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[120%] rotate-[15deg]">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60 shadow-[1px_0_10px_rgba(0,0,0,0.03)]" />
+        </div>
+        <div className="absolute top-[5%] right-[15%] w-[40%] h-[100%] rotate-[15deg]">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/5 to-transparent border-l border-white/50" />
+        </div>
+      </div>
 
       {/* ── TOP BAR ── */}
-      <header className="h-[52px] flex-shrink-0 flex items-center justify-between px-5 bg-white border-b border-gray-100 z-50">
+      <header className="relative z-10 h-[52px] flex-shrink-0 flex items-center justify-between px-5 bg-white/60 backdrop-blur-md border-b border-white/50">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center">
             <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
@@ -168,7 +180,7 @@ export default function TeamsAgentChat({ currentSection }) {
       </header>
 
       {/* ── MAIN ── */}
-      <main ref={scrollContainerRef} className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+      <main ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">
         <div className="w-full max-w-[820px] mx-auto flex flex-col px-5 min-h-full">
 
           {messages.length === 0 ? (
@@ -212,7 +224,7 @@ export default function TeamsAgentChat({ currentSection }) {
                   />
 
                   <motion.div
-                    className="relative z-10 flex border border-gray-100/60 rounded-xl overflow-hidden bg-white/90 backdrop-blur-sm shadow-sm"
+                    className="relative z-10 flex border border-white/60 rounded-xl overflow-hidden bg-white/60 backdrop-blur-md shadow-sm"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
@@ -222,7 +234,7 @@ export default function TeamsAgentChat({ currentSection }) {
                       { label: "Accuracy", value: "98.4%" },
                       { label: "Sync", value: "Real-time" },
                     ].map((m, i) => (
-                      <div key={m.label} className={`flex-1 flex flex-col gap-0.5 py-3 px-4 text-center ${i < 2 ? 'border-r border-gray-100' : ''}`}>
+                      <div key={m.label} className={`flex-1 flex flex-col gap-0.5 py-3 px-4 text-center ${i < 2 ? 'border-r border-white/50' : ''}`}>
                         <span className="text-[12px] font-semibold tracking-tight text-gray-700">{m.value}</span>
                         <span className="text-[10px] uppercase tracking-wider text-gray-400">{m.label}</span>
                       </div>
@@ -245,7 +257,7 @@ export default function TeamsAgentChat({ currentSection }) {
                     <button
                       key={label}
                       onClick={() => sendMessage(q)}
-                      className="flex flex-col items-start gap-1.5 p-3.5 rounded-xl bg-white border border-gray-100 text-left hover:border-indigo-200 hover:bg-indigo-50/40 hover:-translate-y-px hover:shadow-md transition-all duration-200 group"
+                      className="flex flex-col items-start gap-1.5 p-3.5 rounded-xl bg-white/60 backdrop-blur-md border border-white/50 text-left hover:border-indigo-200 hover:bg-white/80 hover:-translate-y-px hover:shadow-md transition-all duration-200 group"
                     >
                       <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-100 transition-colors">
                         <Icon size={15} />
@@ -307,7 +319,7 @@ export default function TeamsAgentChat({ currentSection }) {
                           className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
                           ${isUser
                             ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
-                            : 'bg-white text-gray-800 rounded-tl-sm border border-gray-100'
+                            : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-tl-sm border border-white/60'
                           }`}
                         >
                           {msg.from === "bot" ? (
@@ -347,7 +359,7 @@ export default function TeamsAgentChat({ currentSection }) {
                       <span className="text-[12px] font-semibold text-gray-800">{selectedAgent.agent_name}</span>
                       <span className="text-[10px] text-gray-400 font-medium">Pensando...</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm">
+                    <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl rounded-tl-sm shadow-sm">
                       {[0, 1, 2].map((i) => (
                         <motion.span
                           key={i}
@@ -374,7 +386,7 @@ export default function TeamsAgentChat({ currentSection }) {
       </main>
 
       {/* ── INPUT ── */}
-      <footer className="flex-shrink-0 px-5 py-3 pb-4 bg-white border-t border-gray-100 relative">
+      <footer className="relative z-10 flex-shrink-0 px-5 py-3 pb-4 bg-white/40 backdrop-blur-md border-t border-white/50">
         {/* ── SLASH COMMANDS MENU ── */}
         <AnimatePresence>
           {showSlashMenu && (
@@ -382,7 +394,7 @@ export default function TeamsAgentChat({ currentSection }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
+              className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white/80 backdrop-blur-md border border-white/60 rounded-xl shadow-xl z-50 overflow-hidden"
             >
               <div className="p-2">
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-1">
@@ -408,10 +420,10 @@ export default function TeamsAgentChat({ currentSection }) {
           )}
         </AnimatePresence>
 
-        <div className="max-w-[820px] mx-auto bg-white border border-gray-200 rounded-2xl relative focus-within:border-indigo-400 shadow-sm">
+        <div className="max-w-[820px] mx-auto bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl relative focus-within:border-indigo-400 shadow-sm">
 
           {/* Meta row */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50/80 border-b border-gray-100 rounded-t-2xl">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
               <Zap size={12} className="text-indigo-400" />
               <span>Engine v4.10</span>
