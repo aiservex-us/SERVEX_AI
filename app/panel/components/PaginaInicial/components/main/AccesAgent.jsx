@@ -8,6 +8,7 @@ import {
   Check, Settings, HelpCircle, Zap, SendHorizonal,
   Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
 } from 'lucide-react';
+import { supabase } from '@/app/lib/supabaseClient';
 
 const QUICK_PROMPTS = [
   { icon: Shield, label: "Core Principles", q: "What is the strategic imperative of SERVEX AI?" },
@@ -169,8 +170,13 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
               onClick={async () => {
                 setMessages([]);
                 try {
-                  await fetch(`${apiURL}/api/v1/general_agent/history`, { method: "DELETE" });
-                } catch (e) {}
+                  const { data } = await supabase.from("AI_WB_CHATS").select("id").limit(1);
+                  if (data && data.length > 0) {
+                    await supabase.from("AI_WB_CHATS").update({ General_Agent: [] }).eq("id", data[0].id);
+                  }
+                } catch (e) {
+                  console.error("Error clearing chat", e);
+                }
               }}
               className="text-[11px] font-medium text-gray-500 border border-gray-300 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors"
             >
