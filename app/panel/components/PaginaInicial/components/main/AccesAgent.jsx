@@ -8,7 +8,6 @@ import {
   Check, Settings, HelpCircle, Zap, SendHorizonal,
   Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
 } from 'lucide-react';
-import { supabase } from '@/app/lib/supabaseClient';
 
 const QUICK_PROMPTS = [
   { icon: Shield, label: "Core Principles", q: "What is the strategic imperative of SERVEX AI?" },
@@ -25,7 +24,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
   const inputRef = useRef(null);
   const scrollContainerRef = useRef(null);
-  
+
   const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
 
   // Cargar Historial
@@ -72,7 +71,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
     const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg = { from: 'user', text: queryToSend, time: nowStr };
     const newRawMessages = [...messages, userMsg];
-    
+
     setMessages(newRawMessages);
     setInput("");
     setCharCount(0);
@@ -111,19 +110,19 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { 
-      e.preventDefault(); 
-      sendMessage(); 
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
   };
 
   return (
     <div className={
-      isFloating 
+      isFloating
         ? "w-[500px] h-[600px] max-h-[85vh] flex flex-col font-sans text-gray-900 border border-gray-200 rounded-2xl shadow-2xl overflow-hidden shadow-indigo-100/50 pointer-events-auto relative"
         : "w-full h-[77vh] flex flex-col font-sans text-gray-900 border border-gray-200 rounded-xl shadow-sm overflow-hidden relative"
     }>
-      
+
       {/* --- FONDO ESTILO MAIN1 (SIN ANIMACIONES) --- */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-60" />
@@ -154,7 +153,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
             Engine v4.10
           </div>
           {isFloating ? (
-            <button 
+            <button
               onClick={onClose}
               className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
             >
@@ -170,13 +169,8 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
               onClick={async () => {
                 setMessages([]);
                 try {
-                  const { data } = await supabase.from("AI_WB_CHATS").select("id").limit(1);
-                  if (data && data.length > 0) {
-                    await supabase.from("AI_WB_CHATS").update({ General_Agent: [] }).eq("id", data[0].id);
-                  }
-                } catch (e) {
-                  console.error("Error clearing chat", e);
-                }
+                  await fetch(`${apiURL}/api/v1/general_agent/history`, { method: "DELETE" });
+                } catch (e) {}
               }}
               className="text-[11px] font-medium text-gray-500 border border-gray-300 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors"
             >
@@ -276,21 +270,21 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                       key={idx}
                       initial={{ opacity: 0, y: 20, x: isUser ? 20 : -20, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-                      transition={{ 
-                        duration: 0.5, 
+                      transition={{
+                        duration: 0.5,
                         ease: [0.23, 1, 0.32, 1],
                         layout: { duration: 0.3, ease: "easeOut" }
                       }}
                       className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : ''}`}
                     >
                       {/* Avatar */}
-                      <motion.div 
+                      <motion.div
                         whileHover={{ scale: 1.05, rotate: isUser ? 5 : -5 }}
                         className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
                         ${isUser
-                          ? 'bg-slate-100 text-slate-500 border border-slate-200'
-                          : 'bg-[#464775] text-white'
-                        }`}
+                            ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                            : 'bg-[#464775] text-white'
+                          }`}
                       >
                         {isUser ? 'YOU' : <Brain size={15} />}
                         {!isUser && (
@@ -307,13 +301,13 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                           <span className="text-[10px] text-gray-400">{msg.time}</span>
                         </div>
 
-                        <motion.div 
+                        <motion.div
                           whileHover={{ y: -1 }}
                           className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
                           ${isUser
-                            ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
-                            : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-tl-sm border border-white/60'
-                          }`}
+                              ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
+                              : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-tl-sm border border-white/60'
+                            }`}
                         >
                           {msg.from === "bot" ? (
                             <div
@@ -340,7 +334,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                   transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                   className="flex gap-3 items-start"
                 >
-                  <motion.div 
+                  <motion.div
                     initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5 }}
                     className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#464775] text-white shadow-sm"
                   >
@@ -379,7 +373,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
       {/* ── INPUT ── */}
       <footer className="relative z-10 flex-shrink-0 px-5 py-3 pb-4 bg-white/40 backdrop-blur-md border-t border-white/50">
         <div className="max-w-[820px] mx-auto bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl relative focus-within:border-[#464775]/40 shadow-sm">
-          
+
           {/* Meta row */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
             <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
