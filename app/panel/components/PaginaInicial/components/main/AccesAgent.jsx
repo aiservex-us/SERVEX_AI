@@ -1,64 +1,83 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { marked } from "marked";
 import {
   Plus, Mic, ChevronDown, Database, Sparkles,
-  ArrowRight, Check, BarChart3,
-  Settings, HelpCircle, Shield, Layout, Zap, User, Bot, Loader2
+  Check, Settings, HelpCircle, Zap, SendHorizonal,
+  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
-const TeamsCopilotStyle = () => {
-  const [mode, setMode] = useState('platform');
-  const [query, setQuery] = useState('');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [context, setContext] = useState('Servex US');
+const QUICK_PROMPTS = [
+  { icon: Shield, label: "Core Principles", q: "What is the strategic imperative of SERVEX AI?" },
+  { icon: Activity, label: "Platform Guide", q: "Explain the End-to-End ingestion pipeline." },
+];
 
+export default function TeamsAgentChat() {
+  const [selectedAgent] = useState({ agent_name: "Alysa SVX", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollContainerRef = useRef(null);
+  const [context, setContext] = useState('Servex General');
+  const [charCount, setCharCount] = useState(0);
 
-  // Auto-scroll
-  const scrollToBottom = () => {
+  const inputRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  
+  const apiURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  // Cargar Historial
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch(`${apiURL}/api/v1/general_agent/history`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === "success" && data.history) {
+            setMessages(data.history);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load chat history:", e);
+      }
+    };
+    fetchHistory();
+  }, [apiURL]);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const scrollToBottom = useCallback(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
         top: scrollContainerRef.current.scrollHeight,
         behavior: "smooth"
       });
     }
-  };
-  useEffect(() => scrollToBottom(), [messages]);
-
-  // Cargar Historial
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await fetch('http://localhost:8000/api/v1/general_agent/history');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.history) setMessages(data.history);
-        }
-      } catch (e) {
-        console.error("Error cargando historial", e);
-      }
-    };
-    fetchHistory();
   }, []);
 
-  const handleSend = async (textToSend = query) => {
-    if (!textToSend.trim() || isLoading) return;
+  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInput(val);
+    setCharCount(val.length);
+  };
+
+  const sendMessage = async (overrideText) => {
+    const queryToSend = (overrideText || input).trim();
+    if (!queryToSend || isLoading) return;
 
     const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMsg = { from: 'user', text: textToSend, time: nowStr };
+    const userMsg = { from: 'user', text: queryToSend, time: nowStr };
     const newRawMessages = [...messages, userMsg];
-
+    
     setMessages(newRawMessages);
-    setQuery('');
+    setInput("");
+    setCharCount(0);
     setIsLoading(true);
 
     try {
-      // Convertir para Langchain
       const langchainMsgs = newRawMessages.map(m => ({
         role: m.from === 'user' ? 'user' : 'assistant',
         content: m.text
@@ -69,15 +88,16 @@ const TeamsCopilotStyle = () => {
         raw_messages: newRawMessages
       };
 
-      const res = await fetch('http://localhost:8000/api/v1/general_agent/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`${apiURL}/api/v1/general_agent/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
       if (res.ok) {
         const data = await res.json();
-        setMessages([...newRawMessages, { from: 'bot', text: data.reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setMessages([...newRawMessages, { from: 'bot', text: data?.reply || "No response received.", time: botTime }]);
       } else {
         throw new Error("Server Error");
       }
@@ -85,203 +105,355 @@ const TeamsCopilotStyle = () => {
       setMessages([...newRawMessages, { from: 'bot', text: 'Error connecting to Alysa. Please ensure the backend is running.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
     } finally {
       setIsLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+    if (e.key === 'Enter' && !e.shiftKey) { 
+      e.preventDefault(); 
+      sendMessage(); 
     }
   };
 
   return (
-    <div className="h-[74vh] bg-[#FFF] flex flex-col font-sans text-gray-800 border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      {/* --- TOP BAR --- */}
-      <div className="h-12 flex-shrink-0 bg-[#FFF] w-full flex items-center justify-between px-4 text-white shadow-sm border-b border-gray-100">
-        <div className="flex items-center gap-4">
-          <div className="bg-white rounded p-0.5">
-            <img src="/logo2.png" alt="SVX" className="h-5 w-auto" />
-          </div>
-          <span className="text-sm font-semibold opacity-90 tracking-tight text-gray-800">
-            SVX Copilot Intelligence
-          </span>
-        </div>
+    <div className="w-full h-[77vh] flex flex-col bg-white font-sans text-gray-900 border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      
+      {/* ── TOP BAR ── */}
+      <header className="h-[52px] flex-shrink-0 flex items-center justify-between px-5 bg-white border-b border-gray-100 z-50">
         <div className="flex items-center gap-3">
-          <div className="bg-[#464775] px-3 py-1 rounded text-[11px] font-medium text-white shadow-sm">
-            Alysa Mode
+          <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center">
+            <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
+          </div>
+          <div className="flex flex-col gap-0">
+            <span className="text-[13px] font-semibold tracking-tight text-gray-900 leading-none">SVX Copilot</span>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 flex flex-col items-center p-6 mt-2 max-w-5xl mx-auto w-full relative">
-
-        {/* CONDICIONAL: Mostrar bienvenida si no hay mensajes */}
-        {messages.length === 0 ? (
-          <div className="w-full mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-2 text-[#464775] mb-2">
-              <Sparkles size={18} fill="#464775" fillOpacity={0.2} />
-              <span className="text-xs font-bold uppercase tracking-wider">
-                Contextual Assistance Center
-              </span>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">
-              Welcome to Servex Copilot
-            </h1>
-            <p className="text-sm text-gray-500 max-w-2xl font-normal mb-8">
-              I am Alysa, your AI guide. I can help you understand the platform, guide you through processes, or analyze data.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
-                <Layout size={20} className="text-[#464775] mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-sm font-bold mb-1 tracking-tight">Platform Guide</h3>
-                <p className="text-xs text-gray-500 leading-relaxed font-normal">
-                  Step-by-step instructions for workflows and updates.
-                </p>
-              </div>
-              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
-                <BarChart3 size={20} className="text-[#464775] mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-sm font-bold mb-1 tracking-tight">Data Analytics</h3>
-                <p className="text-xs text-gray-500 leading-relaxed font-normal">
-                  Queries on inventory flux and price variations.
-                </p>
-              </div>
-              <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
-                <Shield size={20} className="text-[#464775] mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-sm font-bold mb-1 tracking-tight">Secure Context</h3>
-                <p className="text-xs text-gray-500 leading-relaxed font-normal">
-                  Answers strictly grounded in 2026 SVX corporate context.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 flex flex-wrap gap-3 items-center">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-tighter">
-                Suggestions:
-              </span>
-              {["What is SERVEX AI?", "How does the XML injection work?", "Who is Alysa?"].map((tip, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSend(tip)}
-                  className="text-xs bg-gray-50 border border-gray-200 text-[#464775] px-3 py-1.5 rounded-full hover:bg-[#464775] hover:text-white transition-colors font-medium shadow-sm"
-                >
-                  {tip}
-                </button>
-              ))}
-            </div>
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Engine v4.10 · Online
           </div>
-        ) : (
-          <div ref={scrollContainerRef} className="w-full flex-1 overflow-y-auto mb-6 pr-4 space-y-6 custom-scrollbar">
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}>
-                <div className={`flex gap-3 max-w-[85%] ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+          <button className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+            <Settings size={15} />
+          </button>
+        </div>
+      </header>
 
-                  {/* Avatar */}
-                  <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center shadow-sm ${msg.from === 'user' ? 'bg-[#464775] text-white' : 'bg-gradient-to-br from-indigo-100 to-[#EFEFFB] text-[#464775] border border-indigo-200'}`}>
-                    {msg.from === 'user' ? <User size={14} /> : <Sparkles size={14} />}
+      {/* ── MAIN ── */}
+      <main ref={scrollContainerRef} className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+        <div className="w-full max-w-[820px] mx-auto flex flex-col px-5 min-h-full">
+
+          {messages.length === 0 ? (
+            /* ── HOME ── */
+            <div className="flex flex-col flex-1 pt-6 pb-5">
+              {/* Hero */}
+              <div className="relative text-center mb-10">
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-96 h-64 rounded-full blur-3xl pointer-events-none" />
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <div className="flex justify-center mb-4 mt-2">
+                    <img src="/alysa.png" alt="Alysa Logo" className="h-28 w-auto object-contain" />
                   </div>
+                  <h2 className="text-[12px] text-gray-400 font-medium">
+                    (AI Autonomous Logic & Yield System Architect.)
+                  </h2>
+                </motion.div>
 
-                  {/* Bubble */}
-                  <div className={`flex flex-col gap-1 ${msg.from === 'user' ? 'items-end' : 'items-start'}`}>
-                    <span className="text-[10px] text-gray-400 font-bold px-1 tracking-wide">{msg.from === 'user' ? 'YOU' : 'ALYSA SVX'} • {msg.time}</span>
-                    <div className={`px-5 py-3.5 rounded-2xl text-[13px] shadow-sm font-medium leading-relaxed
-                      ${msg.from === 'user'
-                        ? 'bg-[#464775] text-white rounded-tr-sm'
-                        : 'bg-white border border-gray-100 text-gray-700 rounded-tl-sm'}`}>
-                      {msg.from === 'bot' ? (
-                        <div className="prose prose-sm max-w-none prose-p:my-1 prose-a:text-[#464775] prose-strong:text-[#464775]">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                <div className="relative mx-auto max-w-sm mt-6">
+                  <motion.div
+                    className="absolute inset-0 bg-indigo-400/30 rounded-[30px] blur-[20px]"
+                    animate={{
+                      scale: [0.95, 1.05, 0.95],
+                      opacity: [0.4, 0.8, 0.4],
+                    }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <motion.div
+                    className="relative z-10 flex border border-gray-100/60 rounded-xl overflow-hidden bg-white/90 backdrop-blur-sm shadow-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                  >
+                    {[
+                      { label: "Role", value: "Root Presenter" },
+                      { label: "Accuracy", value: "99.9%" },
+                      { label: "Sync", value: "Real-time" },
+                    ].map((m, i) => (
+                      <div key={m.label} className={`flex-1 flex flex-col gap-0.5 py-3 px-4 text-center ${i < 2 ? 'border-r border-gray-100' : ''}`}>
+                        <span className="text-[12px] font-semibold tracking-tight text-gray-700">{m.value}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-gray-400">{m.label}</span>
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* Quick prompts */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45, duration: 0.5 }}
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-3">
+                  Frequent Queries
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {QUICK_PROMPTS.map(({ icon: Icon, label, q }) => (
+                    <button
+                      key={label}
+                      onClick={() => sendMessage(q)}
+                      className="flex flex-col items-start gap-1.5 p-3.5 rounded-xl bg-white border border-gray-100 text-left hover:border-indigo-200 hover:bg-indigo-50/40 hover:-translate-y-px hover:shadow-md transition-all duration-200 group"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-100 transition-colors">
+                        <Icon size={15} />
+                      </div>
+                      <span className="text-[12px] font-semibold text-gray-800">{label}</span>
+                      <span className="text-[11px] text-gray-400 leading-relaxed line-clamp-2">{q}</span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          ) : (
+            /* ── MESSAGES ── */
+            <div className="flex flex-col gap-6 py-7">
+              <AnimatePresence initial={false}>
+                {messages.map((msg, idx) => {
+                  const isUser = msg.from === 'user';
+                  return (
+                    <motion.div
+                      layout
+                      key={idx}
+                      initial={{ opacity: 0, y: 20, x: isUser ? 20 : -20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+                      transition={{ 
+                        duration: 0.5, 
+                        ease: [0.23, 1, 0.32, 1],
+                        layout: { duration: 0.3, ease: "easeOut" }
+                      }}
+                      className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : ''}`}
+                    >
+                      {/* Avatar */}
+                      <motion.div 
+                        whileHover={{ scale: 1.05, rotate: isUser ? 5 : -5 }}
+                        className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
+                        ${isUser
+                          ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                          : 'bg-[#464775] text-white'
+                        }`}
+                      >
+                        {isUser ? 'YOU' : <Brain size={15} />}
+                        {!isUser && (
+                          <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
+                        )}
+                      </motion.div>
+
+                      {/* Bubble col */}
+                      <div className={`flex flex-col max-w-[78%] gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
+                        <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
+                          <span className="text-[12px] font-semibold text-gray-800">
+                            {isUser ? 'You' : selectedAgent.agent_name}
+                          </span>
+                          <span className="text-[10px] text-gray-400">{msg.time}</span>
                         </div>
-                      ) : (
-                        msg.text
-                      )}
+
+                        <motion.div 
+                          whileHover={{ y: -1 }}
+                          className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
+                          ${isUser
+                            ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
+                            : 'bg-white text-gray-800 rounded-tl-sm border border-gray-100'
+                          }`}
+                        >
+                          {msg.from === "bot" ? (
+                            <div
+                              className="prose-light"
+                              dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }}
+                            />
+                          ) : (
+                            <p className="whitespace-pre-wrap m-0">{msg.text}</p>
+                          )}
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+
+              {/* Typing indicator */}
+              {isLoading && (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, y: 15, x: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                  className="flex gap-3 items-start"
+                >
+                  <motion.div 
+                    initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5 }}
+                    className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#464775] text-white shadow-sm"
+                  >
+                    <Brain size={15} />
+                    <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
+                  </motion.div>
+                  <div className="flex flex-col items-start gap-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[12px] font-semibold text-gray-800">{selectedAgent.agent_name}</span>
+                      <span className="text-[10px] text-gray-400 font-medium">Processing...</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm">
+                      {[0, 1, 2].map((i) => (
+                        <motion.span
+                          key={i}
+                          initial={{ opacity: 0.3, y: 0 }}
+                          animate={{ opacity: 1, y: [-2, 2, -2] }}
+                          transition={{
+                            duration: 0.8,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: i * 0.15
+                          }}
+                          className="w-1.5 h-1.5 rounded-full bg-[#464775]"
+                        />
+                      ))}
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="flex gap-3">
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-100 to-[#EFEFFB] text-[#464775] border border-indigo-200 flex items-center justify-center">
-                    <Sparkles size={14} />
-                  </div>
-                  <div className="bg-white border border-gray-100 px-5 py-4 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
-                    <Loader2 size={14} className="animate-spin text-[#464775]" />
-                    <span className="text-xs text-gray-400 font-semibold">Alysa is processing your query...</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* --- STICKY INPUT BOX --- */}
-        <div className="w-full mt-auto bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden transition-all focus-within:border-[#464775] focus-within:ring-2 focus-within:ring-[#464775]/20">
-
-          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50/50 border-b border-gray-100 relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 text-[11px] font-bold text-gray-600 bg-white border border-gray-200 shadow-sm px-2.5 py-1 rounded hover:bg-gray-50 transition-colors"
-            >
-              <Database size={12} className="text-[#464775]" />
-              {context}
-              <ChevronDown size={12} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {isDropdownOpen && (
-              <div className="absolute top-9 left-4 w-48 bg-white border border-gray-200 shadow-xl rounded-lg z-50 py-1">
-                {['Servex US', 'Servex LATAM', 'General HQ'].map((ctx) => (
-                  <button
-                    key={ctx}
-                    onClick={() => { setContext(ctx); setIsDropdownOpen(false); }}
-                    className="w-full text-left px-4 py-2.5 text-xs hover:bg-gray-50 flex justify-between items-center transition-colors font-medium text-gray-700"
-                  >
-                    {ctx}
-                    {context === ctx && <Check size={14} className="text-[#464775]" />}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="h-4 w-[1px] bg-gray-200 mx-1" />
-            <div className="flex items-center gap-1.5 text-[10px] text-[#464775] font-bold tracking-tight">
-              <Zap size={10} className="fill-[#464775]" />
-              SVX ALYSA KNOWLEDGE
+                </motion.div>
+              )}
             </div>
+          )}
+        </div>
+      </main>
+
+      {/* ── INPUT ── */}
+      <footer className="flex-shrink-0 px-5 py-3 pb-4 bg-white border-t border-gray-100 relative">
+        <div className="max-w-[820px] mx-auto bg-white border border-gray-200 rounded-2xl relative focus-within:border-indigo-400 shadow-sm">
+          
+          {/* Meta row */}
+          <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50/80 border-b border-gray-100 rounded-t-2xl">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              <Zap size={12} className="text-indigo-400" />
+              <span>Engine v4.10</span>
+            </div>
+            {charCount > 0 && (
+              <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
+                {charCount}
+              </span>
+            )}
           </div>
 
-          <div className="p-3 bg-white">
+          {/* Textarea */}
+          <div className="flex items-start gap-2 px-3.5 pt-3 pb-1">
+            <Sparkles size={15} className="text-indigo-400 mt-0.5 flex-shrink-0 opacity-70" />
             <textarea
-              className="w-full text-[13px] text-gray-800 border-none focus:ring-0 resize-none bg-transparent placeholder-gray-400 min-h-[60px] max-h-[200px] font-medium"
-              placeholder="Ask Alysa anything about the platform..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              ref={inputRef}
+              rows={3}
+              className="flex-1 bg-transparent border-none outline-none resize-none text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[56px] max-h-[180px] caret-indigo-500 font-sans"
+              placeholder="Ask about processes, data, or system architecture…"
+              value={input}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
             />
           </div>
 
-          <div className="flex justify-between items-center px-4 py-3 border-t border-gray-50 bg-white">
-            <div className="flex items-center gap-3 text-gray-400">
-              <button className="hover:text-[#464775] hover:bg-indigo-50 p-1.5 rounded-md transition-colors"><Plus size={16} /></button>
-              <button className="hover:text-[#464775] hover:bg-indigo-50 p-1.5 rounded-md transition-colors"><Mic size={16} /></button>
+          {/* Actions */}
+          <div className="flex items-center justify-between px-3.5 py-2">
+            <div className="flex items-center gap-0.5">
+              {[
+                { icon: Plus, title: "Attach" },
+                { icon: Mic, title: "Voice" },
+                { icon: HelpCircle, title: "Help" },
+              ].map(({ icon: Icon, title }) => (
+                <button
+                  key={title}
+                  title={title}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                >
+                  <Icon size={17} />
+                </button>
+              ))}
             </div>
+
             <button
-              onClick={() => handleSend()}
-              disabled={!query.trim() || isLoading}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-xs transition-all shadow-sm
-              ${query.trim() && !isLoading
-                  ? 'bg-[#464775] text-white hover:bg-[#3a3b61] hover:shadow-md'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'}`}
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || isLoading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
+                ${input.trim() && !isLoading
+                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-200 hover:bg-indigo-600 hover:-translate-y-px'
+                  : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                }`}
             >
-              <span>{isLoading ? 'Processing...' : 'Send Query'}</span>
-              {!isLoading && <ArrowRight size={14} />}
+              {isLoading ? (
+                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>Send</span>
+                  <SendHorizonal size={14} />
+                </>
+              )}
             </button>
           </div>
         </div>
 
-      </div>
+        <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
+          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of SVX Copilot and its underlying processes.
+        </p>
+      </footer>
+
+      {/* Keyframe animations */}
+      <style jsx global>{`
+        .orb-ring-1 { animation: orb-pulse 3s ease-in-out infinite; }
+        .orb-ring-2 { animation: orb-pulse 3s ease-in-out infinite 0.6s; }
+        .avatar-pulse { animation: avatar-pulse 2.5s ease-in-out infinite; }
+        .dot-bounce   { animation: dot-bounce 1.2s ease-in-out infinite; }
+
+        @keyframes orb-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.5; transform: scale(1.08); }
+        }
+        @keyframes avatar-pulse {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50%       { opacity: 0;   transform: scale(1.25); }
+        }
+        @keyframes dot-bounce {
+          0%, 80%, 100% { transform: translateY(0);   opacity: 0.4; }
+          40%            { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* Prose markdown */
+        .prose-light { font-size: 13.5px; line-height: 1.7; color: #1f2937; }
+        .prose-light p  { margin: 0 0 10px; }
+        .prose-light p:last-child { margin-bottom: 0; }
+        .prose-light strong { color: #3730a3; font-weight: 600; }
+        .prose-light a  { color: #6366f1; text-decoration: underline; text-underline-offset: 2px; }
+        .prose-light code {
+          font-size: 12px; font-family: 'JetBrains Mono', monospace;
+          background: #eef2ff; color: #4f46e5;
+          padding: 2px 6px; border-radius: 4px;
+          border: 1px solid #c7d2fe;
+        }
+        .prose-light pre {
+          background: #f8faff; border: 1px solid #e0e7ff;
+          padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0;
+        }
+        .prose-light pre code { background: transparent; border: none; color: #374151; padding: 0; }
+        .prose-light ul { list-style: none; padding: 0; margin: 8px 0; }
+        .prose-light ul li { padding-left: 16px; position: relative; margin-bottom: 4px; }
+        .prose-light ul li::before {
+          content: ''; position: absolute; left: 0; top: 9px;
+          width: 5px; height: 5px; border-radius: 50%; background: #6366f1;
+        }
+        .prose-light ol { padding-left: 20px; margin: 8px 0; }
+        .prose-light h1, .prose-light h2, .prose-light h3 {
+          color: #111827; font-weight: 600; margin: 16px 0 8px; letter-spacing: -0.02em;
+        }
+      `}</style>
     </div>
   );
-};
-
-export default TeamsCopilotStyle;
+}
