@@ -1,7 +1,7 @@
 'use client';
 import { supabase } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Zap, Database, BrainCircuit } from 'lucide-react';
+import { RefreshCw, Zap, Database, BrainCircuit , Search } from 'lucide-react';
 
 export default function AuditReportViewer() {
   const [records, setRecords] = useState([]);
@@ -126,6 +126,17 @@ export default function AuditReportViewer() {
           </div>
 
           {/* Tabla de Auditoría */}
+          <div className="w-full flex flex-col">
+            <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-2">
+               <Search size={14} className="text-slate-400" />
+               <input 
+                 type="text" 
+                 placeholder="Filter by Model ID or Value..." 
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] transition-all"
+               />
+            </div>
           <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
             <table className="table-fixed border-collapse text-left text-xs w-full">
               <thead className="bg-gradient-to-b from-white to-[#FCFAFF]">
@@ -155,6 +166,7 @@ export default function AuditReportViewer() {
                 })}
               </tbody>
             </table>
+          </div>
           </div>
 
           {/* Footer de Auditoría */}

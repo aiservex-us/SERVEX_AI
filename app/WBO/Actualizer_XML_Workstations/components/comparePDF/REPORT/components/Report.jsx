@@ -1,13 +1,14 @@
 'use client';
 import { supabase } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Zap, Database, BrainCircuit, Activity, PlusCircle, MinusCircle, FileText, ArrowRight } from 'lucide-react';
+import { RefreshCw, Zap, Database, BrainCircuit, Activity, PlusCircle, MinusCircle, FileText, ArrowRight , Search } from 'lucide-react';
 
 export default function AuditReportViewer() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecordId, setSelectedRecordId] = useState(null);
-  const [activeTab, setActiveTab] = useState('changes'); // 'changes' | 'inventory_flux'
+  const [activeTab, setActiveTab] = useState('changes');
+  const [searchTerm, setSearchTerm] = useState(''); // 'changes' | 'inventory_flux'
 
   const calculatePercentage = (oldVal, newVal) => {
     const oldNum = parseFloat(oldVal);
@@ -39,6 +40,12 @@ export default function AuditReportViewer() {
   const reportDataP = activeRecord?.audit_report_jsonP;
   const metricsP = reportDataP?.summary_metrics;
   const changesP = reportDataP?.xml_injection_manifest || [];
+
+  const filteredChangesP = changesP.filter(c => 
+    (c.model_id || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (c.injected_value_old || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.injected_value_new || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Estructura JSON Estándar (Auditoría Ciega Completa)
   const reportDataRaw = activeRecord?.audit_report_json;
@@ -227,6 +234,17 @@ export default function AuditReportViewer() {
 
           {/* Contenido: Módulo 1 - Variaciones de Precios */}
           {activeTab === 'changes' && (
+            <div className="w-full flex flex-col">
+              <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-2">
+                 <Search size={14} className="text-slate-400" />
+                 <input 
+                   type="text" 
+                   placeholder="Filter by Model ID or Value..." 
+                   value={searchTerm}
+                   onChange={(e) => setSearchTerm(e.target.value)}
+                   className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] transition-all"
+                 />
+              </div>
             <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
               <table className="table-fixed border-collapse text-left text-xs w-full">
                 <thead className="bg-slate-50/95 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
@@ -239,7 +257,7 @@ export default function AuditReportViewer() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {changesP.map((c, i) => {
+                  {filteredChangesP.map((c, i) => {
                     const diff = calculatePercentage(c.injected_value_old, c.injected_value_new);
                     return (
                       <tr key={i} className="hover:bg-slate-50/80 transition-colors">
@@ -256,7 +274,7 @@ export default function AuditReportViewer() {
                       </tr>
                     );
                   })}
-                  {changesP.length === 0 && (
+                  {filteredChangesP.length === 0 && (
                     <tr>
                       <td colSpan={6} className="text-center py-12">
                         <div className="flex flex-col items-center justify-center">
@@ -270,6 +288,7 @@ export default function AuditReportViewer() {
                   )}
                 </tbody>
               </table>
+            </div>
             </div>
           )}
 
