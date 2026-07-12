@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Shield, User, Briefcase, FileText, CheckCircle, Loader2, Lock, AlertCircle, Sparkles } from 'lucide-react';
@@ -71,157 +71,207 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   };
 
   const renderChatStep = () => {
+    const animationProps = {
+      initial: { opacity: 0, y: 15, scale: 0.98 },
+      animate: { opacity: 1, y: 0, scale: 1 },
+      exit: { opacity: 0, y: -15, scale: 0.98 },
+      transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] }
+    };
+
+    const Avatar = () => (
+      <motion.div 
+        whileHover={{ scale: 1.05, rotate: -5 }}
+        className="relative w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white bg-gradient-to-br from-[#464775] to-[#35365e] shadow-md z-10"
+      >
+        <Sparkles size={18} />
+        <span className="absolute -inset-1 rounded-[16px] border border-[#464775]/30 animate-pulse" />
+      </motion.div>
+    );
+
     switch (chatStep) {
       case 0:
         return (
-          <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
-            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
-              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
-                <Sparkles size={16} />
+          <motion.div key="step-0" {...animationProps} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="flex gap-4 items-start mb-6">
+              <Avatar />
+              <div className="flex flex-col flex-1">
+                <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
+                <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
+                  <p className="text-gray-700 text-[13.5px] leading-relaxed m-0">
+                    Hola, soy <strong>Alysa</strong>. Para garantizar la seguridad corporativa y trazabilidad de este módulo, necesito registrar algunos datos sobre tu acceso. ¿Comenzamos?
+                  </p>
+                </div>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Hola, soy <strong>Alysa</strong>. Para garantizar la seguridad y trazabilidad de este módulo, necesito registrar algunos datos sobre tu acceso. ¿Comenzamos?
-              </p>
             </div>
-            <button 
-              onClick={() => setChatStep(1)}
-              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors"
-            >
-              Comenzar
-            </button>
-          </div>
+            <div className="flex justify-end">
+              <button 
+                onClick={() => setChatStep(1)}
+                className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px"
+              >
+                Comenzar
+              </button>
+            </div>
+          </motion.div>
         );
       case 1:
         return (
-          <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
-            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
-              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
-                <Sparkles size={16} />
+          <motion.div key="step-1" {...animationProps} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="flex gap-4 items-start mb-6">
+              <Avatar />
+              <div className="flex flex-col flex-1">
+                <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
+                <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
+                  <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
+                    ¡Perfecto! Para empezar, <strong>¿cuál es tu nombre y apellido?</strong>
+                  </p>
+                  <div className="relative group">
+                    <input 
+                      autoFocus
+                      type="text" 
+                      value={nombre} 
+                      onChange={e => setNombre(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && nombre.trim() && setChatStep(2)}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
+                      placeholder="Ej. Glynne..." 
+                    />
+                  </div>
+                </div>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                ¡Perfecto! Para empezar, <strong>¿cuál es tu nombre y apellido?</strong>
-              </p>
             </div>
-            <input 
-              autoFocus
-              type="text" 
-              value={nombre} 
-              onChange={e => setNombre(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && nombre.trim() && setChatStep(2)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4"
-              placeholder="Ej. Glynne..." 
-            />
-            <button 
-              onClick={() => nombre.trim() && setChatStep(2)}
-              disabled={!nombre.trim()}
-              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors disabled:opacity-50"
-            >
-              Siguiente
-            </button>
-          </div>
+            <div className="flex justify-end">
+              <button 
+                onClick={() => nombre.trim() && setChatStep(2)}
+                disabled={!nombre.trim()}
+                className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              >
+                Siguiente
+              </button>
+            </div>
+          </motion.div>
         );
       case 2:
         return (
-          <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
-            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
-              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
-                <Sparkles size={16} />
+          <motion.div key="step-2" {...animationProps} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="flex gap-4 items-start mb-6">
+              <Avatar />
+              <div className="flex flex-col flex-1">
+                <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
+                <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
+                  <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
+                    Mucho gusto, {nombre}. <strong>¿Qué cargo ocupas actualmente?</strong>
+                  </p>
+                  <div className="relative">
+                    <input 
+                      autoFocus
+                      type="text" 
+                      value={cargo} 
+                      onChange={e => setCargo(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && cargo.trim() && setChatStep(3)}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
+                      placeholder="Ej. Analista de Datos..." 
+                    />
+                  </div>
+                </div>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Mucho gusto, {nombre}. <strong>¿Qué cargo ocupas actualmente?</strong>
-              </p>
             </div>
-            <input 
-              autoFocus
-              type="text" 
-              value={cargo} 
-              onChange={e => setCargo(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && cargo.trim() && setChatStep(3)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4"
-              placeholder="Ej. Analista de Datos..." 
-            />
-            <button 
-              onClick={() => cargo.trim() && setChatStep(3)}
-              disabled={!cargo.trim()}
-              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors disabled:opacity-50"
-            >
-              Siguiente
-            </button>
-          </div>
+            <div className="flex justify-end">
+              <button 
+                onClick={() => cargo.trim() && setChatStep(3)}
+                disabled={!cargo.trim()}
+                className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              >
+                Siguiente
+              </button>
+            </div>
+          </motion.div>
         );
       case 3:
         return (
-          <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
-            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
-              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
-                <Sparkles size={16} />
+          <motion.div key="step-3" {...animationProps} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="flex gap-4 items-start mb-6">
+              <Avatar />
+              <div className="flex flex-col flex-1">
+                <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
+                <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
+                  <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
+                    Entendido. <strong>¿Quién autoriza o delega este acceso?</strong>
+                  </p>
+                  <div className="relative">
+                    <input 
+                      autoFocus
+                      type="text" 
+                      value={delegadoPor} 
+                      onChange={e => setDelegadoPor(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && delegadoPor.trim() && setChatStep(4)}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
+                      placeholder="Nombre de la autoridad..." 
+                    />
+                  </div>
+                </div>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Entendido. <strong>¿Quién autoriza o delega este acceso?</strong>
-              </p>
             </div>
-            <input 
-              autoFocus
-              type="text" 
-              value={delegadoPor} 
-              onChange={e => setDelegadoPor(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && delegadoPor.trim() && setChatStep(4)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4"
-              placeholder="Nombre de la autoridad..." 
-            />
-            <button 
-              onClick={() => delegadoPor.trim() && setChatStep(4)}
-              disabled={!delegadoPor.trim()}
-              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors disabled:opacity-50"
-            >
-              Siguiente
-            </button>
-          </div>
+            <div className="flex justify-end">
+              <button 
+                onClick={() => delegadoPor.trim() && setChatStep(4)}
+                disabled={!delegadoPor.trim()}
+                className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              >
+                Siguiente
+              </button>
+            </div>
+          </motion.div>
         );
       case 4:
         return (
-          <form onSubmit={handleSetupDelegation} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
-            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
-              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
-                <Sparkles size={16} />
+          <motion.form key="step-4" {...animationProps} onSubmit={handleSetupDelegation} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="flex gap-4 items-start mb-6">
+              <Avatar />
+              <div className="flex flex-col flex-1">
+                <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
+                <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
+                  <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
+                    Casi terminamos. <strong>¿Cuál es tu función específica y deseas dejar algún comentario?</strong> (Ambos opcionales)
+                  </p>
+                  
+                  {errorMsg && (
+                    <div className="p-3 mb-4 bg-red-50 text-red-600 text-[12px] rounded-lg border border-red-100 flex items-center">
+                      <AlertCircle size={14} className="mr-2 flex-shrink-0" />
+                      <span>{errorMsg}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <input 
+                      autoFocus
+                      type="text" 
+                      value={funcion} 
+                      onChange={e => setFuncion(e.target.value)}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
+                      placeholder="Función (ej. Revisión XML)..." 
+                    />
+                    <textarea 
+                      value={comentarios} 
+                      onChange={e => setComentarios(e.target.value)}
+                      rows="2"
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400 resize-none"
+                      placeholder="Comentarios adicionales..." 
+                    />
+                  </div>
+                </div>
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed">
-                Casi terminamos. <strong>¿Cuál es tu función específica aquí y deseas dejar algún comentario?</strong> (Ambos son opcionales)
-              </p>
             </div>
             
-            {errorMsg && (
-              <div className="p-3 mb-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center">
-                <AlertCircle size={16} className="mr-2 flex-shrink-0" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-            
-            <input 
-              autoFocus
-              type="text" 
-              value={funcion} 
-              onChange={e => setFuncion(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4"
-              placeholder="Tu función (ej. Revisión XML)..." 
-            />
-            <textarea 
-              value={comentarios} 
-              onChange={e => setComentarios(e.target.value)}
-              rows="2"
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4 resize-none"
-              placeholder="Comentarios adicionales..." 
-            />
-            
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors flex items-center justify-center disabled:opacity-70"
-            >
-              {isSubmitting ? <Loader2 className="animate-spin mr-2" size={18} /> : null}
-              {isSubmitting ? 'Registrando...' : 'Finalizar y Acceder'}
-            </button>
-          </form>
+            <div className="flex justify-end">
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px flex items-center disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              >
+                {isSubmitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+                {isSubmitting ? 'Registrando...' : 'Finalizar y Acceder'}
+              </button>
+            </div>
+          </motion.form>
         );
       default:
         return null;
@@ -433,7 +483,9 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
               <Image src="/logo.png" alt="SERVEX" width={140} height={40} priority />
             </div>
 
-            {renderChatStep()}
+            <AnimatePresence mode="wait">
+              {renderChatStep()}
+            </AnimatePresence>
           </div>
         </motion.div>
       </div>
