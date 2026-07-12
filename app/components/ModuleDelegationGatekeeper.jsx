@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Shield, User, Briefcase, FileText, CheckCircle, Loader2, Lock, AlertCircle } from 'lucide-react';
 
@@ -117,128 +118,212 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   // Pantalla de bloqueo si le pertenece a alguien más
   if (lockStatus === 'locked_by_other') {
     return (
-      <main className="min-h-screen bg-[#FFF] flex items-center justify-center p-8">
-        <section className="relative w-full max-w-3xl mx-auto overflow-hidden bg-white p-12 rounded-3xl border border-red-100 shadow-xl shadow-red-500/10 text-center">
-          <div className="absolute inset-0 z-0 bg-[#fbfbfc] overflow-hidden rounded-3xl">
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-red-500/5 to-red-500/10" />
-          </div>
-          
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6 border border-red-100">
-              <Lock size={40} />
+      <div className="min-h-screen flex items-center justify-center bg-[#fff] px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-5xl min-h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
+        >
+          {/* Lado Izquierdo: Diseño del Login */}
+          <div className="relative hidden md:flex flex-col justify-end p-10 overflow-hidden bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white">
+            <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px' }}>
+              <div 
+                className="absolute top-[15%] left-[5%] w-[180px] h-[180px] rounded-full bg-white/20 backdrop-blur-md border border-white/50"
+                style={{ 
+                  transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
+                  boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -2px 2px 0 rgba(255,255,255,0.6), -10px 10px 20px rgba(0,0,0,0.05)'
+                }} 
+              />
+              <div 
+                className="absolute top-[20%] left-[20%] w-[200px] h-[200px] rounded-full bg-gradient-to-br from-[#464775]/60 to-[#464775]/20 backdrop-blur-xl border border-white/60 z-10"
+                style={{ 
+                  transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
+                  boxShadow: 'inset 0 0 30px rgba(255,255,255,0.6), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -4px 4px 0 #d0d0d0, -15px 15px 30px rgba(0,0,0,0.1)'
+                }}
+              />
+              <div 
+                className="absolute top-[30%] right-[25%] w-[160px] h-[160px] rounded-full bg-white/30 backdrop-blur-md border border-white/50 z-10"
+                style={{ 
+                  transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
+                  boxShadow: 'inset 0 0 15px rgba(255,255,255,0.4), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -10px 10px 15px rgba(0,0,0,0.05)'
+                }}
+              />
+              <div 
+                className="absolute bottom-[35%] right-[10%] w-[190px] h-[190px] rounded-full bg-white/40 backdrop-blur-lg border border-white/70"
+                style={{ 
+                  transform: 'rotateX(15deg) rotateY(20deg) translateZ(0px)',
+                  boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -10px 10px 20px rgba(0,0,0,0.05)'
+                }}
+              />
+              <div 
+                className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] rounded-full bg-[#464775]/20 backdrop-blur-xl border border-white/30 blur-[4px]"
+                style={{ 
+                  transform: 'rotateX(45deg) rotateY(15deg) translateZ(150px)',
+                  boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3)'
+                }}
+              />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4 tracking-tight">Acceso Restringido</h1>
-            <p className="text-slate-500 text-lg max-w-lg mb-8 leading-relaxed">
-              El módulo <strong>{moduleName}</strong> está actualmente delegado y en uso exclusivo para evitar colisión de datos.
-            </p>
-            
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 w-full max-w-md text-left mb-8">
-              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Información de Delegación</h3>
-              <div className="space-y-3">
-                <p className="flex items-center text-slate-700"><User size={18} className="mr-3 text-slate-400" /> <span className="font-medium mr-2">Ocupante:</span> {ownerInfo?.nombre}</p>
-                <p className="flex items-center text-slate-700"><Briefcase size={18} className="mr-3 text-slate-400" /> <span className="font-medium mr-2">Cargo:</span> {ownerInfo?.cargo}</p>
-                <p className="flex items-center text-slate-700"><Shield size={18} className="mr-3 text-slate-400" /> <span className="font-medium mr-2">Autorizado por:</span> {ownerInfo?.delegadoPor}</p>
+
+            <div className="relative z-10 text-[#2B2C4B]">
+              <div className="text-4xl font-bold mb-4 text-[#464775]"><Lock size={40} /></div>
+              <p className="text-sm opacity-80 mb-2 font-medium">Módulo en Uso</p>
+              <h2 className="text-2xl font-semibold leading-snug">
+                El acceso a {moduleName} está restringido temporalmente para evitar colisiones.
+              </h2>
+            </div>
+          </div>
+
+          {/* Lado Derecho: Info */}
+          <div className="flex flex-col px-8 py-10 md:px-14 h-full relative z-10 bg-white">
+            <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+              <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">
+                Acceso Restringido
+              </h1>
+              <p className="text-sm text-gray-500 mb-8 text-center leading-relaxed">
+                Este módulo está actualmente delegado y en uso exclusivo por otro usuario.
+              </p>
+
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 mb-8">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Información de Delegación</h3>
+                <div className="space-y-3">
+                  <p className="flex items-center text-sm text-gray-700"><User size={16} className="mr-3 text-gray-400" /> <span className="font-medium mr-2">Ocupante:</span> {ownerInfo?.nombre}</p>
+                  <p className="flex items-center text-sm text-gray-700"><Briefcase size={16} className="mr-3 text-gray-400" /> <span className="font-medium mr-2">Cargo:</span> {ownerInfo?.cargo}</p>
+                  <p className="flex items-center text-sm text-gray-700"><Shield size={16} className="mr-3 text-gray-400" /> <span className="font-medium mr-2">Autorizado por:</span> {ownerInfo?.delegadoPor}</p>
+                </div>
               </div>
+
+              <button 
+                onClick={() => router.push('/panel')} 
+                className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
+              >
+                Volver al Menú
+              </button>
             </div>
-            
-            <button onClick={() => router.push('/panel')} className="px-8 py-3 bg-slate-800 text-white font-medium rounded-xl hover:bg-slate-700 transition-colors">
-              Volver al Menú
-            </button>
           </div>
-        </section>
-      </main>
+        </motion.div>
+      </div>
     );
   }
 
   // Pantalla de Formulario de Delegación
   if (lockStatus === 'no_delegation') {
     return (
-      <main className="min-h-screen bg-[#FFF] flex flex-col items-center justify-center p-4 md:p-8">
-        <section className="relative w-full max-w-4xl mx-auto overflow-hidden bg-white p-8 md:p-12 rounded-3xl border border-gray-100 shadow-sm">
-          {/* Fondo Abstracto tipo Main1 */}
-          <div className="absolute inset-0 z-0 bg-[#fbfbfc] overflow-hidden rounded-3xl pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/10" />
-            <div className="absolute top-[-10%] left-[-5%] w-[400px] h-[400px] rounded-[40%_60%_70%_30%] backdrop-blur-[12px] opacity-60"
-                 style={{ background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.05))' }} />
-          </div>
-
-          <div className="relative z-10 grid md:grid-cols-5 gap-12 items-center">
-            
-            {/* Lado Izquierdo: Info */}
-            <div className="md:col-span-2">
-              <div className="w-16 h-16 bg-[#464775]/10 text-[#464775] rounded-2xl flex items-center justify-center mb-6">
-                <Shield size={32} />
-              </div>
-              <h2 className="text-3xl font-bold text-slate-800 tracking-tight mb-4">Registro de Delegación</h2>
-              <p className="text-slate-500 mb-6 leading-relaxed text-sm">
-                El módulo <strong>{moduleName}</strong> requiere un registro formal de asignación para garantizar la trazabilidad y evitar colisiones durante el procesamiento de catálogos.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <CheckCircle className="text-emerald-500 mt-1 mr-3 flex-shrink-0" size={18} />
-                  <span className="text-sm text-slate-600">Acceso exclusivo a tu cuenta.</span>
-                </li>
-                <li className="flex items-start">
-                  <CheckCircle className="text-emerald-500 mt-1 mr-3 flex-shrink-0" size={18} />
-                  <span className="text-sm text-slate-600">Auditoría respaldada por tu delegador.</span>
-                </li>
-              </ul>
+      <div className="min-h-screen flex items-center justify-center bg-[#fff] px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-5xl min-h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
+        >
+          {/* Lado Izquierdo: Diseño del Login */}
+          <div className="relative hidden md:flex flex-col justify-end p-10 overflow-hidden bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white">
+            <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px' }}>
+              <div 
+                className="absolute top-[15%] left-[5%] w-[180px] h-[180px] rounded-full bg-white/20 backdrop-blur-md border border-white/50"
+                style={{ 
+                  transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
+                  boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -2px 2px 0 rgba(255,255,255,0.6), -10px 10px 20px rgba(0,0,0,0.05)'
+                }} 
+              />
+              <div 
+                className="absolute top-[20%] left-[20%] w-[200px] h-[200px] rounded-full bg-gradient-to-br from-[#464775]/60 to-[#464775]/20 backdrop-blur-xl border border-white/60 z-10"
+                style={{ 
+                  transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
+                  boxShadow: 'inset 0 0 30px rgba(255,255,255,0.6), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -4px 4px 0 #d0d0d0, -15px 15px 30px rgba(0,0,0,0.1)'
+                }}
+              />
+              <div 
+                className="absolute top-[30%] right-[25%] w-[160px] h-[160px] rounded-full bg-white/30 backdrop-blur-md border border-white/50 z-10"
+                style={{ 
+                  transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
+                  boxShadow: 'inset 0 0 15px rgba(255,255,255,0.4), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -10px 10px 15px rgba(0,0,0,0.05)'
+                }}
+              />
+              <div 
+                className="absolute bottom-[35%] right-[10%] w-[190px] h-[190px] rounded-full bg-white/40 backdrop-blur-lg border border-white/70"
+                style={{ 
+                  transform: 'rotateX(15deg) rotateY(20deg) translateZ(0px)',
+                  boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -10px 10px 20px rgba(0,0,0,0.05)'
+                }}
+              />
+              <div 
+                className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] rounded-full bg-[#464775]/20 backdrop-blur-xl border border-white/30 blur-[4px]"
+                style={{ 
+                  transform: 'rotateX(45deg) rotateY(15deg) translateZ(150px)',
+                  boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3)'
+                }}
+              />
             </div>
 
-            {/* Lado Derecho: Formulario */}
-            <div className="md:col-span-3">
-              <form onSubmit={handleSetupDelegation} className="bg-white/60 backdrop-blur-md p-6 rounded-2xl border border-white/50 shadow-xl shadow-slate-200/40">
-                <h3 className="text-lg font-semibold text-slate-800 mb-6 flex items-center">
-                  <User size={20} className="mr-2 text-[#464775]" /> Completa tus datos
-                </h3>
+            <div className="relative z-10 text-[#2B2C4B]">
+              <div className="text-4xl font-bold mb-4 text-[#464775]"><Shield size={40} /></div>
+              <p className="text-sm opacity-80 mb-2 font-medium">Registro de Delegación</p>
+              <h2 className="text-2xl font-semibold leading-snug">
+                El módulo {moduleName} requiere un registro formal para garantizar trazabilidad durante el procesamiento.
+              </h2>
+            </div>
+          </div>
 
+          {/* Lado Derecho: Formulario */}
+          <div className="flex flex-col px-8 py-10 md:px-14 h-full relative z-10 bg-white">
+            <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+              <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">
+                Completar Registro
+              </h1>
+              <p className="text-sm text-gray-500 mb-6 text-center leading-relaxed">
+                El acceso será de uso exclusivo para tu cuenta.
+              </p>
+
+              <form onSubmit={handleSetupDelegation} className="space-y-4">
                 {errorMsg && (
-                  <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center">
-                    <AlertCircle size={16} className="mr-2" /> {errorMsg}
+                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center">
+                    <AlertCircle size={16} className="mr-2 flex-shrink-0" /> 
+                    <span>{errorMsg}</span>
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Nombre y Apellido *</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">NOMBRE *</label>
                     <input type="text" required value={nombre} onChange={e => setNombre(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
                       placeholder="Ej. Glynne" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Cargo *</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">CARGO *</label>
                     <input type="text" required value={cargo} onChange={e => setCargo(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
-                      placeholder="Ej. Analista de Datos" />
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
+                      placeholder="Analista" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Función (Rol)</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">FUNCIÓN</label>
                     <input type="text" value={funcion} onChange={e => setFuncion(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
-                      placeholder="Ej. Revisión XML" />
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
+                      placeholder="Revisión XML" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Delegado Por *</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">DELEGADO POR *</label>
                     <input type="text" required value={delegadoPor} onChange={e => setDelegadoPor(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
-                      placeholder="Nombre de Autoridad" />
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
+                      placeholder="Autoridad" />
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Comentarios (Opcional)</label>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">COMENTARIOS</label>
                   <textarea value={comentarios} onChange={e => setComentarios(e.target.value)} rows="2"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all resize-none"
-                    placeholder="Detalles sobre el uso del módulo..." />
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all resize-none"
+                    placeholder="Opcional..." />
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="w-full bg-[#464775] text-white py-3.5 rounded-xl font-medium hover:bg-[#35365e] transition-colors flex items-center justify-center disabled:opacity-70"
+                  className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors flex items-center justify-center disabled:opacity-70 mt-4"
                 >
                   {isSubmitting ? <Loader2 className="animate-spin mr-2" size={18} /> : null}
                   {isSubmitting ? 'Registrando...' : 'Registrar y Acceder'}
@@ -246,8 +331,8 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
               </form>
             </div>
           </div>
-        </section>
-      </main>
+        </motion.div>
+      </div>
     );
   }
 
