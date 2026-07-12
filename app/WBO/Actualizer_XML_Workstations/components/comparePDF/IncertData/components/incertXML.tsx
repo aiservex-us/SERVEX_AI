@@ -259,8 +259,9 @@ export default function UploadClientXML() {
 
       // Modificación de red limpia y tipada: Evita el eco masivo de datos de vuelta por la red HTTP
       const { error } = await supabase
-        .from('ClientsSERVEX_WBO ')
-        .upsert(payload, { onConflict: 'company_name' })
+        .from('ClientsSERVEX_WBO')
+        .update(payload)
+        .eq('user_id', user.id)
         .select('');
 
       if (error) {

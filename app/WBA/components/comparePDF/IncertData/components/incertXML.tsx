@@ -194,7 +194,8 @@ export default function UploadClientXML() {
       // Corregido: Usamos .insert() en lugar de .upsert() sin ID para garantizar la inserción exitosa
       const { error } = await supabase
         .from('ClientsSERVEX_WBA')
-        .insert([payload]);
+        .update(payload)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Supabase Core Error:', error);

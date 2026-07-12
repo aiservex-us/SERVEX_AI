@@ -192,7 +192,8 @@ export default function UploadClientXML() {
 
       const { error } = await supabase
         .from('ClientsSERVEX_WBG')
-        .insert([payload]);
+        .update(payload)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Supabase Core Error:', error);
