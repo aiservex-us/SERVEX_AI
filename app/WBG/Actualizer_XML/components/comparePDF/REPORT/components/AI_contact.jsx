@@ -17,6 +17,7 @@ const SLASH_COMMANDS = [
   { id: 'altas', icon: Plus, label: '/altas', desc: 'Ver lista de productos agregados' },
   { id: 'cambios', icon: RefreshCw, label: '/cambios', desc: 'Ver todas las modificaciones' },
   { id: 'modelo', icon: Search, label: '/modelo ', desc: 'Buscar un SKU específico' },
+  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructurar XML y comparar catálogo (Step 2)' },
 ];
 
 const QUICK_PROMPTS = [
@@ -40,7 +41,12 @@ export default function TeamsAgentChat({ currentSection }) {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      try {
+  
+    if (queryToSend === '/executeProcess') {
+      window.dispatchEvent(new Event('executeProcessCommand'));
+    }
+
+    try {
         const res = await fetch(`${apiURL}/wbg/api/v1/agent/history`);
         const data = await res.json();
         if (data.status === "success" && data.history) {

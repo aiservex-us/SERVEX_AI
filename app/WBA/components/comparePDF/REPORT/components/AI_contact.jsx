@@ -57,6 +57,11 @@ export default function TeamsAgentChat() {
     setInput("");
     setIsLoading(true);
 
+
+    if (queryToSend === '/executeProcess') {
+      window.dispatchEvent(new Event('executeProcessCommand'));
+    }
+
     try {
       const res = await fetch(`${apiURL}/dynamic/agent/chat/full`, {
         method: "POST",

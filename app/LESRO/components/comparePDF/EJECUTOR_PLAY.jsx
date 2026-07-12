@@ -32,7 +32,16 @@ const EJECUTOR_PLAY = ({
   useEffect(() => {
     if (!isProcessing && showStatusPopup) {
       const timer = setTimeout(() => setShowStatusPopup(false), 2000);
-      return () => clearTimeout(timer);
+    
+  useEffect(() => {
+    const handleTrigger = () => {
+      ejecutarSegundoProceso();
+    };
+    window.addEventListener('executeProcessCommand', handleTrigger);
+    return () => window.removeEventListener('executeProcessCommand', handleTrigger);
+  }, [estadoProcesando]);
+
+  return () => clearTimeout(timer);
     }
   }, [isProcessing, showStatusPopup]);
 

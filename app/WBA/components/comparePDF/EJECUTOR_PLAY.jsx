@@ -30,7 +30,16 @@ const EJECUTOR_PLAY = ({
   useEffect(() => {
     if (!estadoProcesando && showStatusPopup) {
       const timer = setTimeout(() => setShowStatusPopup(false), 2000);
-      return () => clearTimeout(timer);
+    
+  useEffect(() => {
+    const handleTrigger = () => {
+      ejecutarSegundoProceso();
+    };
+    window.addEventListener('executeProcessCommand', handleTrigger);
+    return () => window.removeEventListener('executeProcessCommand', handleTrigger);
+  }, [estadoProcesando]);
+
+  return () => clearTimeout(timer);
     }
   }, [estadoProcesando, showStatusPopup]);
 
@@ -52,6 +61,7 @@ const EJECUTOR_PLAY = ({
   };
 
   const ejecutarSegundoProceso = async () => {
+    if (estadoProcesando) return;
     setShowSecondPopup(true);
     setLocalProcessing(true);
     if (setIsProcessing) setIsProcessing(true);
@@ -190,24 +200,7 @@ const EJECUTOR_PLAY = ({
               </p>
             </div>
           </div>
-
-          {/* SEGUNDO BOTÓN CON DESCRIPCIÓN */}
-          <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
-            <button 
-              onClick={ejecutarSegundoProceso}
-              disabled={(!file && !hasExistingData) || estadoProcesando}
-              className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
-            >
-              {estadoProcesando && showSecondPopup ? <Loader2 size={12} className="animate-spin" /> : <Cpu size={12} />}
-              <span className="line-clamp-2">EXECUTE XML RESTRUCTURE AND CATALOG COMPARE (SECOND STEP)</span>
-            </button>
-            <div className="px-1 py-1 sm:py-2">
-              <p className="text-[8px] sm:text-[9px] font-bold text-[#464775] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
-              <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed line-clamp-3 sm:line-clamp-none">
-                Restructures the XML catalog format and compares it against master records. Generates an audit report highlighting changes, differences, and validation results for CET Designer approval.
-              </p>
-            </div>
-          </div>
+          {/* Botón removido: La ejecución ahora se hace vía AI Command (/executeProcess) */}
 
           {/* BOTÓN DE RESET CON DESCRIPCIÓN */}
           <div className="flex flex-col gap-1.5 sm:gap-2 mt-auto">
