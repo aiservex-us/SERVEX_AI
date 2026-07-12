@@ -1,4 +1,8 @@
-'use client';
+import os
+
+filepath = '/Users/glynne/Desktop/SERVEX_AI/app/WBS/Actualizer_XML_Seatings/components/comparePDF/IncertData/Incert_data.jsx'
+
+content = """'use client';
 
 import React from 'react';
 import DeleteData from './components/delete_data';
@@ -25,3 +29,9 @@ const IncertData = () => {
 };
 
 export default IncertData;
+"""
+
+with open(filepath, 'w') as f:
+    f.write(content)
+
+print("Incert_data.jsx updated successfully.")

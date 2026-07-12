@@ -1,4 +1,8 @@
-'use client';
+import os
+
+filepath = '/Users/glynne/Desktop/SERVEX_AI/app/WBS/Actualizer_XML_Seatings/components/comparePDF/IncertData/components/incertXML.tsx'
+
+content = """'use client';
 
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
@@ -107,8 +111,8 @@ export default function UploadClientXML() {
       if (char === '"') {
         insideQuotes = !insideQuotes;
         currentLine += char;
-      } else if ((char === '\n' || char === '\r') && !insideQuotes) {
-        if (char === '\r' && rawCsvText[i + 1] === '\n') {
+      } else if ((char === '\\n' || char === '\\r') && !insideQuotes) {
+        if (char === '\\r' && rawCsvText[i + 1] === '\\n') {
           i++; 
         }
         lines.push(currentLine);
@@ -117,7 +121,7 @@ export default function UploadClientXML() {
         currentLine += char;
       }
     }
-    if (currentLine || rawCsvText.endsWith('\n') || rawCsvText.endsWith('\r')) {
+    if (currentLine || rawCsvText.endsWith('\\n') || rawCsvText.endsWith('\\r')) {
       lines.push(currentLine);
     }
 
@@ -142,12 +146,12 @@ export default function UploadClientXML() {
       }
     }
 
-    const fullRawHeader = rawHeaderAccum.join('\n');
+    const fullRawHeader = rawHeaderAccum.join('\\n');
 
     const tokens = fullRawHeader.split(';');
     const cleanedTokens = tokens.map(token => {
-      let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
-      tClean = tClean.split(/\s+/).join(' ').trim();
+      let tClean = token.replace(/\\n/g, ' ').replace(/\\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
+      tClean = tClean.split(/\\s+/).join(' ').trim();
       return tClean;
     });
 
@@ -595,3 +599,9 @@ return (
     </div>
   );
 }
+"""
+
+with open(filepath, 'w') as f:
+    f.write(content)
+
+print("incertXML.tsx replaced successfully.")
