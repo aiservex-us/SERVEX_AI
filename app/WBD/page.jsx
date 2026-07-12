@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import Main1 from './components/main';
+import ModuleDelegationGatekeeper from '../components/ModuleDelegationGatekeeper';
 
 
 export default function Home() {
@@ -9,7 +10,9 @@ export default function Home() {
       
       {/* Contenedor Sección Hero / Principal */}
       <section className="w-full">
-        <Main1 />
+        <ModuleDelegationGatekeeper moduleName="WBD" redirectUrl="/WBD/Actualizer_XML_Desks">
+          <Main1 />
+        </ModuleDelegationGatekeeper>
       </section>
 
     </main>

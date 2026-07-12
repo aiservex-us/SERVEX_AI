@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import Main1 from './components/main';
+import ModuleDelegationGatekeeper from '../components/ModuleDelegationGatekeeper';
 
 
 export default function Home() {
@@ -9,7 +10,9 @@ export default function Home() {
 
       {/*  */}
       <section className="w-full ">
-        <Main1 />
+        <ModuleDelegationGatekeeper moduleName="WBT" redirectUrl="/WBT/Actualizer_XML_Tables">
+          <Main1 />
+        </ModuleDelegationGatekeeper>
       </section>
 
     </main>

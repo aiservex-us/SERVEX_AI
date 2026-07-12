@@ -1,5 +1,7 @@
 'use client';
 
+import ModuleDelegationGatekeeper from '../components/ModuleDelegationGatekeeper';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient'; 
@@ -93,7 +95,8 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+    <ModuleDelegationGatekeeper moduleName="WBA">
+      <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
@@ -188,5 +191,6 @@ export default function MenuInicial() {
         </div>
       </main>
     </div>
+    </ModuleDelegationGatekeeper>
   );
 }
