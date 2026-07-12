@@ -71,50 +71,78 @@ export default function Content() {
   return (
     <div className="space-y-6 px-4 md:px-0 font-sans">
       
-      {/* BANNER REDISEÑADO CON ANIMACIONES Y GLASSMORPHISM */}
+      {/* BANNER REDISEÑADO CON ANIMACIONES Y GLASSMORPHISM (ESTILO MAIN1) */}
       <motion.section 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative rounded-3xl p-8 md:p-12 flex flex-col md:flex-row justify-between items-center overflow-hidden shadow-2xl border border-white/20 bg-gradient-to-br from-[#2B2C4B] via-[#464775] to-[#5a5b8a] mb-8"
+        className="relative rounded-3xl p-8 md:p-12 flex flex-col md:flex-row justify-between items-center overflow-hidden shadow-[0_10px_40px_-10px_rgba(70,71,117,0.1)] border border-[#464775]/10 bg-white mb-8"
       >
-        {/* Animated Background Orbs */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              rotate: [0, 90, 0],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-[50%] -left-[10%] w-[80%] h-[150%] rounded-full bg-gradient-to-br from-[#8c8dcb]/30 to-transparent blur-3xl"
+        {/* Animated Background Spheres (from main1.jsx) */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/60 via-[#464775]/5 to-[#464775]/10" />
+          
+          <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[120%] rotate-[15deg]">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60 shadow-[1px_0_10px_rgba(0,0,0,0.03)]" />
+          </div>
+          <div className="absolute top-[5%] right-[15%] w-[40%] h-[100%] rotate-[15deg]">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/5 to-transparent border-l border-white/50" />
+          </div>
+          <div className="absolute top-[-20%] left-[10%] w-[30%] h-[80%] rotate-[15deg]">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60" />
+          </div>
+
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes float-bubble {
+              0%, 100% { transform: translateY(0) scale(1); }
+              50% { transform: translateY(-15px) scale(1.02); }
+            }
+          `}} />
+          
+          {/* Sphere 1: Back left - large and soft */}
+          <div 
+            className="absolute top-[5%] left-[5%] w-[150px] h-[150px] rounded-full backdrop-blur-[12px]"
+            style={{ 
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 20%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.5) 100%)',
+              boxShadow: 'inset -15px -15px 30px rgba(70, 71, 117, 0.15), inset 10px 10px 25px rgba(255,255,255,0.9), 0 20px 40px rgba(70,71,117,0.05)',
+              animation: 'float-bubble 8s ease-in-out infinite'
+            }} 
           />
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.3, 1],
-              rotate: [0, -90, 0],
-              opacity: [0.1, 0.3, 0.1]
+          {/* Sphere 2: Main center/right - very large, crisp */}
+          <div 
+            className="absolute top-[10%] right-[10%] w-[250px] h-[250px] rounded-full backdrop-blur-[16px] z-10"
+            style={{ 
+              background: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 25%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0.7) 100%)',
+              boxShadow: 'inset -25px -25px 50px rgba(70, 71, 117, 0.2), inset 15px 15px 30px rgba(255,255,255,1), 0 30px 60px rgba(70,71,117,0.1)',
+              animation: 'float-bubble 12s ease-in-out infinite reverse'
             }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="absolute -bottom-[50%] -right-[10%] w-[70%] h-[150%] rounded-full bg-gradient-to-tl from-[#ffffff]/20 to-transparent blur-3xl"
+          />
+          {/* Sphere 3: Bottom right - medium size */}
+          <div 
+            className="absolute bottom-[-10%] right-[30%] w-[180px] h-[180px] rounded-full backdrop-blur-[8px]"
+            style={{ 
+              background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 25%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.4) 100%)',
+              boxShadow: 'inset -10px -10px 20px rgba(70, 71, 117, 0.15), inset 8px 8px 20px rgba(255,255,255,0.8), 0 15px 30px rgba(70,71,117,0.05)',
+              animation: 'float-bubble 9s ease-in-out infinite 2s'
+            }}
           />
         </div>
         
-        <div className="relative z-10 max-w-xl w-full">
+        <div className="relative z-10 w-full max-w-2xl">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-widest mb-5 backdrop-blur-md">
-              <Zap size={14} className="text-amber-300" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 border border-[#464775]/20 text-[#464775] text-[10px] font-bold uppercase tracking-widest mb-5 backdrop-blur-md shadow-sm">
+              <Zap size={14} className="text-amber-500" />
               <span>Next-Gen Intelligence</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold mb-5 text-white tracking-tight leading-[1.15]">
+            <h1 className="text-3xl md:text-5xl font-light mb-5 text-[#1a1a1a] tracking-tighter leading-[1.1]">
               Welcome to <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 via-white to-indigo-100">SERVEX Client Copilot</span>
+              <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#464775] to-[#2B2C4B]">SERVEX Client Copilot</span>
             </h1>
-            <p className="text-indigo-100/90 text-sm md:text-base mb-8 leading-relaxed font-light max-w-lg">
+            <p className="text-gray-500 text-sm md:text-base mb-8 leading-relaxed font-light max-w-xl">
               Your centralized AI hub designed to manage and streamline all your operations. 
               Harness autonomous agents to simplify complex workflows and boost productivity 
               across your entire organization.
@@ -129,7 +157,7 @@ export default function Content() {
           >
             <button 
               onClick={() => router.push('/modelContext')}
-              className="group bg-white text-[#2B2C4B] px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-indigo-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] w-full sm:w-auto text-center flex items-center justify-center gap-2"
+              className="group bg-[#464775] text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-[#3a3b61] transition-all shadow-[0_10px_20px_rgba(70,71,117,0.2)] hover:shadow-[0_15px_30px_rgba(70,71,117,0.3)] w-full sm:w-auto text-center flex items-center justify-center gap-2"
             >
               Start AI Context
               <Target size={16} className="group-hover:rotate-12 transition-transform" />
@@ -138,33 +166,12 @@ export default function Content() {
               href="https://servex-ai-iota.vercel.app/politicas" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="bg-white/10 backdrop-blur-md text-white border border-white/30 px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-white/20 transition-all text-center w-full sm:w-auto flex items-center justify-center"
+              className="bg-white/80 backdrop-blur-md text-[#464775] border border-[#464775]/20 px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-white transition-all hover:shadow-md text-center w-full sm:w-auto flex items-center justify-center"
             >
               Documentation
             </a>
           </motion.div>
         </div>
-        
-        {/* Decoración 3D / Logo a la derecha */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.3, type: "spring" }}
-          className="hidden md:flex relative w-64 h-64 z-10 items-center justify-center mt-8 md:mt-0"
-        >
-          <motion.div 
-            animate={{ y: [-15, 15, -15] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 bg-white/5 rounded-full blur-3xl"
-          />
-          <motion.img
-            animate={{ y: [-5, 5, -5], rotate: [-2, 2, -2] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            src="/logo2.png"
-            alt="SERVEX Logo"
-            className="w-48 h-48 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)] brightness-0 invert opacity-90"
-          />
-        </motion.div>
       </motion.section>
 
       {/* TRENDING INSIGHTS */}
