@@ -5,7 +5,7 @@ import { supabase } from '@/app/lib/supabaseClient';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Shield, User, Briefcase, FileText, CheckCircle, Loader2, Lock, AlertCircle } from 'lucide-react';
+import { Shield, User, Briefcase, FileText, CheckCircle, Loader2, Lock, AlertCircle, Sparkles } from 'lucide-react';
 
 export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, children }) {
   const [loading, setLoading] = useState(true);
@@ -23,6 +23,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
 
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [chatStep, setChatStep] = useState(0);
 
   const router = useRouter();
   const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
@@ -67,6 +68,164 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
       setLockStatus('unlocked');
     }
     setLoading(false);
+  };
+
+  const renderChatStep = () => {
+    switch (chatStep) {
+      case 0:
+        return (
+          <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
+              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
+                <Sparkles size={16} />
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Hola, soy <strong>Alysa</strong>. Para garantizar la seguridad y trazabilidad de este módulo, necesito registrar algunos datos sobre tu acceso. ¿Comenzamos?
+              </p>
+            </div>
+            <button 
+              onClick={() => setChatStep(1)}
+              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors"
+            >
+              Comenzar
+            </button>
+          </div>
+        );
+      case 1:
+        return (
+          <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
+              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
+                <Sparkles size={16} />
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                ¡Perfecto! Para empezar, <strong>¿cuál es tu nombre y apellido?</strong>
+              </p>
+            </div>
+            <input 
+              autoFocus
+              type="text" 
+              value={nombre} 
+              onChange={e => setNombre(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && nombre.trim() && setChatStep(2)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4"
+              placeholder="Ej. Glynne..." 
+            />
+            <button 
+              onClick={() => nombre.trim() && setChatStep(2)}
+              disabled={!nombre.trim()}
+              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        );
+      case 2:
+        return (
+          <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
+              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
+                <Sparkles size={16} />
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Mucho gusto, {nombre}. <strong>¿Qué cargo ocupas actualmente?</strong>
+              </p>
+            </div>
+            <input 
+              autoFocus
+              type="text" 
+              value={cargo} 
+              onChange={e => setCargo(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && cargo.trim() && setChatStep(3)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4"
+              placeholder="Ej. Analista de Datos..." 
+            />
+            <button 
+              onClick={() => cargo.trim() && setChatStep(3)}
+              disabled={!cargo.trim()}
+              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        );
+      case 3:
+        return (
+          <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
+              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
+                <Sparkles size={16} />
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Entendido. <strong>¿Quién autoriza o delega este acceso?</strong>
+              </p>
+            </div>
+            <input 
+              autoFocus
+              type="text" 
+              value={delegadoPor} 
+              onChange={e => setDelegadoPor(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && delegadoPor.trim() && setChatStep(4)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4"
+              placeholder="Nombre de la autoridad..." 
+            />
+            <button 
+              onClick={() => delegadoPor.trim() && setChatStep(4)}
+              disabled={!delegadoPor.trim()}
+              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </div>
+        );
+      case 4:
+        return (
+          <form onSubmit={handleSetupDelegation} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl mb-6 relative">
+              <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#464775] text-white rounded-full flex items-center justify-center shadow-md">
+                <Sparkles size={16} />
+              </div>
+              <p className="text-gray-700 text-sm leading-relaxed">
+                Casi terminamos. <strong>¿Cuál es tu función específica aquí y deseas dejar algún comentario?</strong> (Ambos son opcionales)
+              </p>
+            </div>
+            
+            {errorMsg && (
+              <div className="p-3 mb-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center">
+                <AlertCircle size={16} className="mr-2 flex-shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+            
+            <input 
+              autoFocus
+              type="text" 
+              value={funcion} 
+              onChange={e => setFuncion(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4"
+              placeholder="Tu función (ej. Revisión XML)..." 
+            />
+            <textarea 
+              value={comentarios} 
+              onChange={e => setComentarios(e.target.value)}
+              rows="2"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all mb-4 resize-none"
+              placeholder="Comentarios adicionales..." 
+            />
+            
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors flex items-center justify-center disabled:opacity-70"
+            >
+              {isSubmitting ? <Loader2 className="animate-spin mr-2" size={18} /> : null}
+              {isSubmitting ? 'Registrando...' : 'Finalizar y Acceder'}
+            </button>
+          </form>
+        );
+      default:
+        return null;
+    }
   };
 
   const handleSetupDelegation = async (e) => {
@@ -274,69 +433,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
               <Image src="/logo.png" alt="SERVEX" width={140} height={40} priority />
             </div>
 
-            <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
-              <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">
-                Completar Registro
-              </h1>
-              <p className="text-sm text-gray-500 mb-6 text-center leading-relaxed">
-                El acceso será de uso exclusivo para tu cuenta.
-              </p>
-
-              <form onSubmit={handleSetupDelegation} className="space-y-4">
-                {errorMsg && (
-                  <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center">
-                    <AlertCircle size={16} className="mr-2 flex-shrink-0" />
-                    <span>{errorMsg}</span>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">NOMBRE *</label>
-                    <input type="text" required value={nombre} onChange={e => setNombre(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
-                      placeholder="Ej. Glynne" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">CARGO *</label>
-                    <input type="text" required value={cargo} onChange={e => setCargo(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
-                      placeholder="Analista" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">FUNCIÓN</label>
-                    <input type="text" value={funcion} onChange={e => setFuncion(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
-                      placeholder="Revisión XML" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">DELEGADO POR *</label>
-                    <input type="text" required value={delegadoPor} onChange={e => setDelegadoPor(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all"
-                      placeholder="Autoridad" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1 tracking-wide">COMENTARIOS</label>
-                  <textarea value={comentarios} onChange={e => setComentarios(e.target.value)} rows="2"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#464775]/30 focus:border-[#464775] transition-all resize-none"
-                    placeholder="Opcional..." />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors flex items-center justify-center disabled:opacity-70 mt-4"
-                >
-                  {isSubmitting ? <Loader2 className="animate-spin mr-2" size={18} /> : null}
-                  {isSubmitting ? 'Registrando...' : 'Registrar y Acceder'}
-                </button>
-              </form>
-            </div>
+            {renderChatStep()}
           </div>
         </motion.div>
       </div>
