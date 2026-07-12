@@ -279,9 +279,14 @@ const SVXUnifiedPlatform = () => {
       }
 
       // Realizamos el upsert apuntando explícitamente sobre el índice único de tu DDL: company_name
-      const { error: supabaseError } = await supabase
-        .from(targetTableName)
-        .upsert(payload, { onConflict: 'company_name' });
+      let supabaseError = null;
+      if (user) {
+        const { error } = await supabase.from(targetTableName).update(payload).eq('user_id', user.id);
+        supabaseError = error;
+      } else {
+        const { error } = await supabase.from(targetTableName).upsert(payload, { onConflict: 'company_name' });
+        supabaseError = error;
+      }
 
       if (supabaseError) {
         throw new Error(`Supabase Error: ${supabaseError.message}`);

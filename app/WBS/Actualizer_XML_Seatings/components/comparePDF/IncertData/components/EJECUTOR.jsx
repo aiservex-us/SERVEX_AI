@@ -205,7 +205,14 @@ const SVXUnifiedPlatform = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const payload = { company_name: currentTenant, csv_new_raw: sanitizedJsonData, created_at: new Date().toISOString() };
       if (user) payload.user_id = user.id;
-      const { error: supabaseError } = await supabase.from(targetTableName).upsert(payload, { onConflict: 'company_name' });
+      let supabaseError = null;
+      if (user) {
+        const { error } = await supabase.from(targetTableName).update(payload).eq('user_id', user.id);
+        supabaseError = error;
+      } else {
+        const { error } = await supabase.from(targetTableName).upsert(payload, { onConflict: 'company_name' });
+        supabaseError = error;
+      }
       if (supabaseError) throw new Error(`Supabase Error: ${supabaseError.message}`);
       setBackendSuccess(true);
       setHasExistingData(true);
