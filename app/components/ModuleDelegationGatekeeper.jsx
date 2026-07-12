@@ -10,7 +10,7 @@ import { Shield, User, Briefcase, FileText, CheckCircle, Loader2, Lock, AlertCir
 export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, children }) {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  
+
   const [lockStatus, setLockStatus] = useState('checking'); // 'checking', 'unlocked', 'locked_by_other', 'no_delegation'
   const [ownerInfo, setOwnerInfo] = useState(null);
 
@@ -20,7 +20,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   const [funcion, setFuncion] = useState('');
   const [delegadoPor, setDelegadoPor] = useState('');
   const [comentarios, setComentarios] = useState('');
-  
+
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,7 +36,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
     try {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
-      
+
       const res = await fetch(`${apiURL}/api/v1/module_delegation/${moduleName}`);
       const responseData = await res.json();
 
@@ -72,7 +72,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   const handleSetupDelegation = async (e) => {
     e.preventDefault();
     setErrorMsg('');
-    
+
     if (!nombre.trim() || !cargo.trim() || !delegadoPor.trim()) {
       setErrorMsg('Por favor llena los campos obligatorios (Nombre, Cargo y Quién Delega).');
       return;
@@ -94,7 +94,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
         body: JSON.stringify({ user_id: currentUser?.id, delegation_data: delegationData })
       });
       if (!res.ok) throw new Error("Error API");
-      
+
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
@@ -119,47 +119,47 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   // Pantalla de bloqueo si le pertenece a alguien más
   if (lockStatus === 'locked_by_other') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fff] px-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#fff] px-4 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-5xl h-[97vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
+          className="w-full max-w-5xl h-[70vh] max-h-[800px] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
         >
           {/* Lado Izquierdo: Diseño del Login */}
           <div className="relative hidden md:flex flex-col justify-end p-10 overflow-hidden bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white">
             <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px' }}>
-              <div 
+              <div
                 className="absolute top-[15%] left-[5%] w-[180px] h-[180px] rounded-full bg-white/20 backdrop-blur-md border border-white/50"
-                style={{ 
+                style={{
                   transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
                   boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -2px 2px 0 rgba(255,255,255,0.6), -10px 10px 20px rgba(0,0,0,0.05)'
-                }} 
+                }}
               />
-              <div 
+              <div
                 className="absolute top-[20%] left-[20%] w-[200px] h-[200px] rounded-full bg-gradient-to-br from-[#464775]/60 to-[#464775]/20 backdrop-blur-xl border border-white/60 z-10"
-                style={{ 
+                style={{
                   transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
                   boxShadow: 'inset 0 0 30px rgba(255,255,255,0.6), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -4px 4px 0 #d0d0d0, -15px 15px 30px rgba(0,0,0,0.1)'
                 }}
               />
-              <div 
+              <div
                 className="absolute top-[30%] right-[25%] w-[160px] h-[160px] rounded-full bg-white/30 backdrop-blur-md border border-white/50 z-10"
-                style={{ 
+                style={{
                   transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
                   boxShadow: 'inset 0 0 15px rgba(255,255,255,0.4), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -10px 10px 15px rgba(0,0,0,0.05)'
                 }}
               />
-              <div 
+              <div
                 className="absolute bottom-[35%] right-[10%] w-[190px] h-[190px] rounded-full bg-white/40 backdrop-blur-lg border border-white/70"
-                style={{ 
+                style={{
                   transform: 'rotateX(15deg) rotateY(20deg) translateZ(0px)',
                   boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -10px 10px 20px rgba(0,0,0,0.05)'
                 }}
               />
-              <div 
+              <div
                 className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] rounded-full bg-[#464775]/20 backdrop-blur-xl border border-white/30 blur-[4px]"
-                style={{ 
+                style={{
                   transform: 'rotateX(45deg) rotateY(15deg) translateZ(150px)',
                   boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3)'
                 }}
@@ -198,8 +198,8 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 </div>
               </div>
 
-              <button 
-                onClick={() => router.push('/panel')} 
+              <button
+                onClick={() => router.push('/panel')}
                 className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
               >
                 Volver al Menú
@@ -214,47 +214,47 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   // Pantalla de Formulario de Delegación
   if (lockStatus === 'no_delegation') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fff] px-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#fff] px-4 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-5xl h-[97vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
+          className="w-full max-w-5xl h-[70vh] max-h-[800px] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
         >
           {/* Lado Izquierdo: Diseño del Login */}
           <div className="relative hidden md:flex flex-col justify-end p-10 overflow-hidden bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white">
             <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px' }}>
-              <div 
+              <div
                 className="absolute top-[15%] left-[5%] w-[180px] h-[180px] rounded-full bg-white/20 backdrop-blur-md border border-white/50"
-                style={{ 
+                style={{
                   transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
                   boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -2px 2px 0 rgba(255,255,255,0.6), -10px 10px 20px rgba(0,0,0,0.05)'
-                }} 
+                }}
               />
-              <div 
+              <div
                 className="absolute top-[20%] left-[20%] w-[200px] h-[200px] rounded-full bg-gradient-to-br from-[#464775]/60 to-[#464775]/20 backdrop-blur-xl border border-white/60 z-10"
-                style={{ 
+                style={{
                   transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
                   boxShadow: 'inset 0 0 30px rgba(255,255,255,0.6), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -4px 4px 0 #d0d0d0, -15px 15px 30px rgba(0,0,0,0.1)'
                 }}
               />
-              <div 
+              <div
                 className="absolute top-[30%] right-[25%] w-[160px] h-[160px] rounded-full bg-white/30 backdrop-blur-md border border-white/50 z-10"
-                style={{ 
+                style={{
                   transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
                   boxShadow: 'inset 0 0 15px rgba(255,255,255,0.4), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -10px 10px 15px rgba(0,0,0,0.05)'
                 }}
               />
-              <div 
+              <div
                 className="absolute bottom-[35%] right-[10%] w-[190px] h-[190px] rounded-full bg-white/40 backdrop-blur-lg border border-white/70"
-                style={{ 
+                style={{
                   transform: 'rotateX(15deg) rotateY(20deg) translateZ(0px)',
                   boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -10px 10px 20px rgba(0,0,0,0.05)'
                 }}
               />
-              <div 
+              <div
                 className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] rounded-full bg-[#464775]/20 backdrop-blur-xl border border-white/30 blur-[4px]"
-                style={{ 
+                style={{
                   transform: 'rotateX(45deg) rotateY(15deg) translateZ(150px)',
                   boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3)'
                 }}
@@ -287,7 +287,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
               <form onSubmit={handleSetupDelegation} className="space-y-4">
                 {errorMsg && (
                   <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center">
-                    <AlertCircle size={16} className="mr-2 flex-shrink-0" /> 
+                    <AlertCircle size={16} className="mr-2 flex-shrink-0" />
                     <span>{errorMsg}</span>
                   </div>
                 )}
@@ -329,8 +329,8 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                     placeholder="Opcional..." />
                 </div>
 
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSubmitting}
                   className="w-full bg-[#464775] text-white py-3 rounded-xl font-medium hover:bg-[#35365e] transition-colors flex items-center justify-center disabled:opacity-70 mt-4"
                 >
