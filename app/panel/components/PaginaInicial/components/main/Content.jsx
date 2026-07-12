@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { MousePointer2, Zap, Target, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -70,49 +71,101 @@ export default function Content() {
   return (
     <div className="space-y-6 px-4 md:px-0 font-sans">
       
-      {/* BANNER ACTUALIZADO */}
-      <section className="bg-white rounded-xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center relative overflow-hidden shadow-sm border border-slate-200/60">
+      {/* BANNER REDISEÑADO CON ANIMACIONES Y GLASSMORPHISM */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative rounded-3xl p-8 md:p-12 flex flex-col md:flex-row justify-between items-center overflow-hidden shadow-2xl border border-white/20 bg-gradient-to-br from-[#2B2C4B] via-[#464775] to-[#5a5b8a] mb-8"
+      >
+        {/* Animated Background Orbs */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              rotate: [0, 90, 0],
+              opacity: [0.2, 0.4, 0.2]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-[50%] -left-[10%] w-[80%] h-[150%] rounded-full bg-gradient-to-br from-[#8c8dcb]/30 to-transparent blur-3xl"
+          />
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.3, 1],
+              rotate: [0, -90, 0],
+              opacity: [0.1, 0.3, 0.1]
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute -bottom-[50%] -right-[10%] w-[70%] h-[150%] rounded-full bg-gradient-to-tl from-[#ffffff]/20 to-transparent blur-3xl"
+          />
+        </div>
         
-        <div className="z-10 max-w-lg w-full">
-          <h1 className="text-xl md:text-2xl font-bold mb-3 text-slate-800 tracking-tight">
-            Welcome to SERVEX Client Copilot.
-          </h1>
-          <p className="text-slate-500 text-xs md:text-sm mb-6 leading-relaxed font-normal">
-            Your centralized AI hub designed to manage and streamline all your operations. 
-            Harness next-gen intelligence to simplify complex workflows and boost productivity 
-            across your entire organization.
-          </p>
+        <div className="relative z-10 max-w-xl w-full">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-[10px] font-bold uppercase tracking-widest mb-5 backdrop-blur-md">
+              <Zap size={14} className="text-amber-300" />
+              <span>Next-Gen Intelligence</span>
+            </div>
+            <h1 className="text-3xl md:text-5xl font-bold mb-5 text-white tracking-tight leading-[1.15]">
+              Welcome to <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 via-white to-indigo-100">SERVEX Client Copilot</span>
+            </h1>
+            <p className="text-indigo-100/90 text-sm md:text-base mb-8 leading-relaxed font-light max-w-lg">
+              Your centralized AI hub designed to manage and streamline all your operations. 
+              Harness autonomous agents to simplify complex workflows and boost productivity 
+              across your entire organization.
+            </p>
+          </motion.div>
           
-          <div className="flex flex-col sm:flex-row gap-3 w-full">
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-4 w-full"
+          >
             <button 
               onClick={() => router.push('/modelContext')}
-              className="bg-[#464775] text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-[#3a3b61] transition-all shadow-sm hover:shadow-md w-full sm:w-auto text-center"
+              className="group bg-white text-[#2B2C4B] px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-indigo-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] w-full sm:w-auto text-center flex items-center justify-center gap-2"
             >
               Start AI Context
+              <Target size={16} className="group-hover:rotate-12 transition-transform" />
             </button>
             <a 
               href="https://servex-ai-iota.vercel.app/politicas" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="bg-white text-slate-600 border border-slate-200 px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-50 transition-all inline-block text-center w-full sm:w-auto"
+              className="bg-white/10 backdrop-blur-md text-white border border-white/30 px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-white/20 transition-all text-center w-full sm:w-auto flex items-center justify-center"
             >
               Documentation
             </a>
-          </div>
+          </motion.div>
         </div>
         
-        {/* Decoración abstracta con el nuevo color */}
-        <div className="hidden md:block relative w-40 h-40 opacity-20">
-          <div className="absolute inset-0 bg-[#464775] rounded-3xl rotate-12"></div>
-          <div className="absolute inset-0 bg-slate-200 rounded-3xl -rotate-6 flex flex-col items-center justify-center">
-            <img
-              src="/logo2.png"
-              alt="SERVEX Logo"
-              className="w-54 h-54 object-contain mb-1"
-            />
-          </div>
-        </div>
-      </section>
+        {/* Decoración 3D / Logo a la derecha */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.3, type: "spring" }}
+          className="hidden md:flex relative w-64 h-64 z-10 items-center justify-center mt-8 md:mt-0"
+        >
+          <motion.div 
+            animate={{ y: [-15, 15, -15] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute inset-0 bg-white/5 rounded-full blur-3xl"
+          />
+          <motion.img
+            animate={{ y: [-5, 5, -5], rotate: [-2, 2, -2] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            src="/logo2.png"
+            alt="SERVEX Logo"
+            className="w-48 h-48 object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)] brightness-0 invert opacity-90"
+          />
+        </motion.div>
+      </motion.section>
 
       {/* TRENDING INSIGHTS */}
       <section>
