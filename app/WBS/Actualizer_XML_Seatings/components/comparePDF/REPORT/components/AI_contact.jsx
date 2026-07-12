@@ -117,6 +117,7 @@ export default function TeamsAgentChat({ currentSection }) {
         
         await response.json();
         setMessages(prev => [...prev, { from: "bot", text: "✅ ¡Proceso ETL completado exitosamente! El catálogo ha sido reestructurado y comparado. Ya puedes revisar la auditoría en 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'report' }));
       } catch (err) {
         setMessages(prev => [...prev, { from: "bot", text: `❌ Error durante la ejecución del proceso ETL: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       }

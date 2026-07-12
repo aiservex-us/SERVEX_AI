@@ -30,6 +30,15 @@ export default function MenuInicial() {
 
   const router = useRouter();
 
+  
+  useEffect(() => {
+    const handleNavigate = (e) => {
+      if (e.detail) setActive(e.detail);
+    };
+    window.addEventListener('navigateTo', handleNavigate);
+    return () => window.removeEventListener('navigateTo', handleNavigate);
+  }, []);
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobileScreen(window.innerWidth < 700);
