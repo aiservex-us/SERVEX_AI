@@ -40,7 +40,7 @@ const BlogCard = ({ title, description, val, isActive, onClick, icon: Icon }) =>
   </div>
 );
 
-export default function Content() {
+export default function Content({ setActiveView }) {
   const [activeCard, setActiveCard] = useState('automation');
   const router = useRouter();
 
@@ -156,7 +156,13 @@ export default function Content() {
             className="flex flex-col sm:flex-row gap-4 w-full"
           >
             <button 
-              onClick={() => router.push('/modelContext')}
+              onClick={() => {
+                if (setActiveView) {
+                  setActiveView('products');
+                } else {
+                  router.push('/modelContext');
+                }
+              }}
               className="group bg-[#464775] text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-[#3a3b61] transition-all shadow-[0_10px_20px_rgba(70,71,117,0.2)] hover:shadow-[0_15px_30px_rgba(70,71,117,0.3)] w-full sm:w-auto text-center flex items-center justify-center gap-2"
             >
               Start AI Context

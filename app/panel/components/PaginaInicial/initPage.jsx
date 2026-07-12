@@ -31,14 +31,14 @@ const InitPage = () => {
       case 'home':
         return (
           <div key="home" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
-            <Content />
+            <Content setActiveView={setActiveView} />
           </div>
         );
 
       case 'dashboard':
         return (
           <div key="dashboard" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
-            <Content />
+            <Content setActiveView={setActiveView} />
             <Chart />
           </div>
         );
@@ -67,7 +67,7 @@ const InitPage = () => {
       default:
         return (
           <div key="default" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
-            <Content />
+            <Content setActiveView={setActiveView} />
             <Chart />
           </div>
         );
