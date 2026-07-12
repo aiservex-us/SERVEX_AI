@@ -189,13 +189,11 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 Este módulo está actualmente delegado y en uso exclusivo por otro usuario.
               </p>
 
-              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 mb-8">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Información de Delegación</h3>
-                <div className="space-y-3">
-                  <p className="flex items-center text-sm text-gray-700"><User size={16} className="mr-3 text-gray-400" /> <span className="font-medium mr-2">Ocupante:</span> {ownerInfo?.nombre}</p>
-                  <p className="flex items-center text-sm text-gray-700"><Briefcase size={16} className="mr-3 text-gray-400" /> <span className="font-medium mr-2">Cargo:</span> {ownerInfo?.cargo}</p>
-                  <p className="flex items-center text-sm text-gray-700"><Shield size={16} className="mr-3 text-gray-400" /> <span className="font-medium mr-2">Autorizado por:</span> {ownerInfo?.delegadoPor}</p>
-                </div>
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 mb-8 text-center">
+                <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-2">Ocupante Actual</p>
+                <p className="text-lg font-medium text-gray-800 flex items-center justify-center">
+                  <User size={20} className="mr-2 text-[#464775]" /> {ownerInfo?.nombre}
+                </p>
               </div>
 
               <button
