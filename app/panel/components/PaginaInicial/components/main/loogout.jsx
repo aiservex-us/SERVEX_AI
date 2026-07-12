@@ -45,8 +45,8 @@ export default function Sidebar({ activeView, setActiveView }) {
       <aside className="w-14 min-[800px]:w-[72px] h-full bg-[#FFF] border-r border-slate-200 flex flex-col items-center py-4 min-[800px]:py-6 justify-between flex-shrink-0 transition-all duration-300">
         <div className="flex flex-col gap-4 min-[800px]:gap-6 items-center w-full">
           
-          <div className="w-8 h-8 min-[800px]:w-10 min-[800px]:h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-slate-200">
-            <span className="font-black text-[#6264A7] text-[14px] min-[800px]:text-lg">SX</span>
+          <div className="w-8 h-8 min-[800px]:w-10 min-[800px]:h-10 rounded-lg flex items-center justify-center overflow-hidden">
+            <img src="/GLYNNE.png" alt="GLYNNE" className="w-full h-full object-contain" />
           </div>
 
           <nav className="flex flex-col gap-1.5 min-[800px]:gap-2 w-full px-2">
