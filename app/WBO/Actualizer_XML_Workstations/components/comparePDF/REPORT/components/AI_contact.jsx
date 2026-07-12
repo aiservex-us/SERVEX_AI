@@ -43,7 +43,29 @@ export default function TeamsAgentChat({ currentSection }) {
     const fetchHistory = async () => {
   
     if (queryToSend === '/executeProcess') {
-      window.dispatchEvent(new Event('executeProcessCommand'));
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Iniciando motor ETL para procesamiento de catálogos en la nube (WBO). Por favor, espera...", time: nowTime }]);
+      
+      try {
+        const formData = new FormData();
+        formData.append('company_name', 'WBO');
+        
+        const response = await fetch(`${apiURL}/wbo/api/v1/pipeline/compare-only-WBO`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Falla en la respuesta del motor de comparación');
+        }
+        
+        await response.json();
+        setMessages(prev => [...prev, { from: "bot", text: "✅ ¡Proceso ETL completado exitosamente! El catálogo ha sido reestructurado y comparado. Ya puedes revisar la auditoría en 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      } catch (err) {
+        setMessages(prev => [...prev, { from: "bot", text: `❌ Error durante la ejecución del proceso ETL: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      }
+      setIsLoading(false);
+      return;
     }
 
     try {
