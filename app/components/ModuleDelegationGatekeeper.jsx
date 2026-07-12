@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { getCurrentUser } from '@/app/lib/supabaseClient';
+import { supabase } from '@/app/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { Shield, User, Briefcase, FileText, CheckCircle, Loader2, Lock, AlertCircle } from 'lucide-react';
 
@@ -32,7 +32,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   const checkAccess = async () => {
     setLoading(true);
     try {
-      const user = await getCurrentUser();
+      const { data: { user } } = await supabase.auth.getUser();
       setCurrentUser(user);
       
       const res = await fetch(`${apiURL}/api/v1/module_delegation/${moduleName}`);
