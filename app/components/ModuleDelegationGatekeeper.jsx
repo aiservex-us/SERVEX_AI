@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Shield, User, Briefcase, FileText, CheckCircle, Loader2, Lock, AlertCircle } from 'lucide-react';
 
@@ -123,7 +124,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-5xl min-h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
+          className="w-full max-w-5xl h-[97vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
         >
           {/* Lado Izquierdo: Diseño del Login */}
           <div className="relative hidden md:flex flex-col justify-end p-10 overflow-hidden bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white">
@@ -176,6 +177,10 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
 
           {/* Lado Derecho: Info */}
           <div className="flex flex-col px-8 py-10 md:px-14 h-full relative z-10 bg-white">
+            <div className="mb-6 flex justify-center">
+              <Image src="/logo.png" alt="SERVEX" width={140} height={40} priority />
+            </div>
+
             <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
               <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">
                 Acceso Restringido
@@ -214,7 +219,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-5xl min-h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
+          className="w-full max-w-5xl h-[97vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
         >
           {/* Lado Izquierdo: Diseño del Login */}
           <div className="relative hidden md:flex flex-col justify-end p-10 overflow-hidden bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white">
@@ -267,6 +272,10 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
 
           {/* Lado Derecho: Formulario */}
           <div className="flex flex-col px-8 py-10 md:px-14 h-full relative z-10 bg-white">
+            <div className="mb-6 flex justify-center">
+              <Image src="/logo.png" alt="SERVEX" width={140} height={40} priority />
+            </div>
+
             <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
               <h1 className="text-2xl font-semibold text-gray-900 mb-2 text-center">
                 Completar Registro
