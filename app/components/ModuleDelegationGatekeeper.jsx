@@ -36,6 +36,13 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // 🔒 PROTECCIÓN DE RUTA PARA TRABAJADORES
+      if (!user || user.app_metadata?.provider !== 'azure') {
+        router.replace('/login');
+        return;
+      }
+      
       setCurrentUser(user);
 
       const res = await fetch(`${apiURL}/api/v1/module_delegation/${moduleName}`);
