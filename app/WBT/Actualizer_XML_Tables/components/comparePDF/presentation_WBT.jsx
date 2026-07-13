@@ -148,7 +148,7 @@ const WBmfgAdminHero = () => {
             }}
           />
 
-          {/* Coin 5: Blurry foreground bottom left */}
+          {/* Coin 5: Blurry foreground bottom  */}
           <div
             className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] rounded-full bg-[#464775]/20 backdrop-blur-xl border border-white/30 blur-[4px]"
             style={{
