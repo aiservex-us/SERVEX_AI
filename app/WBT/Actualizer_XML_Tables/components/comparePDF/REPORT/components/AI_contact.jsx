@@ -16,6 +16,7 @@ const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 const SLASH_COMMANDS = [
   { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructurar XML y comparar catálogo (Step 2)' },
   { id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Descargar el XML resultante procesado' },
+  { id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generar reporte de auditoría completo y publicarlo en el foro' },
 ];
 
 const QUICK_PROMPTS = [
@@ -127,6 +128,32 @@ export default function TeamsAgentChat({ currentSection }) {
       } finally {
         setIsLoading(false);
       }
+      return;
+    }
+
+
+    if (queryToSend === '/createAuditor') {
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages(prev => [...prev, { from: "bot", text: "📊 Generando reporte de auditoría inteligente y publicándolo en el Foro...", time: nowTime }]);
+      
+      try {
+        const match = window.location.pathname.match(/^\/(WB[A-Z])/i);
+        const modulePrefix = match ? match[1].toLowerCase() : 'wbs';
+        
+        const response = await fetch(`${apiURL}/${modulePrefix}/api/v1/agent/create-audit`, {
+          method: 'POST',
+        });
+
+        if (!response.ok) {
+          throw new Error('Falla en la respuesta del generador de auditoría');
+        }
+        
+        await response.json();
+        setMessages(prev => [...prev, { from: "bot", text: "✅ ¡Auditoría generada y publicada en el foro exitosamente!", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      } catch (err) {
+        setMessages(prev => [...prev, { from: "bot", text: `❌ Error generando la auditoría: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      }
+      setIsLoading(false);
       return;
     }
 
