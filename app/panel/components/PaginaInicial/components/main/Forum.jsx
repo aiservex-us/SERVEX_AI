@@ -101,58 +101,31 @@ const Forum = () => {
   return (
     <div className="relative w-[95%] h-[90vh] mx-auto rounded-[3rem] overflow-hidden shadow-2xl shadow-[#464775]/20 flex flex-col items-center justify-center font-sans">
       
-      {/* 1. BACKGROUND IMAGE & OVERLAYS */}
-      <div className="absolute inset-0 z-0">
-        <img 
-          src="/fondo.jpg" 
-          alt="Background"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]" />
-      </div>
-
-      {/* 2. GRADIENTS AND PANELS */}
-      <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/70 via-[#464775]/10 to-[#464775]/20" />
-        
-        {/* Floating Glass Spheres */}
-        <style dangerouslySetInnerHTML={{__html: `
-          @keyframes float-bubble {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-25px) scale(1.02); }
-          }
-        `}} />
-        
-        <div 
-          className="absolute top-[15%] left-[25%] w-[380px] h-[380px] rounded-full backdrop-blur-[16px] z-10"
-          style={{ 
-            background: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 25%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0.7) 100%)',
-            boxShadow: 'inset -25px -25px 50px rgba(70, 71, 117, 0.2), inset 15px 15px 30px rgba(255,255,255,1), 0 30px 60px rgba(70,71,117,0.1)',
-            animation: 'float-bubble 12s ease-in-out infinite reverse'
-          }}
-        />
-        <div 
-          className="absolute bottom-[5%] right-[2%] w-[450px] h-[450px] rounded-full backdrop-blur-[20px]"
-          style={{ 
-            background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0.02) 70%, rgba(255,255,255,0.4) 100%)',
-            boxShadow: 'inset -30px -30px 60px rgba(70, 71, 117, 0.1), inset 20px 20px 40px rgba(255,255,255,0.7), 0 40px 80px rgba(70,71,117,0.08)',
-            animation: 'float-bubble 15s ease-in-out infinite 1s'
-          }}
-        />
+      {/* 1. BACKGROUND IMAGE & OVERLAYS ESTILO AI CHAT */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-60" />
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/15" />
+        <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[120%] rotate-[15deg]">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60 shadow-[1px_0_10px_rgba(0,0,0,0.03)]" />
+        </div>
+        <div className="absolute top-[5%] right-[15%] w-[40%] h-[100%] rotate-[15deg]">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/5 to-transparent border-l border-white/50" />
+        </div>
       </div>
 
       {/* 3. MAIN CONTENT CAROUSEL */}
-      <div className="relative z-20 w-full h-full flex flex-col p-8">
+      <div className="relative z-20 w-full h-full flex flex-col p-6">
         
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-8 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-[#464775] to-[#2B2C4B] rounded-2xl flex items-center justify-center shadow-lg shadow-[#464775]/20">
-              <ShieldCheck className="w-7 h-7 text-white" />
+        <div className="flex justify-between items-center mb-6 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#464775] to-[#2B2C4B] rounded-xl flex items-center justify-center shadow-md shadow-[#464775]/20">
+              <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-none">Universal Audit Dashboard</h2>
-              <p className="text-sm font-medium text-[#464775]/80 mt-1">Real-time Cross-Module Diagnostics</p>
+              <h2 className="text-xl font-extrabold text-slate-800 tracking-tight leading-none">Universal Audit Dashboard</h2>
+              <p className="text-xs font-medium text-[#464775]/80 mt-1">Real-time Cross-Module Diagnostics</p>
             </div>
           </div>
           
@@ -180,12 +153,12 @@ const Forum = () => {
         <div className="flex-1 w-full flex items-center justify-center relative min-h-0">
           
           {/* Navigation Buttons */}
-          <button onClick={handlePrev} className="absolute left-0 z-30 w-14 h-14 bg-white/40 hover:bg-white/70 backdrop-blur-xl border border-white/60 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all text-[#464775]">
-            <ChevronLeft className="w-8 h-8" />
+          <button onClick={handlePrev} className="absolute left-0 z-30 w-12 h-12 bg-white/40 hover:bg-white/70 backdrop-blur-xl border border-white/60 rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all text-[#464775]">
+            <ChevronLeft className="w-6 h-6" />
           </button>
 
-          <button onClick={handleNext} className="absolute right-0 z-30 w-14 h-14 bg-white/40 hover:bg-white/70 backdrop-blur-xl border border-white/60 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all text-[#464775]">
-            <ChevronRight className="w-8 h-8" />
+          <button onClick={handleNext} className="absolute right-0 z-30 w-12 h-12 bg-white/40 hover:bg-white/70 backdrop-blur-xl border border-white/60 rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all text-[#464775]">
+            <ChevronRight className="w-6 h-6" />
           </button>
 
           {loading ? (
@@ -215,26 +188,26 @@ const Forum = () => {
                 className="w-full max-w-6xl h-full flex gap-8 pb-4 px-16 min-h-0"
               >
                 {/* Left Side: Module Info */}
-                <div className="w-[35%] flex flex-col justify-center">
-                  <div className="bg-white/70 backdrop-blur-2xl rounded-3xl p-8 shadow-2xl border border-white/80 h-auto">
-                    <div className="w-24 h-24 bg-white rounded-2xl shadow-sm border border-white flex items-center justify-center p-3 mb-6 relative overflow-hidden">
+                <div className="w-[30%] flex flex-col justify-center">
+                  <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-xl border border-white/80 h-auto">
+                    <div className="w-20 h-20 bg-white rounded-2xl shadow-sm border border-white flex items-center justify-center p-2 mb-4 relative overflow-hidden">
                       <img src={activeModule.logo} alt="Company Logo" className="w-full h-full object-contain relative z-10" />
                     </div>
                     
-                    <div className="flex items-center gap-3 mb-2 text-[#464775]">
+                    <div className="flex items-center gap-2 mb-2 text-[#464775]">
                       {activeModule.icon}
-                      <span className="font-bold tracking-widest uppercase text-sm opacity-80">{activeModule.key} Module</span>
+                      <span className="font-bold tracking-widest uppercase text-xs opacity-80">{activeModule.key} Module</span>
                     </div>
                     
-                    <h1 className="text-4xl font-extrabold text-slate-800 leading-tight mb-4 tracking-tighter">
+                    <h1 className="text-3xl font-extrabold text-slate-800 leading-tight mb-3 tracking-tight">
                       {activeModule.title.split(' - ')[1]}
                     </h1>
                     
-                    <p className="text-slate-600 text-lg leading-relaxed mb-8">
+                    <p className="text-slate-600 text-sm leading-relaxed mb-6">
                       {activeModule.description}
                     </p>
 
-                    <div className="w-full bg-[#464775]/5 rounded-2xl p-5 border border-[#464775]/10">
+                    <div className="w-full bg-[#464775]/5 rounded-xl p-4 border border-[#464775]/10">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-slate-700 text-sm">Status</span>
                         {hasContent ? (
@@ -257,34 +230,32 @@ const Forum = () => {
                 </div>
 
                 {/* Right Side: Markdown Scrollable Area */}
-                <div className="w-[65%] h-full flex flex-col min-h-0">
-                  <div className="bg-white/80 backdrop-blur-3xl w-full flex-1 rounded-[2.5rem] p-10 shadow-2xl border border-white/80 flex flex-col relative overflow-hidden min-h-0">
+                <div className="w-[70%] h-full flex flex-col min-h-0 pl-4">
+                  <div className="bg-white/90 backdrop-blur-2xl w-full flex-1 rounded-[2rem] p-8 shadow-xl border border-white/80 flex flex-col relative overflow-hidden min-h-0">
                     
-                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#464775]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-
-                    <h3 className="text-2xl font-bold text-[#464775] mb-6 shrink-0 flex items-center gap-3">
-                      <Activity className="w-6 h-6" />
+                    <h3 className="text-xl font-bold text-[#464775] mb-4 shrink-0 flex items-center gap-2 border-b border-slate-100 pb-3">
+                      <Activity className="w-5 h-5" />
                       Executive Diagnostic Report
                     </h3>
 
-                    <div className="flex-1 overflow-y-auto min-h-0 pr-6 scrollbar-thin scrollbar-thumb-[#464775]/20 scrollbar-track-transparent">
+                    <div className="flex-1 overflow-y-auto min-h-0 pr-4 scrollbar-thin scrollbar-thumb-[#464775]/20 scrollbar-track-transparent">
                        {hasContent ? (
-                        <div className="text-sm text-slate-700 leading-relaxed pb-10">
+                        <div className="text-[13px] text-slate-700 leading-relaxed pb-8">
                           <ReactMarkdown
                             components={{
-                              h1: ({node, ...props}) => <h1 className="text-2xl font-extrabold text-slate-800 mb-4 mt-6 tracking-tight border-b border-slate-200 pb-2" {...props} />,
-                              h2: ({node, ...props}) => <h2 className="text-xl font-bold text-slate-800 mb-3 mt-5" {...props} />,
-                              h3: ({node, ...props}) => <h3 className="text-lg font-bold text-[#464775] mb-2 mt-4" {...props} />,
-                              p: ({node, ...props}) => <p className="mb-4 text-slate-600" {...props} />,
-                              ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-1 mb-4 text-slate-600 marker:text-[#464775]" {...props} />,
+                              h1: ({node, ...props}) => <h1 className="text-[1.1rem] font-extrabold text-slate-800 mb-3 mt-4 tracking-tight uppercase" {...props} />,
+                              h2: ({node, ...props}) => <h2 className="text-base font-bold text-slate-800 mb-2 mt-4 pb-1 border-b border-slate-100" {...props} />,
+                              h3: ({node, ...props}) => <h3 className="text-[15px] font-bold text-[#464775] mb-2 mt-3" {...props} />,
+                              p: ({node, ...props}) => <p className="mb-3 text-slate-600" {...props} />,
+                              ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-0.5 mb-3 text-slate-600 marker:text-[#464775]" {...props} />,
                               table: ({node, ...props}) => (
-                                <div className="w-full overflow-x-auto my-6 rounded-xl border border-slate-200 shadow-sm bg-white/50 backdrop-blur-sm">
-                                  <table className="w-full text-left border-collapse text-xs md:text-sm" {...props} />
+                                <div className="w-full overflow-x-auto my-4 rounded-lg border border-slate-200 shadow-sm bg-white/50 backdrop-blur-sm">
+                                  <table className="w-full text-left border-collapse text-[11px] md:text-[12px]" {...props} />
                                 </div>
                               ),
-                              thead: ({node, ...props}) => <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-700 uppercase tracking-wider font-extrabold text-[10px]" {...props} />,
-                              th: ({node, ...props}) => <th className="px-4 py-3 whitespace-nowrap" {...props} />,
-                              td: ({node, ...props}) => <td className="px-4 py-3 border-b border-slate-100 text-slate-600 font-medium last:border-0" {...props} />,
+                              thead: ({node, ...props}) => <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 uppercase tracking-wider font-extrabold text-[9px]" {...props} />,
+                              th: ({node, ...props}) => <th className="px-3 py-2 whitespace-nowrap" {...props} />,
+                              td: ({node, ...props}) => <td className="px-3 py-2 border-b border-slate-100 text-slate-600 font-medium last:border-0" {...props} />,
                               strong: ({node, ...props}) => <strong className="font-bold text-[#464775]" {...props} />,
                             }}
                           >
