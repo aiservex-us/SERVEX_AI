@@ -177,7 +177,7 @@ const Forum = () => {
         </div>
 
         {/* CAROUSEL BODY */}
-        <div className="flex-1 w-full flex items-center justify-center relative">
+        <div className="flex-1 w-full flex items-center justify-center relative min-h-0">
           
           {/* Navigation Buttons */}
           <button onClick={handlePrev} className="absolute left-0 z-30 w-14 h-14 bg-white/40 hover:bg-white/70 backdrop-blur-xl border border-white/60 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all text-[#464775]">
@@ -212,7 +212,7 @@ const Forum = () => {
                 animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
                 exit={{ opacity: 0, x: -50, filter: 'blur(10px)' }}
                 transition={{ duration: 0.5, type: 'spring', bounce: 0.3 }}
-                className="w-full max-w-6xl h-full flex gap-8 pb-4 px-16"
+                className="w-full max-w-6xl h-full flex gap-8 pb-4 px-16 min-h-0"
               >
                 {/* Left Side: Module Info */}
                 <div className="w-[35%] flex flex-col justify-center">
@@ -257,8 +257,8 @@ const Forum = () => {
                 </div>
 
                 {/* Right Side: Markdown Scrollable Area */}
-                <div className="w-[65%] h-full">
-                  <div className="bg-white/80 backdrop-blur-3xl w-full h-full rounded-[2.5rem] p-10 shadow-2xl border border-white/80 flex flex-col relative overflow-hidden">
+                <div className="w-[65%] h-full flex flex-col min-h-0">
+                  <div className="bg-white/80 backdrop-blur-3xl w-full flex-1 rounded-[2.5rem] p-10 shadow-2xl border border-white/80 flex flex-col relative overflow-hidden min-h-0">
                     
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#464775]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
@@ -267,10 +267,29 @@ const Forum = () => {
                       Executive Diagnostic Report
                     </h3>
 
-                    <div className="flex-1 overflow-y-auto pr-6 scrollbar-thin scrollbar-thumb-[#464775]/20 scrollbar-track-transparent">
+                    <div className="flex-1 overflow-y-auto min-h-0 pr-6 scrollbar-thin scrollbar-thumb-[#464775]/20 scrollbar-track-transparent">
                        {hasContent ? (
-                        <div className="prose prose-lg prose-slate max-w-none prose-headings:font-bold prose-headings:text-[#1a1a1a] prose-a:text-[#464775] prose-strong:text-[#1a1a1a] prose-p:text-gray-700 prose-p:leading-relaxed prose-li:marker:text-[#464775] prose-table:border-collapse prose-th:bg-slate-50 prose-th:text-slate-800 prose-th:p-3 prose-td:p-3 prose-td:border-t prose-td:border-slate-100 pb-10">
-                          <ReactMarkdown>{markdownContent}</ReactMarkdown>
+                        <div className="text-sm text-slate-700 leading-relaxed pb-10">
+                          <ReactMarkdown
+                            components={{
+                              h1: ({node, ...props}) => <h1 className="text-2xl font-extrabold text-slate-800 mb-4 mt-6 tracking-tight border-b border-slate-200 pb-2" {...props} />,
+                              h2: ({node, ...props}) => <h2 className="text-xl font-bold text-slate-800 mb-3 mt-5" {...props} />,
+                              h3: ({node, ...props}) => <h3 className="text-lg font-bold text-[#464775] mb-2 mt-4" {...props} />,
+                              p: ({node, ...props}) => <p className="mb-4 text-slate-600" {...props} />,
+                              ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-1 mb-4 text-slate-600 marker:text-[#464775]" {...props} />,
+                              table: ({node, ...props}) => (
+                                <div className="w-full overflow-x-auto my-6 rounded-xl border border-slate-200 shadow-sm bg-white/50 backdrop-blur-sm">
+                                  <table className="w-full text-left border-collapse text-xs md:text-sm" {...props} />
+                                </div>
+                              ),
+                              thead: ({node, ...props}) => <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-700 uppercase tracking-wider font-extrabold text-[10px]" {...props} />,
+                              th: ({node, ...props}) => <th className="px-4 py-3 whitespace-nowrap" {...props} />,
+                              td: ({node, ...props}) => <td className="px-4 py-3 border-b border-slate-100 text-slate-600 font-medium last:border-0" {...props} />,
+                              strong: ({node, ...props}) => <strong className="font-bold text-[#464775]" {...props} />,
+                            }}
+                          >
+                            {markdownContent}
+                          </ReactMarkdown>
                         </div>
                       ) : (
                         <div className="h-full w-full flex flex-col items-center justify-center text-center opacity-50 grayscale">
