@@ -24,7 +24,7 @@ export default function DataViewer() {
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 30;
+  const ITEMS_PER_PAGE = 35;
 
   useEffect(() => {
     fetchLatestData();
@@ -174,7 +174,7 @@ export default function DataViewer() {
                   type="button"
                   onClick={() => setActiveTab('csv_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'csv_new_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
                   Manual Sync

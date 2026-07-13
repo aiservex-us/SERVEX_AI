@@ -44,10 +44,10 @@ const ChangedProductsContent = () => (
   </motion.div>
 );
 
-const WBTSyncCopilot = () => {
+const LesroSyncCopilot = () => {
   const router = useRouter();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [context, setContext] = useState('WBT Enterprise');
+  const [context, setContext] = useState('LESRO Enterprise');
   const [activeTab, setActiveTab] = useState('SYNC'); 
 
   const handleStartSync = () => {
@@ -88,7 +88,7 @@ const WBTSyncCopilot = () => {
                     </span>
                   </div>
                   <h1 className="text-xl font-semibold text-[#242424] tracking-tight">
-                    WBT Portfolio Adaptation
+                    LESRO Portfolio Adaptation
                   </h1>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1 bg-[#fff] rounded-full border border-[#EDEBE9]">
@@ -142,7 +142,7 @@ const WBTSyncCopilot = () => {
                 </h2>
 
                 <p className="text-[13px] text-[#616161] mb-8 max-w-sm leading-relaxed">
-                  Triggers a full comparison and update cycle for the WBT 2025 portfolio. Review changes in the Audit tab.
+                  Triggers a full comparison and update cycle for the LESRO 2025 portfolio. Review changes in the Audit tab.
                 </p>
                 
                 <button 
@@ -220,4 +220,4 @@ const WBTSyncCopilot = () => {
   );
 };
 
-export default WBTSyncCopilot;
+export default LesroSyncCopilot;

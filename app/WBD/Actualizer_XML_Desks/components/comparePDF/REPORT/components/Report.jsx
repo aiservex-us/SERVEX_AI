@@ -21,7 +21,7 @@ export default function AuditReportViewer() {
   useEffect(() => {
     async function fetchAuditData() {
       setLoading(true);
-      // Apuntando de forma limpia a la tabla de la entidad WBD y extrayendo ambos esquemas JSON
+      // Apuntando de manera precisa a la tabla de la entidad WBD
       const { data } = await supabase
         .from('ClientsSERVEX_WBD')
         .select('id, company_name, audit_report_jsonP, audit_report_json, created_at')
@@ -62,13 +62,11 @@ export default function AuditReportViewer() {
         <div className="mb-6 bg-white rounded-md p-6 border border-slate-200 shadow-sm relative overflow-hidden">
            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
             <BrainCircuit className="text-[#4F46E5]" size={28} />
-            Development Analysis Center: {reportDataP?.pipeline_metadata?.system_engine || 'WBD Engine'}
+            Development Analysis Center: {reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}
            </h1>
-           {metadataRaw?.title && (
-             <p className="text-xs text-[#616161] mt-1">
-               {metadataRaw.title}
-             </p>
-           )}
+           <p className="text-xs text-[#616161] mt-1">
+             {metadataRaw?.title || 'Monitoring of catalog synchronization and positional reconciliation.'}
+           </p>
         </div>
 
         {/* Módulo de Contexto / Metadata de Archivos */}
@@ -135,7 +133,7 @@ export default function AuditReportViewer() {
           </div>
         </div>
 
-        {/* Sistema de Pestañas (Tabs) de Control de Datos */}
+        {/* Sistema de Pestañas (Tabs) de Control Estilo Teams */}
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
           
           <div className="flex border-b border-[#E0E0E0] bg-[#FAF9F8] px-2">
@@ -148,7 +146,7 @@ export default function AuditReportViewer() {
               }`}
             >
               <Zap size={14} />
-              Cambios en Celdas ({changesP.length})
+              List Price Variations ({changesP.length})
             </button>
             <button
               onClick={() => setActiveTab('inventory_flux')}
@@ -163,7 +161,7 @@ export default function AuditReportViewer() {
             </button>
           </div>
 
-          {/* Contenido: Módulo 1 - Variaciones de Celdas */}
+          {/* Contenido: Módulo 1 - Variaciones de Precios */}
           {activeTab === 'changes' && (
             <div className="w-full flex flex-col">
               <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-2">
@@ -282,9 +280,9 @@ export default function AuditReportViewer() {
 
           {/* Footer del Panel */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between items-center">
-            <span>TOTAL CAMBIOS APLICADOS: {changesP.length}</span>
+            <span>TOTAL CAMBIOS INYECTADOS EN PASO ACTUAL: {changesP.length}</span>
             <span className="uppercase text-[#5B5FC7] font-bold tracking-wider">
-              {reportDataP?.pipeline_metadata?.company_processed || activeRecord?.company_name}
+              {reportDataP?.pipeline_metadata?.company_processed || activeRecord?.company_name || 'SERVEX US'}
             </span>
           </div>
         </div>

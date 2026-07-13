@@ -39,7 +39,63 @@ export default function TeamsAgentChat({ currentSection }) {
 
   useEffect(() => {
     const fetchHistory = async () => {
-  
+      try {
+        const res = await fetch(`${apiURL}/wbo/api/v1/agent/history`);
+        const data = await res.json();
+        if (data.status === "success" && data.history) {
+          setMessages(data.history);
+        }
+      } catch (e) {
+        console.error("Failed to load chat history:", e);
+      }
+    };
+    fetchHistory();
+  }, [apiURL]);
+
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  const scrollContainerRef = useRef(null);
+
+  const scrollToBottom = useCallback(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+  }, []);
+
+  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInput(val);
+    setCharCount(val.length);
+    if (val === "/") {
+      setShowSlashMenu(true);
+    } else if (!val.startsWith("/")) {
+      setShowSlashMenu(false);
+    }
+  };
+
+  const handleCommandSelect = (cmdLabel) => {
+    setInput(cmdLabel);
+    setCharCount(cmdLabel.length);
+    setShowSlashMenu(false);
+    inputRef.current?.focus();
+  };
+
+  const sendMessage = async (overrideText) => {
+    const queryToSend = (overrideText || input).trim();
+    if (!queryToSend || isLoading) return;
+
+    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages(prev => [...prev, { from: "user", text: queryToSend, time: now }]);
+    setInput("");
+    setCharCount(0);
+    setIsLoading(true);
+
     
     if (queryToSend.toLowerCase() === '/downloadresultxml') {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -100,63 +156,6 @@ export default function TeamsAgentChat({ currentSection }) {
       setIsLoading(false);
       return;
     }
-
-    try {
-        const res = await fetch(`${apiURL}/wbo/api/v1/agent/history`);
-        const data = await res.json();
-        if (data.status === "success" && data.history) {
-          setMessages(data.history);
-        }
-      } catch (e) {
-        console.error("Failed to load chat history:", e);
-      }
-    };
-    fetchHistory();
-  }, [apiURL]);
-
-
-  useEffect(() => { inputRef.current?.focus(); }, []);
-
-  const scrollContainerRef = useRef(null);
-
-  const scrollToBottom = useCallback(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
-        behavior: "smooth"
-      });
-    }
-  }, []);
-
-  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
-
-  const handleInputChange = (e) => {
-    const val = e.target.value;
-    setInput(val);
-    setCharCount(val.length);
-    if (val === "/") {
-      setShowSlashMenu(true);
-    } else if (!val.startsWith("/")) {
-      setShowSlashMenu(false);
-    }
-  };
-
-  const handleCommandSelect = (cmdLabel) => {
-    setInput(cmdLabel);
-    setCharCount(cmdLabel.length);
-    setShowSlashMenu(false);
-    inputRef.current?.focus();
-  };
-
-  const sendMessage = async (overrideText) => {
-    const queryToSend = (overrideText || input).trim();
-    if (!queryToSend || isLoading) return;
-
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages(prev => [...prev, { from: "user", text: queryToSend, time: now }]);
-    setInput("");
-    setCharCount(0);
-    setIsLoading(true);
 
     try {
       // Mapear el historial de mensajes al formato esperado por el backend

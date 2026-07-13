@@ -12,7 +12,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const WBTDataMatrix = () => {
+const WBDDataMatrix = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,7 +20,7 @@ const WBTDataMatrix = () => {
   
   // Estado para controlar la página actual
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 35;
+  const itemsPerPage = 30;
 
   // Cabeceras estrictas requeridas para mostrar del XML
   const baseHeaders = ["SKU", "Description", "Classification", "Base Price"];
@@ -29,52 +29,27 @@ const WBTDataMatrix = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user found");
 
-      // Ingestión desde la tabla correcta configurada en Supabase para WBT
+      // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad WBD
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_WBD')
         .select('xml_actualizer_raw')
-        .eq('user_id', user.id)
+        .eq('company_name', 'WBD')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (dbError) throw dbError;
-      
-      // 1. CORRECCIÓN CRÍTICA: Validar la columna exacta que se seleccionó
       if (!data?.xml_actualizer_raw) {
         setProducts([]);
         return;
       }
 
-      // --- AGREGADO DE INYECCIÓN DE DESCARGA ---
-      // Registra una función global en window para descargar el XML exacto sin alterar la interfaz
-      if (typeof window !== 'undefined') {
-        window.downloadWBDXML = () => {
-          try {
-            const blob = new Blob([data.xml_actualizer_raw], { type: 'text/xml;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'WBD_SVX.XML');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            console.log("WBT.XML descargado con éxito directamente de la fuente de Supabase.");
-          } catch (downloadErr) {
-            console.error("Error al descargar el XML desde el objeto global:", downloadErr);
-          }
-        };
-      }
-      // ----------------------------------------
-
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.xml_actualizer_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBT XML structure");
+      if (parserError) throw new Error("Error parsing WBD XML structure");
 
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
@@ -101,8 +76,8 @@ const WBTDataMatrix = () => {
       setProducts(extracted);
       setCurrentPage(1); // Reiniciar a la primera página tras una recarga exitosa
     } catch (err) {
-      console.error("Error en procesamiento de matriz de datos WBT:", err);
-      setError(err.message || "Error al procesar la información de catálogos WBT.");
+      console.error("Error en procesamiento de matriz de datos WBD:", err);
+      setError(err.message || "Error al procesar la información de catálogos WBD.");
     } finally {
       setLoading(false);
     }
@@ -110,13 +85,6 @@ const WBTDataMatrix = () => {
 
   useEffect(() => {
     processXML();
-    
-    // Limpieza de la función global al desmontar el componente
-    return () => {
-      if (typeof window !== 'undefined' && window.downloadWBDXML) {
-        delete window.downloadWBDXML;
-      }
-    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -155,13 +123,13 @@ const WBTDataMatrix = () => {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix from WBT Engine...
+        Retrieving master data matrix from WBD Engine...
       </div>
     </div>
   );
 
   if (error) return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
+    <div className="flex min-h-[90vh] h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
       <h3 className="text-sm font-bold text-[#242424] mb-1">Error en Sincronización del Motor</h3>
       <p className="text-xs text-[#616161] max-w-md mb-4">{error}</p>
@@ -184,9 +152,9 @@ const WBTDataMatrix = () => {
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#242424]">WBT Data Matrix Master</span>
+                <span className="text-xs font-bold text-[#242424]">WBD Data Matrix Master</span>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
-                  WBT Schema Engine Live
+                  WBD Schema Engine Live
                 </span>
               </div>
               <span className="text-[10px] text-[#616161]">
@@ -215,7 +183,7 @@ const WBTDataMatrix = () => {
                 onClick={processXML}
                 type="button"
                 className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161] transition-colors"
-                title="Sincronizar y recalcular matrices desde xml_actualizer_raw"
+                title="Sincronizar y recalcular matrices desde xml_raw"
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
@@ -256,7 +224,7 @@ const WBTDataMatrix = () => {
                       
                       return (
                         <motion.tr 
-                          key={`${p.sku}-${realIndex}`}
+                          key={p.sku || realIndex}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -338,7 +306,7 @@ const WBTDataMatrix = () => {
 
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                WBT ETL Pipeline V2 (Oauth Verified)
+                WBD ETL Pipeline V2 (Oauth Verified)
               </div>
             </div>
           </div>
@@ -349,4 +317,4 @@ const WBTDataMatrix = () => {
   );
 };
 
-export default WBTDataMatrix;
+export default WBDDataMatrix;

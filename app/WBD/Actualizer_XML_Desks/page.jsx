@@ -136,7 +136,7 @@ export default function MenuInicial() {
             onClick={() => setShowExitModal(false)}
           />
 
-          <div className="relative bg-white w-[440px] shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <span className="text-[14px] font-bold text-[#242424]">Confirm exit</span>
               <button onClick={() => setShowExitModal(false)} className="text-slate-400 hover:text-slate-600">

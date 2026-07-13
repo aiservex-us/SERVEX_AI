@@ -19,22 +19,27 @@ export default function UploadClientXML() {
   const [companyName] = useState('WBD');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState('');
+  const [csvNewContent, setCsvNewContent] = useState('');
   const [loading, setLoading] = useState(false);
 
   const [readingXml, setReadingXml] = useState(false);
   const [readingCsv, setReadingCsv] = useState(false);
+  const [readingNewCsv, setReadingNewCsv] = useState(false);
 
   // --- Estado de verificación de columnas existentes en BD ---
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [existingXml, setExistingXml] = useState(false);
   const [existingCsv, setExistingCsv] = useState(false);
+  const [existingNewCsv, setExistingNewCsv] = useState(false);
 
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
   const [dragActive, setDragActive] = useState(false);
   const [dragActiveCSV, setDragActiveCSV] = useState(false);
+  const [dragActiveNewCSV, setDragActiveNewCSV] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null);
+  const csvNewInputRef = useRef<HTMLInputElement | null>(null);
 
   // React Transition para prevenir bloqueos de renderizado en hilos de UI al cargar datasets grandes
   const [, startTransition] = useTransition();
@@ -45,7 +50,7 @@ export default function UploadClientXML() {
     try {
       const { data, error } = await supabase
         .from('ClientsSERVEX_WBD')
-        .select('xml_raw, csv_raw')
+        .select('xml_raw, csv_raw, csv_new_raw')
         .eq('company_name', companyName)
         .maybeSingle();
 
@@ -53,20 +58,27 @@ export default function UploadClientXML() {
         console.error('Error checking existing files:', error);
         setExistingXml(false);
         setExistingCsv(false);
+        setExistingNewCsv(false);
       } else if (data) {
         const hasXml = !!data.xml_raw && String(data.xml_raw).trim().length > 0;
         const hasCsv = !!data.csv_raw &&
           (Array.isArray(data.csv_raw) ? data.csv_raw.length > 0 : String(data.csv_raw).trim().length > 0);
+        const hasNewCsv = !!data.csv_new_raw &&
+          (Array.isArray(data.csv_new_raw) ? data.csv_new_raw.length > 0 : String(data.csv_new_raw).trim().length > 0);
+        
         setExistingXml(hasXml);
         setExistingCsv(hasCsv);
+        setExistingNewCsv(hasNewCsv);
       } else {
         setExistingXml(false);
         setExistingCsv(false);
+        setExistingNewCsv(false);
       }
     } catch (err) {
       console.error('Unexpected error checking existing files:', err);
       setExistingXml(false);
       setExistingCsv(false);
+      setExistingNewCsv(false);
     } finally {
       setCheckingExisting(false);
     }
@@ -76,7 +88,7 @@ export default function UploadClientXML() {
     checkExistingFiles();
   }, [checkExistingFiles]);
 
-  // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA (Equivalente al Script de Python) ---
+  // --- ALGORITMO DE SANEAMIENTO ESTRUCTURAL EN MEMORIA ---
   interface CsvRow {
     [key: string]: string | null | string[] | undefined;
     _orphaned_fields?: string[];
@@ -85,12 +97,10 @@ export default function UploadClientXML() {
   const sanitizeCSV = (rawCsvText: string): CsvRow[] => {
     if (!rawCsvText || !rawCsvText.trim()) return [];
 
-    // Reconstrucción exacta del comportamiento de Python ante saltos de línea y comillas abiertas
     const lines: string[] = [];
     let currentLine = '';
     let insideQuotes = false;
 
-    // Bucle iterativo directo optimizado para reducir la latencia de procesamiento de cadenas
     const len = rawCsvText.length;
     for (let i = 0; i < len; i++) {
       const char = rawCsvText[i];
@@ -99,7 +109,7 @@ export default function UploadClientXML() {
         currentLine += char;
       } else if ((char === '\n' || char === '\r') && !insideQuotes) {
         if (char === '\r' && rawCsvText[i + 1] === '\n') {
-          i++; // Omitir el siguiente \n de la secuencia \r\n
+          i++; 
         }
         lines.push(currentLine);
         currentLine = '';
@@ -117,7 +127,6 @@ export default function UploadClientXML() {
     let dataStartIndex = 0;
     let openQuotes = false;
 
-    // Detectar si la cabecera está rota en múltiples líneas por comillas abiertas
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       rawHeaderAccum.push(line);
@@ -135,7 +144,6 @@ export default function UploadClientXML() {
 
     const fullRawHeader = rawHeaderAccum.join('\n');
 
-    // Limpieza de columnas preservada e igualada a la lógica de Python
     const tokens = fullRawHeader.split(';');
     const cleanedTokens = tokens.map(token => {
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
@@ -148,10 +156,9 @@ export default function UploadClientXML() {
     const sanitizedJson: CsvRow[] = [];
     const headersLen = perfectHeaders.length;
 
-    // Optimización con bucles indexados for para mitigar penalizaciones por Garbage Collection en memoria
     for (let i = 0; i < dataLines.length; i++) {
       const line = dataLines[i];
-      if (!line.trim()) continue; // Ignorar líneas vacías
+      if (!line.trim()) continue; 
       const currentCells = line.split(';');
       const rowObject: CsvRow = {};
 
@@ -167,7 +174,6 @@ export default function UploadClientXML() {
         }
       }
 
-      // Implementación del restkey de Python
       if (currentCells.length > headersLen) {
         const orphaned = currentCells.slice(headersLen).map(c => c.replace(/^["']|["']$/g, '').trim());
         rowObject['_orphaned_fields'] = orphaned;
@@ -207,8 +213,25 @@ export default function UploadClientXML() {
     reader.onload = (e) => {
       startTransition(() => {
         setCsvContent(e.target?.result as string);
-        setMessage({ text: 'CSV file loaded successfully', type: 'success' });
+        setMessage({ text: 'CSV Base file loaded successfully', type: 'success' });
         setReadingCsv(false);
+      });
+    };
+    reader.readAsText(file);
+  };
+
+  const readNewCSVFile = (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setMessage({ text: 'Only CSV files are allowed', type: 'error' });
+      return;
+    }
+    setReadingNewCsv(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      startTransition(() => {
+        setCsvNewContent(e.target?.result as string);
+        setMessage({ text: 'CSV Nuevo file loaded successfully', type: 'success' });
+        setReadingNewCsv(false);
       });
     };
     reader.readAsText(file);
@@ -228,16 +251,25 @@ export default function UploadClientXML() {
     if (file) readCSVFile(file);
   };
 
+  const handleDropNewCSV = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActiveNewCSV(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) readNewCSVFile(file);
+  };
+
   // --- Lógica de Saneamiento y Guardado ---
   const handleSave = async () => {
     setMessage({ text: '', type: null });
-    if (!xmlContent.trim()) {
-      setMessage({ text: 'XML content is required', type: 'error' });
+    
+    // Al menos un archivo debe estar presente (ya sea cargado o existente)
+    if (!xmlContent.trim() && !csvContent.trim() && !csvNewContent.trim()) {
+      setMessage({ text: 'Please upload at least one file to save', type: 'error' });
       return;
     }
+    
     setLoading(true);
 
-    // Permitir el cambio de estado visual de UI de manera inmediata
     await new Promise(resolve => setTimeout(resolve, 0));
 
     try {
@@ -248,16 +280,22 @@ export default function UploadClientXML() {
       }
 
       console.log('[+] Iniciando saneamiento estructural sobre los contenidos CSV...');
-      const sanitizedCsvJson = sanitizeCSV(csvContent);
-
-      const payload = {
+      
+      const payload: any = {
         company_name: 'WBD',
-        xml_raw: xmlContent,
-        csv_raw: sanitizedCsvJson,
         user_id: user.id,
       };
 
-      // Modificación de red limpia y tipada: Evita el eco masivo de datos de vuelta por la red HTTP
+      if (xmlContent.trim()) {
+        payload.xml_raw = xmlContent;
+      }
+      if (csvContent.trim()) {
+        payload.csv_raw = sanitizeCSV(csvContent);
+      }
+      if (csvNewContent.trim()) {
+        payload.csv_new_raw = sanitizeCSV(csvNewContent);
+      }
+
       const { error } = await supabase
         .from('ClientsSERVEX_WBD')
         .update(payload)
@@ -271,6 +309,7 @@ export default function UploadClientXML() {
         setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
         setXmlContent('');
         setCsvContent('');
+        setCsvNewContent('');
         // Refrescar el estado de columnas existentes tras guardar
         await checkExistingFiles();
       }
@@ -282,9 +321,10 @@ export default function UploadClientXML() {
     }
   };
 
-  // Determina si la zona debe mostrar el aviso de "ya existe en BD"
   const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
   const showCsvExistingNotice = existingCsv && !csvContent && !readingCsv;
+  const showNewCsvExistingNotice = existingNewCsv && !csvNewContent && !readingNewCsv;
+
 return (
     <div className="min-h-[60vh] bg-[#FFF] flex font-sans text-[#242424] relative">
       <div className="flex-1 flex flex-col">
@@ -335,7 +375,7 @@ return (
           </div>
         </div>
 
-        {/* --- INFO BANNER: Propósito del catálogo --- */}
+        {/* --- INFO BANNER --- */}
         <div className="bg-[#464775]/10 border-b border-[#464775]/20 px-8 py-3">
           <p className="text-[11px] text-[#464775] leading-relaxed max-w-4xl">
             Aquí podrás almacenar y reemplazar todos los datos crudos y bases del{' '}
@@ -343,60 +383,62 @@ return (
           </p>
         </div>
 
-        {/* --- CONTENT GRID --- */}
-        <div className="p-8 grid grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+        {/* --- CONTENT BLOCK --- */}
+        <div className="p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full">
 
-          {/* Status Column */}
-          <div className="col-span-12 lg:col-span-4 space-y-4">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Upload Progress</h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent || existingXml ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>1</div>
-                  <span className="text-xs font-medium">XML File</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent || existingCsv ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>2</div>
-                  <span className="text-xs font-medium">CSV File (Will be Sanitized)</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
-              <div className="flex items-center gap-2 text-[#464775] mb-3">
+          {/* TOP SECTION: Status & Definitions */}
+          <div className="w-full">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 flex flex-col gap-5">
+              <div className="flex items-center gap-2 text-[#464775] border-b border-gray-100 pb-3">
                 <Info size={16} />
-                <span className="text-xs font-bold">Encrypted & Sanitized</span>
+                <span className="text-xs font-bold uppercase tracking-widest">Upload Progress & Specifications</span>
               </div>
-              <p className="text-[11px] text-[#616161] leading-relaxed">
-                Your data is parsed, structural breaks are fixed in-memory, and stored securely as compliant datasets.
-              </p>
-
-              {/* --- NUEVO: explicación de cada archivo --- */}
-              <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
-                <div>
-                  <p className="text-[10px] font-bold text-[#464775]">XML — Catalog Creator</p>
-                  <p className="text-[10px] text-[#616161] leading-relaxed">
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* File 1: XML */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${xmlContent || existingXml ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>1</div>
+                    <span className="text-xs font-bold text-[#464775]">XML — Catalog Creator</span>
+                  </div>
+                  <p className="text-[11px] text-[#616161] leading-relaxed ml-9">
                     Es el catálogo generado por Catalog Creator. Representa la versión final/estructurada del catálogo.
                   </p>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-[#464775]">CSV — Catálogo Base</p>
-                  <p className="text-[10px] text-[#616161] leading-relaxed">
+
+                {/* File 2: Base CSV */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvContent || existingCsv ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>2</div>
+                    <span className="text-xs font-bold text-[#464775]">CSV — Catálogo Base</span>
+                  </div>
+                  <p className="text-[11px] text-[#616161] leading-relaxed ml-9">
                     Es el catálogo base con el que arranca el proceso: el paso anterior al último, previo a la generación del XML final.
+                  </p>
+                </div>
+
+                {/* File 3: New CSV */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${csvNewContent || existingNewCsv ? 'bg-[#464775]/10 text-[#464775]' : 'bg-gray-100 text-gray-400'}`}>3</div>
+                    <span className="text-xs font-bold text-[#464775]">CSV — Nuevo Catálogo</span>
+                  </div>
+                  <p className="text-[11px] text-[#616161] leading-relaxed ml-9">
+                    Es el catálogo nuevo o de actualización que se comparará contra la base.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Main Upload Column */}
-          <div className="col-span-12 lg:col-span-8">
+          {/* MAIN UPLOAD SECTION */}
+          <div className="w-full">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-6 space-y-6">
 
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-[#242424]">Target Entity</label>
-                  <div className="relative group">
+                  <div className="relative group w-full max-w-xs">
                     <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-[#464775]" size={14} />
                     <input
                       className="w-full text-sm rounded border border-gray-100 bg-gray-50 pl-9 pr-4 py-2 outline-none font-bold text-[#464775] cursor-default"
@@ -406,8 +448,9 @@ return (
                   </div>
                 </div>
 
-                {/* Drop Zones */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Drop Zones Grid (3 Columns now) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Drop Zone 1: XML */}
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                     onDragLeave={() => setDragActive(false)}
@@ -441,6 +484,7 @@ return (
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
 
+                  {/* Drop Zone 2: Base CSV */}
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActiveCSV(true); }}
                     onDragLeave={() => setDragActiveCSV(false)}
@@ -465,7 +509,7 @@ return (
                           ? 'Checking...'
                           : showCsvExistingNotice
                             ? 'File already exists in DB'
-                            : 'Upload CSV'}
+                            : 'Upload CSV Base'}
                     </p>
                     <p className="text-[8px] text-[#9CA3AF] mt-0.5">Catálogo base — inicio del proceso</p>
                     {showCsvExistingNotice && (
@@ -473,17 +517,56 @@ return (
                     )}
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
+
+                  {/* Drop Zone 3: New CSV */}
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragActiveNewCSV(true); }}
+                    onDragLeave={() => setDragActiveNewCSV(false)}
+                    onDrop={handleDropNewCSV}
+                    onClick={() => csvNewInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
+                      ${dragActiveNewCSV ? 'border-[#464775] bg-[#464775]/5' : showNewCsvExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                  >
+                    {readingNewCsv ? (
+                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
+                    ) : checkingExisting ? (
+                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
+                    ) : showNewCsvExistingNotice ? (
+                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={20} />
+                    ) : (
+                      <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveNewCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
+                    )}
+                    <p className={`text-[10px] font-bold ${showNewCsvExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
+                      {readingNewCsv
+                        ? 'Reading...'
+                        : checkingExisting
+                          ? 'Checking...'
+                          : showNewCsvExistingNotice
+                            ? 'File already exists in DB'
+                            : 'Upload CSV Nuevo'}
+                    </p>
+                    <p className="text-[8px] text-[#9CA3AF] mt-0.5">Catálogo nuevo a comparar</p>
+                    {showNewCsvExistingNotice && (
+                      <p className="text-[9px] text-[#464775]/80 mt-1 font-medium">Click or drop to replace</p>
+                    )}
+                    <input ref={csvNewInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readNewCSVFile(file); }} />
+                  </div>
+
                 </div>
 
-                {/* Previews */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Previews (3 Columns now) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">CSV Original Preview</label>
+                    <label className="text-xs font-bold text-[#242424]">CSV Base Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvContent} readOnly />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-[#242424]">CSV Nuevo Preview</label>
+                    <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvNewContent} readOnly />
                   </div>
                 </div>
 

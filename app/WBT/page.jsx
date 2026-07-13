@@ -6,10 +6,10 @@ import ModuleDelegationGatekeeper from '../components/ModuleDelegationGatekeeper
 
 export default function Home() {
   return (
-    <main className="min-h-[90vh] bg-[#FFF] text-[#242424] p-8 md:p-16">
+    <main className="h-[90vh] bg-[#FFF] text-[#242424] p-8 md:p-16">
 
-      {/*  */}
-      <section className="w-full ">
+      {/* Contenedor Sección Hero / Principal */}
+      <section className="w-full">
         <ModuleDelegationGatekeeper moduleName="WBT" redirectUrl="/WBT/Actualizer_XML_Tables">
           <Main1 />
         </ModuleDelegationGatekeeper>

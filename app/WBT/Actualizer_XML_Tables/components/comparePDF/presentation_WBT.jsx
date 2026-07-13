@@ -66,7 +66,7 @@ const WBmfgAdminHero = () => {
                 WB Seating
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
-                WB Tables
+                Catalog Manager
               </span>
             </div>
           </div>
@@ -106,7 +106,7 @@ const WBmfgAdminHero = () => {
         </div>
       </div>
 
-            {/* --- LADO DERECHO (VISUAL) --- */}
+      {/* --- LADO DERECHO (VISUAL) --- */}
       <div className="hidden lg:flex w-[35%] h-full relative items-center justify-center overflow-hidden border-l border-gray-100 bg-gradient-to-b from-[#464775]/40 via-[#464775]/10 to-white">
         
         {/* Decorative Floating 3D Glass Coins (Recreating the elegant image) */}
@@ -166,7 +166,7 @@ const WBmfgAdminHero = () => {
         
         <div className="relative z-20 rotate-90 pointer-events-none opacity-30 mix-blend-multiply">
           <span className="text-[#2B2C4B] font-black text-[120px] tracking-tighter select-none leading-none">
-            WB Tables
+            WB Seating
           </span>
         </div>
       </div>

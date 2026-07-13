@@ -97,57 +97,78 @@ const SVXUnifiedPlatform = () => {
   const [backendSuccess, setBackendSuccess] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
 
+  /**
+   * SANEAMIENTO MEJORADO: Máquina de estados determinista
+   */
   const sanitizeCSVToMatrix = (rawCsvText) => {
     if (!rawCsvText || !rawCsvText.trim()) return { matrix: [], json: [] };
-    const lines = [];
-    let currentLine = '';
+
+    const rows = [];
+    let currentRow = [];
+    let currentCell = '';
     let insideQuotes = false;
+
+    // Parser carácter a carácter
     for (let i = 0; i < rawCsvText.length; i++) {
       const char = rawCsvText[i];
-      if (char === '"') { insideQuotes = !insideQuotes; currentLine += char; } 
-      else if ((char === '\n' || char === '\r') && !insideQuotes) {
-        if (char === '\r' && rawCsvText[i + 1] === '\n') i++; 
-        lines.push(currentLine); currentLine = '';
-      } else { currentLine += char; }
-    }
-    if (currentLine || rawCsvText.endsWith('\n') || rawCsvText.endsWith('\r')) lines.push(currentLine);
-    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return { matrix: [], json: [] };
+      const nextChar = rawCsvText[i + 1];
 
-    let rawHeaderAccum = [];
-    let dataStartIndex = 0;
-    let openQuotes = false;
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      rawHeaderAccum.push(line);
-      const quoteCount = (line.match(/"/g) || []).length;
-      if (quoteCount % 2 !== 0) openQuotes = !openQuotes;
-      if (!openQuotes) { dataStartIndex = i + 1; break; }
-    }
-    const fullRawHeader = rawHeaderAccum.join('\n');
-    const delimiter = fullRawHeader.includes(';') ? ';' : ',';
-    const tokens = fullRawHeader.split(delimiter);
-    const perfectHeaders = tokens.map(token => token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '').split(/\s+/).join(' ').trim());
-    const dataLines = lines.slice(dataStartIndex);
-    const finalizedMatrix = [perfectHeaders];
-    const sanitizedJson = [];
-    dataLines.forEach(line => {
-      if (!line.trim()) return; 
-      const currentCells = line.split(delimiter);
-      const sanitizedRow = [];
-      const rowObject = {};
-      perfectHeaders.forEach((header, index) => {
-        let cellValue = currentCells[index] !== undefined ? currentCells[index] : '';
-        if (cellValue === '') { sanitizedRow.push(null); rowObject[header] = null; } 
-        else { cellValue = cellValue.replace(/^["']|["']$/g, '').trim(); sanitizedRow.push(cellValue); rowObject[header] = cellValue; }
-      });
-      if (currentCells.length > perfectHeaders.length) {
-        const orphaned = currentCells.slice(perfectHeaders.length).map(c => c.replace(/^["']|["']$/g, '').trim());
-        sanitizedRow.push(`[ORPHANED]: ${orphaned.join(' | ')}`);
-        rowObject['_orphaned_fields'] = orphaned;
+      if (char === '"') {
+        if (insideQuotes && nextChar === '"') {
+          currentCell += '"';
+          i++; 
+        } else {
+          insideQuotes = !insideQuotes; 
+        }
+      } else if (char === ';' && !insideQuotes) {
+        currentRow.push(currentCell.trim());
+        currentCell = '';
+      } else if ((char === '\n' || char === '\r') && !insideQuotes) {
+        if (char === '\r' && nextChar === '\n') i++; 
+        currentRow.push(currentCell.trim());
+        if (currentRow.length > 1 || currentRow[0] !== '') rows.push(currentRow);
+        currentRow = [];
+        currentCell = '';
+      } else {
+        currentCell += char;
       }
-      finalizedMatrix.push(sanitizedRow);
-      sanitizedJson.push(rowObject);
+    }
+    if (currentCell || currentRow.length > 0) {
+      currentRow.push(currentCell.trim());
+      rows.push(currentRow);
+    }
+
+    if (rows.length === 0) return { matrix: [], json: [] };
+
+    // Limpieza de encabezados
+    const rawHeaders = rows[0].map(h => h.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').trim());
+    const perfectHeaders = [];
+    const headerCounts = {};
+    rawHeaders.forEach(h => {
+      const cleanH = h.split(/\s+/).join(' ');
+      if (!headerCounts[cleanH]) {
+        headerCounts[cleanH] = 1;
+        perfectHeaders.push(cleanH);
+      } else {
+        perfectHeaders.push(`${cleanH}_${headerCounts[cleanH]++}`);
+      }
     });
+
+    const sanitizedJson = [];
+    const finalizedMatrix = [perfectHeaders];
+
+    rows.slice(1).forEach(row => {
+      const rowObject = {};
+      const sanitizedRow = [];
+      perfectHeaders.forEach((header, index) => {
+        const val = row[index] !== undefined ? row[index].replace(/^["']|["']$/g, '').trim() : null;
+        rowObject[header] = val === '' ? null : val;
+        sanitizedRow.push(val);
+      });
+      sanitizedJson.push(rowObject);
+      finalizedMatrix.push(sanitizedRow);
+    });
+
     return { matrix: finalizedMatrix, json: sanitizedJson };
   };
 
@@ -242,7 +263,7 @@ const SVXUnifiedPlatform = () => {
 
   const renderVisualizerContent = () => (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-shrink-0 p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
+      <div className="flex-shrink-0  p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
         <div className="flex items-center gap-2">
           <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Viewer</h2>
           <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
@@ -316,7 +337,7 @@ const SVXUnifiedPlatform = () => {
   return (
     <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
       
-      {/* --- POPUP PROCESANDO DATOS BASE --- */}
+      {/* --- POPUP PROCESANDO DATOS BASE (WBT) --- */}
       {isProcessing && (
         <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
           <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
@@ -348,7 +369,7 @@ const SVXUnifiedPlatform = () => {
           </div>
         </div>
       )}
-      
+
       {alert.show && createPortal(
         <div className="fixed top-6 right-6 z-[9999] p-4 rounded-lg shadow-2xl border flex items-center gap-3 animate-in slide-in-from-right-5 duration-300 bg-white border-[#EDEBE9] min-w-[300px]">
           <div className={`w-2 h-full absolute left-0 rounded-l-lg ${alert.type === 'success' ? 'bg-emerald-500' : alert.type === 'error' ? 'bg-rose-500' : 'bg-amber-500'}`} />
@@ -377,7 +398,7 @@ const SVXUnifiedPlatform = () => {
         </div>
       )}
 
-    
+
 
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
         <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">

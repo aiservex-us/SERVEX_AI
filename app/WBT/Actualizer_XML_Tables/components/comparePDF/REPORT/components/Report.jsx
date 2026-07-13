@@ -21,7 +21,7 @@ export default function AuditReportViewer() {
   useEffect(() => {
     async function fetchAuditData() {
       setLoading(true);
-      // Extraemos tanto audit_report_jsonP como audit_report_json
+      // Apuntando de manera precisa a la tabla de la entidad WBT
       const { data } = await supabase
         .from('ClientsSERVEX_WBT')
         .select('id, company_name, audit_report_jsonP, audit_report_json, created_at')
@@ -65,7 +65,7 @@ export default function AuditReportViewer() {
             Development Analysis Center: {reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}
            </h1>
            <p className="text-xs text-[#616161] mt-1">
-             {metadataRaw?.title || 'Synchronization monitoring and catalog positional reconciliation.'}
+             {metadataRaw?.title || 'Monitoring of catalog synchronization and positional reconciliation.'}
            </p>
         </div>
 
@@ -82,7 +82,7 @@ export default function AuditReportViewer() {
               </div>
               <ArrowRight size={14} className="text-[#A6A6A6]" />
               <div className="bg-white px-3 py-1 rounded border border-[#E0E0E0] font-mono text-[11px]">
-                <span className="text-[#616161] font-sans mr-1">Incoming:</span> {metadataRaw.new_file}
+                <span className="text-[#616161] font-sans mr-1">Entrante:</span> {metadataRaw.new_file}
               </div>
             </div>
             <div className="text-[11px] font-semibold text-[#5B5FC7] bg-[#EFEEFC] px-2 py-0.5 rounded">
@@ -157,7 +157,7 @@ export default function AuditReportViewer() {
               }`}
             >
               <RefreshCw size={14} />
-              Inventory Flow ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })
+              Additions and Deletions Flow ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })
             </button>
           </div>
 
@@ -280,7 +280,7 @@ export default function AuditReportViewer() {
 
           {/* Footer del Panel */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between items-center">
-            <span>TOTAL CHANGES INJECTED IN CURRENT STEP: {changesP.length}</span>
+            <span>TOTAL CAMBIOS INYECTADOS EN PASO ACTUAL: {changesP.length}</span>
             <span className="uppercase text-[#5B5FC7] font-bold tracking-wider">
               {reportDataP?.pipeline_metadata?.company_processed || activeRecord?.company_name || 'SERVEX US'}
             </span>

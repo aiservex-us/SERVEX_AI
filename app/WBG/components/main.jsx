@@ -66,7 +66,7 @@ const HeroSection = () => {
       {/* 3. MAIN CONTENT */}
       <div className="relative z-20 w-full flex flex-col items-center text-center">
         
-        {/* AI Assistant Badge - Tamaño compacto alineado al diseño base */}
+        {/* AI Assistant Badge - Compact size */}
         <div className="inline-flex items-center gap-1.5 bg-[#5B5FC7]/10 border border-[#5B5FC7]/20 text-[#5B5FC7] px-2.5 py-0.5 rounded-full mb-4 backdrop-blur-sm">
           <FaRobot className="text-[9px] md:text-[10px]" />
           <span className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider font-sans">
@@ -74,22 +74,22 @@ const HeroSection = () => {
           </span>
         </div>
 
-        {/* Main Title - Fluid size control */}
+        {/* Main Title - Fluid size control, matching previous compact style */}
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light text-[#1a1a1a] leading-tight tracking-tighter max-w-2xl mx-auto mb-3 px-2">
           <span className="font-bold">WBG Catalog Engine:</span>
         </h1>
-
-        {/* Descriptive Text */}
+        
+        {/* Descriptive Text - Compact size, and restored text content */}
         <p className="text-xs md:text-sm text-[#424242] leading-relaxed max-w-2xl mx-auto mb-8 px-4">
           Intelligently optimizes the <span className="text-black font-normal">WB Manufacturing catalog architecture</span>. Upload your legacy matrices in XML and CSV to cross-reference them against new datasets; our platform structurally analyzes variations, generates new rows or columns, and instantly executes price delta audits. Continuously powered by <span className="text-[#5B5FC7] font-normal">Alysa</span>, it compiles and deploys clean, custom-tailored XML schemas for direct integration and dynamic adjustment within <span className="text-black font-normal">Configura CET Designer</span>.
-        </p> 
+        </p>
 
                         {/* 4. INTEGRATED MODULE CARDS - Ultra Premium Minimalist Layout (Scaled Down) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-5 w-[90%] mx-auto mb-10 md:mb-12 text-left">
           
           {/* Card XML */}
           <Link 
-            href="/WBG/Actualizer_XML"
+            href="/WBG/Actualizer_XML_Graphics"
             className="group flex flex-col bg-white/40 backdrop-blur-2xl border border-white/60 rounded-3xl p-5 lg:p-7 hover:bg-white/80 hover:border-white hover:shadow-[0_20px_40px_rgba(70,71,117,0.08)] hover:-translate-y-1 transition-all duration-500 ease-out"
           >
             <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center text-[#464775] shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-50 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
@@ -107,7 +107,7 @@ const HeroSection = () => {
 
           {/* Card Alysa Hub */}
           <Link 
-            href="/WBG/Alysa_Hub"
+            href="/WBG/Alysa_Hub_Graphics"
             className="group flex flex-col bg-white/40 backdrop-blur-2xl border border-white/60 rounded-3xl p-5 lg:p-7 hover:bg-white/80 hover:border-white hover:shadow-[0_20px_40px_rgba(70,71,117,0.08)] hover:-translate-y-1 transition-all duration-500 ease-out"
           >
             <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center text-[#464775] shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-50 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
@@ -125,7 +125,8 @@ const HeroSection = () => {
 
         </div>
 
-        {/* 5. HERO FOOTER / METADATA - Ajustado a escala reducida */}
+        {/* 5. HERO FOOTER / METADATA - Restructured to be Full Responsive */}
+        {/* Spacing updated to compact previous design */}
         <div className="flex flex-col md:grid md:grid-cols-12 gap-5 md:gap-3 lg:gap-6 items-center md:items-end border-t border-gray-900/10 pt-6 font-sans w-full text-center md:text-left">
           
           {/* Left Subtext */}
@@ -147,7 +148,8 @@ const HeroSection = () => {
             </p>
           </div>
 
-          {/* Ratings / Trust - Estrellas sincronizadas a #464775 */}
+          {/* Ratings / Trust - Adaptive alignment (center on mobile, right on desktop) */}
+          {/* Updated star color to match #464775 */}
           <div className="md:col-span-3 lg:col-span-4 flex flex-col items-center md:items-end gap-1 w-full">
             <div className="flex items-center gap-1">
               <span className="text-[9px] font-bold text-gray-900 mr-1 uppercase tracking-tighter">Mission Critical</span>

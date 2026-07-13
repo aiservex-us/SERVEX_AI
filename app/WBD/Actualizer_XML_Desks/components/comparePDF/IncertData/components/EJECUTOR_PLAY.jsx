@@ -30,16 +30,7 @@ const EJECUTOR_PLAY = ({
   useEffect(() => {
     if (!estadoProcesando && showStatusPopup) {
       const timer = setTimeout(() => setShowStatusPopup(false), 2000);
-    
-  useEffect(() => {
-    const handleTrigger = () => {
-      ejecutarSegundoProceso();
-    };
-    window.addEventListener('executeProcessCommand', handleTrigger);
-    return () => window.removeEventListener('executeProcessCommand', handleTrigger);
-  }, [estadoProcesando]);
-
-  return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
     }
   }, [estadoProcesando, showStatusPopup]);
 
@@ -61,22 +52,21 @@ const EJECUTOR_PLAY = ({
   };
 
   const ejecutarSegundoProceso = async () => {
-    if (estadoProcesando) return;
+    if (estadoProcesando) return; // Add guard check
     setShowSecondPopup(true);
     setLocalProcessing(true);
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      // SANEAMIENTO MULTI-TENANT: Forzamos la identificación limpia de WBD para este sub-motor
+      // FORZADO A WBD: Eliminación de lógica condicional para asegurar persistencia única
       const targetCompany = 'WBD';
-
+      
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
-      // Cluster Base Distribuidor de SERVEX_AI
       const baseUrl = 'https://servex-ai-back.onrender.com'; 
       
-      // SOLUCIÓN AL 404: Endpoint modificado con el sufijo -WBD mapeado en el backend
+      // RUTA ÚNICA: Gateway exclusivo para el segmento WBD
       const endpointUrl = `${baseUrl}/wbd/api/v1/pipeline/compare-only-WBD`;
   
       console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
@@ -84,7 +74,6 @@ const EJECUTOR_PLAY = ({
       const response = await fetch(endpointUrl, {
         method: 'POST',
         body: formData,
-        // El navegador gestiona el boundary multipart/form-data automáticamente al omitir Content-Type
       });
   
       if (!response.ok) {
@@ -96,12 +85,20 @@ const EJECUTOR_PLAY = ({
       console.log('[✓] Respuesta de SERVEX_AI Engine (WBD):', result);
   
     } catch (err) {
-      console.error(`Secondary Process halted (WBD): ${err.message}`);
+      console.error(`Secondary Process halted: ${err.message}`);
     } finally {
       setLocalProcessing(false);
       if (setIsProcessing) setIsProcessing(false);
     }
   };
+
+  useEffect(() => {
+    const handleTrigger = () => {
+      ejecutarSegundoProceso();
+    };
+    window.addEventListener('executeProcessCommand', handleTrigger);
+    return () => window.removeEventListener('executeProcessCommand', handleTrigger);
+  }, [estadoProcesando]);
 
   return (
     <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 font-sans antialiased text-[#242424]">
@@ -121,19 +118,19 @@ const EJECUTOR_PLAY = ({
             
             <div className="space-y-1">
               <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Update Process Initiated</h3>
-              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Catalog ({currentTenant}): {currentDate}</p>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Catalog (WBD): {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
               <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
               <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
-                <strong>IMPORTANT:</strong> The system is synchronizing critical data within SVX. <strong>Do not switch sections</strong> or restart the application until the output monitor finishes.
+                <strong>IMPORTANT:</strong> The system is synchronizing critical data within SVX. <strong>Do not switch sections</strong> until the output monitor finishes.
               </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
               <Loader2 size={12} className="animate-spin" />
-              <span className="uppercase tracking-widest">Synchronizing with CRUD...</span>
+              <span className="uppercase tracking-widest">Synchronizing with WBD...</span>
             </div>
           </div>
         </div>
@@ -154,13 +151,13 @@ const EJECUTOR_PLAY = ({
             
             <div className="space-y-1">
               <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Secondary Process Initiated</h3>
-              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module ({currentTenant}): {currentDate}</p>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module (WBD): {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
               <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
               <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
-                <strong>WARNING:</strong> Storing new catalog data. Please wait for the data upload to complete without interrupting the process.
+                <strong>WARNING:</strong> Storing new WBD catalog data. Please wait for the data upload to complete.
               </p>
             </div>
 
@@ -179,11 +176,10 @@ const EJECUTOR_PLAY = ({
             <Zap size={12} className="sm:hidden" fill="currentColor" />
             <Zap size={14} className="hidden sm:inline" fill="currentColor" />
           </div>
-          <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#616161]">System Actions</h4>
+          <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#616161]">System Actions (WBD)</h4>
         </div>
         
         <div className="flex flex-col gap-3 sm:gap-4 flex-1">
-          {/* PRIMER BOTÓN CON DESCRIPCIÓN */}
           <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
             <button 
               onClick={ejecutarConConsola}
@@ -195,14 +191,14 @@ const EJECUTOR_PLAY = ({
             </button>
             <div className="px-1 py-1 sm:py-2">
               <p className="text-[8px] sm:text-[9px] font-bold text-[#5b5fc7] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
-              <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed line-clamp-3 sm:line-clamp-none">
-                Uploads your CSV catalog data to the cloud database and synchronizes it with the CRUD system. This step validates, sanitizes, and stores the new pricing information.
+              <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed">
+                Uploads your WBD catalog data to the cloud database. Sanitizes, validates, and stores pricing information.
               </p>
             </div>
           </div>
+
           {/* Botón removido: La ejecución ahora se hace vía AI Command (/executeProcess) */}
 
-          {/* BOTÓN DE RESET CON DESCRIPCIÓN */}
           <div className="flex flex-col gap-1.5 sm:gap-2 mt-auto">
             <button 
               onClick={handleFullReset} 
@@ -214,7 +210,6 @@ const EJECUTOR_PLAY = ({
           </div>
         </div>
       </div>
-
     </div>
   );
 };

@@ -66,7 +66,7 @@ const HeroSection = () => {
       {/* 3. MAIN CONTENT */}
       <div className="relative z-20 w-full flex flex-col items-center text-center">
         
-        {/* AI Assistant Badge */}
+        {/* AI Assistant Badge - Compact size */}
         <div className="inline-flex items-center gap-1.5 bg-[#5B5FC7]/10 border border-[#5B5FC7]/20 text-[#5B5FC7] px-2.5 py-0.5 rounded-full mb-4 backdrop-blur-sm">
           <FaRobot className="text-[9px] md:text-[10px]" />
           <span className="text-[8px] md:text-[9px] font-semibold uppercase tracking-wider font-sans">
@@ -74,14 +74,14 @@ const HeroSection = () => {
           </span>
         </div>
 
-        {/* Main Title - Fluid size control */}
+        {/* Main Title - Fluid size control, matching previous compact style */}
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light text-[#1a1a1a] leading-tight tracking-tighter max-w-2xl mx-auto mb-3 px-2">
           <span className="font-bold">WBT Catalog Engine:</span>
         </h1>
         
-        {/* Descriptive Text */}
+        {/* Descriptive Text - Compact size, and restored text content */}
         <p className="text-xs md:text-sm text-[#424242] leading-relaxed max-w-2xl mx-auto mb-8 px-4">
-          Optimizes the <span className="text-black font-normal">WB Manufacturing catalog</span>. Upload legacy XML/CSV matrices to analyze variations, generate updates, and audit price deltas. Powered by <span className="text-[#5B5FC7] font-normal">Alysa</span>, it deploys clean, custom XML schemas for direct integration into <span className="text-black font-normal">Configura CET Designer</span>.
+          Intelligently optimizes the <span className="text-black font-normal">WB Manufacturing catalog architecture</span>. Upload your legacy matrices in XML and CSV to cross-reference them against new datasets; our platform structurally analyzes variations, generates new rows or columns, and instantly executes price delta audits. Continuously powered by <span className="text-[#5B5FC7] font-normal">Alysa</span>, it compiles and deploys clean, custom-tailored XML schemas for direct integration and dynamic adjustment within <span className="text-black font-normal">Configura CET Designer</span>.
         </p>
 
                         {/* 4. INTEGRATED MODULE CARDS - Ultra Premium Minimalist Layout (Scaled Down) */}
@@ -126,6 +126,7 @@ const HeroSection = () => {
         </div>
 
         {/* 5. HERO FOOTER / METADATA - Restructured to be Full Responsive */}
+        {/* Spacing updated to compact previous design */}
         <div className="flex flex-col md:grid md:grid-cols-12 gap-5 md:gap-3 lg:gap-6 items-center md:items-end border-t border-gray-900/10 pt-6 font-sans w-full text-center md:text-left">
           
           {/* Left Subtext */}
@@ -148,6 +149,7 @@ const HeroSection = () => {
           </div>
 
           {/* Ratings / Trust - Adaptive alignment (center on mobile, right on desktop) */}
+          {/* Updated star color to match #464775 */}
           <div className="md:col-span-3 lg:col-span-4 flex flex-col items-center md:items-end gap-1 w-full">
             <div className="flex items-center gap-1">
               <span className="text-[9px] font-bold text-gray-900 mr-1 uppercase tracking-tighter">Mission Critical</span>
@@ -170,4 +172,4 @@ const HeroSection = () => {
   );
 };
 
-export default HeroSection;`` 
+export default HeroSection;

@@ -16,7 +16,7 @@ const WBmfgAdminHero = () => {
       {/* --- POPUP / MODAL OVERLAY --- */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+          className="fixed inset-0 z-[100] flex items-center justify-center  backdrop-blur-sm p-4 animate-in fade-in duration-300"
           onClick={toggleModal} // Cierra al hacer clic en el fondo
         >
           {/* Contenedor del Modal */}
@@ -42,7 +42,6 @@ const WBmfgAdminHero = () => {
               </button>
             </div>
             
-            {/* Contenido del Componente InsertXML */}
         
           </div>
         </div>
@@ -64,10 +63,10 @@ const WBmfgAdminHero = () => {
             </div>
             <div className="flex flex-col items-center">
               <span className="font-bold text-lg tracking-widest uppercase text-black">
-                WB Workstations
+                WB Seating
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
-                WB Workstations
+                Catalog Manager
               </span>
             </div>
           </div>
@@ -91,8 +90,7 @@ const WBmfgAdminHero = () => {
 
             {/* Botón que dispara el modal */}
             <div className="flex flex-col items-center gap-8">
-           
-              
+  
               <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-black/30">
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -108,8 +106,8 @@ const WBmfgAdminHero = () => {
         </div>
       </div>
 
-            {/* --- LADO DERECHO (VISUAL) --- */}
-      <div className="hidden lg:flex w-[35%] h-full relative items-center justify-center overflow-hidden border-l border-gray-100 bg-gradient-to-b from-[#464775]/40 via-[#464775]/10 to-white rounded-xl">
+      {/* --- LADO DERECHO (VISUAL) --- */}
+      <div className="hidden lg:flex w-[35%] h-full relative items-center justify-center overflow-hidden border-l border-gray-100 bg-gradient-to-b from-[#464775]/40 via-[#464775]/10 to-white">
         
         {/* Decorative Floating 3D Glass Coins (Recreating the elegant image) */}
         <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px' }}>
@@ -168,7 +166,7 @@ const WBmfgAdminHero = () => {
         
         <div className="relative z-20 rotate-90 pointer-events-none opacity-30 mix-blend-multiply">
           <span className="text-[#2B2C4B] font-black text-[120px] tracking-tighter select-none leading-none">
-            WB Workstations
+            WB Seating
           </span>
         </div>
       </div>

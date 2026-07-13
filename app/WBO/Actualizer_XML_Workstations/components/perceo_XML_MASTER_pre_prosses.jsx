@@ -12,7 +12,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const WBTDataMatrix = () => {
+const WBDDataMatrix = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,51 +20,29 @@ const WBTDataMatrix = () => {
   
   // Estado para controlar la página actual
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 35;
+  const itemsPerPage = 30;
 
-  // Cabeceras estrictas adaptadas para incluir variantes de acabados
-  const baseHeaders = ["SKU / Variante", "Description", "Classification", "Finish Type", "Calculated Price"];
+  // Cabeceras estrictas requeridas para mostrar del XML
+  const baseHeaders = ["SKU", "Description", "Classification", "Base Price"];
 
   const processXML = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user found");
 
-      // Ingestión desde la tabla correcta configurada en Supabase para WBT
+      // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad WBO
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_WBO')
         .select('xml_raw')
-        .eq('user_id', user.id)
+        .eq('company_name', 'WBO')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (dbError) throw dbError;
-      
       if (!data?.xml_raw) {
         setProducts([]);
         return;
-      }
-
-      // --- REGISTRO DE DESCARGA GLOBAL ---
-      if (typeof window !== 'undefined') {
-        window.downloadWBOXML = () => {
-          try {
-            const blob = new Blob([data.xml_raw], { type: 'text/xml;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'WBO.XML');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            console.log("WBO.XML descargado con éxito.");
-          } catch (downloadErr) {
-            console.error("Error al descargar el XML:", downloadErr);
-          }
-        };
       }
 
       const parser = new DOMParser();
@@ -73,157 +51,33 @@ const WBTDataMatrix = () => {
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBO XML structure");
 
-      // 1. Mapear de forma eficiente los Features globales e indexar sus deltas de opciones
-      const featuresXML = Array.from(xmlDoc.getElementsByTagName("Feature"));
-      // Normalize feature codes to uppercase keys to make matching tolerant
-      const featureDeltasMap = {}; // { FEATURE_CODE_UPPER: { 'C': delta_c, 'P': delta_p } }
-
-      // --- DIAGNÓSTICO ---
-      // Registramos TODOS los códigos de Option que existen en el XML real
-      const allOptionCodesSeen = new Set();
-
-      for (const f of featuresXML) {
-        const fCodeRaw = f.getElementsByTagName("Code")[0]?.textContent;
-        if (!fCodeRaw) continue;
-        const fCode = fCodeRaw.trim().toUpperCase();
-
-        const options = Array.from(f.getElementsByTagName("Option"));
-        // Solo registramos el Feature en el mapa si REALMENTE define
-        // al menos una opción C o P. Así, más adelante, podemos usar la
-        // presencia en este mapa como señal de "este es el Feature de
-        // acabado", y no confundirlo con Features de color, herraje, etc.
-        let hasFinishOption = false;
-        const deltas = { 'C': 0, 'P': 0 };
-
-        for (const o of options) {
-          const rawCode = o.getElementsByTagName("Code")[0]?.textContent;
-          const oCode = rawCode?.trim().toUpperCase(); // normalize
-          if (oCode) allOptionCodesSeen.add(oCode);
-
-          if (oCode === 'C' || oCode === 'P') {
-            const rawValue = o.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent;
-            const deltaValue = parseFloat(rawValue || "0");
-            deltas[oCode] = deltaValue;
-            hasFinishOption = true;
-          }
-        }
-
-        if (hasFinishOption) {
-          featureDeltasMap[fCode] = deltas;
-        }
-      }
-
-      // --- DIAGNÓSTICO: resumen en consola ---
-      console.log("[WBT DIAGNOSTIC] Total <Feature> en XML:", featuresXML.length);
-      console.log("[WBT DIAGNOSTIC] Features con Option C/P detectada:", Object.keys(featureDeltasMap).length);
-      console.log("[WBT DIAGNOSTIC] Codigos de Option REALES encontrados en todo el XML (revisa si aqui aparece 'C' y 'P' literalmente, o algo distinto):", Array.from(allOptionCodesSeen).sort());
-      if (Object.keys(featureDeltasMap).length === 0) {
-        console.warn("[WBT DIAGNOSTIC] NINGUN Feature tiene una Option con codigo exactamente 'C' o 'P'. Esto explica por que todos los precios Classic/Premium salen iguales: el filtro busca un codigo que no existe en tu XML. Revisa la lista de 'Codigos de Option REALES' de arriba.");
-      }
-
-      // 2. Procesar los Productos y expandirlos por acabado (Classic y Premium)
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
 
       for (const p of productsXML) {
-        const skuBase = p.getElementsByTagName("Code")[0]?.textContent || "";
+        const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
         const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
           || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
           || "N/A";
         
-        // Precio Base del Producto
+        // Extracción del valor numérico del precio base (<Price><Value>...</Value></Price>)
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        // --- FIX: Selección correcta del FeatureRef que gobierna C/P ---
-        // Un producto puede tener varios <FeatureRef> (color, herraje,
-        // acabado, etc.). Antes se tomaba ciegamente el [0], que podía
-        // apuntar a un Feature sin opciones C/P, dejando ambos deltas en 0
-        // y mostrando el mismo precio en las dos variantes (C y P se veían
-        // "iguales"). Ahora recorremos TODAS las referencias del producto y
-        // usamos la primera que exista en featureDeltasMap, es decir, la
-        // que realmente define el sobrecosto de acabado Classic/Premium.
-        // Recolectamos todas las referencias a Features bajo el Product (no solo la primera <Features>)
-        const featureRefNodes = Array.from(p.getElementsByTagName("FeatureRef") || []);
-
-        let featureRef = "";
-        // Intento 1: match exacto normalizado
-        for (const frNode of featureRefNodes) {
-          const codeRaw = frNode.textContent?.trim();
-          const code = codeRaw?.toUpperCase();
-          if (code && featureDeltasMap[code]) {
-            featureRef = code;
-            break;
-          }
-        }
-
-        // Intento 2: matching tolerante (includes / startsWith)
-        if (!featureRef && featureRefNodes.length > 0) {
-          const keys = Object.keys(featureDeltasMap);
-          for (const frNode of featureRefNodes) {
-            const codeRaw = frNode.textContent?.trim();
-            const code = codeRaw?.toUpperCase();
-            if (!code) continue;
-            const match = keys.find(k => k.includes(code) || code.includes(k) || k.startsWith(code) || code.startsWith(k));
-            if (match) {
-              featureRef = match;
-              break;
-            }
-          }
-        }
-
-        // Fallback final: usar la primera referencia (normalizada)
-        if (!featureRef && featureRefNodes.length > 0) {
-          featureRef = featureRefNodes[0].textContent?.trim().toUpperCase() || "";
-        }
-
-        // Extraemos deltas si existen en nuestro mapa global, de lo contrario por defecto es 0
-        const deltaC = featureDeltasMap[featureRef]?.['C'] ?? 0;
-        const deltaP = featureDeltasMap[featureRef]?.['P'] ?? 0;
-
-        // --- DIAGNÓSTICO: log detallado solo para los primeros productos ---
-        // para no saturar la consola en catálogos con miles de items.
-        if (extracted.length < 10) {
-          console.log(`[WBT DIAGNOSTIC] Producto ${skuBase}: FeatureRefs disponibles =`,
-            featureRefNodes.map(n => n.textContent?.trim()),
-            "| FeatureRef elegido =", featureRef || "(ninguno)",
-            "| deltaC =", deltaC, "| deltaP =", deltaP
-          );
-        }
-
-        // Generamos Variante Classic (/C)
         extracted.push({
-          id: `${skuBase}-C`,
-          sku: `${skuBase}/C`,
-          skuBase,
+          sku,
           description,
           classification,
-          finishType: "Classic",
-          finishCode: "C",
-          calculatedPrice: basePrice + deltaC,
-          isPremium: false
-        });
-
-        // Generamos Variante Premium (/P)
-        extracted.push({
-          id: `${skuBase}-P`,
-          sku: `${skuBase}/P`,
-          skuBase,
-          description,
-          classification,
-          finishType: "Premium",
-          finishCode: "P",
-          calculatedPrice: basePrice + deltaP,
-          isPremium: true
+          basePrice
         });
       }
       
       setProducts(extracted);
-      setCurrentPage(1);
+      setCurrentPage(1); // Reiniciar a la primera página tras una recarga exitosa
     } catch (err) {
-      console.error("Error en procesamiento de matriz de datos WBT:", err);
-      setError(err.message || "Error al procesar la información de catálogos WBT.");
+      console.error("Error en procesamiento de matriz de datos WBO:", err);
+      setError(err.message || "Error al procesar la información de catálogos WBO.");
     } finally {
       setLoading(false);
     }
@@ -231,28 +85,23 @@ const WBTDataMatrix = () => {
 
   useEffect(() => {
     processXML();
-    return () => {
-      if (typeof window !== 'undefined' && window.downloadWBTXML) {
-        delete window.downloadWBTXML;
-      }
-    };
   }, []);
 
-  // Búsqueda elástica: Permite buscar tanto por SKU base como "CLN7110.../P" o por tipo "classic"
   const filtered = useMemo(() => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
     return products.filter(p => 
       p.sku.toLowerCase().includes(cleanSearch) ||
-      p.description.toLowerCase().includes(cleanSearch) ||
-      p.finishType.toLowerCase().includes(cleanSearch)
+      p.description.toLowerCase().includes(cleanSearch)
     );
   }, [products, searchTerm]);
 
+  // Al cambiar el término de búsqueda, devolvemos la vista a la primera página automáticamente
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
 
+  // Segmentación de los datos en bloques exactos de 20 para el renderizado
   const paginatedProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filtered.slice(startIndex, startIndex + itemsPerPage);
@@ -265,7 +114,7 @@ const WBTDataMatrix = () => {
   const stats = useMemo(() => {
     const total = products.length;
     const avgPrice = total 
-      ? Math.round(products.reduce((acc, p) => acc + p.calculatedPrice, 0) / total) 
+      ? Math.round(products.reduce((acc, p) => acc + p.basePrice, 0) / total) 
       : 0;
     return { total, filtered: filtered.length, avgPrice };
   }, [products, filtered]);
@@ -274,13 +123,13 @@ const WBTDataMatrix = () => {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix with variants (Classic / Premium) from WBT Engine...
+        Retrieving master data matrix from WBD Engine...
       </div>
     </div>
   );
 
   if (error) return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
+    <div className="flex min-h-[90vh] h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
       <h3 className="text-sm font-bold text-[#242424] mb-1">Error en Sincronización del Motor</h3>
       <p className="text-xs text-[#616161] max-w-md mb-4">{error}</p>
@@ -303,38 +152,38 @@ const WBTDataMatrix = () => {
           <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#242424]">WBT Data Matrix Master</span>
+                <span className="text-xs font-bold text-[#242424]">WBO Data Matrix Master</span>
                 <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
-                  Classic & Premium Dynamic Split
+                  WBD Schema Engine Live
                 </span>
               </div>
               <span className="text-[10px] text-[#616161]">
-                Automated Ingestion Pipeline & Structured Data Mapping (Product + Feature Delta Resolution)
+                Automated Ingestion Pipeline & Structured Data Mapping
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 bg-[#F5F5F5] border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[10px] text-[#616161] font-medium select-none">
-                <span>TOTAL VARIANTS: <strong className="text-[#242424] font-bold">{stats.total}</strong></span>
+                <span>PRODUCTS: <strong className="text-[#242424] font-bold">{stats.total}</strong></span>
                 <span className="text-[#D2D2D2]">|</span>
                 <span>FILTERED: <strong className="text-[#242424] font-bold">{stats.filtered}</strong></span>
                 <span className="text-[#D2D2D2]">|</span>
-                <span>AVG PRICE: <strong className="text-[#242424] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
+                <span>AVG BASE PRICE: <strong className="text-[#242424] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
               </div>
 
               <input
                 type="text"
-                placeholder="Search SKU, name, classic, premium..."
+                placeholder="Search matrix..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[240px]"
+                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[180px]"
               />
 
               <button 
                 onClick={processXML}
                 type="button"
                 className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161] transition-colors"
-                title="Sincronizar y recalcular matrices"
+                title="Sincronizar y recalcular matrices desde xml_raw"
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
@@ -344,7 +193,7 @@ const WBTDataMatrix = () => {
           {/* Table Matrix */}
           {filtered.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No se encontraron coincidencias de SKU o variantes en el esquema actual.
+              No se encontraron coincidencias de SKU o productos en el esquema actual.
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
@@ -357,7 +206,7 @@ const WBTDataMatrix = () => {
                     {baseHeaders.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[150px] max-w-[320px] whitespace-nowrap truncate uppercase tracking-wider"
+                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
@@ -375,55 +224,43 @@ const WBTDataMatrix = () => {
                       
                       return (
                         <motion.tr 
-                          key={p.id}
+                          key={p.sku || realIndex}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          transition={{ duration: 0.1 }}
+                          transition={{ duration: 0.15 }}
                           className="hover:bg-[#F7F5FA] transition-colors duration-75 group"
                         >
-                          {/* Column Index */}
+                          {/* Index Column */}
                           <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 bg-white group-hover:bg-[#FCFAFF] border-b border-[#F0F0F0]">
                             {realIndex}
                           </td>
 
-                          {/* SKU con variante (/C o /P) */}
-                          <td className="p-0 text-[#5B5FC7] border-r border-b border-[#F0F0F0] min-w-[180px] max-w-[280px]">
+                          {/* SKU */}
+                          <td className="p-0 text-[#5B5FC7] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] font-bold whitespace-nowrap truncate" title={p.sku}>
-                              {p.skuBase}
-                              <span className={`ml-1 px-1 rounded-sm text-[10px] ${p.isPremium ? 'bg-[#FFF0F6] text-[#D01A6A] border border-[#FFD6E7]' : 'bg-[#EBF3FF] text-[#106EBE] border border-[#CCE3FF]'}`}>
-                                /{p.finishCode}
-                              </span>
+                              {p.sku}
                             </div>
                           </td>
 
                           {/* Description */}
-                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[250px] max-w-[350px]">
+                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-sans text-[11px] font-medium whitespace-nowrap truncate" title={p.description}>
                               {p.description}
                             </div>
                           </td>
 
                           {/* Classification */}
-                          <td className="p-0 text-[#616161] border-r border-b border-[#F0F0F0] min-w-[130px] max-w-[200px]">
+                          <td className="p-0 text-[#616161] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate" title={p.classification}>
                               {p.classification}
                             </div>
                           </td>
 
-                          {/* Finish Type Label */}
-                          <td className="p-0 border-r border-b border-[#F0F0F0] min-w-[120px] max-w-[160px]">
-                            <div className="px-3 py-1.5">
-                              <span className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded-full ${p.isPremium ? 'text-[#D01A6A] bg-[#FFF0F6]' : 'text-[#106EBE] bg-[#EBF3FF]'}`}>
-                                {p.finishType}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* Calculated Price (Base + Delta de Acabado) */}
-                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[150px] max-w-[200px]">
-                            <div className={`px-3 py-1.5 font-mono text-[11px] font-extrabold whitespace-nowrap truncate ${p.isPremium ? 'bg-[#FFF5FA]/40 text-[#A20E4E]' : 'bg-[#F4F8FA]/60 text-[#242424]'}`}>
-                              ${p.calculatedPrice.toLocaleString()}
+                          {/* Base Price */}
+                          <td className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
+                            <div className="px-3 py-1.5 font-mono text-[11px] font-extrabold bg-[#F9F9F9]/50 whitespace-nowrap truncate">
+                              ${p.basePrice.toLocaleString()}
                             </div>
                           </td>
                         </motion.tr>
@@ -439,10 +276,10 @@ const WBTDataMatrix = () => {
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-[#616161] select-none">
             <div className="flex gap-4">
               <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length}</span>
-              <span className="uppercase tracking-tight">VARIANTS RENDERED: {filtered.length} of {products.length}</span>
+              <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
             </div>
             
-            {/* Controles de paginación */}
+            {/* Controles de paginación de 20 en 20 */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -469,7 +306,7 @@ const WBTDataMatrix = () => {
 
             <div className="flex items-center gap-4">
               <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
-                WBT ETL Pipeline V3 (Dynamic Matrix Split)
+                WBD ETL Pipeline V2 (Oauth Verified)
               </div>
             </div>
           </div>
@@ -480,4 +317,4 @@ const WBTDataMatrix = () => {
   );
 };
 
-export default WBTDataMatrix;
+export default WBDDataMatrix;

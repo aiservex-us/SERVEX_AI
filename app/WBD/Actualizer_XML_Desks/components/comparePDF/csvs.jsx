@@ -20,13 +20,13 @@ export default function DataViewer() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Mapeado exacto a las columnas de la tabla: se cambia 'csv_optimizer_raw' por 'csv_raw'
+  // Mapeado exacto a las columnas reales del DDL de la tabla ClientsSERVEX_WBO
   const [activeTab, setActiveTab] = useState('csv_raw'); 
   const [searchTerm, setSearchTerm] = useState('');
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 30;
+  const ITEMS_PER_PAGE = 35;
 
   useEffect(() => {
     fetchLatestData();
@@ -46,10 +46,10 @@ export default function DataViewer() {
   const fetchLatestData = async () => {
     setLoading(true);
     try {
-      // Consulta exacta alineada al DDL y filtrada por la entidad corporativa WBD
+      // Consulta corregida alineada estrictamente al DDL provisto para la entidad WBD
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBD')
-        .select('company_name, csv_raw, informa_agent_raw, created_at')
+        .select('company_name, csv_raw, csvpdf_raw, informa_agent_raw, created_at')
         .eq('company_name', 'WBD')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -64,26 +64,56 @@ export default function DataViewer() {
     }
   };
 
-  // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB ---
+  // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB / TEXT ---
   const getSanitizedData = (record, tab) => {
-    if (!record || !record[tab]) return [];
+   if (!record || !record[tab]) return [];
+  
+  // Caso 1: Supabase ya lo parseó como Array de Objetos (JSONB)
+  if (Array.isArray(record[tab])) {
+    return record[tab];
+  }
+  
+  const rawContent = record[tab];
+
+  if (typeof rawContent === 'string') {
+    const trimmed = rawContent.trim();
     
-    // Si Supabase ya lo parseó automáticamente como Array de objetos
-    if (Array.isArray(record[tab])) {
-      return record[tab];
-    }
-    
-    // Si viene como string debido a la serialización previa
-    try {
-      if (typeof record[tab] === 'string') {
-        return JSON.parse(record[tab]);
+    // Caso 2: Es un string pero tiene estructura de JSON Array
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        return JSON.parse(trimmed);
+      } catch (e) {
+        console.error("Error parseando string con formato JSON:", e);
       }
-    } catch (e) {
-      console.error("Error interpretando JSONB slot:", e);
     }
     
-    return [];
-  };
+    // Caso 3: Es un CSV plano en formato String (Fallback)
+    try {
+      const lines = trimmed.split(/\r?\n/);
+      if (lines.length === 0 || lines[0] === '') return [];
+      
+      // Detectar separador común
+      const separator = lines[0].includes(';') ? ';' : ',';
+      const headers = lines[0].split(separator).map(h => h.replace(/^"|"$/g, '').trim());
+      
+      const parsedRows = lines.slice(1).map(line => {
+        const values = line.split(separator).map(v => v.replace(/^"|"$/g, '').trim());
+        // Crear objeto dinámico { header: valor }
+        const rowObj = {};
+        headers.forEach((header, index) => {
+          rowObj[header] = values[index] || '';
+        });
+        return rowObj;
+      });
+      
+      return parsedRows.filter(row => Object.keys(row).length > 0 && Object.values(row).some(Boolean));
+    } catch (csvError) {
+      console.error("Error parseando formato CSV plano nativo:", csvError);
+    }
+  }
+  
+  return [];
+};
 
   const currentCsvData = getSanitizedData(data, activeTab);
   
@@ -149,7 +179,7 @@ export default function DataViewer() {
 
   if (!data) return (
     <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
-      <span className="font-bold">Synchronization error:</span> No active matrix found for entity "WBD" in ClientsSERVEX_WBD.
+      <span className="font-bold">Synchronization error:</span> 
     </div>
   );
 
@@ -174,7 +204,7 @@ export default function DataViewer() {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Tab Selector mapeado a las nuevas columnas JSONB */}
+              {/* Tab Selector mapeado a las columnas JSONB / Text del DDL */}
               <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
                 <button
                   type="button"
@@ -187,12 +217,12 @@ export default function DataViewer() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('informa_agent_raw')}
+                  onClick={() => setActiveTab('csvpdf_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'informa_agent_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
-                  PDF Intelligence
+                  PDF Intelligence.
                 </button>
               </div>
 
@@ -229,7 +259,7 @@ export default function DataViewer() {
           {/* Table Container */}
           {paginatedData.length === 0 ? (
             <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No matching matching analytical records found inside {activeTab}.
+              No matching analytical records found inside {activeTab}.
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">

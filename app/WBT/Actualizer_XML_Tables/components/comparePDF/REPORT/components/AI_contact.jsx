@@ -39,69 +39,7 @@ export default function TeamsAgentChat({ currentSection }) {
 
   useEffect(() => {
     const fetchHistory = async () => {
-  
-    
-    if (queryToSend.toLowerCase() === '/downloadresultxml') {
-      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
       try {
-        const { data, error } = await supabase
-          .from('ClientsSERVEX_WBT')
-          .select('xml_actualizer_raw')
-          .eq('company_name', 'WBT')
-          .single();
-
-        if (error || !data || !data.xml_actualizer_raw) {
-          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: No se encontró el archivo XML en la base de datos para WBT.", time: nowTime }]);
-        } else {
-          const blob = new Blob([data.xml_actualizer_raw], { type: 'application/xml' });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'WBT.xml');
-          document.body.appendChild(link);
-          link.click();
-          link.parentNode.removeChild(link);
-          window.URL.revokeObjectURL(url);
-          
-          setMessages(prev => [...prev, { from: "bot", text: "✅ Descarga iniciada. El archivo WBT.xml ha sido guardado exitosamente.", time: nowTime }]);
-        }
-      } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: "❌ Ocurrió un error inesperado al intentar descargar el XML.", time: nowTime }]);
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
-
-    if (queryToSend === '/executeProcess') {
-      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Iniciando motor ETL para procesamiento de catálogos en la nube (WBT). Por favor, espera...", time: nowTime }]);
-      
-      try {
-        const formData = new FormData();
-        formData.append('company_name', 'WBT');
-        
-        const response = await fetch(`${apiURL}/wbt/api/v1/pipeline/compare-only`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Falla en la respuesta del motor de comparación');
-        }
-        
-        await response.json();
-        setMessages(prev => [...prev, { from: "bot", text: "✅ ¡Proceso ETL completado exitosamente! El catálogo ha sido reestructurado y comparado. Ya puedes revisar la auditoría en 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-        window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'report' }));
-      } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: `❌ Error durante la ejecución del proceso ETL: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-      }
-      setIsLoading(false);
-      return;
-    }
-
-    try {
         const res = await fetch(`${apiURL}/wbt/api/v1/agent/history`);
         const data = await res.json();
         if (data.status === "success" && data.history) {
@@ -157,6 +95,67 @@ export default function TeamsAgentChat({ currentSection }) {
     setInput("");
     setCharCount(0);
     setIsLoading(true);
+
+    
+    if (queryToSend.toLowerCase() === '/downloadresultxml') {
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      try {
+        const { data, error } = await supabase
+          .from('ClientsSERVEX_WBT')
+          .select('xml_actualizer_raw')
+          .eq('company_name', 'WBT')
+          .single();
+
+        if (error || !data || !data.xml_actualizer_raw) {
+          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: No se encontró el archivo XML en la base de datos para WBT.", time: nowTime }]);
+        } else {
+          const blob = new Blob([data.xml_actualizer_raw], { type: 'application/xml' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', 'WBT.xml');
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          setMessages(prev => [...prev, { from: "bot", text: "✅ Descarga iniciada. El archivo WBT.xml ha sido guardado exitosamente.", time: nowTime }]);
+        }
+      } catch (err) {
+        setMessages(prev => [...prev, { from: "bot", text: "❌ Ocurrió un error inesperado al intentar descargar el XML.", time: nowTime }]);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    if (queryToSend === '/executeProcess') {
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Iniciando motor ETL para procesamiento de catálogos en la nube (WBT). Por favor, espera...", time: nowTime }]);
+      
+      try {
+        const formData = new FormData();
+        formData.append('company_name', 'WBT');
+        
+        const response = await fetch(`${apiURL}/wbt/api/v1/pipeline/compare-only-WBT`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Falla en la respuesta del motor de comparación');
+        }
+        
+        await response.json();
+        setMessages(prev => [...prev, { from: "bot", text: "✅ ¡Proceso ETL completado exitosamente! El catálogo ha sido reestructurado y comparado. Ya puedes revisar la auditoría en 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'report' }));
+      } catch (err) {
+        setMessages(prev => [...prev, { from: "bot", text: `❌ Error durante la ejecución del proceso ETL: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      }
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Mapear el historial de mensajes al formato esperado por el backend
