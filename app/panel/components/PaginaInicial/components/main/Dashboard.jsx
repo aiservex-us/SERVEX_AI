@@ -49,24 +49,24 @@ const StatItem = ({ icon, label, value, description, isOpen, onClick }) => (
 
 /* LOGOS */
 const logos = [
-  '/logosCompanys/9to5 Seating - Red.svg',
-  '/logosCompanys/berner-air-curtains-seeklogo.com.svg',
-  '/logosCompanys/cropped-logo-dals.png',
-  '/logosCompanys/download (2).png',
-  '/logosCompanys/download (3).png',
-  '/logosCompanys/Haskell-logo-color-topMargin-01.svg',
-  '/logosCompanys/header_logo_hover.svg',
-  '/logosCompanys/hm-logo-caption.svg',
-  '/logosCompanys/lesro.png',
-  '/logosCompanys/logo-Ali-Group-ForLightBG.svg',
-  '/logosCompanys/logo-metalumen.png',
-  '/logosCompanys/logo.svg',
-  '/logosCompanys/LogoHeader.avif',
-  '/logosCompanys/mity-lite-logo.png',
-  '/logosCompanys/ShawFloorsLogo_Navy.png',
-  '/logosCompanys/Teknion_logo_RGB.svg',
-  '/logosCompanys/via_peach-brown-logo.webp',
-  '/logosCompanys/VIRCO_75-600x183.png'
+  '/logosEmpresas/9to5 Seating - Red.svg',
+  '/logosEmpresas/berner-air-curtains-seeklogo.com.svg',
+  '/logosEmpresas/cropped-logo-dals.png',
+  '/logosEmpresas/download (2).png',
+  '/logosEmpresas/download (3).png',
+  '/logosEmpresas/Haskell-logo-color-topMargin-01.svg',
+  '/logosEmpresas/header_logo_hover.svg',
+  '/logosEmpresas/hm-logo-caption.svg',
+  '/logosEmpresas/lesro.png',
+  '/logosEmpresas/logo-Ali-Group-ForLightBG.svg',
+  '/logosEmpresas/logo-metalumen.png',
+  '/logosEmpresas/logo.svg',
+  '/logosEmpresas/LogoHeader.avif',
+  '/logosEmpresas/mity-lite-logo.png',
+  '/logosEmpresas/ShawFloorsLogo_Navy.png',
+  '/logosEmpresas/Teknion_logo_RGB.svg',
+  '/logosEmpresas/via_peach-brown-logo.webp',
+  '/logosEmpresas/VIRCO_75-600x183.png'
 ];
 
 export default function DashboardRight() {

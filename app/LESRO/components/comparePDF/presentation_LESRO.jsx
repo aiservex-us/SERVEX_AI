@@ -59,7 +59,7 @@ const LesroAdminHero = () => {
           <div className="flex flex-col items-center gap-4 mb-12 lg:mb-16">
             <div className="w-16 h-16 flex items-center justify-center p-2 bg-slate-50 rounded-xl border border-slate-100">
               <img 
-                src="/logosCompanys/lesro.webp" 
+                src="/logosEmpresas/lesro.webp" 
                 alt="LESRO Logo" 
                 className="w-full h-full object-contain"
               />

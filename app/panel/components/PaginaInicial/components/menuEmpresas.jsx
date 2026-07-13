@@ -20,7 +20,7 @@ export default function Calendar() {
     
     {
       company: "WBS Seating",
-      logo: "/logosCompanys/WB.webp",
+      logo: "/logosEmpresas/WB.webp",
       role: "Industrial Ergonomics & Lab Seating",
       description: "Highly durable chairs, stools, and technical seating with certified specifications for cleanrooms and extended shifts on production lines.",
       tags: ['Seating', 'Lab-Spec', 'Comfort'],
@@ -32,7 +32,7 @@ export default function Calendar() {
 
     {
       company: "WBD Desks",
-      logo: "/logosCompanys/WB.webp",
+      logo: "/logosEmpresas/WB.webp",
       role: "Corporate Office & Educational Desks",
       description: "Versatile furniture and adaptable desks oriented toward productivity in administrative environments, executive offices, and training areas.",
       tags: ['Office', 'Educational', 'Facility'],
@@ -42,7 +42,7 @@ export default function Calendar() {
     },
      {
       company: "WBO Workstations",
-      logo: "/logosCompanys/WB.webp",
+      logo: "/logosEmpresas/WB.webp",
       role: "Ergonomic Tech & ESD Workstations",
       description: "Advanced workstations with integrated antistatic protection, smart cable management, and connectivity solutions for laboratories and electronics.",
       tags: ['Assembly', 'ESD-Protection', 'Tech-Design'],
@@ -52,7 +52,7 @@ export default function Calendar() {
     },
         {
       company: "WBT Tables",
-      logo: "/logosCompanys/WB.webp",
+      logo: "/logosEmpresas/WB.webp",
       role: "Heavy-Duty Production Worksurfaces",
       description: "Heavy-duty tables and high mechanical resistance surfaces, specifically designed to withstand heavy loads in manufacturing and assembly environments.",
       tags: ['Manufacturing', 'Heavy-Duty', 'Production'],
@@ -64,7 +64,7 @@ export default function Calendar() {
    
        {
       company: "WBG Storage",
-      logo: "/logosCompanys/WB.webp",
+      logo: "/logosEmpresas/WB.webp",
       role: "Modular Cabinets & High-Density Storage",
       description: "Robust industrial storage systems, modular cabinets, and high-capacity drawer units for tools and inventory management under 5S methodologies.",
       tags: ['Storage', 'Inventory', 'Lean-5S'],
@@ -74,7 +74,7 @@ export default function Calendar() {
     },
     {
       company: "LESRO",
-      logo: "/logosCompanys/lesro.png",
+      logo: "/logosEmpresas/lesro.png",
       role: "Enterprise Furniture Manufacturing",
       tags: ['Analytics', 'Automation', 'Orders'],
       status: "Active contract",
@@ -83,7 +83,7 @@ export default function Calendar() {
     },
     {
       company: "Teknion",
-      logo: "/logosCompanys/Teknion_logo_RGB.svg",
+      logo: "/logosEmpresas/Teknion_logo_RGB.svg",
       role: "Office Furniture Systems",
       tags: ['Analytics', 'ERP Sync'],
       status: "Active contract",
@@ -92,7 +92,7 @@ export default function Calendar() {
     },
     {
       company: "Shaw Floors",
-      logo: "/logosCompanys/ShawFloorsLogo_Navy.png",
+      logo: "/logosEmpresas/ShawFloorsLogo_Navy.png",
       role: "Flooring Solutions",
       tags: ['Dashboards', 'Sales'],
       status: "Active contract",
@@ -101,7 +101,7 @@ export default function Calendar() {
     },
     {
       company: "MityLite",
-      logo: "/logosCompanys/mity-lite-logo.png",
+      logo: "/logosEmpresas/mity-lite-logo.png",
       role: "Event Furniture",
       tags: ['Automation', 'Orders'],
       status: "Active contract",
@@ -110,7 +110,7 @@ export default function Calendar() {
     },
     {
       company: "H&M",
-      logo: "/logosCompanys/hm-logo-caption.svg",
+      logo: "/logosEmpresas/hm-logo-caption.svg",
       role: "Retail & Apparel",
       tags: ['BI', 'Reports'],
       status: "Active contract",
@@ -119,7 +119,7 @@ export default function Calendar() {
     },
     {
       company: "Metalumen",
-      logo: "/logosCompanys/logo-metalumen.png",
+      logo: "/logosEmpresas/logo-metalumen.png",
       role: "Lighting Manufacturing",
       tags: ['Analytics'],
       status: "Active contract",
@@ -128,7 +128,7 @@ export default function Calendar() {
     },
     {
       company: "Via Seating",
-      logo: "/logosCompanys/via_peach-brown-logo.webp",
+      logo: "/logosEmpresas/via_peach-brown-logo.webp",
       role: "Seating Solutions",
       tags: ['Dashboards', 'Orders'],
       status: "Active contract",
@@ -137,7 +137,7 @@ export default function Calendar() {
     },
     {
       company: "DALS Lighting",
-      logo: "/logosCompanys/cropped-logo-dals.png",
+      logo: "/logosEmpresas/cropped-logo-dals.png",
       role: "Architectural Lighting",
       tags: ['Automation', 'Reports'],
       status: "Active contract",
@@ -146,7 +146,7 @@ export default function Calendar() {
     },
     {
       company: "Header Group",
-      logo: "/logosCompanys/header_logo_hover.svg",
+      logo: "/logosEmpresas/header_logo_hover.svg",
       role: "Manufacturing Group",
       tags: ['BI', 'Integrations'],
       status: "Active contract",

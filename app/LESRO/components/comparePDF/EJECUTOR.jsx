@@ -411,7 +411,7 @@ const SVXUnifiedPlatform = () => {
 
       <header className="flex-shrink-0 flex items-center justify-between bg-white p-4 border border-[#EDEBE9] rounded-lg shadow-sm">
         <div className="flex items-center gap-4">
-          <img src="/logosCompanys/lesro.webp" alt="LESRO" className="w-15 h-15 rounded object-contain" />
+          <img src="/logosEmpresas/lesro.webp" alt="LESRO" className="w-15 h-15 rounded object-contain" />
           <div>
             <h1 className="text-sm font-bold uppercase tracking-tight">SERVEX_AI Unified Hub</h1>
             <p className="text-[10px] text-gray-500 font-medium">LESRO Strategic Control</p>
