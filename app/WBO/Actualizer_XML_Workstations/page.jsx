@@ -28,6 +28,31 @@ export default function MenuInicial() {
 
   const router = useRouter();
 
+  // 🔒 PROTECCIÓN DE RUTA DEL MÓDULO (Redirige si se borró el tenant o no hay delegación)
+  useEffect(() => {
+    const checkDelegation = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          window.location.href = '/WBO';
+          return;
+        }
+        
+        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+        const res = await fetch(`${apiURL}/api/v1/module_delegation/WBO`);
+        const responseData = await res.json();
+        
+        if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
+          window.location.href = '/WBO';
+        }
+      } catch (err) {
+        console.error('Delegation check failed', err);
+      }
+    };
+    checkDelegation();
+  }, []);
+
+
   
   useEffect(() => {
     const handleNavigate = (e) => {

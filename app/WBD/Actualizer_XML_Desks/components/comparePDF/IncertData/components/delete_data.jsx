@@ -20,6 +20,7 @@ const DeleteTenantButton = ({ currentTenant = 'WBD', onDeleted }) => {
       
       setIsModalOpen(false);
       if (onDeleted) onDeleted();
+      window.location.href = '/' + currentTenant;
     } catch (err) {
       console.error(`[SERVEX_AI] Fallo en la eliminación del registro ${currentTenant}:`, err);
     } finally {
