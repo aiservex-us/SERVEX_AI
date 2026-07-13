@@ -8,7 +8,7 @@ import {
   Plus, Mic, ChevronDown, Database, Sparkles,
   ArrowRight, Check, BarChart3, 
   Settings, HelpCircle, Shield, Layout, Zap, SendHorizonal
-} Download,
+, Download
 } from 'lucide-react';
 
 export default function TeamsAgentChat() {
