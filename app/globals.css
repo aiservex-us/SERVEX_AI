@@ -18,3 +18,13 @@ body {
   font-family: var(--font-sans);
   font-weight: 300;
 }
+
+/* Ocultar barras de scroll globalmente pero mantener la funcionalidad de scroll */
+* {
+  -ms-overflow-style: none;  /* IE y Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari y Opera */
+}
