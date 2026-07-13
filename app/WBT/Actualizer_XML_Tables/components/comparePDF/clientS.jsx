@@ -78,7 +78,7 @@ const ClientsBatchManager = () => {
 
       setRecords(records.filter(r => !selectedIds.includes(r.id)));
       setSelectedIds([]);
-      alert('Registros eliminados con éxito');
+      alert('Registros deleteds con éxito');
     } catch (error) {
       alert('Error: ' + error.message);
     } finally {
@@ -106,7 +106,7 @@ const ClientsBatchManager = () => {
         border: `1px solid ${colors.border}`
       }}>
         <div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: colors.purple }}>Explorador de Datos</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: colors.purple }}>Data Explorer</h1>
           {selectedIds.length > 0 ? (
             <span style={{ color: colors.danger, fontSize: 13, fontWeight: 600 }}>
               {selectedIds.length} seleccionados
@@ -169,16 +169,16 @@ const ClientsBatchManager = () => {
                   }
                 </button>
               </th>
-              <th style={styles.th}>Fecha</th>
-              <th style={styles.th}>Empresa</th>
-              <th style={styles.th}>Nombre del Archivo</th>
-              <th style={styles.th}>Tipo</th>
+              <th style={styles.th}>Date</th>
+              <th style={styles.th}>Company</th>
+              <th style={styles.th}>File Name</th>
+              <th style={styles.th}>Type</th>
               <th style={styles.th}>ID Supabase</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="6" style={{ padding: 40, textAlign: 'center' }}>Cargando datos...</td></tr>
+              <tr><td colSpan="6" style={{ padding: 40, textAlign: 'center' }}>Loading data...</td></tr>
             ) : filteredRecords.map((row) => {
               const isSelected = selectedIds.includes(row.id);
               return (
@@ -213,7 +213,7 @@ const ClientsBatchManager = () => {
       {/* TIP INFORMATIVO */}
       <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, color: colors.subtext, fontSize: 12 }}>
         <Info size={14} />
-        <span>Haz clic en los cuadros de la izquierda para seleccionar varios elementos a la vez.</span>
+        <span>Click the checkboxes on the left to select multiple items at once.</span>
       </div>
     </div>
   );

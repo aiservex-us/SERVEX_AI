@@ -23,17 +23,17 @@ const SyncInfoPanelFull = () => {
   const accordionData = [
     {
       title: "1. Selección de Entidad y Vinculación Crítica",
-      content: "Para iniciar cualquier proceso de sincronización en SVX Copilot, el primer paso fundamental es la elección de la empresa o entidad. Esta no es una simple etiqueta; es el marco lógico que permite al sistema entender bajo qué reglas de negocio se deben procesar los tratados. Al seleccionar la empresa, el sistema carga los diccionarios de SKUs específicos, permitiendo que la vinculación sea exacta. Esto evita que los datos se dispersen o se mezclen con otros portafolios, garantizando que el usuario esté trabajando en un ambiente sanitario y aislado para su cliente específico.",
+      content: "Para iniciar cualquier proceso de sincronización en SVX Copilot, el primer paso fundamental es la elección de la empresa o entidad. Esta no es una simple etiqueta; es el marco lógico que permite al sistema entender bajo qué reglas de negocio se deben procesar los tratados. Al seleccionar la empresa, el sistema carga los diccionarios de SKUs específicos, permitiendo que la vinculación sea exacta. Esto evita que los datos se dispersen o se mezclen con otros portafolios, garantizando que el user esté trabajando en un ambiente sanitario y aislado para su cliente específico.",
       icon: Building2
     },
     {
       title: "2. Carga, Lectura y Experimentación",
-      content: "Una vez definida la entidad, el proceso de subir el archivo (PDF o CSV) activa el motor de experimentación. El SVX Compiler no se limita a copiar texto; analiza la estructura, detecta los paréntesis de información más pequeños y los 'experimenta' frente a la base de datos histórica. En esta fase, el sistema determina instantáneamente cómo han cambiado los datos, detectando variaciones en precios (Grados G2 al G13), dimensiones o descripciones técnicas. Es aquí donde la plataforma 'aprende' las actualizaciones del catálogo y las prepara para la sincronización final.",
+      content: "Una vez definida la entidad, el proceso de subir el file (PDF o CSV) activa el motor de experimentación. El SVX Compiler no se limita a copiar texto; analiza la estructura, detecta los paréntesis de información más pequeños y los 'experimenta' frente a la base de datos histórica. En esta fase, el sistema determina instantáneamente cómo han cambiado los datos, detectando variaciones en precios (Grados G2 al G13), dimensiones o descripciones técnicas. Es aquí donde la plataforma 'aprende' las actualizaciones del catálogo y las prepara para la sincronización final.",
       icon: FileSearch
     },
     {
       title: "3. Comparación Instantánea de Tratados",
-      content: "La verdadera potencia de la herramienta reside en su capacidad de comparación. Al procesar el formato requerido, el sistema genera un espejo comparativo entre lo que existe actualmente y lo que el nuevo documento propone. Este análisis permite identificar de forma visual y textual qué actualizaciones se han hecho en los tratados comerciales, permitiendo al colaborador validar cambios en segundos en lugar de horas. El sistema resalta las discrepancias para que la toma de decisiones sea basada en datos puros y verificados.",
+      content: "La verdadera potencia de la herramienta reside en su capacidad de comparación. Al procesar el formato requerido, el sistema genera un espejo comparativo entre lo que existe actualmente y lo que el new documento propone. Este análisis permite identificar de forma visual y textual qué actualizaciones se han hecho en los tratados comerciales, permitiendo al colaborador validar cambios en segundos en lugar de horas. El sistema resalta las discrepancias para que la toma de decisiones sea basada en datos puros y verificados.",
       icon: ArrowRightLeft
     }
   ];
@@ -52,7 +52,7 @@ const SyncInfoPanelFull = () => {
             Gestión de Sincronización <span className="text-[#6264A7]">de Datos</span>
           </h1>
           <p className="text-[14px] text-[#605E5C] leading-relaxed max-w-4xl">
-            Sincronizar datos con SVX Copilot requiere un flujo estructurado donde cada archivo subido es analizado para permitirle escoger exactamente qué empresa quiere vincular. 
+            Sincronizar datos con SVX Copilot requiere un flujo estructurado donde cada file subido es analizado para permitirle escoger exactamente qué empresa quiere vincular. 
           </p>
         </div>
         <div className="relative shrink-0 hidden lg:block opacity-20 group-hover:opacity-40 transition-opacity">
@@ -93,7 +93,7 @@ const SyncInfoPanelFull = () => {
                     <ListTree size={20} /> Flujo Maestro de Operación
                   </h2>
                   <p className="text-[13px] text-[#605E5C] leading-[1.8]">
-                    El proceso de sincronización no es una simple carga de documentos. Es una arquitectura diseñada para que los colaboradores puedan gestionar cambios masivos sin riesgo de error. Al subir un PDF o CSV, el sistema primero le pide confirmar la **Entidad Vinculada**. Esto es vital porque cada empresa posee tratados y estructuras de precios únicas. Una vez que SVX Copilot identifica la empresa, procede a descomponer el archivo en los paréntesis de datos más pequeños posibles: desde el SKU individual hasta los complejos precios de grado G2, G3 y superiores.
+                    El proceso de sincronización no es una simple carga de documentos. Es una arquitectura diseñada para que los colaboradores puedan gestionar cambios masivos sin riesgo de error. Al subir un PDF o CSV, el sistema primero le pide confirm la **Entidad Vinculada**. Esto es vital porque cada empresa posee tratados y estructuras de precios únicas. Una vez que SVX Copilot identifica la empresa, procede a descomponer el file en los paréntesis de datos más pequeños posibles: desde el SKU individual hasta los complejos precios de grado G2, G3 y superiores.
                   </p>
                 </div>
 
@@ -154,13 +154,13 @@ const SyncInfoPanelFull = () => {
                 <h3 className="text-xl font-bold mb-4">Solución a Problemas del Día a Día</h3>
                 <div className="text-[13px] text-[#605E5C] space-y-4 leading-relaxed">
                   <p>
-                    Los colaboradores a menudo se enfrentan al reto de catálogos que cambian constantemente. La actualización manual no solo es lenta, sino peligrosa para la rentabilidad de la empresa. SVX Copilot soluciona esto permitiendo una carga fluida donde el sistema hace el trabajo sucio.
+                    Los colaboradores a menudo se enfrentan al reto de catálogos que cambian constantemente. La update manual no solo es lenta, sino peligrosa para la rentabilidad de la empresa. SVX Copilot soluciona esto permitiendo una carga fluida donde el sistema hace el trabajo sucio.
                   </p>
                   <p>
                     <strong>Eliminación de Errores:</strong> Al leer directamente del PDF fuente, se eliminan los errores de dedo al transcribir precios. El sistema le indica exactamente qué precio subió o bajó, permitiéndole actualizar su lista de tratados de manera instantánea.
                   </p>
                   <p>
-                    <strong>Agilidad Comercial:</strong> Si una fábrica envía un nuevo PDF de precios un viernes por la tarde, usted puede tener el sistema sincronizado en 5 minutos, asegurando que el equipo de ventas siempre cotice con los datos más recientes.
+                    <strong>Agilidad Comercial:</strong> Si una fábrica envía un new PDF de precios un viernes por la tarde, usted puede tener el sistema sincronizado en 5 minutos, asegurando que el equipo de ventas siempre cotice con los datos más recientes.
                   </p>
                 </div>
               </div>
@@ -196,15 +196,15 @@ const SyncInfoPanelFull = () => {
                   </h3>
                   <div className="text-[14px] text-[#605E5C] space-y-6 leading-relaxed">
                     <p>
-                      Para que la plataforma **SVX Compiler** pueda ejecutar sus algoritmos de lectura profunda, los archivos deben presentarse en un formato estándar. Esto no es solo por orden, sino por capacidad de procesamiento: el sistema necesita identificar las anclas de datos (como el SKU) para poder comparar el tratado anterior con el nuevo.
+                      Para que la plataforma **SVX Compiler** pueda ejecutar sus algoritmos de lectura profunda, los files deben presentarse en un formato estándar. Esto no es solo por orden, sino por capacidad de procesamiento: el sistema necesita identificar las anclas de datos (como el SKU) para poder comparar el tratado anterior con el new.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8">
                       <div className="p-6 bg-[#FAF9F8] rounded-xl border border-[#EDEBE9]">
-                        <h4 className="font-bold text-[#242424] mb-3 border-b pb-2">Archivos PDF</h4>
+                        <h4 className="font-bold text-[#242424] mb-3 border-b pb-2">Files PDF</h4>
                         <p className="text-[12px]">El PDF debe ser de origen digital (no escaneado como imagen). Esto permite que el motor de extracción lea las capas de texto y asigne correctamente cada precio al SKU correspondiente en la tabla de tratados.</p>
                       </div>
                       <div className="p-6 bg-[#FAF9F8] rounded-xl border border-[#EDEBE9]">
-                        <h4 className="font-bold text-[#242424] mb-3 border-b pb-2">Archivos CSV</h4>
+                        <h4 className="font-bold text-[#242424] mb-3 border-b pb-2">Files CSV</h4>
                         <p className="text-[12px]">Debe estar codificado en UTF-8 y seguir la estructura de columnas requerida: SKU, Dimensiones y los 12 niveles de precios. Esto asegura que la inyección de datos a la nube sea limpia y sin caracteres rotos.</p>
                       </div>
                     </div>

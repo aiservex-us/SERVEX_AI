@@ -135,7 +135,7 @@ const ConfigXML = ({ externalSearchSKU }) => {
                 ) : (
                     <div className="h-full flex flex-col items-center justify-center opacity-30 text-center p-10">
                         <FiShield size={40} className="mb-4 text-[#464775]" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#464775]">Panel PIM Vacío</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#464775]">Empty PIM Panel</p>
                     </div>
                 )}
             </div>

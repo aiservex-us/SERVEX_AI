@@ -24,23 +24,23 @@ const EJECUTOR_PLAY = ({
     year: 'numeric' 
   });
 
-  const estadoProcesando = isProcessing || localProcessing;
+  const estadoProcessing = isProcessing || localProcessing;
 
-  // Cerrar el popup de proceso unificado automáticamente
+  // Close el popup de proceso unificado automáticamente
   useEffect(() => {
-    if (!estadoProcesando && showStatusPopup) {
+    if (!estadoProcessing && showStatusPopup) {
       const timer = setTimeout(() => setShowStatusPopup(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [estadoProcesando, showStatusPopup]);
+  }, [estadoProcessing, showStatusPopup]);
 
-  // Cerrar el popup del segundo proceso automáticamente
+  // Close el popup del segundo proceso automáticamente
   useEffect(() => {
-    if (!estadoProcesando && showSecondPopup) {
+    if (!estadoProcessing && showSecondPopup) {
       const timer = setTimeout(() => setShowSecondPopup(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [estadoProcesando, showSecondPopup]);
+  }, [estadoProcessing, showSecondPopup]);
 
   const ejecutarConConsola = async () => {
     setShowStatusPopup(true); 
@@ -52,7 +52,7 @@ const EJECUTOR_PLAY = ({
   };
 
   const ejecutarSegundoProceso = async () => {
-    if (estadoProcesando) return; // Add guard check
+    if (estadoProcessing) return; // Add guard check
     setShowSecondPopup(true);
     setLocalProcessing(true);
     if (setIsProcessing) setIsProcessing(true);
@@ -98,7 +98,7 @@ const EJECUTOR_PLAY = ({
     };
     window.addEventListener('executeProcessCommand', handleTrigger);
     return () => window.removeEventListener('executeProcessCommand', handleTrigger);
-  }, [estadoProcesando]);
+  }, [estadoProcessing]);
 
   return (
     <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 font-sans antialiased text-[#242424]">
@@ -183,10 +183,10 @@ const EJECUTOR_PLAY = ({
           <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
             <button 
               onClick={ejecutarConConsola}
-              disabled={!file || estadoProcesando}
+              disabled={!file || estadoProcessing}
               className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
             >
-              {estadoProcesando && showStatusPopup ? <Loader2 size={12} className="animate-spin" /> : <FiZap size={12} />}
+              {estadoProcessing && showStatusPopup ? <Loader2 size={12} className="animate-spin" /> : <FiZap size={12} />}
               <span className="line-clamp-2">SAVE NEW DATA IN SYSTEM (FIRST STEP)</span>
             </button>
             <div className="px-1 py-1 sm:py-2">

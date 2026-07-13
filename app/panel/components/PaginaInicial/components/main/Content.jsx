@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { MousePointer2, Zap, Target, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-// Componente BlogCard con el nuevo color #464775 y tipografía optimizada
+// Componente BlogCard con el new color #464775 y tipografía optimizada
 const BlogCard = ({ title, description, val, isActive, onClick, icon: Icon }) => (
   <div 
     onClick={onClick}

@@ -184,7 +184,7 @@ const LesroSyncCopilot = () => {
         <Settings size={18} className="text-white opacity-90 cursor-pointer" />
       </div>
 
-      {/* Main Content - Eliminado max-w y p-6 para que sea full screen */}
+      {/* Main Content - Deleted max-w y p-6 para que sea full screen */}
       <main className="flex-1 w-full overflow-hidden flex flex-col">
         <div className="w-full h-full bg-white flex flex-col overflow-hidden">
           {renderMainContent()}

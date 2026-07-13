@@ -10,7 +10,7 @@ const EJECUTOR_PLAY = ({
 }) => {
   const [logs, setLogs] = useState([]);
   const [isMaximized, setIsMaximized] = useState(false);
-  const [showStatusPopup, setShowStatusPopup] = useState(false); // Nuevo estado para el popup
+  const [showStatusPopup, setShowStatusPopup] = useState(false); // New estado para el popup
   const scrollRef = useRef(null);
   const modalScrollRef = useRef(null);
 
@@ -28,7 +28,7 @@ const EJECUTOR_PLAY = ({
     }
   }, [logs, isMaximized]);
 
-  // Cerrar el popup automáticamente cuando termine el proceso
+  // Close el popup automáticamente cuando termine el proceso
   useEffect(() => {
     if (!isProcessing && showStatusPopup) {
       const timer = setTimeout(() => setShowStatusPopup(false), 2000);
@@ -39,7 +39,7 @@ const EJECUTOR_PLAY = ({
     };
     window.addEventListener('executeProcessCommand', handleTrigger);
     return () => window.removeEventListener('executeProcessCommand', handleTrigger);
-  }, [estadoProcesando]);
+  }, [estadoProcessing]);
 
   return () => clearTimeout(timer);
     }
@@ -153,8 +153,8 @@ const EJECUTOR_PLAY = ({
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Proceso de Actualización Iniciado</h3>
-              <p className="text-[11px] text-gray-500 font-medium">Catálogo: {currentDate}</p>
+              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Proceso de Update Iniciado</h3>
+              <p className="text-[11px] text-gray-500 font-medium">Catalog: {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
@@ -166,7 +166,7 @@ const EJECUTOR_PLAY = ({
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
               <Loader2 size={12} className="animate-spin" />
-              <span className="uppercase tracking-widest">Ejecutando Pipeline...</span>
+              <span className="uppercase tracking-widest">Executing Pipeline...</span>
             </div>
           </div>
         </div>

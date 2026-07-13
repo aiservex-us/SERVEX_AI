@@ -63,7 +63,7 @@ const AIReporting = () => {
       {/* --- Viewport Central con ANIMACIÓN --- */}
       <main className="flex-1 h-full min-w-0 overflow-hidden relative">
         <AnimatePresence mode="wait"> 
-          {/* 'mode="wait"' hace que el viejo desaparezca antes de que el nuevo aparezca */}
+          {/* 'mode="wait"' hace que el viejo desaparezca antes de que el new aparezca */}
           <motion.div
             key={activeViewport} // La 'key' es vital para que Framer detecte el cambio
             variants={viewportVariants}

@@ -197,7 +197,7 @@ export default function MenuInicial() {
                   <button 
                     onClick={() => setIsAiMenuExpanded(!isAiMenuExpanded)}
                     className={`flex items-center justify-center p-1.5 rounded-lg shadow-sm border transition-all ${isAiMenuExpanded ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                    title={isAiMenuExpanded ? 'Ocultar Copilot' : 'Mostrar Copilot'}
+                    title={isAiMenuExpanded ? 'Ocultar Copilot' : 'Show Copilot'}
                   >
                     <Sparkles size={18} />
                   </button>

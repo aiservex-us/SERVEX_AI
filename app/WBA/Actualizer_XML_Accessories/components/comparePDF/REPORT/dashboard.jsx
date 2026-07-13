@@ -4,7 +4,7 @@ import AuditReportViewer from './components/Report';
 
 export default function Dashboard() {
   // Estado para controlar si la sección de IA está activa/enfocada
-    // Estado para cerrar el modal permanentemente si el usuario hace clic en la X
+    // Estado para close el modal permanentemente si el user hace clic en la X
   const [isModalDismissed, setIsModalDismissed] = useState(false);
 
   const showOverlay = !isModalDismissed;
@@ -21,7 +21,7 @@ export default function Dashboard() {
         {/* Contenedor Report.jsx (dinámico: 70% inactivo, 55% activo en escritorio) */}
         <div className="relative w-full transition-all duration-500 ease-out">
 
-          {/* Overlay del Logo e Información (Card) */}
+          {/* Overlay del Logo e Information (Card) */}
           <div
             className={`hidden min-[400px]:block absolute inset-0 z-10 pointer-events-none transition-all duration-500 ease-out ${showOverlay ? 'opacity-100 backdrop-blur-[2px]' : 'opacity-0'
               }`}
@@ -69,7 +69,7 @@ export default function Dashboard() {
                 {/* Divisor vertical (solo desktop) */}
                 <div className="hidden lg:block w-px h-72 bg-gradient-to-b from-transparent via-slate-200 to-transparent relative z-10" />
 
-                {/* Derecha: Información de Impacto y GLYNNE S.A.S */}
+                {/* Derecha: Information de Impacto y GLYNNE S.A.S */}
                 <div className="flex-1 flex flex-col justify-center relative z-10">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#464775]/5 border border-[#464775]/10 w-fit mb-6">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#464775] animate-pulse" />

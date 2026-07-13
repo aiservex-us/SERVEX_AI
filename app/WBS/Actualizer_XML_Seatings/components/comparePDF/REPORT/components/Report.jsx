@@ -69,7 +69,7 @@ export default function AuditReportViewer() {
            </p>
         </div>
 
-        {/* Módulo de Contexto / Metadata de Archivos */}
+        {/* Module de Contexto / Metadata de Files */}
         {metadataRaw && (
           <div className="mb-4 bg-[#F9FAFB] rounded-md border border-[#E0E0E0] p-3 text-xs flex flex-wrap items-center gap-6 justify-between">
             <div className="flex items-center gap-2 text-[#616161]">
@@ -161,7 +161,7 @@ export default function AuditReportViewer() {
             </button>
           </div>
 
-          {/* Contenido: Módulo 1 - Variaciones de Precios */}
+          {/* Contenido: Module 1 - Variaciones de Precios */}
           {activeTab === 'changes' && (
             <div className="w-full flex flex-col">
               <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-2">
@@ -221,7 +221,7 @@ export default function AuditReportViewer() {
             </div>
           )}
 
-          {/* Contenido: Módulo 2 - Flujo de Inventario (Nuevos vs Eliminados de audit_report_json) */}
+          {/* Contenido: Module 2 - Flujo de Inventario (News vs Deleteds de audit_report_json) */}
           {activeTab === 'inventory_flux' && (
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FCFCFC]">
               

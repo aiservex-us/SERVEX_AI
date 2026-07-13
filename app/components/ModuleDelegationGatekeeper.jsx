@@ -64,7 +64,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
             const parsedData = typeof data.delegation_data === 'string' ? JSON.parse(data.delegation_data) : data.delegation_data;
             setOwnerInfo(parsedData);
           } catch (e) {
-            setOwnerInfo({ nombre: "Usuario Desconocido", cargo: "Operador" });
+            setOwnerInfo({ nombre: "User Desconocido", cargo: "Operador" });
           }
           setLockStatus('locked_by_other');
         }
@@ -151,7 +151,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 disabled={!nombre.trim()}
                 className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
-                Siguiente
+                Next
               </button>
             </div>
           </motion.div>
@@ -187,7 +187,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 disabled={!cargo.trim()}
                 className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
-                Siguiente
+                Next
               </button>
             </div>
           </motion.div>
@@ -223,7 +223,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 disabled={!delegadoPor.trim()}
                 className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
-                Siguiente
+                Next
               </button>
             </div>
           </motion.div>
@@ -384,7 +384,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
 
             <div className="relative z-10 text-[#2B2C4B]">
               <div className="text-4xl font-bold mb-4 text-[#464775]"><Lock size={40} /></div>
-              <p className="text-sm opacity-80 mb-2 font-medium">Módulo en Uso</p>
+              <p className="text-sm opacity-80 mb-2 font-medium">Module en Uso</p>
               <h2 className="text-2xl font-semibold leading-snug">
                 El acceso a {moduleName} está restringido temporalmente para evitar colisiones.
               </h2>
@@ -402,7 +402,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 Acceso Restringido
               </h1>
               <p className="text-sm text-gray-500 mb-8 text-center leading-relaxed">
-                Este módulo está actualmente delegado y en uso exclusivo por otro usuario.
+                Este módulo está actualmente delegado y en uso exclusivo por otro user.
               </p>
 
               <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 mb-8 text-center">
@@ -416,7 +416,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 onClick={() => router.push('/panel')}
                 className="w-full flex items-center justify-center gap-3 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition font-medium"
               >
-                Volver al Menú
+                Back al Menú
               </button>
             </div>
           </div>

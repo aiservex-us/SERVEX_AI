@@ -110,7 +110,7 @@ const Viewport = () => {
     if (file && file.name.endsWith('.csv')) {
       setAttachedFile(file);
     } else {
-      alert("Por favor selecciona un archivo CSV válido");
+      alert("Por favor selecciona un file CSV válido");
     }
   };
 
@@ -119,7 +119,7 @@ const Viewport = () => {
     if (!inputValue.trim() && !attachedFile) return;
 
     const userText = attachedFile 
-      ? `${inputValue} (Archivo adjunto: ${attachedFile.name})`.trim() 
+      ? `${inputValue} (File adjunto: ${attachedFile.name})`.trim() 
       : inputValue;
 
     const newMessage = {
@@ -167,7 +167,7 @@ const Viewport = () => {
   return (
     <main className="flex-1 flex flex-col relative bg-[#FFF] h-[100%] font-sans overflow-hidden">
       
-      {/* Input de archivo oculto */}
+      {/* Input de file oculto */}
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -231,14 +231,14 @@ const Viewport = () => {
             <div className="max-w-4xl mx-auto space-y-8 w-full px-4 py-10">
               {messages.map((msg, idx) => (
                 <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-4 w-full ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  {/* Cambio de color en avatar del usuario a Morado */}
+                  {/* Cambio de color en avatar del user a Morado */}
                   <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-sm ${msg.from === 'user' ? 'bg-[#464775]' : 'bg-slate-200 !text-slate-600'}`}>{msg.from === 'user' ? 'ME' : 'AI'}</div>
                   <div className={`flex flex-col max-w-[85%] ${msg.from === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className={`flex items-baseline gap-2 mb-1 ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                       <span className="font-bold text-[12px] text-slate-700">{msg.from === 'user' ? 'You' : 'Copilot'}</span>
                       <span className="text-[10px] text-slate-400 font-medium">{msg.time}</span>
                     </div>
-                    {/* Cambio de colores en burbujas: Usuario -> Morado | Bot -> Blanco con texto negro */}
+                    {/* Cambio de colores en burbujas: User -> Morado | Bot -> Blanco con texto negro */}
                     <div className={`p-4 rounded-2xl text-[13.5px] leading-relaxed border shadow-sm ${msg.from === 'user' ? 'bg-[#464775] border-[#464775] text-white rounded-tr-none' : 'bg-white border-slate-200 text-slate-700 rounded-tl-none'}`}>
                       {msg.from === "bot" ? <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }} /> : <p className="whitespace-pre-wrap">{msg.text}</p>}
                     </div>

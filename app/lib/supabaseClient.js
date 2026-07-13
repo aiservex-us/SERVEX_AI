@@ -53,7 +53,7 @@ export async function signInWithAzure() {
   }
 }
 
-// 👤 Obtener usuario autenticado (TRABAJADORES)
+// 👤 Obtener user autenticado (TRABAJADORES)
 export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
 
@@ -109,7 +109,7 @@ export function subscribeToAuthState(callback) {
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) {
-    console.error('❌ Error al cerrar sesión:', error);
+    console.error('❌ Error al close sesión:', error);
   }
 }
 
@@ -121,7 +121,7 @@ export async function signOut() {
 
 export async function saveAuditToSupabase({ audit_content, user }) {
   if (!user?.id) {
-    console.warn('⚠️ Auditoría sin usuario válido');
+    console.warn('⚠️ Auditoría sin user válido');
     return { data: null, error: 'NO_USER' };
   }
 

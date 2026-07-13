@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-// Cambiaste el nombre del archivo o alias, se inyectan las props aquí
+// Cambiaste el nombre del file o alias, se inyectan las props aquí
 import Sidebar from './components/main/loogout';
 import Header from './components/main/Header';
 

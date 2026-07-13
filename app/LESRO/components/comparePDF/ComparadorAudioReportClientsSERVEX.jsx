@@ -88,8 +88,8 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
         {productosFiltrados.length > 0 ? (
           productosFiltrados.map((prod) => {
             const cambiosAdicionales = adicionalesMap[prod.sku] || [];
-            const basePrev = prod.nuevo_base_csv ? prod.nuevo_base_csv * 0.95 : 0;
-            const diffBase = prod.nuevo_base_csv && basePrev ? (((prod.nuevo_base_csv - basePrev) / basePrev) * 100).toFixed(1) : 0;
+            const basePrev = prod.new_base_csv ? prod.new_base_csv * 0.95 : 0;
+            const diffBase = prod.new_base_csv && basePrev ? (((prod.new_base_csv - basePrev) / basePrev) * 100).toFixed(1) : 0;
 
             return (
               <div key={prod.sku} className="bg-white border border-slate-200/60 rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] overflow-hidden transition-all duration-300 hover:border-slate-300">
@@ -112,7 +112,7 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
                       <div>
                         <span className="block text-[9px] font-bold text-[#464775] uppercase tracking-widest mb-1">Target Base (CSV)</span>
                         <span className="text-[14px] font-black text-slate-800 tracking-tight">
-                          ${prod.nuevo_base_csv || '0.00'}
+                          ${prod.new_base_csv || '0.00'}
                         </span>
                       </div>
                       <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded">
@@ -159,9 +159,9 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
                           <div key={i} className="p-2 border border-slate-50 rounded bg-[#F9FAFB] flex flex-col justify-center">
                             <span className="text-[8px] text-slate-400 font-bold truncate uppercase">{item.columna.replace('Price Optional ', '')}</span>
                             <div className="flex justify-between items-center">
-                              <span className="text-[11px] font-black text-slate-700">${item.precio_nuevo}</span>
+                              <span className="text-[11px] font-black text-slate-700">${item.precio_new}</span>
                               <span className="text-[8px] font-bold text-slate-300">
-                                 {((item.precio_nuevo / (prod.nuevo_base_csv || 1)) * 100).toFixed(0)}%
+                                 {((item.precio_new / (prod.new_base_csv || 1)) * 100).toFixed(0)}%
                               </span>
                             </div>
                           </div>

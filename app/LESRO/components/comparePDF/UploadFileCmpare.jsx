@@ -51,7 +51,7 @@ const SVXCopilotEnterprise = () => {
     setMatchStatus(null);
     setDiffCount(0);
     setMasterDataRows([]);
-    showAlert("Archivo CSV cargado correctamente", "success");
+    showAlert("File CSV cargado correctamente", "success");
   };
 
   const handleDrop = useCallback((e) => {
@@ -154,7 +154,7 @@ const SVXCopilotEnterprise = () => {
               
               <div className="p-4 flex-grow">
                 <div className="flex flex-col h-full justify-start space-y-4">
-                  <Step icon={<FiCheck size={14}/>} title="Archivo" desc={fileName || "Pendiente"} active={data.length > 0} />
+                  <Step icon={<FiCheck size={14}/>} title="File" desc={fileName || "Pendiente"} active={data.length > 0} />
                   <Step icon={<FiSearch size={14}/>} title="Mapeo" desc="SVX Cloud" active={isAnalyzing || matchStatus} />
                   <Step icon={<FiShield size={14}/>} title="Delta" desc={matchStatus ? "Finalizado" : "En espera"} active={matchStatus} isLast />
                 </div>
@@ -167,7 +167,7 @@ const SVXCopilotEnterprise = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-[#237B4B] rounded-px" />
-                      <span className="text-[10px] font-black text-[#237B4B] uppercase">CSV Nuevo</span>
+                      <span className="text-[10px] font-black text-[#237B4B] uppercase">CSV New</span>
                     </div>
                   </motion.div>
                 )}
@@ -190,7 +190,7 @@ const SVXCopilotEnterprise = () => {
                   className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}
                 >
                   <FiUploadCloud size={48} className="text-[#464775] mb-4" />
-                  <p className="text-xs font-bold text-[#464775]">Arrastre y suelte el archivo CSV aquí</p>
+                  <p className="text-xs font-bold text-[#464775]">Arrastre y suelte el file CSV aquí</p>
                   <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-tighter">Soporte nativo para arquitectura SERVEX_AI</p>
                 </div>
               ) : (
@@ -240,7 +240,7 @@ const SVXCopilotEnterprise = () => {
                 onClick={handleAnalyze} disabled={data.length === 0 || isAnalyzing}
                 className={`px-8 py-2 rounded-md text-[10px] font-black shadow-lg flex items-center gap-2 transition-all ${data.length > 0 ? 'bg-[#464775] text-white hover:scale-[1.02] active:scale-95' : 'bg-gray-100 text-gray-400'}`}
                >
-                 {isAnalyzing ? "PROCESANDO PIPELINE..." : "EJECUTAR AUDITORÍA"} <FiZap size={12} />
+                 {isAnalyzing ? "PROCESSING PIPELINE..." : "EJECUTAR AUDITORÍA"} <FiZap size={12} />
                </button>
             </div>
           </div>

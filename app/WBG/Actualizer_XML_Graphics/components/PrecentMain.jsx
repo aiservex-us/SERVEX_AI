@@ -37,7 +37,7 @@ export default function WBAIPanel() {
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 bg-[#FFF] rounded-[4px] flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden p-1">
               <img 
-                src="/logosEmpresas/WB.webp" 
+                src="/logosCompanys/WB.webp" 
                 alt="WB MFG Logo" 
                 className="w-full h-full object-contain"
               />

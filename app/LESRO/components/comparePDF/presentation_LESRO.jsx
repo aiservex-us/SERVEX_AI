@@ -7,7 +7,7 @@ import InsertXML from './incertXML';
 const LesroAdminHero = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Función para abrir/cerrar el modal
+  // Función para abrir/close el modal
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
   return (
@@ -24,12 +24,12 @@ const LesroAdminHero = () => {
             className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal lo cierre
           >
-            {/* Header del Modal con Botón de Cerrar */}
+            {/* Header del Modal con Botón de Close */}
             <div className="absolute top-4 right-4 z-[110]">
               <button 
                 onClick={toggleModal}
                 className="group flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-500 transition-all duration-200 shadow-sm"
-                aria-label="Cerrar"
+                aria-label="Close"
               >
                 <svg 
                   className="w-5 h-5 transform group-hover:rotate-90 transition-transform duration-200" 
@@ -59,7 +59,7 @@ const LesroAdminHero = () => {
           <div className="flex flex-col items-center gap-4 mb-12 lg:mb-16">
             <div className="w-16 h-16 flex items-center justify-center p-2 bg-slate-50 rounded-xl border border-slate-100">
               <img 
-                src="/logosEmpresas/lesro.webp" 
+                src="/logosCompanys/lesro.webp" 
                 alt="LESRO Logo" 
                 className="w-full h-full object-contain"
               />

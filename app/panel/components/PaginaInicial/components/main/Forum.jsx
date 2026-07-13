@@ -11,7 +11,7 @@ const Forum = () => {
         Foro de Diagnósticos
       </h2>
       <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
-        Esta sección está en construcción. Aquí se mostrará toda la información general y el diagnóstico de cada módulo ejecutado por cada usuario en el futuro.
+        Esta sección está en construcción. Aquí se mostrará toda la información general y el diagnóstico de cada módulo ejecutado por cada user en el futuro.
       </p>
       
       {/* Placeholder de contenido futuro */}

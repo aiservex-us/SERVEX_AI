@@ -10,12 +10,12 @@ export default function PanelClientPage() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    // Esto ahora solo cerrará la sesión de Google y borrará 'sb-customer-session'
+    // Esto ahora solo closeá la sesión de Google y borrará 'sb-customer-session'
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error('Error al cerrar sesión:', error.message);
+      console.error('Error al close sesión:', error.message);
     } else {
-      // Redirigir a la página de login de clientes
+      // Redirigir a la page de login de clientes
       router.push('/'); 
     }
   };
@@ -35,7 +35,7 @@ export default function PanelClientPage() {
           className="flex items-center justify-center gap-2 w-full py-3 bg-red-50 text-red-600 hover:bg-red-100 transition-colors rounded-xl font-semibold border border-red-100"
         >
           <FiLogOut />
-          Cerrar sesión
+          Close sesión
         </button>
       </div>
     </div>

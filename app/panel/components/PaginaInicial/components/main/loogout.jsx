@@ -34,7 +34,7 @@ export default function Sidebar({ activeView, setActiveView }) {
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error('Error al cerrar sesión:', error.message);
+      console.error('Error al close sesión:', error.message);
     } else {
       router.push('/');
     }

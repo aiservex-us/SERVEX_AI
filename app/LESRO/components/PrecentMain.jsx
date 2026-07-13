@@ -37,7 +37,7 @@ export default function LesroAIPanel() {
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 bg-[#FFF] rounded-[4px] flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden p-1">
               <img 
-                src="/logosEmpresas/lesro.webp" 
+                src="/logosCompanys/lesro.webp" 
                 alt="Lesro Logo" 
                 className="w-full h-full object-contain"
               />

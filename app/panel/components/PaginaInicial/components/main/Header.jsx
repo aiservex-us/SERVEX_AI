@@ -20,7 +20,7 @@ export default function Header() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef(null);
 
-  /* Cerrar dropdown al hacer click fuera */
+  /* Close dropdown al hacer click fuera */
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {

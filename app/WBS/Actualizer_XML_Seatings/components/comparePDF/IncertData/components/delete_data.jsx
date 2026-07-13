@@ -35,7 +35,7 @@ const DeleteTenantButton = ({ currentTenant = 'WBS', onDeleted }) => {
         <div className="flex gap-3 text-gray-600">
           <AlertTriangle size={18} className="text-rose-600 shrink-0" />
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-semibold text-gray-900">Configuración de Tenant</span>
+            <span className="text-xs font-semibold text-gray-900">Settings de Tenant</span>
             <p className="text-[11px] leading-relaxed text-gray-500">
               Gestión crítica: eliminación de registros y data relacionada para {currentTenant}.
             </p>
@@ -74,14 +74,14 @@ const DeleteTenantButton = ({ currentTenant = 'WBS', onDeleted }) => {
                 onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200 rounded transition-all"
               >
-                Cancelar
+                Cancel
               </button>
               <button 
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
               >
-                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : "Confirmar eliminación"}
+                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : "Confirm eliminación"}
               </button>
             </div>
           </div>

@@ -254,7 +254,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
               onClick={handleLoadMore}
               className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63] transition-all shadow-md"
             >
-              <FiPlusCircle /> Mostrar más (Viendo {displayData.length})
+              <FiPlusCircle /> Show más (Viendo {displayData.length})
             </button>
           </div>
         )}

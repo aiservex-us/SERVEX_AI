@@ -27,7 +27,7 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
         setData(matrix);
         setMatchStatus(null);
         setMasterDataRows([]);
-        showAlert("Archivo CSV cargado", "success");
+        showAlert("File CSV cargado", "success");
     };
 
     const handleDrop = useCallback((e) => {
@@ -105,7 +105,7 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
             <div className="p-4 border-b bg-[#FAF9F8] flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="bg-[#464775] p-1.5 rounded text-white"><FiCpu size={14} /></div>
-                    <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">Auditoría Maestro</h2>
+                    <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">Master Audit</h2>
                 </div>
                 <div className="flex gap-4">
                     <Step icon={<FiCheck size={10} />} title="Data" active={data.length > 0} />
@@ -119,7 +119,7 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
                         onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}
                         className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}>
                         <FiUploadCloud size={40} className="text-[#464775] mb-4 opacity-20" />
-                        <p className="text-xs font-bold text-gray-400">ARRASTRE CSV PARA COMPARAR</p>
+                        <p className="text-xs font-bold text-gray-400">DRAG CSV TO COMPARE</p>
                     </div>
                 ) : (
                     <div className="flex-grow overflow-auto border rounded-lg bg-white w-[20%]">

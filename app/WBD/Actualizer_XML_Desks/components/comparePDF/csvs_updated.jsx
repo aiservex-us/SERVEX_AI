@@ -30,12 +30,12 @@ export default function DataViewer() {
     fetchLatestData();
   }, []);
 
-  // Resetea la página activa si se cambia de contexto (pestaña)
+  // Resetea la page activa si se cambia de contexto (pestaña)
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab]);
 
-  // Resetea la página activa si cambia el término de búsqueda
+  // Resetea la page activa si cambia el término de búsqueda
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -255,7 +255,7 @@ export default function DataViewer() {
 
                 <tbody className="bg-white divide-y divide-[#F0F0F0]">
                   {paginatedData.map((row, relativeIdx) => {
-                    // Cálculo del índice global real de la fila para que no se reinicie en cada página
+                    // Cálculo del índice global real de la fila para que no se reinicie en cada page
                     const absoluteIdx = startIndex + relativeIdx;
                     return (
                       <tr key={absoluteIdx} className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75">

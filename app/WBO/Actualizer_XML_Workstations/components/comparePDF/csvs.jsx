@@ -32,12 +32,12 @@ export default function DataViewer() {
     fetchLatestData();
   }, []);
 
-  // Resetea la página activa si se cambia de contexto (pestaña)
+  // Resetea la page activa si se cambia de contexto (pestaña)
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab]);
 
-  // Resetea la página activa si cambia el término de búsqueda
+  // Resetea la page activa si cambia el término de búsqueda
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -98,7 +98,7 @@ export default function DataViewer() {
       
       const parsedRows = lines.slice(1).map(line => {
         const values = line.split(separator).map(v => v.replace(/^"|"$/g, '').trim());
-        // Crear objeto dinámico { header: valor }
+        // Create objeto dinámico { header: valor }
         const rowObj = {};
         headers.forEach((header, index) => {
           rowObj[header] = values[index] || '';
@@ -195,7 +195,7 @@ export default function DataViewer() {
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-800">Entity: {data.company_name}</span>
                 <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
-                  Saneamiento Activo
+                  Active Sanitization
                 </span>
               </div>
               <span className="text-[10px] text-slate-500">

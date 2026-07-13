@@ -93,7 +93,7 @@ const LesroPricingFix = () => {
   };
 
   const exportToCSV = (data) => {
-    const headers = "Página,Modelo,Dimensiones,G2,G3,G4,G5,G6,G7,G8,G9,G10,G11,G12,G13\n";
+    const headers = "Page,Modelo,Dimensiones,G2,G3,G4,G5,G6,G7,G8,G9,G10,G11,G12,G13\n";
     const rows = data.map(d => 
       `${d.page},${d.sku},"${d.dims}",${d.g2},${d.g3},${d.g4},${d.g5},${d.g6},${d.g7},${d.g8},${d.g9},${d.g10},${d.g11},${d.g12},${d.g13}`
     ).join("\n");
@@ -110,7 +110,7 @@ const LesroPricingFix = () => {
 
   if (!pdfLib) return <div className="p-10 text-[#6264A7] font-sans flex items-center gap-3">
     <RefreshCw className="animate-spin" size={20} />
-    Cargando motor de sincronización...
+    Loading motor de sincronización...
   </div>;
 
   return (
@@ -126,7 +126,7 @@ const LesroPricingFix = () => {
         {loading && (
           <div className="flex items-center gap-2 text-white text-[10px] bg-[#4f508a] px-3 py-1 rounded-full animate-pulse">
             <RefreshCw size={12} className="animate-spin" />
-            PROCESANDO ESTRUCTURA PDF...
+            PROCESSING ESTRUCTURA PDF...
           </div>
         )}
       </div>
@@ -140,10 +140,10 @@ const LesroPricingFix = () => {
               <div className="flex items-center gap-2 mb-3 bg-white/20 w-fit px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                 <Zap size={12} className="fill-white" /> AI-Powered Extraction
               </div>
-              <h1 className="text-2xl font-bold mb-2">Sincronizador Automático de Catálogos</h1>
+              <h1 className="text-2xl font-bold mb-2">Sincronizador Automático de Catalogs</h1>
               <p className="text-[13px] opacity-90 leading-relaxed">
                 Esta herramienta procesa el PDF oficial de Lesro, extrae los SKUs y las 12 categorías de precios (G2-G13). 
-                Al finalizar, generará automáticamente un archivo **CSV estructurado** listo para ser importado en el motor de sincronización SVX.
+                Al finalizar, generará automáticamente un file **CSV estructurado** listo para ser importado en el motor de sincronización SVX.
               </p>
             </div>
             <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg border border-white/20 flex flex-col items-center">
@@ -231,15 +231,15 @@ const LesroPricingFix = () => {
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(prev => prev - 1)}
                   className="px-3 py-1.5 hover:bg-[#F3F2F1] rounded disabled:opacity-20 transition-colors font-bold"
-                > Anterior </button>
+                > Previous </button>
                 <div className="h-4 w-[1px] bg-[#EDEBE9]"></div>
-                <span className="px-2 font-medium">Página {currentPage} de {totalPages}</span>
+                <span className="px-2 font-medium">Page {currentPage} de {totalPages}</span>
                 <div className="h-4 w-[1px] bg-[#EDEBE9]"></div>
                 <button 
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(prev => prev + 1)}
                   className="px-3 py-1.5 hover:bg-[#F3F2F1] rounded disabled:opacity-20 transition-colors font-bold"
-                > Siguiente </button>
+                > Next </button>
               </div>
             </div>
 
@@ -281,7 +281,7 @@ const LesroPricingFix = () => {
             {/* Footer de la tabla */}
             <div className="p-4 bg-[#FAF9F8] border-t flex items-center gap-2 text-[#616161]">
               <Info size={14} />
-              <p>El archivo CSV ha sido optimizado para la importación directa. No requiere limpieza manual de datos.</p>
+              <p>El file CSV ha sido optimizado para la importación directa. No requiere limpieza manual de datos.</p>
             </div>
           </div>
         )}

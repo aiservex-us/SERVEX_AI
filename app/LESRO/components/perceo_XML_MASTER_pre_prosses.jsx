@@ -107,7 +107,7 @@ const LesroPricingMaster = () => {
           });
         }
 
-        // Procesamiento de Features Adicionales (Opciones/Upcharges de configuración)
+        // Procesamiento de Features Adicionales (Options/Upcharges de configuración)
         const relatedFeatures = features.filter(f => {
           const code = f.querySelector("Code")?.textContent || "";
           return code.endsWith(`-${sku}`) && !code.includes("UPH-AVERAGE");
@@ -142,7 +142,7 @@ const LesroPricingMaster = () => {
       setProducts(extracted);
     } catch (err) {
       console.error("Error en procesamiento de matriz de precios SVX:", err);
-      setError(err.message || "Error al procesar la información de catálogos.");
+      setError(err.message || "Error processing catalog information.");
     } finally {
       setLoading(false);
     }
@@ -181,13 +181,13 @@ const LesroPricingMaster = () => {
   if (error) return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
-      <h3 className="text-sm font-bold text-[#242424] mb-1">Error en Sincronización del Motor</h3>
+      <h3 className="text-sm font-bold text-[#242424] mb-1">Engine Synchronization Error</h3>
       <p className="text-xs text-[#616161] max-w-md mb-4">{error}</p>
       <button 
         onClick={processXML} 
         className="flex items-center gap-2 px-4 py-2 bg-[#5B5FC7] hover:bg-[#4A4DAB] text-white text-xs font-bold rounded shadow-sm transition-colors"
       >
-        <RefreshCw size={12} /> Reintentar Carga
+        <RefreshCw size={12} /> Retry Loading
       </button>
     </div>
   );
@@ -235,7 +235,7 @@ const LesroPricingMaster = () => {
                 onClick={processXML}
                 type="button"
                 className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161] transition-colors"
-                title="Sincronizar y recalcular matrices desde xml_raw"
+                title="Synchronize and recalculate matrices from xml_raw"
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>

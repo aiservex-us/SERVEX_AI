@@ -13,7 +13,7 @@ export default function PanelPage() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Si no hay usuario, o el proveedor no es 'azure', redirigir al login de Microsoft
+      // Si no hay user, o el proveedor no es 'azure', redirigir al login de Microsoft
       if (!user || user.app_metadata?.provider !== 'azure') {
         router.replace('/login'); // O la ruta de tu login de Microsoft
       }

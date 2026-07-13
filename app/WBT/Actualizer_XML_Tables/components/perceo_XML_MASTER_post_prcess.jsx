@@ -18,7 +18,7 @@ const WBDDataMatrix = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   
-  // Estado para controlar la página actual
+  // Estado para controlar la page actual
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
@@ -74,10 +74,10 @@ const WBDDataMatrix = () => {
       }
       
       setProducts(extracted);
-      setCurrentPage(1); // Reiniciar a la primera página tras una recarga exitosa
+      setCurrentPage(1); // Reiniciar a la primera page tras una recarga exitosa
     } catch (err) {
       console.error("Error en procesamiento de matriz de datos WBT:", err);
-      setError(err.message || "Error al procesar la información de catálogos WBT.");
+      setError(err.message || "Error processing catalog information WBT.");
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ const WBDDataMatrix = () => {
     );
   }, [products, searchTerm]);
 
-  // Al cambiar el término de búsqueda, devolvemos la vista a la primera página automáticamente
+  // Al cambiar el término de búsqueda, devolvemos la vista a la primera page automáticamente
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
@@ -131,13 +131,13 @@ const WBDDataMatrix = () => {
   if (error) return (
     <div className="flex min-h-[90vh] h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
-      <h3 className="text-sm font-bold text-slate-800 mb-1">Error en Sincronización del Motor</h3>
+      <h3 className="text-sm font-bold text-slate-800 mb-1">Engine Synchronization Error</h3>
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
       <button 
         onClick={processXML} 
         className="flex items-center gap-2 px-4 py-2 bg-[#464775] hover:bg-[#2B2C4B] text-white text-xs font-bold rounded shadow-sm transition-colors"
       >
-        <RefreshCw size={12} /> Reintentar Carga
+        <RefreshCw size={12} /> Retry Loading
       </button>
     </div>
   );
@@ -183,7 +183,7 @@ const WBDDataMatrix = () => {
                 onClick={processXML}
                 type="button"
                 className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors"
-                title="Sincronizar y recalcular matrices desde xml_raw"
+                title="Synchronize and recalculate matrices from xml_raw"
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>

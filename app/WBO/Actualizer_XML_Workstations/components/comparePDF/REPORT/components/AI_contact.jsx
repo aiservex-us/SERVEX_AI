@@ -15,7 +15,7 @@ const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
   { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructurar XML y comparar catálogo (Step 2)' },
-  { id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Descargar el XML resultante procesado' },
+  { id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download el XML resultante procesado' },
   { id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generar reporte de auditoría completo y publicarlo en el foro' },
 ];
 
@@ -109,7 +109,7 @@ export default function TeamsAgentChat({ currentSection }) {
           .single();
 
         if (error || !data || !data.xml_actualizer_raw) {
-          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: No se encontró el archivo XML en la base de datos para WBO.", time: nowTime }]);
+          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: No se encontró el file XML en la base de datos para WBO.", time: nowTime }]);
         } else {
           const blob = new Blob([data.xml_actualizer_raw], { type: 'application/xml' });
           const url = window.URL.createObjectURL(blob);
@@ -121,10 +121,10 @@ export default function TeamsAgentChat({ currentSection }) {
           link.parentNode.removeChild(link);
           window.URL.revokeObjectURL(url);
           
-          setMessages(prev => [...prev, { from: "bot", text: "✅ Descarga iniciada. El archivo WBO.xml ha sido guardado exitosamente.", time: nowTime }]);
+          setMessages(prev => [...prev, { from: "bot", text: "✅ Descarga iniciada. El file WBO.xml ha sido guardado exitosamente.", time: nowTime }]);
         }
       } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: "❌ Ocurrió un error inesperado al intentar descargar el XML.", time: nowTime }]);
+        setMessages(prev => [...prev, { from: "bot", text: "❌ An error occurred inesperado al intentar descargar el XML.", time: nowTime }]);
       } finally {
         setIsLoading(false);
       }
@@ -185,7 +185,7 @@ export default function TeamsAgentChat({ currentSection }) {
     }
 
     try {
-      // Mapear el historial de mensajes al formato esperado por el backend
+      // Mapear el historial de messages al formato esperado por el backend
       const historyPayload = messages.map(msg => ({
         role: msg.from === "user" ? "user" : "assistant",
         content: msg.text
