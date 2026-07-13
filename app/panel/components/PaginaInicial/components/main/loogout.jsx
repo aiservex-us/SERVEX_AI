@@ -76,6 +76,12 @@ export default function Sidebar({ activeView, setActiveView }) {
               onClick={() => setActiveView('products')}
             />
 
+            <SidebarIcon
+              icon={<Users />}
+              active={activeView === 'foro'}
+              onClick={() => setActiveView('foro')}
+            />
+
             <div className="h-[1px] bg-slate-300 mx-1.5 min-[800px]:mx-2 my-1 min-[800px]:my-2" />
 
             <SidebarIcon

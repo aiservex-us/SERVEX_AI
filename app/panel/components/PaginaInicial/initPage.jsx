@@ -9,6 +9,7 @@ import Header from './components/main/Header';
 import Content from './components/main/Content';
 import Chart from './components/main/Chart';
 import DashboardRight from './components/main/Dashboard';
+import Forum from './components/main/Forum';
 
 // VISTAS ADICIONALES
 import Calendar from './components/menuEmpresas';
@@ -54,6 +55,13 @@ const InitPage = () => {
         return (
           <div key="products" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Products />
+          </div>
+        );
+
+      case 'foro':
+        return (
+          <div key="foro" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
+            <Forum />
           </div>
         );
 
