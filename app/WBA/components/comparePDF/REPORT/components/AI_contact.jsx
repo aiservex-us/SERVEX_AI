@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
+import { supabase } from '@/app/lib/supabaseClient';
 import { 
   Plus, Mic, ChevronDown, Database, Sparkles,
   ArrowRight, Check, BarChart3, 
   Settings, HelpCircle, Shield, Layout, Zap, SendHorizonal
+} Download,
 } from 'lucide-react';
 
 export default function TeamsAgentChat() {

@@ -3,16 +3,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
+import { supabase } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
   Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
+} Download,
 } from 'lucide-react';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
   { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructurar XML y comparar catálogo (Step 2)' },
+  { id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Descargar el XML resultante procesado' },
 ];
 
 const QUICK_PROMPTS = [
