@@ -169,48 +169,48 @@ export default function DataViewer() {
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
+    <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix for WBS...
       </div>
     </div>
   );
 
   if (!data) return (
-    <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-[#FDE7E9] border border-[#F3B0B4] text-[#A80007] rounded-sm text-xs font-sans">
+    <div className="p-4 max-w-[90vw] mx-auto mt-10 bg-red-50/80 backdrop-blur-md border border-red-100 text-red-600 shadow-xl shadow-red-500/10 rounded-xl rounded-sm text-xs font-sans">
       <span className="font-bold">Synchronization error:</span> 
     </div>
   );
 
   return (
-    <div className="min-h-[90vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
+    <div className="min-h-[90vh] bg-gradient-to-br from-[#F8F9FE] to-white p-6 md:p-8 text-slate-800 font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
         
-        <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#464775]/10 overflow-hidden flex flex-col w-full">
           
           {/* Operations / Filters Header */}
-          <div className="px-4 py-2 border-b border-[#E0E0E0] bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#242424]">Entity: {data.company_name}</span>
-                <span className="text-[9px] font-bold text-[#5B5FC7] bg-[#E8EBFA] px-1.5 py-0.5 rounded-sm uppercase tracking-tight border border-[#5B5FC7]/10 select-none">
+                <span className="text-xs font-bold text-slate-800">Entity: {data.company_name}</span>
+                <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
                   Saneamiento Activo
                 </span>
               </div>
-              <span className="text-[10px] text-[#616161]">
+              <span className="text-[10px] text-slate-500">
                 Last data sync: {new Date(data.created_at).toLocaleString()}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               {/* Tab Selector mapeado a las columnas JSONB / Text del DDL */}
-              <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-[#E0E0E0]">
+              <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-slate-100">
                 <button
                   type="button"
                   onClick={() => setActiveTab('csv_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csv_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'csv_raw' ? 'bg-white text-[#464775] shadow-xs' : 'text-slate-500 hover:text-[#464775]'
                   }`}
                 >
                   Manual Optimizer
@@ -219,7 +219,7 @@ export default function DataViewer() {
                   type="button"
                   onClick={() => setActiveTab('csvpdf_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#464775] shadow-xs' : 'text-slate-500 hover:text-[#464775]'
                   }`}
                 >
                   PDF Intelligence.
@@ -232,14 +232,14 @@ export default function DataViewer() {
                 placeholder="Search matrix..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="bg-white border border-[#D2D2D2] rounded-sm px-2 py-0.5 text-[11px] text-[#242424] placeholder-[#616161] focus:border-[#5B5FC7] outline-none transition-all w-[180px]"
+                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#464775] outline-none transition-all w-[180px]"
               />
 
               {/* Actions */}
               <button 
                 onClick={fetchLatestData}
                 type="button"
-                className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] rounded-sm text-[#616161] transition-colors"
+                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors"
                 title="Refresh data"
               >
                 <RefreshCw size={13} />
@@ -249,7 +249,7 @@ export default function DataViewer() {
                 type="button"
                 onClick={handleDownloadCSV}
                 disabled={filteredData.length === 0}
-                className="bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] disabled:opacity-50 disabled:hover:bg-white text-[#242424] text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5 shadow-xs"
+                className="bg-white border border-slate-200/60 hover:bg-slate-100 disabled:opacity-50 disabled:hover:bg-white text-slate-800 text-[11px] font-medium px-2.5 py-1 rounded-sm transition-all flex items-center gap-1.5 shadow-xs"
               >
                 <Download size={12} /> <span>Export CSV</span>
               </button>
@@ -258,25 +258,31 @@ export default function DataViewer() {
 
           {/* Table Container */}
           {paginatedData.length === 0 ? (
-            <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No matching analytical records found inside {activeTab}.
+            <div className="flex flex-col items-center justify-center p-20 text-center bg-white/40 backdrop-blur-md">
+              <div className="w-16 h-16 rounded-2xl bg-[#464775]/5 flex items-center justify-center mb-4 border border-[#464775]/10 shadow-inner">
+                <svg className="w-8 h-8 text-[#464775]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </div>
+              <h3 className="text-sm font-bold text-slate-700 mb-1">No data found</h3>
+              <p className="text-xs text-slate-500 max-w-sm font-medium">
+                We couldn't find any records matching your current filter criteria.
+              </p>
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
-              <table className="table-fixed border-collapse text-left text-xs w-max min-w-full">
+              <table className="table-fixed border-collapse overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#5B5FC7] bg-gradient-to-b from-white to-[#FCFAFF] sticky left-0 z-30 border-r border-b border-[#E0E0E0] select-none">
+                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
                     {Object.keys(currentCsvData[0]).map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-[#242424] bg-gradient-to-b from-white to-[#FCFAFF] border-r border-b border-[#E0E0E0] min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
+                        className="px-3 py-2 text-[11px] font-semibold text-slate-800 bg-white/80 backdrop-blur-md border-r border-b border-slate-100 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
-                          <Filter size={8} className="text-[#5B5FC7] opacity-40" />
+                          <Filter size={8} className="text-[#464775] opacity-40" />
                         </div>
                       </th>
                     ))}
@@ -287,15 +293,15 @@ export default function DataViewer() {
                   {paginatedData.map((row, relativeIdx) => {
                     const absoluteIdx = startIndex + relativeIdx;
                     return (
-                      <tr key={absoluteIdx} className="hover:bg-[#F7F5FA] transition-colors duration-75">
-                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#5B5FC7] border-r border-[#E0E0E0] sticky left-0 z-10 bg-white border-b border-[#F0F0F0]">
+                      <tr key={absoluteIdx} className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75">
+                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#464775] border-r border-slate-100 sticky left-0 z-10 bg-white border-b border-slate-50">
                           {absoluteIdx + 1}
                         </td>
 
                         {Object.keys(currentCsvData[0]).map((header) => {
                           const cellValue = row[header];
                           return (
-                            <td key={header} className="p-0 text-[#242424] border-r border-b border-[#F0F0F0] min-w-[160px] max-w-[280px]">
+                            <td key={header} className="p-0 text-slate-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
                               <div 
                                 className="px-3 py-1.5 font-mono text-[11px] whitespace-nowrap truncate"
                                 title={cellValue?.toString() || ''}
@@ -318,7 +324,7 @@ export default function DataViewer() {
           )}
 
           {/* Pagination Controls & Information Footer */}
-          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-[#616161] select-none">
+          <div className="bg-gradient-to-r from-slate-50/40 to-white px-4 py-2 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-slate-500 select-none">
             <div className="flex gap-4">
               <span className="uppercase tracking-tight">ATTRIBUTES: {currentCsvData.length > 0 ? Object.keys(currentCsvData[0]).length : 0}</span>
               <span className="uppercase tracking-tight">SHOWING: {startIndex + 1}-{Math.min(endIndex, filteredData.length)} OF {filteredData.length}</span>
@@ -329,12 +335,12 @@ export default function DataViewer() {
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] disabled:opacity-40 disabled:hover:bg-white rounded-sm text-[#242424] transition-colors flex items-center justify-center cursor-pointer"
+                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white rounded-sm text-slate-800 transition-colors flex items-center justify-center cursor-pointer"
               >
                 <ChevronLeft size={14} />
               </button>
               
-              <span className="text-[11px] font-bold px-2 text-[#242424]">
+              <span className="text-[11px] font-bold px-2 text-slate-800">
                 PAGE {currentPage} OF {totalPages}
               </span>
 
@@ -342,14 +348,14 @@ export default function DataViewer() {
                 type="button"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className="p-1 bg-white border border-[#D2D2D2] hover:bg-[#F3F2F1] disabled:opacity-40 disabled:hover:bg-white rounded-sm text-[#242424] transition-colors flex items-center justify-center cursor-pointer"
+                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white rounded-sm text-slate-800 transition-colors flex items-center justify-center cursor-pointer"
               >
                 <ChevronRight size={14} />
               </button>
             </div>
             
             <div className="flex items-center gap-4">
-              <div className="bg-[#5B5FC7]/10 px-2.5 py-0.5 rounded border border-[#5B5FC7]/20 text-[#5B5FC7] font-extrabold uppercase text-[9px]">
+              <div className="bg-[#464775]/10 px-2.5 py-0.5 rounded border border-[#464775]/20 text-[#464775] font-extrabold uppercase text-[10px]">
                 {activeTab === 'csv_raw' ? 'Dataset: Sanitized Manual ERP' : 'Dataset: AI PDF Extraction'}
               </div>
             </div>
