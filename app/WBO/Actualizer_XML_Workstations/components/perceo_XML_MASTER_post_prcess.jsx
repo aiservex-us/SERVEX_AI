@@ -73,15 +73,10 @@ const WBDDataMatrix = () => {
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        extracted.push({
-          sku,
-          description,
-          classification,
-          basePrice
-        });
-
         // 2. Extraer opciones /C y /P buscando en sus FeatureRefs
         const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+        let hasSuffixes = false;
+        
         for (const ref of featureRefs) {
           const refCode = ref.textContent;
           const featureNode = featureMap.get(refCode);
@@ -101,10 +96,21 @@ const WBDDataMatrix = () => {
                     classification,
                     basePrice: basePrice + optPrice
                   });
+                  hasSuffixes = true;
                 }
               }
             }
           }
+        }
+        
+        // Si no tiene sufijos C o P, entonces añadimos el producto base
+        if (!hasSuffixes) {
+          extracted.push({
+            sku,
+            description,
+            classification,
+            basePrice
+          });
         }
       }
       

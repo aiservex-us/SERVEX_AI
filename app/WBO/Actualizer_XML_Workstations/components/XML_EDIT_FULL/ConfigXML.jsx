@@ -42,7 +42,8 @@ const ConfigXML = ({ externalSearchSKU }) => {
         if (!xmlDoc || !sku) return;
         setSelectedConfigs(prev => {
             if (prev.find(c => c.sku === sku)) return prev;
-            const productNode = [...xmlDoc.getElementsByTagName("Product")].find(p => p.getElementsByTagName("Code")[0]?.textContent === sku);
+            const baseSku = sku.includes('/') ? sku.split('/')[0] : sku;
+            const productNode = [...xmlDoc.getElementsByTagName("Product")].find(p => p.getElementsByTagName("Code")[0]?.textContent === baseSku);
             if (!productNode) return prev;
 
             const featureNodes = [...productNode.getElementsByTagName("Feature")];

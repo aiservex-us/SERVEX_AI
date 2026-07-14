@@ -14,42 +14,87 @@ export const useCatalogData = () => {
       if (!user) return;
 
       const { data } = await supabase
-        .from('ClientsSERVEX_WBT')
+        .from('ClientsSERVEX_WBO')
         .select('xml_raw')
-        .eq('user_id', user.id)
+        .eq('company_name', 'WBO')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (data?.xml_raw) {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
         
-        // Extraer métricas generales de estructura
         const materialCount = xmlDoc.getElementsByTagName("Material").length;
         const featureCount = xmlDoc.getElementsByTagName("Feature").length;
         const totalNodes = xmlDoc.getElementsByTagName("*").length;
 
-        const productNodes = xmlDoc.getElementsByTagName("Product");
+        // Mapeo rápido de Features para encontrar los deltas de las opciones C y P
+        const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+        const featureMap = new Map();
+        for (const f of globalFeatures) {
+          const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+          if (fCode) featureMap.set(fCode, f);
+        }
+
+        const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
         const extracted = [];
         let totalSum = 0;
+        let idCounter = 0;
 
-        for (let i = 0; i < productNodes.length; i++) {
-          const p = productNodes[i];
+        for (const p of productNodes) {
+          const baseSku = p.getElementsByTagName("Code")[0]?.textContent || "N/A";
+          const description = p.getElementsByTagName("Description")[0]?.textContent || "";
+          const category = p.getElementsByTagName("ClassificationRef")[0]?.textContent || "General";
+          const x = parseFloat(p.getElementsByTagName("X")[0]?.textContent || "0");
+          const y = parseFloat(p.getElementsByTagName("Y")[0]?.textContent || "0");
+          const z = parseFloat(p.getElementsByTagName("Z")[0]?.textContent || "0");
+          const featuresLen = p.getElementsByTagName("FeatureRef").length;
+          
           const basePrice = parseFloat(p.getElementsByTagName("Value")[0]?.textContent || "0");
           
-          extracted.push({
-            id: i,
-            code: p.getElementsByTagName("Code")[0]?.textContent || "N/A",
-            description: p.getElementsByTagName("Description")[0]?.textContent || "",
-            price: basePrice,
-            category: p.getElementsByTagName("ClassificationRef")[0]?.textContent || "General",
-            x: parseFloat(p.getElementsByTagName("X")[0]?.textContent || "0"),
-            y: parseFloat(p.getElementsByTagName("Y")[0]?.textContent || "0"),
-            z: parseFloat(p.getElementsByTagName("Z")[0]?.textContent || "0"),
-            features: p.getElementsByTagName("FeatureRef").length
-          });
-          totalSum += basePrice;
+          const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+          let hasSuffixes = false;
+
+          for (const ref of featureRefs) {
+            const refCode = ref.textContent;
+            const featureNode = featureMap.get(refCode);
+            if (featureNode) {
+              const options = Array.from(featureNode.getElementsByTagName("Option"));
+              for (const opt of options) {
+                const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+                if (optCode === "C" || optCode === "P") {
+                  const optPriceElem = opt.querySelector("OptionPrice > Value");
+                  const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+                  
+                  const suffixSku = `${baseSku}/${optCode}`;
+                  if (!extracted.find(e => e.code === suffixSku)) {
+                    const finalPrice = basePrice + optPrice;
+                    extracted.push({
+                      id: idCounter++,
+                      code: suffixSku,
+                      description: `${description} [Option ${optCode}]`,
+                      price: finalPrice,
+                      category, x, y, z, features: featuresLen
+                    });
+                    totalSum += finalPrice;
+                    hasSuffixes = true;
+                  }
+                }
+              }
+            }
+          }
+
+          if (!hasSuffixes) {
+            extracted.push({
+              id: idCounter++,
+              code: baseSku,
+              description,
+              price: basePrice,
+              category, x, y, z, features: featuresLen
+            });
+            totalSum += basePrice;
+          }
         }
 
         setMetadata({ materials: materialCount, features: featureCount, rawNodes: totalNodes });

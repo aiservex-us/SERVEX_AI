@@ -159,8 +159,10 @@ const SVXUnifiedEnterprise = () => {
     setSelectedConfigs(prev => {
         if (prev.find(c => c.sku === sku)) return prev;
 
+        const baseSku = sku.includes('/') ? sku.split('/')[0] : sku;
+        
         const productNode = [...xmlDoc.getElementsByTagName("Product")].find(
-            p => p.getElementsByTagName("Code")[0]?.textContent === sku
+            p => p.getElementsByTagName("Code")[0]?.textContent === baseSku
         );
 
         if (!productNode) return prev;
