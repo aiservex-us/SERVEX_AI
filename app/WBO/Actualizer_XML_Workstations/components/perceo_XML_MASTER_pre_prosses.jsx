@@ -51,6 +51,14 @@ const WBDDataMatrix = () => {
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBO XML structure");
 
+      // 1. Mapear todos los Features globales para búsqueda rápida (O(1))
+      const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      const featureMap = new Map();
+      for (const f of globalFeatures) {
+        const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+        if (fCode) featureMap.set(fCode, f);
+      }
+
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
 
@@ -71,6 +79,33 @@ const WBDDataMatrix = () => {
           classification,
           basePrice
         });
+
+        // 2. Extraer opciones /C y /P buscando en sus FeatureRefs
+        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+        for (const ref of featureRefs) {
+          const refCode = ref.textContent;
+          const featureNode = featureMap.get(refCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+              if (optCode === "C" || optCode === "P") {
+                const optPriceElem = opt.querySelector("OptionPrice > Value");
+                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+                
+                const suffixSku = `${sku}/${optCode}`;
+                if (!extracted.find(e => e.sku === suffixSku)) {
+                  extracted.push({
+                    sku: suffixSku,
+                    description: `${description} [Option ${optCode}]`,
+                    classification,
+                    basePrice: basePrice + optPrice
+                  });
+                }
+              }
+            }
+          }
+        }
       }
       
       setProducts(extracted);
