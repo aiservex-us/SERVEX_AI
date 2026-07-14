@@ -51,6 +51,13 @@ export default function AuditReportViewer() {
   const reportDataRaw = activeRecord?.audit_report_json;
   const summaryRaw = reportDataRaw?.summary;
   const metadataRaw = reportDataRaw?.metadata;
+  const changesRaw = reportDataRaw?.detected_changes || [];
+
+  const filteredChanges = changesRaw.filter(c => 
+    (c.model_id || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (c.old_value || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.new_value || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) return <div className="p-10 text-sm text-[#616161]">Loading audit...</div>;
 
@@ -146,7 +153,7 @@ export default function AuditReportViewer() {
               }`}
             >
               <Zap size={14} />
-              List Price Variations ({changesP.length})
+              List Price Variations ({filteredChanges.length})
             </button>
             <button
               onClick={() => setActiveTab('inventory_flux')}
@@ -178,7 +185,7 @@ export default function AuditReportViewer() {
               <table className="table-fixed border-collapse text-left text-xs w-full">
                 <thead className="bg-slate-50/95 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
                   <tr>
-                    {['#', 'Model ID', 'Nodo', 'Original Value', 'New Value', '% Diff'].map(h => (
+                    {['#', 'Model ID', 'Column', 'Original Value', 'New Value', '% Diff'].map(h => (
                       <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
                         {h}
                       </th>
@@ -186,24 +193,24 @@ export default function AuditReportViewer() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredChangesP.map((c, i) => {
-                    const diff = calculatePercentage(c.injected_value_old, c.injected_value_new);
+                  {filteredChanges.map((c, i) => {
+                    const diffNum = parseFloat(c.financial_impact || '0');
                     return (
                       <tr key={i} className="hover:bg-slate-50/80 transition-colors">
                         <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{i + 1}</td>
                         <td className="px-4 py-3 font-mono font-bold text-slate-700">{c.model_id}</td>
-                        <td className="px-4 py-3 text-slate-600 text-[11px]">{c.target_node}</td>
-                        <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.injected_value_old}</td>
-                        <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.injected_value_new}</td>
+                        <td className="px-4 py-3 text-slate-600 text-[11px]">{c.column_name}</td>
+                        <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.old_value}</td>
+                        <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.new_value}</td>
                         <td className="px-4 py-3">
-                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${parseFloat(diff) > 0 ? 'bg-[#464775]/10 text-[#464775]' : 'bg-slate-100 text-slate-500'}`}>
-                             {diff ? (parseFloat(diff) > 0 ? `+${diff}` : diff) : 'N/A'}
+                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-[#464775]/10 text-[#464775]' : diffNum < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>
+                             {c.financial_impact || 'N/A'}
                            </span>
                         </td>
                       </tr>
                     );
                   })}
-                  {filteredChangesP.length === 0 && (
+                  {filteredChanges.length === 0 && (
                     <tr>
                       <td colSpan={6} className="text-center py-12">
                         <div className="flex flex-col items-center justify-center">
