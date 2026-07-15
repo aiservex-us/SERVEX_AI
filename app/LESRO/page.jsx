@@ -89,11 +89,11 @@ export default function MenuInicial() {
 
     switch (active) {
       case 'dashboard': return <Dashboard />;
-      case 'incert_delete': return <IncertDelete />;
+      case 'incert_delete': return <div className="p-6 text-gray-500">View under construction</div>;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
-      case 'inbox_updated': return <Csvs_updated />;
+      case 'inbox_updated': return <div className="p-6 text-gray-500">View under construction</div>;
       case 'presentation': return <PrecentMain />;
       case 'report': return <Report />;
       case 'notifications': return <UploadFileCmpare />;
