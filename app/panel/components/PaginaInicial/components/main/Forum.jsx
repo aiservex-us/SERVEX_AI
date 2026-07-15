@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../../../lib/supabaseClient';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { 
   ShieldCheck, 
   RefreshCw,
@@ -158,6 +159,7 @@ const Forum = () => {
   // Renderizado Markdown ultra limpio, quitando estilos pesados y sombras abrumadoras
   const renderMarkdown = (content) => (
     <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
       components={{
         h1: ({node, ...props}) => <h1 className="text-[1.05rem] font-bold text-slate-900 mb-2 mt-4 tracking-tight" {...props} />,
         h2: ({node, ...props}) => <h2 className="text-sm font-semibold text-slate-800 mb-2 mt-4" {...props} />,
