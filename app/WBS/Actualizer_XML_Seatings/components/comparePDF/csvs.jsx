@@ -269,7 +269,7 @@ export default function DataViewer() {
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
-              <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-full">
+              <table className="table-fixed border-collapse overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
                     <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">

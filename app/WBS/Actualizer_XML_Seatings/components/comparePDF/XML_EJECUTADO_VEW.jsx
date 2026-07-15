@@ -58,30 +58,18 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
       const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
 
-      // --- OPTIMIZACIÓN CLAVE: INDEXACIÓN EN MEMORIA RAM ---
-      // Pre-procesamos las features a diccionarios en memoria plana para evitar
-      // el recálculo y la lectura del DOM repetitiva O(N*M) por cada producto.
+      // --- OPTIMIZACIÓN CLAVE: INDEXACIÓN ---
+      // Agrupamos las features por su código para no buscarlas una por una dentro del loop de productos.
       const featuresMap = {};
-      const globalFeaturesData = [];
+      const globalFeatures = [];
 
       allFeatures.forEach(feat => {
         const fCode = (feat.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-        
-        // Pre-parsear opciones de la feature
-        const parsedOptions = Array.from(feat.getElementsByTagName("Option")).map(opt => {
-          return {
-            optCode: (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase(),
-            optDesc: (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase(),
-            upcharge: opt.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0]?.textContent || "N/A"
-          };
-        });
-
         if (fCode.includes("GRADE") || fCode.includes("CASTER") || fCode.includes("POWER")) {
-          globalFeaturesData.push(parsedOptions);
+          globalFeatures.push(feat);
         }
-        
         if (!featuresMap[fCode]) featuresMap[fCode] = [];
-        featuresMap[fCode].push(parsedOptions);
+        featuresMap[fCode].push(feat);
       });
 
       return productNodes.map((prod, idx) => {
@@ -105,39 +93,46 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           coo: "US"
         };
 
-        // Procesamiento en memoria O(1) de las opciones pre-cacheadas
-        const processParsedOptions = (optionsArr) => {
-          optionsArr.forEach(opt => {
-            if (opt.upcharge === "N/A") return;
+        // Función interna para procesar nodos de opciones de forma eficiente
+        const processFeat = (feat) => {
+          const options = Array.from(feat.getElementsByTagName("Option"));
+          options.forEach(opt => {
+            const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
+            const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase();
+            // Acceso directo al valor del precio
+            const valNode = opt.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0];
+            const upcharge = valNode ? valNode.textContent : "N/A";
 
-            const gradeMatch = opt.optCode.match(/GR(?:ADE|D)(\d+)/);
+            if (upcharge === "N/A") return;
+
+            const gradeMatch = optCode.match(/GR(?:ADE|D)(\d+)/);
             if (gradeMatch) {
               const num = parseInt(gradeMatch[1]);
               if (num >= 2 && num <= 13) {
                 const key = `g${num.toString().padStart(2, '0')}`;
-                if (!rowData.grades[key] || rowData.grades[key] === "N/A") rowData.grades[key] = opt.upcharge;
+                if (!rowData.grades[key] || rowData.grades[key] === "N/A") rowData.grades[key] = upcharge;
               }
             }
 
-            const fullText = `${opt.optCode} ${opt.optDesc}`;
-            if (fullText.includes("URETHANE") || opt.optCode === "APU") rowData.optionals.polyArm = opt.upcharge;
-            else if (fullText.includes("SOLID SURFACE") || opt.optCode === "SS") rowData.optionals.solidArm = opt.upcharge;
-            else if (fullText.includes("CASTER")) rowData.optionals.casters = opt.upcharge;
-            else if (fullText.includes("TABLET")) rowData.optionals.tablet = opt.upcharge;
-            else if (fullText.includes("POWER") || fullText.includes("UNIT")) rowData.optionals.power = opt.upcharge;
-            else if (fullText.includes("CHROME")) rowData.optionals.chrome = opt.upcharge;
-            else if (fullText.includes("BEVEL")) rowData.optionals.bevel = opt.upcharge;
-            else if (fullText.includes("SHELF")) rowData.optionals.shelf = opt.upcharge;
+            const fullText = `${optCode} ${optDesc}`;
+            if (fullText.includes("URETHANE") || optCode === "APU") rowData.optionals.polyArm = upcharge;
+            else if (fullText.includes("SOLID SURFACE") || optCode === "SS") rowData.optionals.solidArm = upcharge;
+            else if (fullText.includes("CASTER")) rowData.optionals.casters = upcharge;
+            else if (fullText.includes("TABLET")) rowData.optionals.tablet = upcharge;
+            else if (fullText.includes("POWER") || fullText.includes("UNIT")) rowData.optionals.power = upcharge;
+            else if (fullText.includes("CHROME")) rowData.optionals.chrome = upcharge;
+            else if (fullText.includes("BEVEL")) rowData.optionals.bevel = upcharge;
+            else if (fullText.includes("SHELF")) rowData.optionals.shelf = upcharge;
           });
         };
 
-        // 1. Procesar features locales del SKU
+        // 1. Procesar features que coinciden exactamente con el SKU
         if (featuresMap[skuNorm]) {
-          featuresMap[skuNorm].forEach(processParsedOptions);
+          featuresMap[skuNorm].forEach(processFeat);
         }
 
-        // 2. Procesar features globales pre-cacheadas
-        globalFeaturesData.forEach(processParsedOptions);
+        // 2. Procesar features globales (Grados, Casters, etc)
+        globalFeatures.forEach(processFeat);
 
         return rowData;
       });
