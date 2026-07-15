@@ -19,7 +19,7 @@ import AIReporting from './components/comparePDF/presentation_LESRO.jsx'
 import Compare from './components/comparePDF/UploadFileCmpare.jsx'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
-// import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
+import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
@@ -89,7 +89,7 @@ export default function MenuInicial() {
 
     switch (active) {
       case 'dashboard': return <Dashboard />;
-      case 'incert_delete': return <div className="p-6 text-gray-500">View under construction</div>;
+      case 'incert_delete': return <IncertDelete />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
