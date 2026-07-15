@@ -17,7 +17,7 @@ import {
   BsFileEarmarkArrowUp
 } from 'react-icons/bs';
 
-import { supabase } from '../../../../lib/supabaseClient';
+import { supabase } from '@/app/lib/supabaseClient';
 
 const SVXCopilotEnterprise = () => {
   const [data, setData] = useState([]); 

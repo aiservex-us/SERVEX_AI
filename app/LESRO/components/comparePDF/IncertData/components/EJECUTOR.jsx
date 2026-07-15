@@ -22,11 +22,11 @@ import {
   Terminal
 } from 'lucide-react';
 
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase } from '@/app/lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
-import EjecutorAgente from './EJECUTOR_agente';
-import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; 
+import EjecutorAgente from '../../EJECUTOR_agente';
+import XML_EJECUTADO_VEW from '../../XML_EJECUTADO_VEW'; 
 import EJECUTOR_PLAY from './EJECUTOR_PLAY'; // IMPORTADO
 
 const SVXUnifiedPlatform = () => {
