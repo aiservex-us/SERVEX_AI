@@ -156,8 +156,14 @@ export default function DataViewer() {
 
           {/* Table Container */}
           {filteredData.length === 0 ? (
-            <div className="p-12 text-center text-[#616161] text-xs font-normal bg-white">
-              No matching records found.
+            <div className="flex flex-col items-center justify-center p-20 text-center bg-white/40 backdrop-blur-md">
+              <div className="w-16 h-16 rounded-2xl bg-[#464775]/5 flex items-center justify-center mb-4 border border-[#464775]/10 shadow-inner">
+                <svg className="w-8 h-8 text-[#464775]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </div>
+              <h3 className="text-sm font-bold text-slate-700 mb-1">No data found</h3>
+              <p className="text-xs text-slate-500 max-w-sm font-medium">
+                We couldn't find any records matching your current filter criteria.
+              </p>
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">

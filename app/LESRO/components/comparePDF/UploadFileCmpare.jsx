@@ -17,7 +17,7 @@ import {
   BsFileEarmarkArrowUp
 } from 'react-icons/bs';
 
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase } from '../../../../lib/supabaseClient';
 
 const SVXCopilotEnterprise = () => {
   const [data, setData] = useState([]); 
@@ -73,7 +73,7 @@ const SVXCopilotEnterprise = () => {
     setIsAnalyzing(true);
     try {
       const { data: dbRows, error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_WBT')
         .select('csv_raw')
         .not('csv_raw', 'is', null)
         .limit(1); 

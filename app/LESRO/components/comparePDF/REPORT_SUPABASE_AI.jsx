@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase } from '../../../../lib/supabaseClient';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Bot, Sparkles, Zap, FileText, Shield, Cloud, RefreshCw } from 'lucide-react';
@@ -16,7 +16,7 @@ const AgentInfo = () => {
       try {
         setLoading(true);
         const { data, error: supabaseError } = await supabase
-          .from('ClientsSERVEX')
+          .from('ClientsSERVEX_WBT')
           .select('informa_agent_raw')
           .maybeSingle();
 
@@ -101,56 +101,83 @@ const AgentInfo = () => {
   }
 
   return (
-    <div className="bg-[#FFF] min-h-screen py-8 px-4 font-sans text-[#242424]">
+    <div className="bg-[#FFF] min-h-screen py-12 px-4 font-sans text-[#242424]">
       <div
         className="max-w-5xl mx-auto bg-white rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-[#E1E1E1] overflow-hidden"
         style={{ opacity: isVisible ? 1 : 0, transform: isVisible ? 'translateY(0)' : 'translateY(12px)', transition: 'opacity 0.45s ease, transform 0.45s ease' }}
       >
 
         {/* Header */}
-       
+        <div className="bg-[#464775] p-5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-9 h-9 bg-white/10 rounded flex items-center justify-center border border-white/20">
+              <Bot size={16} className="text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h1 className="text-white font-bold text-[11px] leading-none tracking-tight">Console Executive Report</h1>
+                <div className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 rounded border border-white/10">
+                  <Zap size={8} className="text-yellow-400 fill-yellow-400" />
+                  <span className="text-[8px] font-bold text-white/80 tracking-wider">v4.10</span>
+                </div>
+              </div>
+              <p className="text-white/60 text-[9px] uppercase tracking-[0.2em] mt-1 font-bold">Auditoría de Ingeniería</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-white/10 border border-white/10 rounded text-[8px] font-bold text-white/60 uppercase tracking-wider">
+              <Sparkles size={8} />
+              SVX_PROD
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1 bg-white/10 border border-white/10 rounded">
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-white text-[9px] font-bold uppercase tracking-widest">Live Data</span>
+            </div>
+          </div>
+        </div>
+
         {/* Meta bar */}
-        <div className="px-6 py-2 bg-[#FFF] border-b border-[#EDEBE9] flex items-center gap-4">
+        <div className="px-10 py-3 bg-[#FBFBFB] border-b border-[#EDEBE9] flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <FileText size={9} className="text-[#464775]" />
-            <span className="text-[8px] font-bold text-[#616161] uppercase tracking-wider">Full Document View</span>
+            <FileText size={10} className="text-[#464775]" />
+            <span className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Full Document View</span>
           </div>
           <div className="h-3 w-px bg-[#EDEBE9]" />
-          <span className="text-[8px] text-[#616161] font-medium uppercase">
+          <span className="text-[9px] text-[#616161] font-medium uppercase">
             {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
           <div className="ml-auto flex items-center gap-1.5">
-            <div className="w-1 h-1 rounded-full bg-[#464775]" />
-            <span className="text-[8px] font-bold text-[#464775] uppercase tracking-wider">Servex US</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#464775]" />
+            <span className="text-[9px] font-bold text-[#464775] uppercase tracking-wider">Servex US</span>
           </div>
         </div>
 
         {/* Cuerpo del Reporte */}
-        <div className="p-8 lg:p-12">
+        <div className="p-10 lg:p-16">
           <div className="prose prose-slate max-w-none
             prose-headings:text-[#464775] prose-headings:font-bold
-            prose-h2:text-[14px] prose-h2:border-b prose-h2:border-[#F0F0F0] prose-h2:pb-2 prose-h2:mt-6
-            prose-h3:text-[11px] prose-h3:text-[#464775]/90
-            prose-p:text-[#424242] prose-p:leading-relaxed prose-p:text-[10px]
+            prose-h2:text-lg prose-h2:border-b prose-h2:border-[#F0F0F0] prose-h2:pb-3 prose-h2:mt-8
+            prose-h3:text-[13px] prose-h3:text-[#464775]/90
+            prose-p:text-[#424242] prose-p:leading-relaxed prose-p:text-[12px]
             prose-strong:text-[#464775] prose-strong:font-bold
-            prose-li:text-[#424242] prose-li:text-[10px]">
+            prose-li:text-[#424242]">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 table: ({node, ...props}) => (
-                  <div className="my-4 overflow-hidden rounded border border-[#EDEBE9]">
+                  <div className="my-6 overflow-hidden rounded border border-[#EDEBE9]">
                     <table className="min-w-full divide-y divide-[#EDEBE9]" {...props} />
                   </div>
                 ),
                 thead: ({node, ...props}) => <thead className="bg-[#F8F9FA]" {...props} />,
                 th: ({node, ...props}) => (
-                  <th className="px-3 py-2 text-left text-[8px] font-bold text-[#616161] uppercase tracking-wider" {...props} />
+                  <th className="px-5 py-3 text-left text-[10px] font-bold text-[#616161] uppercase tracking-wider" {...props} />
                 ),
                 td: ({node, ...props}) => (
-                  <td className="px-3 py-1.5 text-[9px] text-[#242424] border-t border-[#EDEBE9] transition-colors hover:bg-[#F9F9F9]" {...props} />
+                  <td className="px-5 py-3 text-[11px] text-[#242424] border-t border-[#EDEBE9] transition-colors hover:bg-[#F9F9F9]" {...props} />
                 ),
                 blockquote: ({node, ...props}) => (
-                  <div className="bg-[#FAF9F8] border-l-2 border-[#464775] px-4 py-3 my-4 text-[9px] italic text-[#484644]">
+                  <div className="bg-[#FAF9F8] border-l-2 border-[#464775] px-5 py-4 my-6 text-[11px] italic text-[#484644]">
                     {props.children}
                   </div>
                 )
@@ -162,18 +189,18 @@ const AgentInfo = () => {
         </div>
 
         {/* Footer */}
-        <div className="bg-[#FFF] border-t border-[#EDEBE9] p-3 px-6 flex justify-between items-center text-[8px] text-[#616161] font-bold uppercase tracking-[0.15em]">
+        <div className="bg-[#FBFBFB] border-t border-[#EDEBE9] p-5 px-10 flex justify-between items-center text-[9px] text-[#616161] font-bold uppercase tracking-[0.15em]">
           <div className="flex items-center gap-3">
-            <div className="w-1 h-1 bg-[#464775] rounded-full" />
+            <div className="w-1.5 h-1.5 bg-[#464775] rounded-full" />
             <p>Powered by <span className="text-[#464775]">Servex_AI Core Logic</span></p>
           </div>
           <div className="flex gap-6 items-center opacity-60">
             <div className="hidden sm:flex items-center gap-1.5">
-              <Shield size={8} />
+              <Shield size={9} />
               <span>Azure OAuth 2.0</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Cloud size={8} />
+              <Cloud size={9} />
               <span>SVX_PROD</span>
             </div>
           </div>

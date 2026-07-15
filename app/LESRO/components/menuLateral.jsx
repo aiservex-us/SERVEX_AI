@@ -1,31 +1,31 @@
-
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
   SearchCode,
-  BarChart3,
-  Inbox,
-  KanbanSquare,
-  ListChecks,
   Headphones,
   Settings,
   ChevronLeft,
-  X,
-  LayoutTemplate,
   FileDiff,
-  GitCompare // <--- ¡Asegúrate de que esta línea esté aquí!
+  KanbanSquare,
+  Inbox,
+  FileCode,
+  FileSpreadsheet,
+  UploadCloud,
+  BrainCircuit,
+  CheckCircle2
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'reporting', label: 'LESRO HOME', icon: LayoutDashboard, sub: 'Analysis' },
-  { id: 'notifications', label: 'Change Tracker', icon: FileDiff, sub: 'Logs' },
-  { id: 'inbox', label: 'Excel Preview', icon: Inbox, sub: 'Visualization' },
-  { id: 'kanban', label: 'XML Pre Prosses', icon: KanbanSquare, sub: 'Structure' },
-  { id: 'audit_comparator', label: 'Audit Comparator', icon: GitCompare, sub: 'Before / After' },
-  { id: 'dashboard', label: 'XML Post Prosses', icon:  KanbanSquare, sub: 'Statistics' },
-  { id: 'AI_reporter', label: 'AI Reporte', icon:  KanbanSquare, sub: 'Statistics' },
+  { id: 'reporting', label: 'LESRO Home', icon: LayoutDashboard, sub: 'Dashboard' },
+    { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud , sub: 'Ingestion' },
+    { id: 'report', label: 'List Price Changes', icon: BrainCircuit, sub: 'Execution' },
+  { id: 'inbox', label: 'cataloge base', icon:   FileCode, sub: 'Intelligence' },
+  { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
+  { id: 'inbox_updated', label: 'Current Catalog', icon:  FileCode, sub: 'Data' },
+  { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
+  { id: 'AI_reporter', label: 'AI Resumen', icon: CheckCircle2, sub: 'Output' },
 ];
 
 export default function MenuLateral({
@@ -85,7 +85,7 @@ export default function MenuLateral({
           <div className={`flex items-center ${collapsed ? 'justify-center w-full' : 'gap-3'}`}>
             <Link href="/panel" className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors cursor-pointer">
               <img
-                src="/logosEmpresas/lesro.png"
+                src="/logosEmpresas/WB.webp"
                 alt="Logo"
                 className={`object-contain transition-all duration-300 ${collapsed ? 'w-5 h-5' : 'w-7 h-7'}`}
               />
@@ -101,7 +101,6 @@ export default function MenuLateral({
             </div>
           </div>
 
-          {/* El botón original ahora solo se renderiza en pantallas MD o superiores */}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="hidden md:flex absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-100 rounded-full items-center justify-center shadow-sm hover:shadow-md transition-all z-50 text-slate-400 hover:text-[#464775]"
@@ -137,55 +136,49 @@ export default function MenuLateral({
           {filteredItems.map(item => {
             const Icon = item.icon;
             const isActive = active === item.id;
-            
-            // Evalúa si este item específico debe bloquearse visualmente por el viewport
-            const isLocked = item.id === 'notifications' && typeof window !== 'undefined' && window.innerWidth < 700;
 
             return (
               <button
                 key={item.id}
-                disabled={isLocked}
                 onClick={() => {
+                  if (item.id === 'incert_delete' && typeof window !== 'undefined' && window.innerWidth < 400) {
+                    alert("This feature is only available on desktop.");
+                    return;
+                  }
                   setActive(item.id);
-                  // Cierra el menú automáticamente tras seleccionar en móvil
-                  if(window.innerWidth < 768) setCollapsed(true);
+                  if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                    setCollapsed(true);
+                  }
                 }}
                 className={`
                   group relative flex flex-col transition-all duration-300 w-full rounded-xl border
                   ${collapsed ? 'items-center justify-center py-3' : 'p-3'}
-                  ${isLocked
-                    ? 'bg-slate-50 border-slate-100 opacity-70 cursor-not-allowed'
-                    : isActive 
-                      ? 'bg-[#464775]/5 border-[#464775]/30 shadow-sm' 
-                      : 'bg-white border-slate-100 shadow-sm hover:border-slate-200 hover:bg-slate-50/30'}
+                  ${isActive 
+                    ? 'bg-[#464775]/5 border-[#464775]/30 shadow-sm' 
+                    : 'bg-white border-slate-100 shadow-sm hover:border-slate-200 hover:bg-slate-50/30'}
+                  ${item.id === 'incert_delete' ? 'max-[400px]:opacity-60 max-[400px]:bg-slate-50' : ''}
                 `}
               >
                 <div className={`flex items-center w-full ${collapsed ? 'justify-center' : 'gap-3'}`}>
-                  <div className={`${isLocked ? 'text-slate-300' : isActive ? 'text-[#464775]' : 'text-slate-400'} transition-all duration-300`}>
+                  <div className={`${isActive ? 'text-[#464775]' : 'text-slate-400'} transition-all duration-300`}>
                     <Icon size={collapsed ? 15 : 17} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
                   
                   {!collapsed && (
                     <div className="flex flex-col items-start overflow-hidden text-left w-full">
-                      {isLocked ? (
-                        <>
-                          <span className="text-[9px] text-amber-600 font-bold uppercase tracking-tight leading-tight">
-                            Disponible solo para PC
+                      <span className={`text-[9px] uppercase tracking-wider leading-none ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'}`}>
+                        {item.label}
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[8px] text-slate-400 font-medium uppercase tracking-tighter">
+                          {item.sub}
+                        </span>
+                        {item.id === 'incert_delete' && (
+                          <span className="min-[400px]:hidden text-[8px] text-red-500/80 font-bold uppercase tracking-tighter bg-red-50 px-1.5 py-0.5 rounded-full border border-red-100">
+                            Desktop Only
                           </span>
-                          <span className="text-[7.5px] text-slate-400 font-medium mt-0.5 uppercase tracking-tighter">
-                            Panel bloqueado
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <span className={`text-[9px] uppercase tracking-wider leading-none ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'}`}>
-                            {item.label}
-                          </span>
-                          <span className="text-[8px] text-slate-400 font-medium mt-1 uppercase tracking-tighter">
-                            {item.sub}
-                          </span>
-                        </>
-                      )}
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -264,4 +257,3 @@ export default function MenuLateral({
     </>
   );
 }
-

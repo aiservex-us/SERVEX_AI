@@ -2,40 +2,75 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../lib/supabaseClient'; 
-import { X, AlertCircle } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient.js';
+import { X, AlertCircle , Sparkles} from 'lucide-react';
+import TeamsAgentChat from './components/comparePDF/REPORT/components/AI_contact.jsx';
 
-import MenuLateral from './components/menuLateral';
+import MenuLateral from './components/menuLateral.jsx';
 import Dashboard from './components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from './components/perceo_XML_MASTER_pre_prosses.jsx';
-import CatalogParser from './components/PDFsection';
-import Csvs from './components/comparePDF/csvs'; 
-import PrecentMain from './components/PrecentMain';
-// --- IMPORTACIÓN SOLICITADA ---
-import UploadFileCmpare from './components/comparePDF/EJECUTOR'; 
-import AIReporting from './components/comparePDF/presentation_LESRO'
-import Compare from './components/comparePDF/UploadFileCmpare'
+import CatalogParser from './components/PDFsection.jsx';
+import Csvs from './components/comparePDF/csvs.jsx';
+import Csvs_updated from './components/comparePDF/csvs_updated.jsx';
+import PrecentMain from './components/PrecentMain.jsx';
+import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx';
+import AIReporting from './components/comparePDF/presentation_LESRO.jsx'
+import Compare from './components/comparePDF/UploadFileCmpare.jsx'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
-import ComparadorAuditReportClientsSERVEX from './components/comparePDF/ComparadorAudioReportClientsSERVEX.jsx';
+import Report from './components/comparePDF/REPORT/dashboard.jsx';
+import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
 
   const router = useRouter();
 
-{/*}
-  // 🔒 ROUTE PROTECTION (SAME LOGIC AS PanelPage)
+  // 🔒 PROTECCIÓN DE RUTA DEL MÓDULO (Redirige si se borró el tenant o no hay delegación)
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data?.user) {
-        router.replace('/login');
+    const checkDelegation = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          window.location.href = '/LESRO';
+          return;
+        }
+        
+        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+        const res = await fetch(`${apiURL}/api/v1/module_delegation/LESRO`);
+        const responseData = await res.json();
+        
+        if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
+          window.location.href = '/LESRO';
+        }
+      } catch (err) {
+        console.error('Delegation check failed', err);
       }
-    }); 
-  }, [router]); */}
+    };
+    checkDelegation();
+  }, []);
 
-  // --- EXIT ATTEMPT DETECTION LOGIC ---
+
+  
+  useEffect(() => {
+    const handleNavigate = (e) => {
+      if (e.detail) setActive(e.detail);
+    };
+    window.addEventListener('navigateTo', handleNavigate);
+    return () => window.removeEventListener('navigateTo', handleNavigate);
+  }, []);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileScreen(window.innerWidth < 700);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   useEffect(() => {
     window.history.pushState(null, null, window.location.pathname);
 
@@ -53,38 +88,54 @@ export default function MenuInicial() {
 
   const handleConfirmExit = () => {
     setShowExitModal(false);
-    router.push('/panel'); 
+    router.push('/panel');
   };
 
+  
+  const [isAiMenuExpanded, setIsAiMenuExpanded] = useState(true);
+  const showAiMenu = ['dashboard', 'kanban', 'inbox', 'inbox_updated', 'report', 'incert_delete'].includes(active);
+
   const renderContent = () => {
+    if (active === 'notifications' && isMobileScreen) {
+      return (
+        <div className="p-6 flex flex-col items-center justify-center h-full text-center bg-slate-50">
+          <AlertCircle className="text-amber-500 mb-2" size={32} />
+          <h3 className="text-[14px] font-bold text-slate-800 uppercase tracking-wider">Panel bloqueado</h3>
+          <p className={"text-[12px] text-slate-500 max-w-xs mt-1"}>
+            La sección Change Tracker está disponible únicamente para entornos de escritorio (PC).
+          </p>
+        </div>
+      );
+    }
+
     switch (active) {
       case 'dashboard': return <Dashboard />;
+      case 'incert_delete': return <IncertDelete />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
+      case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
-      // --- RENDERIZADO DEL COMPONENTE DE COMPARACIÓN ---
-      case 'notifications': return <UploadFileCmpare />; 
-      case 'reporting': return <AIReporting />; 
+      case 'report': return <Report />;
+      case 'notifications': return <UploadFileCmpare />;
+      case 'reporting': return <AIReporting />;
       case 'compare': return <Compare />;
       case 'AI_reporter': return <Responce_ai />;
-      case 'audit_comparator': return <ComparadorAuditReportClientsSERVEX />;
       default:
-        return <div className="p-6 text-gray-500">View under construction.</div>;
+        return <div className="p-6 text-gray-500">View under construction</div>;
     }
   };
 
   return (
     <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
 
-      {/* MICROSOFT TEAMS STYLE MODAL */}
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
-          <div 
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" 
-            onClick={() => setShowExitModal(false)} 
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            onClick={() => setShowExitModal(false)}
           />
-          
+
           <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <span className="text-[14px] font-bold text-[#242424]">Confirm exit</span>
@@ -102,7 +153,7 @@ export default function MenuInicial() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the LESRO management area. Any temporary changes in this view will be closed.
+                  You are about to leave the WBT management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>
@@ -125,21 +176,49 @@ export default function MenuInicial() {
         </div>
       )}
 
-      <main className="w-full h-[95vh] p-0 flex">
+      <main className="w-full h-[95vh] p-0 flex relative overflow-hidden">
         <MenuLateral
           active={active}
           setActive={setActive}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
         />
+        {/* CONTENEDOR SPLIT */}
+        <div className="flex flex-1 h-full w-full min-w-0 p-2 gap-2 bg-slate-50">
+          
+          {/* Lado Izquierdo: Contenido Principal */}
+          <div className={`relative group transition-all duration-300 ease-in-out h-full ${(showAiMenu && isAiMenuExpanded) ? 'w-[65%]' : 'w-full'}`}>
+            <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+            <div className="relative bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-hidden flex flex-col">
+              
+              {/* Toolbar Superior (Sólo visible si corresponde el menú IA) */}
+              {showAiMenu && (
+                <div className="absolute top-3 right-3 z-[90]">
+                  <button 
+                    onClick={() => setIsAiMenuExpanded(!isAiMenuExpanded)}
+                    className={`flex items-center justify-center p-1.5 rounded-lg shadow-sm border transition-all ${isAiMenuExpanded ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                    title={isAiMenuExpanded ? 'Ocultar Copilot' : 'Show Copilot'}
+                  >
+                    <Sparkles size={18} />
+                  </button>
+                </div>
+              )}
 
-        <div className="relative group flex-1 h-full">
-          <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-          <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
-            <div className="p-1 w-full h-full">
-              {renderContent()}
+              <div className="flex-1 w-full relative overflow-y-auto">
+                <div className="p-1 w-full h-full">
+                  {renderContent()}
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Lado Derecho: Asistente IA (Menú Lateral Derecho) */}
+          {(showAiMenu && isAiMenuExpanded) && (
+            <div className="relative w-[35%] h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col animate-in slide-in-from-right-8 duration-300">
+              <TeamsAgentChat currentSection={active} />
+            </div>
+          )}
+          
         </div>
       </main>
     </div>
