@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient.js';
 import { X, AlertCircle , Sparkles} from 'lucide-react';
 import TeamsAgentChat from './components/comparePDF/REPORT/components/AI_contact.jsx';
 
+import LesroGatekeeper from '../components/LesroGatekeeper.jsx';
 import MenuLateral from './components/menuLateral.jsx';
 import Dashboard from './components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from './components/perceo_XML_MASTER_pre_prosses.jsx';
@@ -28,29 +29,7 @@ export default function MenuInicial() {
 
   const router = useRouter();
 
-  // 🔒 PROTECCIÓN DE RUTA DEL MÓDULO (Redirige si se borró el tenant o no hay delegación)
-  useEffect(() => {
-    const checkDelegation = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          window.location.href = '/LESRO';
-          return;
-        }
-        
-        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-        const res = await fetch(`${apiURL}/api/v1/module_delegation/LESRO`);
-        const responseData = await res.json();
-        
-        if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
-          window.location.href = '/LESRO';
-        }
-      } catch (err) {
-        console.error('Delegation check failed', err);
-      }
-    };
-    checkDelegation();
-  }, []);
+
 
 
   
@@ -127,7 +106,8 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+    <LesroGatekeeper moduleName="LESRO">
+      <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
@@ -222,5 +202,6 @@ export default function MenuInicial() {
         </div>
       </main>
     </div>
+    </LesroGatekeeper>
   );
 }
