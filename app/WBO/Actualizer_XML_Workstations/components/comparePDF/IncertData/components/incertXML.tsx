@@ -33,6 +33,7 @@ export default function UploadClientXML() {
   const [existingNewCsv, setExistingNewCsv] = useState(false);
 
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' | null }>({ text: '', type: null });
+  const [csvErrorDetails, setCsvErrorDetails] = useState<{ expected: string[], found: string[] } | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [dragActiveCSV, setDragActiveCSV] = useState(false);
   const [dragActiveNewCSV, setDragActiveNewCSV] = useState(false);
@@ -40,6 +41,17 @@ export default function UploadClientXML() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null);
   const csvNewInputRef = useRef<HTMLInputElement | null>(null);
+
+  const EXPECTED_WBO_HEADERS = [
+    "Model #", "2026 List Price", "Weight", "Classic/ Premium", "Model Name", "Top", "Casebody", "Top D", 
+    "Top L", "Casebody W", "Casebody D", "OA H", "Assembly", "Deadbolt Lock(s)", "# of Optional Locks Required", 
+    "3, 6, 9, 12 Replacement Tote Trays", "Tote Tray Lid", "Power Supply Modules", 
+    "Hemisphere (only power option available for Mini Nucleus) (-HEM)", 
+    "Connecting Magnets for HangOut Stools 2 Locations (-2MA)", "Connecting Magnets for HangOut Stools 4 Locations (-4MA)", 
+    "Connecting Magnets for HangOut Stools 6 Locations (-6MA)", "Connecting Magnets for HangOut Stools 8 Locations (-8MA)", 
+    "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", "Premium Laminate Top Upcharge for Workstations", 
+    "Markerboard 48 x 48 60 x 60 48 x 84 (-__MB)", "Chemical Resistant 48 x 48, 60 x 60 48 x 84 (-09C)", "Custom Sizes"
+  ];
 
   // React Transition para prevenir bloqueos de renderizado en hilos de UI al cargar datasets grandes
   const [, startTransition] = useTransition();
@@ -185,6 +197,55 @@ export default function UploadClientXML() {
     return sanitizedJson;
   };
 
+  const extractHeaders = (rawCsvText: string): string[] => {
+    if (!rawCsvText || !rawCsvText.trim()) return [];
+    const lines: string[] = [];
+    let currentLine = '';
+    let insideQuotes = false;
+    const len = rawCsvText.length;
+    for (let i = 0; i < len; i++) {
+      const char = rawCsvText[i];
+      if (char === '"') { insideQuotes = !insideQuotes; currentLine += char; }
+      else if ((char === '\n' || char === '\r') && !insideQuotes) {
+        if (char === '\r' && rawCsvText[i + 1] === '\n') i++;
+        lines.push(currentLine); currentLine = '';
+      } else currentLine += char;
+    }
+    if (currentLine || rawCsvText.endsWith('\n') || rawCsvText.endsWith('\r')) lines.push(currentLine);
+
+    const rawHeaderAccum: string[] = [];
+    let openQuotes = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      rawHeaderAccum.push(line);
+      const quoteCount = (line.match(/"/g) || []).length;
+      if (quoteCount % 2 !== 0) openQuotes = !openQuotes;
+      if (!openQuotes) break;
+    }
+    const fullRawHeader = rawHeaderAccum.join('\n');
+    const tokens = fullRawHeader.split(';');
+    return tokens.map(token => {
+      let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
+      return tClean.split(/\s+/).join(' ').trim();
+    });
+  };
+
+  const validateHeaders = (headers: string[]): boolean => {
+    const cleanFound = headers.filter(h => h.trim() !== '');
+    if (cleanFound.length !== EXPECTED_WBO_HEADERS.length) {
+      setCsvErrorDetails({ expected: EXPECTED_WBO_HEADERS, found: cleanFound });
+      return false;
+    }
+    for (let i = 0; i < EXPECTED_WBO_HEADERS.length; i++) {
+      if (cleanFound[i] !== EXPECTED_WBO_HEADERS[i]) {
+        setCsvErrorDetails({ expected: EXPECTED_WBO_HEADERS, found: cleanFound });
+        return false;
+      }
+    }
+    setCsvErrorDetails(null);
+    return true;
+  };
+
   // --- Lógica de Lectura de Archivos ---
   const readXMLFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xml')) {
@@ -208,11 +269,19 @@ export default function UploadClientXML() {
       setMessage({ text: 'Only CSV files are allowed', type: 'error' });
       return;
     }
+    setCsvErrorDetails(null);
     setReadingCsv(true);
     const reader = new FileReader();
     reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const headers = extractHeaders(text);
+      if (!validateHeaders(headers)) {
+        setMessage({ text: 'Error crítico: La estructura de columnas del CSV base no coincide con lo esperado.', type: 'error' });
+        setReadingCsv(false);
+        return;
+      }
       startTransition(() => {
-        setCsvContent(e.target?.result as string);
+        setCsvContent(text);
         setMessage({ text: 'CSV Base file loaded successfully', type: 'success' });
         setReadingCsv(false);
       });
@@ -225,11 +294,19 @@ export default function UploadClientXML() {
       setMessage({ text: 'Only CSV files are allowed', type: 'error' });
       return;
     }
+    setCsvErrorDetails(null);
     setReadingNewCsv(true);
     const reader = new FileReader();
     reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const headers = extractHeaders(text);
+      if (!validateHeaders(headers)) {
+        setMessage({ text: 'Error crítico: La estructura de columnas del CSV nuevo no coincide con lo esperado.', type: 'error' });
+        setReadingNewCsv(false);
+        return;
+      }
       startTransition(() => {
-        setCsvNewContent(e.target?.result as string);
+        setCsvNewContent(text);
         setMessage({ text: 'CSV Nuevo file loaded successfully', type: 'success' });
         setReadingNewCsv(false);
       });
