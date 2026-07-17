@@ -156,25 +156,25 @@ const Forum = () => {
     setActiveCommentSection(prev => prev === moduleKey ? null : moduleKey);
   };
 
-  // Renderizado Markdown ultra limpio, quitando estilos pesados y sombras abrumadoras
+  // Renderizado Markdown minimalista y corporativo para muro tipo red social
   const renderMarkdown = (content) => (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        h1: ({node, ...props}) => <h1 className="text-[1.05rem] font-bold text-slate-900 mb-2 mt-4 tracking-tight" {...props} />,
-        h2: ({node, ...props}) => <h2 className="text-sm font-semibold text-slate-800 mb-2 mt-4" {...props} />,
-        h3: ({node, ...props}) => <h3 className="text-[13px] font-semibold text-slate-800 mb-1 mt-3" {...props} />,
-        p: ({node, ...props}) => <p className="mb-3 text-[13px] text-slate-700 leading-relaxed" {...props} />,
-        ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-0.5 mb-3 text-[13px] text-slate-700" {...props} />,
+        h1: ({node, ...props}) => <h1 className="text-[1.1rem] font-bold text-[#464775] mb-2 mt-4 tracking-tight" {...props} />,
+        h2: ({node, ...props}) => <h2 className="text-sm font-bold text-[#464775] mb-2 mt-4" {...props} />,
+        h3: ({node, ...props}) => <h3 className="text-[13px] font-bold text-[#464775] mb-1 mt-3" {...props} />,
+        p: ({node, ...props}) => <p className="mb-3 text-[13px] text-slate-800 leading-relaxed" {...props} />,
+        ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-0.5 mb-3 text-[13px] text-slate-800" {...props} />,
         table: ({node, ...props}) => (
-          <div className="w-full overflow-x-auto my-3 border border-slate-200 rounded-lg">
+          <div className="w-full overflow-x-auto my-3 border border-gray-100 rounded-lg">
             <table className="w-full text-left border-collapse text-[11px]" {...props} />
           </div>
         ),
-        thead: ({node, ...props}) => <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold text-[9px]" {...props} />,
+        thead: ({node, ...props}) => <thead className="bg-[#464775]/5 border-b border-gray-100 text-[#464775] uppercase tracking-wider font-bold text-[9px]" {...props} />,
         th: ({node, ...props}) => <th className="px-3 py-2 whitespace-nowrap" {...props} />,
-        td: ({node, ...props}) => <td className="px-3 py-2 border-b border-slate-100 text-slate-700 last:border-0" {...props} />,
-        strong: ({node, ...props}) => <strong className="font-semibold text-slate-900" {...props} />,
+        td: ({node, ...props}) => <td className="px-3 py-2 border-b border-gray-50 text-slate-800 last:border-0" {...props} />,
+        strong: ({node, ...props}) => <strong className="font-bold text-[#464775]" {...props} />,
       }}
     >
       {content}
@@ -182,16 +182,10 @@ const Forum = () => {
   );
 
   return (
-    <div className="relative w-full h-full flex flex-col font-sans overflow-hidden bg-transparent">
-      {/* Background matching platform (glassmorphism/gradient) */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-30" onError={(e) => e.target.style.display='none'} />
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-[4px]" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/15" />
-      </div>
+    <div className="relative w-full h-full flex flex-col font-sans overflow-hidden bg-white">
       
       {/* HEADER NAVBAR (Minimalista) */}
-      <header className="h-14 bg-white/60 backdrop-blur-md border-b border-white/50 flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
+      <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-slate-900 rounded-md flex items-center justify-center">
             <ShieldCheck className="w-4 h-4 text-white" />
@@ -223,8 +217,8 @@ const Forum = () => {
       </header>
 
       {/* CENTER FEED */}
-      <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent z-10 relative">
-        <div className="relative z-10 w-[90%] mx-auto py-6 px-4 sm:px-0 flex flex-col">
+      <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+        <div className="w-[90%] mx-auto py-2 sm:px-0 flex flex-col">
           
           {loading ? (
              <div className="flex flex-col items-center justify-center text-center py-20">
@@ -255,7 +249,7 @@ const Forum = () => {
               const postDate = new Date(auditData.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
               return (
-                <article key={module.key} className="border border-white/50 rounded-xl bg-white/70 backdrop-blur-sm p-4 mb-4 flex gap-3 transition-colors hover:bg-white/90 shadow-sm">
+                <article key={module.key} className="border-b border-gray-100 bg-white py-6 flex gap-3 hover:bg-gray-50/30 transition-colors">
                   
                   {/* Left Column: Avatar */}
                   <div className="shrink-0 flex flex-col items-center">
@@ -291,7 +285,7 @@ const Forum = () => {
                     </div>
 
                     {/* Tag */}
-                    <span className="inline-block text-[10px] font-semibold text-blue-600 mb-2">#{module.key}_Audit</span>
+                    <span className="inline-block text-[10px] font-bold text-[#464775] mb-2">#{module.key}_Audit</span>
 
                     {/* Markdown Body */}
                     <div className="prose-container overflow-hidden pr-2">
