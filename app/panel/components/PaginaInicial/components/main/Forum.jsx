@@ -182,10 +182,16 @@ const Forum = () => {
   );
 
   return (
-    <div className="w-full h-full flex flex-col bg-white font-sans overflow-hidden">
+    <div className="relative w-full h-full flex flex-col font-sans overflow-hidden bg-transparent">
+      {/* Background matching platform (glassmorphism/gradient) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-30" onError={(e) => e.target.style.display='none'} />
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-[4px]" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/15" />
+      </div>
       
       {/* HEADER NAVBAR (Minimalista) */}
-      <header className="h-14 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
+      <header className="h-14 bg-white/60 backdrop-blur-md border-b border-white/50 flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-slate-900 rounded-md flex items-center justify-center">
             <ShieldCheck className="w-4 h-4 text-white" />
@@ -217,8 +223,8 @@ const Forum = () => {
       </header>
 
       {/* CENTER FEED */}
-      <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
-        <div className="w-full max-w-[600px] mx-auto py-6 px-4 sm:px-0 flex flex-col">
+      <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent z-10 relative">
+        <div className="relative z-10 w-[90%] mx-auto py-6 px-4 sm:px-0 flex flex-col">
           
           {loading ? (
              <div className="flex flex-col items-center justify-center text-center py-20">
@@ -249,7 +255,7 @@ const Forum = () => {
               const postDate = new Date(auditData.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
               return (
-                <article key={module.key} className="border-b border-slate-200 bg-white py-4 flex gap-3 transition-colors hover:bg-slate-50/50">
+                <article key={module.key} className="border border-white/50 rounded-xl bg-white/70 backdrop-blur-sm p-4 mb-4 flex gap-3 transition-colors hover:bg-white/90 shadow-sm">
                   
                   {/* Left Column: Avatar */}
                   <div className="shrink-0 flex flex-col items-center">
