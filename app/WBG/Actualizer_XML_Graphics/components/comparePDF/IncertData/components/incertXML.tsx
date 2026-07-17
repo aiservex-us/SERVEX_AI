@@ -281,38 +281,69 @@ export default function UploadClientXML() {
 
       console.log('[+] Iniciando saneamiento estructural sobre los contenidos CSV...');
       
-      const payload: any = {
-        company_name: 'WBG',
-        user_id: user.id,
-      };
-
       if (xmlContent.trim()) {
-        payload.xml_raw = xmlContent;
+        console.log('[+] Uploading XML...');
+        const xmlPayload = {
+          company_name: 'WBG',
+          user_id: user.id,
+          xml_raw: xmlContent
+        };
+        const { error: xmlError } = await supabase
+          .from('ClientsSERVEX_WBG')
+          .update(xmlPayload)
+          .eq('user_id', user.id)
+          .select('');
+          
+        if (xmlError) {
+          console.error('Supabase XML Error:', xmlError);
+          throw new Error(`XML DB Error: ${xmlError.message}`);
+        }
       }
+
       if (csvContent.trim()) {
-        payload.csv_raw = sanitizeCSV(csvContent);
+        console.log('[+] Uploading CSV Base...');
+        const csvPayload = {
+          company_name: 'WBG',
+          user_id: user.id,
+          csv_raw: sanitizeCSV(csvContent)
+        };
+        const { error: csvError } = await supabase
+          .from('ClientsSERVEX_WBG')
+          .update(csvPayload)
+          .eq('user_id', user.id)
+          .select('');
+          
+        if (csvError) {
+          console.error('Supabase CSV Base Error:', csvError);
+          throw new Error(`CSV Base DB Error: ${csvError.message}`);
+        }
       }
+
       if (csvNewContent.trim()) {
-        payload.csv_new_raw = sanitizeCSV(csvNewContent);
+        console.log('[+] Uploading CSV New...');
+        const csvNewPayload = {
+          company_name: 'WBG',
+          user_id: user.id,
+          csv_new_raw: sanitizeCSV(csvNewContent)
+        };
+        const { error: csvNewError } = await supabase
+          .from('ClientsSERVEX_WBG')
+          .update(csvNewPayload)
+          .eq('user_id', user.id)
+          .select('');
+          
+        if (csvNewError) {
+          console.error('Supabase CSV New Error:', csvNewError);
+          throw new Error(`CSV New DB Error: ${csvNewError.message}`);
+        }
       }
 
-      const { error } = await supabase
-        .from('ClientsSERVEX_WBG')
-        .update(payload)
-        .eq('user_id', user.id)
-        .select('');
-
-      if (error) {
-        console.error('Supabase Full Error:', error);
-        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
-      } else {
-        setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
-        setXmlContent('');
-        setCsvContent('');
-        setCsvNewContent('');
-        // Refrescar el estado de columnas existentes tras guardar
-        await checkExistingFiles();
-      }
+      setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
+      setXmlContent('');
+      setCsvContent('');
+      setCsvNewContent('');
+      // Refrescar el estado de columnas existentes tras guardar
+      await checkExistingFiles();
     } catch (err: unknown) {
       console.error(err);
       setMessage({ text: 'Unexpected client-side error', type: 'error' });
