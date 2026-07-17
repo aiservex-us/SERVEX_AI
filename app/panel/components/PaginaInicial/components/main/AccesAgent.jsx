@@ -8,6 +8,7 @@ import {
   Check, Settings, HelpCircle, Zap, SendHorizonal,
   Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
 } from 'lucide-react';
+import { supabase } from '@/app/lib/supabaseClient';
 
 const QUICK_PROMPTS = [
   { icon: Shield, label: "Core Principles", q: "What is the strategic imperative of SERVEX AI?" },
@@ -21,6 +22,18 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
   const [isLoading, setIsLoading] = useState(false);
   const [context, setContext] = useState('Servex General');
   const [charCount, setCharCount] = useState(0);
+  const [userId, setUserId] = useState(null);
+
+  // Obtener usuario actual
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const inputRef = useRef(null);
   const scrollContainerRef = useRef(null);
@@ -30,8 +43,9 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
   // Cargar Historial
   useEffect(() => {
     const fetchHistory = async () => {
+      if (!userId) return; // Esperar a tener el user_id
       try {
-        const res = await fetch(`${apiURL}/api/v1/general_agent/history`);
+        const res = await fetch(`${apiURL}/api/v1/general_agent/history?user_id=${userId}`);
         if (res.ok) {
           const data = await res.json();
           if (data.status === "success" && data.history) {
@@ -43,7 +57,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
       }
     };
     fetchHistory();
-  }, [apiURL]);
+  }, [apiURL, userId]);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
@@ -85,7 +99,8 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
       const payload = {
         messages: langchainMsgs,
-        raw_messages: newRawMessages
+        raw_messages: newRawMessages,
+        user_id: userId
       };
 
       const res = await fetch(`${apiURL}/api/v1/general_agent/chat`, {
@@ -167,9 +182,10 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
           {messages.length > 0 && (
             <button
               onClick={async () => {
+                if (!userId) return;
                 setMessages([]);
                 try {
-                  await fetch(`${apiURL}/api/v1/general_agent/history`, { method: "DELETE" });
+                  await fetch(`${apiURL}/api/v1/general_agent/history?user_id=${userId}`, { method: "DELETE" });
                 } catch (e) {}
               }}
               className="text-[11px] font-medium text-gray-500 border border-gray-300 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors"
