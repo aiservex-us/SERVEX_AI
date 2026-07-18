@@ -259,15 +259,15 @@ export default function AuditReportViewer() {
                    placeholder="Filter Option Prices..." 
                    value={searchTerm}
                    onChange={(e) => setSearchTerm(e.target.value)}
-                   className="w-full md:w-1/3 text-xs border border-amber-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all"
+                   className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#464775] focus:border-[#464775] transition-all"
                  />
               </div>
             <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
               <table className="table-fixed border-collapse text-left text-xs w-full">
-                <thead className="bg-amber-50/95 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
+                <thead className="bg-[#464775]/5 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
                   <tr>
                     {['#', 'Model ID', 'Option Column', 'Original Value', 'New Value', '% Diff'].map(h => (
-                      <th key={h} className="px-4 py-3 text-[10px] font-bold text-amber-700 border-b border-amber-200 uppercase tracking-wider">
+                      <th key={h} className="px-4 py-3 text-[10px] font-bold text-[#464775] border-b border-[#464775]/20 uppercase tracking-wider">
                         {h}
                       </th>
                     ))}
@@ -280,11 +280,11 @@ export default function AuditReportViewer() {
                       <tr key={i} className="hover:bg-slate-50/80 transition-colors">
                         <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{i + 1}</td>
                         <td className="px-4 py-3 font-mono font-bold text-slate-700">{c.model_id}</td>
-                        <td className="px-4 py-3 text-amber-600 font-semibold text-[11px]">{c.column_name}</td>
+                        <td className="px-4 py-3 text-[#464775] font-semibold text-[11px]">{c.column_name}</td>
                         <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.old_value}</td>
-                        <td className="px-4 py-3 font-semibold text-amber-600 font-mono">{c.new_value}</td>
+                        <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.new_value}</td>
                         <td className="px-4 py-3">
-                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-amber-100 text-amber-700' : diffNum < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>
+                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-[#464775]/10 text-[#464775]' : diffNum < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>
                              {c.financial_impact || 'N/A'}
                            </span>
                         </td>

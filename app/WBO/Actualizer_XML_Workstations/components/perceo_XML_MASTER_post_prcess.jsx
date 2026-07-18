@@ -302,12 +302,12 @@ const WBDDataMatrix = () => {
                     {optionHeaders.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-amber-900 bg-amber-50/80 backdrop-blur-md border-r border-b border-amber-100/50 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
+                        className="px-3 py-2 text-[11px] font-semibold text-[#464775] bg-[#464775]/5 backdrop-blur-md border-r border-b border-[#464775]/10 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
                         title={header}
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
-                          <Filter size={8} className="text-amber-700 opacity-40" />
+                          <Filter size={8} className="text-[#464775] opacity-40" />
                         </div>
                       </th>
                     ))}
@@ -363,7 +363,7 @@ const WBDDataMatrix = () => {
 
                           {/* Dynamic Option Prices */}
                           {optionHeaders.map(oh => (
-                            <td key={oh} className="p-0 text-amber-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
+                            <td key={oh} className="p-0 text-[#464775] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
                               <div className="px-3 py-1.5 font-mono text-[11px] font-semibold whitespace-nowrap truncate">
                                 {p[oh] !== undefined ? `$${p[oh].toLocaleString()}` : "-"}
                               </div>

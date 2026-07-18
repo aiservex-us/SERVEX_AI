@@ -24,6 +24,7 @@ const WBDDataMatrix = () => {
 
   // Cabeceras estrictas requeridas para mostrar del XML
   const baseHeaders = ["SKU", "Description", "Classification", "Base Price"];
+  const [optionHeaders, setOptionHeaders] = useState([]);
 
   const processXML = async () => {
     try {
@@ -51,6 +52,30 @@ const WBDDataMatrix = () => {
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBT XML structure");
 
+      // 1. Mapear todos los Features globales para búsqueda rápida (O(1))
+      const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      const featureMap = new Map();
+      const allPossibleOptionsMap = new Map();
+
+      for (const f of globalFeatures) {
+        const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+        if (fCode) {
+          featureMap.set(fCode, f);
+          const options = Array.from(f.getElementsByTagName("Option"));
+          for (const opt of options) {
+            const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+            // Ignoramos C y P como columnas, porque las resolvemos como variantes de SKU
+            if (optCode !== "C" && optCode !== "P") {
+              const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
+              if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
+            }
+          }
+        }
+      }
+      
+      const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
+      setOptionHeaders(dynamicOptionHeaders);
+
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
 
@@ -65,12 +90,66 @@ const WBDDataMatrix = () => {
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-        extracted.push({
-          sku,
-          description,
-          classification,
-          basePrice
-        });
+        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+        let hasSuffixes = false;
+        
+        // Recolectar los precios de las opciones para este producto
+        const productOptionPrices = {};
+        for (const ref of featureRefs) {
+          const refCode = ref.textContent;
+          const featureNode = featureMap.get(refCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+              if (optCode !== "C" && optCode !== "P") {
+                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
+                const optPriceElem = opt.querySelector("OptionPrice > Value");
+                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+                if (optDesc) productOptionPrices[optDesc] = optPrice;
+              }
+            }
+          }
+        }
+        
+        // 2. Extraer opciones /C y /P buscando en sus FeatureRefs
+        for (const ref of featureRefs) {
+          const refCode = ref.textContent;
+          const featureNode = featureMap.get(refCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+              if (optCode === "C" || optCode === "P") {
+                const optPriceElem = opt.querySelector("OptionPrice > Value");
+                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+                
+                const suffixSku = `${sku}/${optCode}`;
+                if (!extracted.find(e => e.sku === suffixSku)) {
+                  extracted.push({
+                    sku: suffixSku,
+                    description: `${description} [Option ${optCode}]`,
+                    classification,
+                    basePrice: basePrice + optPrice,
+                    ...productOptionPrices
+                  });
+                  hasSuffixes = true;
+                }
+              }
+            }
+          }
+        }
+        
+        // Si no tiene sufijos C o P, entonces añadimos el producto base
+        if (!hasSuffixes) {
+          extracted.push({
+            sku,
+            description,
+            classification,
+            basePrice,
+            ...productOptionPrices
+          });
+        }
       }
       
       setProducts(extracted);
@@ -220,6 +299,18 @@ const WBDDataMatrix = () => {
                         </div>
                       </th>
                     ))}
+                    {optionHeaders.map((header) => (
+                      <th
+                        key={header}
+                        className="px-3 py-2 text-[11px] font-semibold text-[#464775] bg-[#464775]/5 backdrop-blur-md border-r border-b border-[#464775]/10 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
+                        title={header}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          {header}
+                          <Filter size={8} className="text-[#464775] opacity-40" />
+                        </div>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
 
@@ -269,6 +360,15 @@ const WBDDataMatrix = () => {
                               ${p.basePrice.toLocaleString()}
                             </div>
                           </td>
+
+                          {/* Dynamic Option Prices */}
+                          {optionHeaders.map(oh => (
+                            <td key={oh} className="p-0 text-[#464775] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
+                              <div className="px-3 py-1.5 font-mono text-[11px] font-semibold whitespace-nowrap truncate">
+                                {p[oh] !== undefined ? `$${p[oh].toLocaleString()}` : "-"}
+                              </div>
+                            </td>
+                          ))}
                         </motion.tr>
                       );
                     })}
@@ -281,7 +381,7 @@ const WBDDataMatrix = () => {
           {/* Table Footer Info & Pagination Controls */}
           <div className="bg-gradient-to-r from-slate-50/40 to-white px-4 py-2 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-slate-500 select-none">
             <div className="flex gap-4">
-              <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length}</span>
+              <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length + optionHeaders.length}</span>
               <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
             </div>
             
