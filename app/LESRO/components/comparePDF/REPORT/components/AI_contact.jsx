@@ -38,22 +38,6 @@ export default function TeamsAgentChat({ currentSection }) {
   const inputRef = useRef(null);
   const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await fetch(`${apiURL}/wbo/api/v1/agent/history`);
-        const data = await res.json();
-        if (data.status === "success" && data.history) {
-          setMessages(data.history);
-        }
-      } catch (e) {
-        console.error("Failed to load chat history:", e);
-      }
-    };
-    fetchHistory();
-  }, [apiURL]);
-
-
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   const scrollContainerRef = useRef(null);
@@ -109,19 +93,19 @@ export default function TeamsAgentChat({ currentSection }) {
           .single();
 
         if (error || !data || !data.xml_actualizer_raw) {
-          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: No se encontró el file XML en la base de datos para WBO.", time: nowTime }]);
+          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: No se encontró el file XML en la base de datos para LESRO.", time: nowTime }]);
         } else {
           const blob = new Blob([data.xml_actualizer_raw], { type: 'application/xml' });
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'WBO.xml');
+          link.setAttribute('download', 'LESRO.xml');
           document.body.appendChild(link);
           link.click();
           link.parentNode.removeChild(link);
           window.URL.revokeObjectURL(url);
           
-          setMessages(prev => [...prev, { from: "bot", text: "✅ Descarga iniciada. El file WBO.xml ha sido guardado exitosamente.", time: nowTime }]);
+          setMessages(prev => [...prev, { from: "bot", text: "✅ Descarga iniciada. El file LESRO.xml ha sido guardado exitosamente.", time: nowTime }]);
         }
       } catch (err) {
         setMessages(prev => [...prev, { from: "bot", text: "❌ An error occurred inesperado al intentar descargar el XML.", time: nowTime }]);
@@ -159,13 +143,13 @@ export default function TeamsAgentChat({ currentSection }) {
 
     if (queryToSend === '/executeProcess') {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Iniciando motor ETL para procesamiento de catálogos en la nube (WBO). Por favor, espera...", time: nowTime }]);
+      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Iniciando motor ETL para procesamiento de catálogos en la nube (LESRO). Por favor, espera...", time: nowTime }]);
       
       try {
         const formData = new FormData();
-        formData.append('company_name', 'WBO');
+        formData.append('company_name', 'LESRO');
         
-        const response = await fetch(`${apiURL}/wbo/api/v1/pipeline/compare-only-WBO`, {
+        const response = await fetch(`${apiURL}/audit-process`, {
           method: 'POST',
           body: formData,
         });
@@ -193,10 +177,10 @@ export default function TeamsAgentChat({ currentSection }) {
       // Agregar el mensaje actual
       historyPayload.push({ role: "user", content: queryToSend });
 
-      const res = await fetch(`${apiURL}/wbo/api/v1/agent/chat`, {
+      const res = await fetch(`${apiURL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: historyPayload, raw_messages: [...messages, { from: "user", text: queryToSend, time: now }], company_name: context, current_section: currentSection }),
+        body: JSON.stringify({ message: queryToSend }),
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -254,9 +238,6 @@ export default function TeamsAgentChat({ currentSection }) {
             <button
               onClick={async () => {
                 setMessages([]);
-                try {
-                  await fetch(`${apiURL}/wbo/api/v1/agent/history`, { method: "DELETE" });
-                } catch (e) {}
               }}
               className="text-[11px] font-medium text-gray-400 border border-gray-200 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-400 hover:bg-red-50 transition-colors"
             >
