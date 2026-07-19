@@ -97,65 +97,52 @@ const WBDDataMatrix = () => {
         const basePrice = priceElement ? parseFloat(getTags(priceElement, "Value")[0]?.textContent || "0") : 0;
 
         const featureRefs = Array.from(getTags(p, "FeatureRef"));
-        let hasSuffixes = false;
-        
-        // Recolectar los precios de las opciones para este producto
+        // Recolectar los precios de los grados y opciones para este producto
         const productOptionPrices = {};
         for (const ref of featureRefs) {
-          const refCode = ref.textContent;
+          const refCode = ref.textContent || "";
           const featureNode = featureMap.get(refCode);
           if (featureNode) {
             const options = Array.from(getTags(featureNode, "Option"));
             for (const opt of options) {
-              const optCode = getTags(opt, "Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                const optDesc = getTags(opt, "Description")[0]?.textContent || optCode;
-                const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optDesc) productOptionPrices[optDesc] = optPrice;
+              const optCode = (getTags(opt, "Code")[0]?.textContent || "").toUpperCase();
+              const optDesc = (getTags(opt, "Description")[0]?.textContent || "").toUpperCase();
+              const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
+              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+              
+              if (optPrice === 0) continue;
+
+              const fullText = `${optCode} ${optDesc}`;
+              
+              // Mapeo a grados
+              if (optCode.includes("GRD")) {
+                  const numStr = optCode.replace(/\D/g, "");
+                  const num = parseInt(numStr, 10);
+                  if (num >= 2 && num <= 13) {
+                      const label = `Price Grade ${num < 10 ? '0' + num : num}`;
+                      productOptionPrices[label] = basePrice + optPrice;
+                  }
               }
+              // Mapeo a opciones especiales LESRO
+              else if (fullText.includes("URETHANE") || optCode === "APU") productOptionPrices["Price Optional Armpad - Polyurethane"] = optPrice;
+              else if (fullText.includes("SOLID SURFACE") || optCode === "SS") productOptionPrices["Price Optional Armpad - Solid Surface"] = optPrice;
+              else if (fullText.includes("CASTER")) productOptionPrices["Price Optional Casters"] = optPrice;
+              else if (fullText.includes("TABLET")) productOptionPrices["Price Optional Swivel Tablet"] = optPrice;
+              else if (fullText.includes("POWER") || fullText.includes("UNIT")) productOptionPrices["Price Optional Power Unit"] = optPrice;
+              else if (fullText.includes("CHROME")) productOptionPrices["Price Optional Chrome Finish"] = optPrice;
+              else if (fullText.includes("BEVEL")) productOptionPrices["Price Optional Bevel Edge"] = optPrice;
+              else if (fullText.includes("SHELF")) productOptionPrices["Price Optional Shelf"] = optPrice;
             }
           }
         }
         
-        // 2. Extraer opciones /C y /P buscando en sus FeatureRefs
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(getTags(featureNode, "Option"));
-            for (const opt of options) {
-              const optCode = getTags(opt, "Code")[0]?.textContent;
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e.sku === suffixSku)) {
-                  extracted.push({
-                    sku: suffixSku,
-                    description: `${description} [Option ${optCode}]`,
-                    classification,
-                    basePrice: basePrice + optPrice,
-                    ...productOptionPrices
-                  });
-                  hasSuffixes = true;
-                }
-              }
-            }
-          }
-        }
-        
-        // Si no tiene sufijos C o P, entonces añadimos el producto base
-        if (!hasSuffixes) {
-          extracted.push({
+        extracted.push({
             sku,
             description,
             classification,
             basePrice,
             ...productOptionPrices
-          });
-        }
+        });
       }
       
       setProducts(extracted);
