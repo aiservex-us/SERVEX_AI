@@ -105,43 +105,50 @@ const WBDDataMatrix = () => {
         const basePrice = priceElement ? parseFloat(getTags(priceElement, "Value")[0]?.textContent || "0") : 0;
 
         const featureRefs = Array.from(getTags(p, "FeatureRef"));
-        // Recolectar los precios de los grados y opciones para este producto
+        // Recolectar los precios de los grados y opciones para este producto buscando en TODOS los features globales
         const productOptionPrices = {};
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent || "";
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(getTags(featureNode, "Option"));
-            for (const opt of options) {
-              const optCode = (getTags(opt, "Code")[0]?.textContent || "").toUpperCase();
-              const optDesc = (getTags(opt, "Description")[0]?.textContent || "").toUpperCase();
-              const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
-              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-              
-              if (optPrice === 0) continue;
-
-              const fullText = `${optCode} ${optDesc}`;
-              
-              // Mapeo a grados
-              if (optCode.includes("GRD")) {
-                  const numStr = optCode.replace(/\D/g, "");
-                  const num = parseInt(numStr, 10);
-                  if (num >= 2 && num <= 13) {
-                      const label = `Price Grade ${num < 10 ? '0' + num : num}`;
-                      productOptionPrices[label] = basePrice + optPrice;
-                  }
-              }
-              // Mapeo a opciones especiales LESRO
-              else if (fullText.includes("URETHANE") || optCode === "APU") productOptionPrices["Price Optional Armpad - Polyurethane"] = optPrice;
-              else if (fullText.includes("SOLID SURFACE") || optCode === "SS") productOptionPrices["Price Optional Armpad - Solid Surface"] = optPrice;
-              else if (fullText.includes("CASTER")) productOptionPrices["Price Optional Casters"] = optPrice;
-              else if (fullText.includes("TABLET")) productOptionPrices["Price Optional Swivel Tablet"] = optPrice;
-              else if (fullText.includes("POWER") || fullText.includes("UNIT")) productOptionPrices["Price Optional Power Unit"] = optPrice;
-              else if (fullText.includes("CHROME")) productOptionPrices["Price Optional Chrome Finish"] = optPrice;
-              else if (fullText.includes("BEVEL")) productOptionPrices["Price Optional Bevel Edge"] = optPrice;
-              else if (fullText.includes("SHELF")) productOptionPrices["Price Optional Shelf"] = optPrice;
+        
+        // Emular exactamente la lógica de Reestructure_xml.py y Reestructure_xml_2.py
+        for (const [fCode, featureNode] of featureMap.entries()) {
+            // El backend busca features cuyo código contenga el SKU
+            if (fCode.includes(sku)) {
+                
+                // Mapear opciones dentro de este feature
+                const options = Array.from(getTags(featureNode, "Option"));
+                for (const opt of options) {
+                    const optCode = (getTags(opt, "Code")[0]?.textContent || "").toUpperCase();
+                    const optDesc = (getTags(opt, "Description")[0]?.textContent || "").toUpperCase();
+                    const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
+                    const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+                    
+                    if (optPrice === 0) continue;
+                    
+                    const fullText = `${optCode} ${optDesc}`;
+                    
+                    // Lógica para GRADOS (Reestructure_xml.py)
+                    if (fCode.includes("UPH") || fCode.includes("AVERAGE")) {
+                        if (optCode.includes("GRD")) {
+                            const numStr = optCode.replace(/\D/g, "");
+                            const num = parseInt(numStr, 10);
+                            if (num >= 2 && num <= 13) {
+                                const label = `Price Grade ${num < 10 ? '0' + num : num}`;
+                                productOptionPrices[label] = basePrice + optPrice;
+                            }
+                        }
+                    }
+                    
+                    // Lógica para OPCIONES (Reestructure_xml_2.py)
+                    // (En el backend se hace un match por columnas y palabras, aquí extraemos directamente)
+                    if (fullText.includes("URETHANE") || optCode === "APU") productOptionPrices["Price Optional Armpad - Polyurethane"] = optPrice;
+                    else if (fullText.includes("SOLID SURFACE") || optCode === "SS") productOptionPrices["Price Optional Armpad - Solid Surface"] = optPrice;
+                    else if (fullText.includes("CASTER")) productOptionPrices["Price Optional Casters"] = optPrice;
+                    else if (fullText.includes("TABLET")) productOptionPrices["Price Optional Swivel Tablet"] = optPrice;
+                    else if (fullText.includes("POWER") || fullText.includes("UNIT")) productOptionPrices["Price Optional Power Unit"] = optPrice;
+                    else if (fullText.includes("CHROME")) productOptionPrices["Price Optional Chrome Finish"] = optPrice;
+                    else if (fullText.includes("BEVEL")) productOptionPrices["Price Optional Bevel Edge"] = optPrice;
+                    else if (fullText.includes("SHELF")) productOptionPrices["Price Optional Shelf"] = optPrice;
+                }
             }
-          }
         }
         
         extracted.push({
