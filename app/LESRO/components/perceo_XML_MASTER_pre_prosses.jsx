@@ -54,7 +54,7 @@ const WBDDataMatrix = () => {
 
       const getTags = (element, tag) => {
         let els = element.getElementsByTagNameNS("*", tag);
-        if (els.length === 0) els = getTags(element, tag);
+        if (els.length === 0) els = element.getElementsByTagName(tag);
         return Array.from(els);
       };
 
