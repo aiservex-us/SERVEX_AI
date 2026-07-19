@@ -109,7 +109,7 @@ const WBDDataMatrix = () => {
               const optCode = getTags(opt, "Code")[0]?.textContent;
               if (optCode !== "C" && optCode !== "P") {
                 const optDesc = getTags(opt, "Description")[0]?.textContent || optCode;
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
+                const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
                 if (optDesc) productOptionPrices[optDesc] = optPrice;
               }
@@ -126,7 +126,7 @@ const WBDDataMatrix = () => {
             for (const opt of options) {
               const optCode = getTags(opt, "Code")[0]?.textContent;
               if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
+                const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
                 
                 const suffixSku = `${sku}/${optCode}`;

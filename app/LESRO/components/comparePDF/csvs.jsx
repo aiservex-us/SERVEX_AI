@@ -43,13 +43,18 @@ export default function DataViewer() {
     }
   };
 
-  const parseCSV = (csvString, type) => {
+  const parseCSV = (csvString) => {
     if (!csvString || csvString === '---') return [];
     
     const lines = csvString.trim().split('\n');
     if (lines.length < 1) return [];
 
-    const delimiter = type === 'csv_raw' ? ';' : ',';
+    // Determinar delimitador dinámicamente contando ocurrencias
+    const sampleLine = lines.find(l => (l.match(/;/g) || []).length > 1 || (l.match(/,/g) || []).length > 1) || lines[0];
+    const commaCount = (sampleLine.match(/,/g) || []).length;
+    const semiCount = (sampleLine.match(/;/g) || []).length;
+    const delimiter = semiCount > commaCount ? ';' : ',';
+    
     const headers = lines[0].split(delimiter).map(h => h.replace(/"/g, '').trim());
     const dataLines = lines.slice(1);
     
@@ -63,7 +68,7 @@ export default function DataViewer() {
     });
   };
 
-  const currentCsvData = data ? parseCSV(data[activeTab], activeTab) : [];
+  const currentCsvData = data ? parseCSV(data[activeTab]) : [];
   
   const filteredData = currentCsvData.filter(row => 
     Object.values(row).some(val => 
