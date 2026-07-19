@@ -33,7 +33,7 @@ const WBDDataMatrix = () => {
 
       // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad LESRO
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX_LESRO')
+        .from('ClientsSERVEX')
         .select('xml_raw')
         .eq('company_name', 'LESRO')
         .order('created_at', { ascending: false })
@@ -52,20 +52,26 @@ const WBDDataMatrix = () => {
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing LESRO XML structure");
 
+      const getTags = (element, tag) => {
+        let els = element.getElementsByTagNameNS("*", tag);
+        if (els.length === 0) els = getTags(element, tag);
+        return Array.from(els);
+      };
+
       // 1. Mapear todos los Features globales para búsqueda rápida (O(1))
-      const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      const globalFeatures = getTags(xmlDoc, "Feature");
       const featureMap = new Map();
       const allPossibleOptionsMap = new Map();
 
       for (const f of globalFeatures) {
-        const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+        const fCode = getTags(f, "Code")[0]?.textContent;
         if (fCode) {
           featureMap.set(fCode, f);
-          const options = Array.from(f.getElementsByTagName("Option"));
+          const options = Array.from(getTags(f, "Option"));
           for (const opt of options) {
-            const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+            const optCode = getTags(opt, "Code")[0]?.textContent;
             if (optCode !== "C" && optCode !== "P") {
-              const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
+              const optDesc = getTags(opt, "Description")[0]?.textContent || optCode;
               if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
             }
           }
@@ -75,21 +81,21 @@ const WBDDataMatrix = () => {
       const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
       setOptionHeaders(dynamicOptionHeaders);
 
-      const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+      const productsXML = Array.from(getTags(xmlDoc, "Product"));
       const extracted = [];
 
       for (const p of productsXML) {
-        const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
-        const description = p.getElementsByTagName("Description")[0]?.textContent || "";
-        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
-          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
+        const sku = getTags(p, "Code")[0]?.textContent || "";
+        const description = getTags(p, "Description")[0]?.textContent || "";
+        const classification = getTags(p, "ClassificationRef")[0]?.getElementsByTagNameNS("*", "Code")[0]?.textContent 
+          || getTags(p, "ClassificationRef")[0]?.textContent 
           || "N/A";
         
         // Extracción del valor numérico del precio base (<Price><Value>...</Value></Price>)
-        const priceElement = p.getElementsByTagName("Price")[0];
-        const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
+        const priceElement = getTags(p, "Price")[0];
+        const basePrice = priceElement ? parseFloat(getTags(priceElement, "Value")[0]?.textContent || "0") : 0;
 
-        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+        const featureRefs = Array.from(getTags(p, "FeatureRef"));
         let hasSuffixes = false;
         
         // Recolectar los precios de las opciones para este producto
@@ -98,11 +104,11 @@ const WBDDataMatrix = () => {
           const refCode = ref.textContent;
           const featureNode = featureMap.get(refCode);
           if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            const options = Array.from(getTags(featureNode, "Option"));
             for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+              const optCode = getTags(opt, "Code")[0]?.textContent;
               if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
+                const optDesc = getTags(opt, "Description")[0]?.textContent || optCode;
                 const optPriceElem = opt.querySelector("OptionPrice > Value");
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
                 if (optDesc) productOptionPrices[optDesc] = optPrice;
@@ -116,9 +122,9 @@ const WBDDataMatrix = () => {
           const refCode = ref.textContent;
           const featureNode = featureMap.get(refCode);
           if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            const options = Array.from(getTags(featureNode, "Option"));
             for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+              const optCode = getTags(opt, "Code")[0]?.textContent;
               if (optCode === "C" || optCode === "P") {
                 const optPriceElem = opt.querySelector("OptionPrice > Value");
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
