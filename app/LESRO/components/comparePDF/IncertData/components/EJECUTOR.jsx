@@ -25,8 +25,8 @@ import {
 import { supabase } from '../../../lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
-import EjecutorAgente from './EJECUTOR_agente';
-import XML_EJECUTADO_VEW from './XML_EJECUTADO_VEW'; // Nuevo componente visualizador
+import EjecutorAgente from '../../EJECUTOR_agente';
+import XML_EJECUTADO_VEW from '../../XML_EJECUTADO_VEW'; // Nuevo componente visualizador
 
 const SVXUnifiedPlatform = () => {
   // --- TUTORIAL ALERT STATE ---
