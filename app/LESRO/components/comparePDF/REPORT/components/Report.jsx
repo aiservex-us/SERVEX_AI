@@ -62,18 +62,37 @@ export default function AuditReportViewer() {
   let changesRaw = [];
 
   if (Array.isArray(reportDataRaw)) {
-    // Formato LESRO (Array plano)
-    changesRaw = reportDataRaw.map(c => ({
-      model_id: c.sku,
-      column_name: c.columna,
-      old_value: c.precio_anterior,
-      new_value: c.precio_nuevo,
-      financial_impact: c.diferencia_porcentaje
-    }));
+    // Formato LESRO (Anidado para Grados y Base Prices)
+    reportDataRaw.forEach(item => {
+      if (item.comparativa_grados_xml && Array.isArray(item.comparativa_grados_xml)) {
+        item.comparativa_grados_xml.forEach(grado => {
+          if (grado.result === "MISMATCH") { 
+            changesRaw.push({
+              model_id: item.sku,
+              column_name: grado.grado,
+              old_value: grado.xml_expected_total,
+              new_value: grado.csv_user_total,
+              financial_impact: grado.xml_expected_total ? 
+                (((parseFloat(grado.csv_user_total) - parseFloat(grado.xml_expected_total)) / Math.abs(parseFloat(grado.xml_expected_total))) * 100).toFixed(1) + '%' 
+                : '---'
+            });
+          }
+        });
+      } else if (item.columna) {
+        // Fallback en caso de que venga plano
+        changesRaw.push({
+          model_id: item.sku,
+          column_name: item.columna,
+          old_value: item.precio_anterior,
+          new_value: item.precio_nuevo,
+          financial_impact: item.diferencia_porcentaje
+        });
+      }
+    });
     
     summaryRaw = {
       cell_changes_detected_count: changesRaw.length,
-      total_common_models_evaluated: 'LESRO Auto'
+      total_common_models_evaluated: reportDataRaw.length
     };
     metadataRaw = {
       title: 'Monitoring of LESRO catalog synchronization.',
