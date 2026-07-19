@@ -55,8 +55,17 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "text/xml");
       
-      const productNodes = Array.from(xmlDoc.getElementsByTagName("Product"));
-      const allFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      // HELPER: Soporte para namespaces de OFDA XML
+      const getTags = (element, tag) => {
+        let els = element.getElementsByTagNameNS("*", tag);
+        if (els.length === 0) {
+          els = element.getElementsByTagName(tag);
+        }
+        return Array.from(els);
+      };
+
+      const productNodes = getTags(xmlDoc, "Product");
+      const allFeatures = getTags(xmlDoc, "Feature");
 
       // --- OPTIMIZACIÓN CLAVE: INDEXACIÓN ---
       // Agrupamos las features por su código para no buscarlas una por una dentro del loop de productos.
@@ -64,7 +73,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       const globalFeatures = [];
 
       allFeatures.forEach(feat => {
-        const fCode = (feat.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
+        const fCode = (getTags(feat, "Code")[0]?.textContent || "").toUpperCase();
         if (fCode.includes("GRADE") || fCode.includes("CASTER") || fCode.includes("POWER")) {
           globalFeatures.push(feat);
         }
@@ -73,10 +82,13 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       });
 
       return productNodes.map((prod, idx) => {
-        const sku = prod.getElementsByTagName("Code")[0]?.textContent || "N/A";
+        const sku = getTags(prod, "Code")[0]?.textContent || "N/A";
         const skuNorm = sku.toUpperCase();
-        const description = prod.getElementsByTagName("Description")[0]?.textContent || "No Description";
-        const basePriceNode = prod.querySelector("Price > Value");
+        const description = getTags(prod, "Description")[0]?.textContent || "No Description";
+        
+        // En OFDA, Price > Value
+        const prices = getTags(prod, "Price");
+        const basePriceNode = prices.length > 0 ? getTags(prices[0], "Value")[0] : null;
         const basePrice = parseFloat(basePriceNode?.textContent || "0");
 
         const rowData = {
@@ -95,12 +107,13 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
         // Función interna para procesar nodos de opciones de forma eficiente
         const processFeat = (feat) => {
-          const options = Array.from(feat.getElementsByTagName("Option"));
+          const options = getTags(feat, "Option");
           options.forEach(opt => {
-            const optCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
-            const optDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").toUpperCase();
+            const optCode = (getTags(opt, "Code")[0]?.textContent || "").toUpperCase();
+            const optDesc = (getTags(opt, "Description")[0]?.textContent || "").toUpperCase();
             // Acceso directo al valor del precio
-            const valNode = opt.getElementsByTagName("OptionPrice")[0]?.getElementsByTagName("Value")[0];
+            const optionPrices = getTags(opt, "OptionPrice");
+            const valNode = optionPrices.length > 0 ? getTags(optionPrices[0], "Value")[0] : null;
             const upcharge = valNode ? valNode.textContent : "N/A";
 
             if (upcharge === "N/A") return;
