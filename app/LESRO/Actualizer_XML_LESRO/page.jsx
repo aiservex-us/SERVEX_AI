@@ -12,7 +12,7 @@ import Dashboard from '../components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from '../components/perceo_XML_MASTER_pre_prosses.jsx';
 import CatalogParser from '../components/PDFsection.jsx';
 import Csvs from '../components/comparePDF/csvs.jsx';
-// import Csvs_updated from '../components/comparePDF/csvs_updated.jsx';
+import Csvs_updated from '../components/comparePDF/csvs_updated.jsx';
 import PrecentMain from '../components/PrecentMain.jsx';
 import UploadFileCmpare from '../components/comparePDF/IncertData/components/EJECUTOR.jsx';
 import AIReporting from '../components/comparePDF/presentation_LESRO.jsx'
@@ -93,7 +93,7 @@ export default function MenuInicial() {
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
-      case 'inbox_updated': return <div className="p-6 text-gray-500">View under construction</div>;
+      case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
       case 'report': return <Report />;
       case 'notifications': return <UploadFileCmpare />;
@@ -101,7 +101,7 @@ export default function MenuInicial() {
       case 'compare': return <Compare />;
       case 'AI_reporter': return <Responce_ai />;
       default:
-        return <div className="p-6 text-gray-500">View under construction</div>;
+        return <Csvs_updated />;
     }
   };
 
