@@ -34,7 +34,7 @@ const WBDDataMatrix = () => {
       // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad LESRO
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX')
-        .select('xml_actualizer_raw')
+        .select('xml_updated_raw')
         .eq('company_name', 'LESRO')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -47,7 +47,7 @@ const WBDDataMatrix = () => {
       }
 
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data.xml_actualizer_raw, "text/xml");
+      const xmlDoc = parser.parseFromString(data.xml_updated_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing LESRO XML structure");
