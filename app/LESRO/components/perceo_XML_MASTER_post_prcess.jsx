@@ -67,17 +67,24 @@ const WBDDataMatrix = () => {
         const fCode = getTags(f, "Code")[0]?.textContent;
         if (fCode) {
           featureMap.set(fCode, f);
-          const options = Array.from(getTags(f, "Option"));
-          for (const opt of options) {
-            const optCode = getTags(opt, "Code")[0]?.textContent;
-            // Ignoramos C y P como columnas, porque las resolvemos como variantes de SKU
-            if (optCode !== "C" && optCode !== "P") {
-              const optDesc = getTags(opt, "Description")[0]?.textContent || optCode;
-              if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
-            }
-          }
         }
       }
+      
+      // En LESRO, las columnas opciones estáticas son Grados y Opciones específicas
+      const predefinedHeaders = [
+        "Price Grade 02", "Price Grade 03", "Price Grade 04", "Price Grade 05",
+        "Price Grade 06", "Price Grade 07", "Price Grade 08", "Price Grade 09",
+        "Price Grade 10", "Price Grade 11", "Price Grade 12", "Price Grade 13",
+        "Price Optional Armpad - Polyurethane",
+        "Price Optional Armpad - Solid Surface",
+        "Price Optional Casters",
+        "Price Optional Swivel Tablet",
+        "Price Optional Chrome Finish",
+        "Price Optional Power Unit",
+        "Price Optional Bevel Edge",
+        "Price Optional Shelf"
+      ];
+      predefinedHeaders.forEach(h => allPossibleOptionsMap.set(h, h));
       
       const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
       setOptionHeaders(dynamicOptionHeaders);
@@ -113,7 +120,7 @@ const WBDDataMatrix = () => {
                     const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
                     const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
                     
-                    if (optPrice === 0) continue;
+                    
                     
                     const fullText = `${optCode} ${optDesc}`;
                     

@@ -121,7 +121,7 @@ const WBDDataMatrix = () => {
                     const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
                     const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
                     
-                    if (optPrice === 0) continue;
+                    
                     
                     const fullText = `${optCode} ${optDesc}`;
                     
