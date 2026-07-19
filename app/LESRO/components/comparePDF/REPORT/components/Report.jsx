@@ -36,37 +36,80 @@ export default function AuditReportViewer() {
 
   const activeRecord = records.find(r => r.id === selectedRecordId);
   
-  // Estructura JSON P (Inyección XML)
+  // Estructura JSON P (Inyección XML - Opciones)
   const reportDataP = activeRecord?.audit_report_jsonP;
-  const metricsP = reportDataP?.summary_metrics;
-  const changesP = reportDataP?.xml_injection_manifest || [];
+  let metricsP = reportDataP?.summary_metrics;
+  let changesP = [];
+  
+  if (Array.isArray(reportDataP)) {
+    // Formato LESRO (Array plano)
+    changesP = reportDataP.map(c => ({
+      model_id: c.sku,
+      column_name: c.columna,
+      old_value: c.precio_anterior || '---',
+      new_value: c.precio_nuevo,
+      financial_impact: c.diferencia_porcentaje || '---'
+    }));
+    metricsP = { xml_successful_updates: changesP.length, total_cell_changes: changesP.length };
+  } else {
+    changesP = reportDataP?.xml_injection_manifest || [];
+  }
 
-  const filteredChangesP = changesP.filter(c => 
-    (c.model_id || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (c.injected_value_old || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.injected_value_new || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Estructura JSON Estándar (Auditoría Ciega Completa)
+  // Estructura JSON Estándar (Auditoría Ciega Completa - Precios Base y Grados)
   const reportDataRaw = activeRecord?.audit_report_json;
-  const summaryRaw = reportDataRaw?.summary;
-  const metadataRaw = reportDataRaw?.metadata;
-  const changesRaw = reportDataRaw?.detected_changes || [];
+  let summaryRaw = reportDataRaw?.summary;
+  let metadataRaw = reportDataRaw?.metadata;
+  let changesRaw = [];
 
-  const listPriceChangesRaw = changesRaw.filter(c => (c.original_column_name || c.column_name || '').toUpperCase() === 'LIST PRICE');
-  const optionPriceChangesRaw = changesRaw.filter(c => (c.original_column_name || c.column_name || '').toUpperCase() !== 'LIST PRICE');
+  if (Array.isArray(reportDataRaw)) {
+    // Formato LESRO (Array plano)
+    changesRaw = reportDataRaw.map(c => ({
+      model_id: c.sku,
+      column_name: c.columna,
+      old_value: c.precio_anterior,
+      new_value: c.precio_nuevo,
+      financial_impact: c.diferencia_porcentaje
+    }));
+    
+    summaryRaw = {
+      cell_changes_detected_count: changesRaw.length,
+      total_common_models_evaluated: 'LESRO Auto'
+    };
+    metadataRaw = {
+      title: 'Monitoring of LESRO catalog synchronization.',
+      old_file: 'Database (csv_raw)',
+      new_file: 'Database (csv_new_raw)'
+    };
+  } else {
+    changesRaw = reportDataRaw?.detected_changes || [];
+  }
+
+  // Si estamos en el caso estándar antiguo, filtramos List Price vs Option.
+  // Pero para LESRO sabemos que changesRaw es Base/Grades y changesP es Options.
+  const isLesroFormat = Array.isArray(reportDataRaw) || Array.isArray(reportDataP);
+  
+  let listPriceChangesRaw = [];
+  let optionPriceChangesRaw = [];
+
+  if (isLesroFormat) {
+    listPriceChangesRaw = changesRaw; // Base & Grades
+    optionPriceChangesRaw = changesP; // Options
+  } else {
+    listPriceChangesRaw = changesRaw.filter(c => (c.original_column_name || c.column_name || '').toUpperCase() === 'LIST PRICE');
+    optionPriceChangesRaw = changesRaw.filter(c => (c.original_column_name || c.column_name || '').toUpperCase() !== 'LIST PRICE');
+  }
 
   const filteredListPriceChanges = listPriceChangesRaw.filter(c => 
     (c.model_id || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (c.old_value || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.new_value || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (c.old_value || '').toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.new_value || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredOptionPriceChanges = optionPriceChangesRaw.filter(c => 
     (c.model_id || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
     (c.column_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.old_value || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.new_value || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (c.old_value || '').toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.new_value || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) return <div className="p-10 text-sm text-[#616161]">Loading audit...</div>;
