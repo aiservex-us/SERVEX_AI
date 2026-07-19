@@ -131,7 +131,7 @@ export default function UploadClientXML() {
         company_name: companyName, 
         xml_raw: xmlContent, 
         csv_raw: csvContent, 
-        csvpdf_raw: csvPdfContent, 
+        csv_new_raw: csvPdfContent, 
         user_id: user.id,
       }, { 
         onConflict: 'company_name' 

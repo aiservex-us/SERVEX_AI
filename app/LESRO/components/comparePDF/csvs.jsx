@@ -29,7 +29,7 @@ export default function DataViewer() {
     try {
       const { data: record, error } = await supabase
         .from('ClientsSERVEX')
-        .select('company_name, csv_raw, csvpdf_raw, created_at')
+        .select('company_name, csv_raw, csv_new_raw, created_at')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -120,9 +120,9 @@ export default function DataViewer() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('csvpdf_raw')}
+                  onClick={() => setActiveTab('csv_new_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
+                    activeTab === 'csv_new_raw' ? 'bg-white text-[#5B5FC7] shadow-xs' : 'text-[#616161] hover:text-[#5B5FC7]'
                   }`}
                 >
                   PDF Intelligence
