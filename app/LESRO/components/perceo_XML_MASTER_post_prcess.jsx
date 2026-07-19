@@ -41,7 +41,7 @@ const WBDDataMatrix = () => {
         .maybeSingle();
 
       if (dbError) throw dbError;
-      if (!data?.xml_actualizer_raw) {
+      if (!data?.xml_updated_raw) {
         setProducts([]);
         return;
       }
