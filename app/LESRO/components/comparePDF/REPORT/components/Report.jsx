@@ -138,16 +138,11 @@ export default function AuditReportViewer() {
       <div className="w-full max-w-[90vw] mx-auto">
         
         {/* Header Principal */}
-        <div className="mb-6 relative overflow-hidden rounded-2xl p-8 border border-white/10 bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#0f172a] shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-           <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-70"></div>
-           <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-600 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
-           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-600 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
-           
-           <h1 className="relative z-10 text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-100 via-white to-purple-100 tracking-tight flex items-center gap-3">
-            <BrainCircuit className="text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.8)]" size={32} />
-            Development Analysis Center: {reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}
+        <div className="mb-6 rounded-lg p-10 border border-[#222222] bg-[#0A0A0A] flex flex-col items-center justify-center text-center shadow-lg">
+           <h1 className="text-2xl font-light text-[#E0E0E0] tracking-wide">
+            Development Analysis Center: <span className="font-normal text-white">{reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}</span>
            </h1>
-           <p className="relative z-10 text-sm text-indigo-200/70 mt-2 font-medium tracking-wide">
+           <p className="text-xs text-[#888888] mt-3 font-light tracking-[0.15em] uppercase">
              {metadataRaw?.title || 'Monitoring of catalog synchronization and positional reconciliation.'}
            </p>
         </div>
