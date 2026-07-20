@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Database, 
-  Search, 
-  RefreshCw, 
-  Table as TableIcon, 
-  Filter, 
+import {
+  Database,
+  Search,
+  RefreshCw,
+  Table as TableIcon,
+  Filter,
   AlertCircle
 } from 'lucide-react';
 
@@ -17,7 +17,7 @@ const WBDDataMatrix = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
-  
+
   // Estado para controlar la page actual
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
@@ -31,7 +31,7 @@ const WBDDataMatrix = () => {
       setLoading(true);
       setError(null);
 
-      // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad LESRO
+      // Ingestión desde la tabla correcta configurada en. Supabase filtrando por la entidad LESRO
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX')
         .select('xml_raw')
@@ -48,7 +48,7 @@ const WBDDataMatrix = () => {
 
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
-      
+
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing LESRO XML structure");
 
@@ -69,7 +69,7 @@ const WBDDataMatrix = () => {
           featureMap.set(fCode, f);
         }
       }
-      
+
       // En LESRO, las columnas opciones estáticas son Grados y Opciones específicas
       const predefinedHeaders = [
         "Price Grade 02", "Price Grade 03", "Price Grade 04", "Price Grade 05",
@@ -86,7 +86,7 @@ const WBDDataMatrix = () => {
       ];
       predefinedHeaders.forEach(h => allPossibleOptionsMap.set(h, h));
 
-      
+
       const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
       setOptionHeaders(dynamicOptionHeaders);
 
@@ -96,10 +96,10 @@ const WBDDataMatrix = () => {
       for (const p of productsXML) {
         const sku = getTags(p, "Code")[0]?.textContent || "";
         const description = getTags(p, "Description")[0]?.textContent || "";
-        const classification = getTags(p, "ClassificationRef")[0]?.getElementsByTagNameNS("*", "Code")[0]?.textContent 
-          || getTags(p, "ClassificationRef")[0]?.textContent 
+        const classification = getTags(p, "ClassificationRef")[0]?.getElementsByTagNameNS("*", "Code")[0]?.textContent
+          || getTags(p, "ClassificationRef")[0]?.textContent
           || "N/A";
-        
+
         // Extracción del valor numérico del precio base (<Price><Value>...</Value></Price>)
         const priceElement = getTags(p, "Price")[0];
         const basePrice = priceElement ? parseFloat(getTags(priceElement, "Value")[0]?.textContent || "0") : 0;
@@ -107,59 +107,59 @@ const WBDDataMatrix = () => {
         const featureRefs = Array.from(getTags(p, "FeatureRef"));
         // Recolectar los precios de los grados y opciones para este producto buscando en TODOS los features globales
         const productOptionPrices = {};
-        
+
         // Emular exactamente la lógica de Reestructure_xml.py y Reestructure_xml_2.py
         for (const [fCode, featureNode] of featureMap.entries()) {
-            // El backend busca features cuyo código contenga el SKU
-            if (fCode.includes(sku)) {
-                
-                // Mapear opciones dentro de este feature
-                const options = Array.from(getTags(featureNode, "Option"));
-                for (const opt of options) {
-                    const optCode = (getTags(opt, "Code")[0]?.textContent || "").toUpperCase();
-                    const optDesc = (getTags(opt, "Description")[0]?.textContent || "").toUpperCase();
-                    const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
-                    const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                    
-                    
-                    
-                    const fullText = `${optCode} ${optDesc}`;
-                    
-                    // Lógica para GRADOS (Reestructure_xml.py)
-                    if (fCode.includes("UPH") || fCode.includes("AVERAGE")) {
-                        if (optCode.includes("GRD")) {
-                            const numStr = optCode.replace(/\D/g, "");
-                            const num = parseInt(numStr, 10);
-                            if (num >= 2 && num <= 13) {
-                                const label = `Price Grade ${num < 10 ? '0' + num : num}`;
-                                productOptionPrices[label] = basePrice + optPrice;
-                            }
-                        }
-                    }
-                    
-                    // Lógica para OPCIONES (Reestructure_xml_2.py)
-                    // (En el backend se hace un match por columnas y palabras, aquí extraemos directamente)
-                    if (fullText.includes("URETHANE") || optCode === "APU") productOptionPrices["Price Optional Armpad - Polyurethane"] = optPrice;
-                    else if (fullText.includes("SOLID SURFACE") || optCode === "SS") productOptionPrices["Price Optional Armpad - Solid Surface"] = optPrice;
-                    else if (fullText.includes("CASTER")) productOptionPrices["Price Optional Casters"] = optPrice;
-                    else if (fullText.includes("TABLET")) productOptionPrices["Price Optional Swivel Tablet"] = optPrice;
-                    else if (fullText.includes("POWER") || fullText.includes("UNIT")) productOptionPrices["Price Optional Power Unit"] = optPrice;
-                    else if (fullText.includes("CHROME")) productOptionPrices["Price Optional Chrome Finish"] = optPrice;
-                    else if (fullText.includes("BEVEL")) productOptionPrices["Price Optional Bevel Edge"] = optPrice;
-                    else if (fullText.includes("SHELF")) productOptionPrices["Price Optional Shelf"] = optPrice;
+          // El backend busca features cuyo código contenga el SKU
+          if (fCode.includes(sku)) {
+
+            // Mapear opciones dentro de este feature
+            const options = Array.from(getTags(featureNode, "Option"));
+            for (const opt of options) {
+              const optCode = (getTags(opt, "Code")[0]?.textContent || "").toUpperCase();
+              const optDesc = (getTags(opt, "Description")[0]?.textContent || "").toUpperCase();
+              const optPriceElem = getTags(getTags(opt, "OptionPrice")[0] || opt, "Value")[0];
+              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+
+
+
+              const fullText = `${optCode} ${optDesc}`;
+
+              // Lógica para GRADOS (Reestructure_xml.py)
+              if (fCode.includes("UPH") || fCode.includes("AVERAGE")) {
+                if (optCode.includes("GRD")) {
+                  const numStr = optCode.replace(/\D/g, "");
+                  const num = parseInt(numStr, 10);
+                  if (num >= 2 && num <= 13) {
+                    const label = `Price Grade ${num < 10 ? '0' + num : num}`;
+                    productOptionPrices[label] = basePrice + optPrice;
+                  }
                 }
+              }
+
+              // Lógica para OPCIONES (Reestructure_xml_2.py)
+              // (En el backend se hace un match por columnas y palabras, aquí extraemos directamente)
+              if (fullText.includes("URETHANE") || optCode === "APU") productOptionPrices["Price Optional Armpad - Polyurethane"] = optPrice;
+              else if (fullText.includes("SOLID SURFACE") || optCode === "SS") productOptionPrices["Price Optional Armpad - Solid Surface"] = optPrice;
+              else if (fullText.includes("CASTER")) productOptionPrices["Price Optional Casters"] = optPrice;
+              else if (fullText.includes("TABLET")) productOptionPrices["Price Optional Swivel Tablet"] = optPrice;
+              else if (fullText.includes("POWER") || fullText.includes("UNIT")) productOptionPrices["Price Optional Power Unit"] = optPrice;
+              else if (fullText.includes("CHROME")) productOptionPrices["Price Optional Chrome Finish"] = optPrice;
+              else if (fullText.includes("BEVEL")) productOptionPrices["Price Optional Bevel Edge"] = optPrice;
+              else if (fullText.includes("SHELF")) productOptionPrices["Price Optional Shelf"] = optPrice;
             }
+          }
         }
-        
+
         extracted.push({
-            sku,
-            description,
-            classification,
-            basePrice,
-            ...productOptionPrices
+          sku,
+          description,
+          classification,
+          basePrice,
+          ...productOptionPrices
         });
       }
-      
+
       setProducts(extracted);
       setCurrentPage(1); // Reiniciar a la primera page tras una recarga exitosa
     } catch (err) {
@@ -177,7 +177,7 @@ const WBDDataMatrix = () => {
   const filtered = useMemo(() => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
-    return products.filter(p => 
+    return products.filter(p =>
       p.sku.toLowerCase().includes(cleanSearch) ||
       p.description.toLowerCase().includes(cleanSearch)
     );
@@ -200,8 +200,8 @@ const WBDDataMatrix = () => {
 
   const stats = useMemo(() => {
     const total = products.length;
-    const avgPrice = total 
-      ? Math.round(products.reduce((acc, p) => acc + p.basePrice, 0) / total) 
+    const avgPrice = total
+      ? Math.round(products.reduce((acc, p) => acc + p.basePrice, 0) / total)
       : 0;
     return { total, filtered: filtered.length, avgPrice };
   }, [products, filtered]);
@@ -220,8 +220,8 @@ const WBDDataMatrix = () => {
       <AlertCircle className="text-red-500 mb-3" size={36} />
       <h3 className="text-sm font-bold text-slate-800 mb-1">Engine Synchronization Error</h3>
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
-      <button 
-        onClick={processXML} 
+      <button
+        onClick={processXML}
         className="flex items-center gap-2 px-4 py-2 bg-[#464775] hover:bg-[#2B2C4B] text-white text-xs font-bold rounded shadow-sm transition-colors"
       >
         <RefreshCw size={12} /> Retry Loading
@@ -232,9 +232,9 @@ const WBDDataMatrix = () => {
   return (
     <div className="min-h-[90vh] bg-gradient-to-br from-[#F8F9FE] to-white p-6 md:p-8 text-slate-800 font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
-        
+
         <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#464775]/10 overflow-hidden flex flex-col w-full">
-          
+
           {/* Operations / Filters Header */}
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
@@ -266,7 +266,7 @@ const WBDDataMatrix = () => {
                 className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#464775] outline-none transition-all w-[180px]"
               />
 
-              <button 
+              <button
                 onClick={processXML}
                 type="button"
                 className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors"
@@ -326,9 +326,9 @@ const WBDDataMatrix = () => {
                   <AnimatePresence initial={false}>
                     {paginatedProducts.map((p, idx) => {
                       const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
-                      
+
                       return (
-                        <motion.tr 
+                        <motion.tr
                           key={p.sku || realIndex}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
@@ -392,7 +392,7 @@ const WBDDataMatrix = () => {
               <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length + optionHeaders.length}</span>
               <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
             </div>
-            
+
             {/* Controles de paginación de 20 en 20 */}
             <div className="flex items-center gap-2">
               <button
@@ -403,7 +403,7 @@ const WBDDataMatrix = () => {
               >
                 Previous
               </button>
-              
+
               <span className="text-slate-800 font-mono px-1 text-[11px]">
                 Page {currentPage} of {totalPages}
               </span>
