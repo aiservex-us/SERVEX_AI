@@ -61,22 +61,35 @@ const WBDDataMatrix = () => {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
         if (fCode) {
           featureMap.set(fCode, f);
-          const options = Array.from(f.getElementsByTagName("Option"));
-          for (const opt of options) {
-            const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-            if (optCode !== "C" && optCode !== "P") {
-              const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
-              if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
+        }
+      }
+      
+      const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+      const extracted = [];
+
+      // Paso 1: Determinar las opciones que REALMENTE usan los productos para evitar ensuciar los headers con otros catálogos
+      for (const p of productsXML) {
+        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+        for (const ref of featureRefs) {
+          const refCode = ref.textContent;
+          const featureNode = featureMap.get(refCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+              if (optCode !== "C" && optCode !== "P") {
+                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
+                if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
+              }
             }
           }
         }
       }
-      
+
       const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
       setOptionHeaders(dynamicOptionHeaders);
 
-      const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
-      const extracted = [];
+      // Paso 2: Extraer datos de los productos individualmente
 
       for (const p of productsXML) {
         const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
