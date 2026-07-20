@@ -78,8 +78,7 @@ const WBDDataMatrix = () => {
             for (const opt of options) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
               if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
-                if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
+                if (optCode) allPossibleOptionsMap.set(optCode, optCode);
               }
             }
           }
@@ -115,10 +114,9 @@ const WBDDataMatrix = () => {
             for (const opt of options) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
               if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
                 const optPriceElem = opt.querySelector("OptionPrice > Value");
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optDesc) productOptionPrices[optDesc] = optPrice;
+                if (optCode) productOptionPrices[optCode] = optPrice;
               }
             }
           }

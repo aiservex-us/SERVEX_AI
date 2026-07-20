@@ -92,12 +92,11 @@ const WBDDataMatrix = () => {
             for (const opt of options) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
               if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
                 const optPriceElem = opt.querySelector("OptionPrice > Value");
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optDesc) {
-                  productOptionPrices[optDesc] = optPrice;
-                  allPossibleOptionsMap.set(optDesc, optDesc);
+                if (optCode) {
+                  productOptionPrices[optCode] = optPrice;
+                  allPossibleOptionsMap.set(optCode, optCode);
                 }
               }
             }
