@@ -170,47 +170,7 @@ export default function AuditReportViewer() {
           </div>
         )}
 
-        {/* Bloque de Indicadores (KPIs Métricos Superior) */}
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
-            <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><Database size={18} /></div>
-            <div>
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Total Evaluated</p>
-              <p className="text-xl font-bold text-slate-800">{summaryRaw?.total_common_models_evaluated || metricsP?.evaluated_common_models || 0}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Models cross-referenced in matrix</p>
-            </div>
-          </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
-            <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><Activity size={18} /></div>
-            <div>
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Changes Detected</p>
-              <p className="text-xl font-bold text-slate-800">{summaryRaw?.cell_changes_detected_count || metricsP?.total_cell_changes || 0}</p>
-              <p className="text-[10px] text-[#464775] mt-0.5 font-medium flex items-center gap-1">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                {metricsP?.xml_successful_updates || 0} Injected into XML
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
-            <div className="p-2.5 bg-slate-50 rounded-full text-slate-400 ring-1 ring-slate-100"><MinusCircle size={18} /></div>
-            <div>
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Deleted Models</p>
-              <p className="text-xl font-bold text-slate-800">{summaryRaw?.deleted_models_detected_count || 0}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">Removed from source</p>
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
-            <div className="p-2.5 bg-slate-50 rounded-full text-[#464775] ring-1 ring-slate-100"><PlusCircle size={18} /></div>
-            <div>
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">New Models</p>
-              <p className="text-xl font-bold text-slate-800">{summaryRaw?.new_models_detected_count || 0}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-medium">New SKU entries</p>
-            </div>
-          </div>
-        </div>
 
         {/* Sistema de Pestañas (Tabs) de Control Estilo Teams */}
         <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">

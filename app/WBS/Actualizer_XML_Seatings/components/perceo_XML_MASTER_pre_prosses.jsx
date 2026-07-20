@@ -61,19 +61,9 @@ const WBDDataMatrix = () => {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
         if (fCode) {
           featureMap.set(fCode, f);
-          const options = Array.from(f.getElementsByTagName("Option"));
-          for (const opt of options) {
-            const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-            if (optCode !== "C" && optCode !== "P") {
-              const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
-              if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
-            }
-          }
         }
       }
-      
-      const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
-      setOptionHeaders(dynamicOptionHeaders);
+
 
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
       const extracted = [];
@@ -105,7 +95,10 @@ const WBDDataMatrix = () => {
                 const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
                 const optPriceElem = opt.querySelector("OptionPrice > Value");
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optDesc) productOptionPrices[optDesc] = optPrice;
+                if (optDesc) {
+                  productOptionPrices[optDesc] = optPrice;
+                  allPossibleOptionsMap.set(optDesc, optDesc);
+                }
               }
             }
           }
@@ -150,6 +143,9 @@ const WBDDataMatrix = () => {
           });
         }
       }
+      
+      const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
+      setOptionHeaders(dynamicOptionHeaders);
       
       setProducts(extracted);
       setCurrentPage(1); // Reiniciar a la primera page tras una recarga exitosa
