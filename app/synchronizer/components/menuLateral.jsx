@@ -43,6 +43,8 @@ export default function MenuLateral({
 
   return (
     <aside
+        onMouseEnter={() => { if (typeof window !== "undefined" && window.innerWidth >= 768) setCollapsed(false); }}
+        onMouseLeave={() => { if (typeof window !== "undefined" && window.innerWidth >= 768) setCollapsed(true); }}
       className={`
         h-full shrink-0 bg-white
         border-r border-slate-100/80

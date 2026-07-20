@@ -64,6 +64,8 @@ export default function MenuLateral({
       )}
 
       <aside
+        onMouseEnter={() => { if (typeof window !== "undefined" && window.innerWidth >= 768) setCollapsed(false); }}
+        onMouseLeave={() => { if (typeof window !== "undefined" && window.innerWidth >= 768) setCollapsed(true); }}
         className={`
           shrink-0 bg-white
           border-r border-slate-100/80
@@ -101,12 +103,7 @@ export default function MenuLateral({
             </div>
           </div>
 
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden md:flex absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-100 rounded-full items-center justify-center shadow-sm hover:shadow-md transition-all z-50 text-slate-400 hover:text-[#464775]"
-          >
-            <ChevronLeft className={`w-3 h-3 transition-transform duration-500 ${collapsed ? 'rotate-180' : ''}`} />
-          </button>
+          
         </div>
 
         {/* SEARCH BAR SECTION */}
