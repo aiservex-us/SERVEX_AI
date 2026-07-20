@@ -60,24 +60,56 @@ export default function DataViewer() {
     }
   };
 
-  // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB ---
+  // --- LECTURA DIRECTA DE LA ESTRUCTURA SANEADA EN JSONB / TEXT ---
   const getSanitizedData = (record, tab) => {
-    if (!record || !record[tab]) return [];
+   if (!record || !record[tab]) return [];
+  
+  // Caso 1: Supabase ya lo parseó como Array de Objetos (JSONB)
+  if (Array.isArray(record[tab])) {
+    return record[tab];
+  }
+  
+  const rawContent = record[tab];
+
+  if (typeof rawContent === 'string') {
+    const trimmed = rawContent.trim();
     
-    if (Array.isArray(record[tab])) {
-      return record[tab];
-    }
-    
-    try {
-      if (typeof record[tab] === 'string') {
-        return JSON.parse(record[tab]);
+    // Caso 2: Es un string pero tiene estructura de JSON Array
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        return JSON.parse(trimmed);
+      } catch (e) {
+        console.error("Error parseando string con formato JSON:", e);
       }
-    } catch (e) {
-      console.error("Error interpretando JSONB slot:", e);
     }
     
-    return [];
-  };
+    // Caso 3: Es un CSV plano en formato String (Fallback)
+    try {
+      const lines = trimmed.split(/\r?\n/);
+      if (lines.length === 0 || lines[0] === '') return [];
+      
+      // Detectar separador común
+      const separator = lines[0].includes(';') ? ';' : ',';
+      const headers = lines[0].split(separator).map(h => h.replace(/^"|"$/g, '').trim());
+      
+      const parsedRows = lines.slice(1).map(line => {
+        const values = line.split(separator).map(v => v.replace(/^"|"$/g, '').trim());
+        // Create objeto dinámico { header: valor }
+        const rowObj = {};
+        headers.forEach((header, index) => {
+          rowObj[header] = values[index] || '';
+        });
+        return rowObj;
+      });
+      
+      return parsedRows.filter(row => Object.keys(row).length > 0 && Object.values(row).some(Boolean));
+    } catch (csvError) {
+      console.error("Error parseando formato CSV plano nativo:", csvError);
+    }
+  }
+  
+  return [];
+};
 
   const currentCsvData = getSanitizedData(data, activeTab);
   
@@ -172,7 +204,7 @@ export default function DataViewer() {
               <div className="flex items-center gap-1 bg-[#F0F0F0] p-0.5 rounded-sm border border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('csv_raw')}
+                  onClick={() => setActiveTab('csv_new_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
                     activeTab === 'csv_new_raw' ? 'bg-white text-[#464775] shadow-xs' : 'text-slate-500 hover:text-[#464775]'
                   }`}
