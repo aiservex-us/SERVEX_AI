@@ -87,47 +87,14 @@ export default function AuditReportViewer() {
            </p>
         </div>
 
-        {/* Sistema de Pestañas (Tabs) de Control Estilo Teams */}
-        <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
-          
-          <div className="flex border-b border-[#E0E0E0] bg-[#FAF9F8] px-2 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('changes')}
-              className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                activeTab === 'changes' 
-                  ? 'border-[#5B5FC7] text-[#5B5FC7] bg-white font-bold' 
-                  : 'border-transparent text-[#616161] hover:text-[#242424] hover:bg-[#F3F2F1]'
-              }`}
-            >
-              <Zap size={14} />
-              List Price Variations ({filteredListPriceChanges.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('option_changes')}
-              className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                activeTab === 'option_changes' 
-                  ? 'border-[#5B5FC7] text-[#5B5FC7] bg-white font-bold' 
-                  : 'border-transparent text-[#616161] hover:text-[#242424] hover:bg-[#F3F2F1]'
-              }`}
-            >
-              <Zap size={14} className={activeTab === 'option_changes' ? "text-[#5B5FC7]" : "text-amber-500"} />
-              Option Price Variations ({filteredOptionPriceChanges.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('inventory_flux')}
-              className={`px-4 py-2.5 text-xs font-semibold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                activeTab === 'inventory_flux' 
-                  ? 'border-[#5B5FC7] text-[#5B5FC7] bg-white font-bold' 
-                  : 'border-transparent text-[#616161] hover:text-[#242424] hover:bg-[#F3F2F1]'
-              }`}
-            >
-              <RefreshCw size={14} />
-              Additions and Deletions ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })
-            </button>
-          </div>
+              <div className="flex flex-col gap-6 w-full">
 
-          {/* Contenido: Module 1 - Variaciones de List Prices */}
-          {activeTab === 'changes' && (
+        {/* Contenido: Module 1 - Variaciones de List Prices */}
+          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
+            <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
+              <Zap size={16} className="text-[#5B5FC7]" />
+              <h2 className="text-sm font-bold text-[#242424]">List Price Variations ({filteredListPriceChanges.length})</h2>
+            </div>
             <div className="w-full flex flex-col">
               <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-2">
                  <Search size={14} className="text-slate-400" />
@@ -193,10 +160,14 @@ export default function AuditReportViewer() {
               </table>
             </div>
             </div>
-          )}
+          </div>
 
           {/* Contenido: Module 1.5 - Variaciones de Opciones */}
-          {activeTab === 'option_changes' && (
+          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
+            <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
+              <Zap size={16} className="text-amber-500" />
+              <h2 className="text-sm font-bold text-[#242424]">Option Price Variations ({filteredOptionPriceChanges.length})</h2>
+            </div>
             <div className="w-full flex flex-col">
               <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-2">
                  <Search size={14} className="text-slate-400" />
@@ -262,10 +233,14 @@ export default function AuditReportViewer() {
               </table>
             </div>
             </div>
-          )}
+          </div>
 
           {/* Contenido: Module 2 - Flujo de Inventario (News vs Deleteds de audit_report_json) */}
-          {activeTab === 'inventory_flux' && (
+          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
+            <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
+              <RefreshCw size={16} className="text-[#5B5FC7]" />
+              <h2 className="text-sm font-bold text-[#242424]">Additions and Deletions ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })</h2>
+            </div>
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FCFCFC]">
               
               {/* Columna New Models */}
@@ -319,10 +294,10 @@ export default function AuditReportViewer() {
               </div>
 
             </div>
-          )}
+          </div>
 
           {/* Footer del Panel */}
-          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border-t border-[#E0E0E0] text-[10px] font-semibold text-[#616161] flex justify-between items-center">
+          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border border-[#E0E0E0] rounded-md text-[10px] font-semibold text-[#616161] flex justify-between items-center shadow-sm mt-2">
             <span>TOTAL CAMBIOS INYECTADOS EN PASO ACTUAL: {changesP.length}</span>
             <span className="uppercase text-[#5B5FC7] font-bold tracking-wider">
               {reportDataP?.pipeline_metadata?.company_processed || activeRecord?.company_name || 'SERVEX US'}
