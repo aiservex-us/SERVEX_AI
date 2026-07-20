@@ -52,6 +52,7 @@ export default function AuditReportViewer() {
   const summaryRaw = reportDataRaw?.summary;
   const metadataRaw = reportDataRaw?.metadata;
   const changesRaw = reportDataRaw?.detected_changes || [];
+  const manifestRaw = reportDataRaw?.xml_injection_manifest || [];
 
   const listPriceChangesRaw = changesRaw.filter(c => (c.original_column_name || c.column_name || '').toUpperCase() === 'LIST PRICE');
   const optionPriceChangesRaw = changesRaw.filter(c => (c.original_column_name || c.column_name || '').toUpperCase() !== 'LIST PRICE');
@@ -142,7 +143,7 @@ export default function AuditReportViewer() {
               <table className="table-fixed border-collapse text-left text-xs w-full">
                 <thead className="bg-slate-50/95 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
                   <tr>
-                    {['#', 'Model ID', 'Column', 'Original Value', 'New Value', '% Diff'].map(h => (
+                    {['#', 'Model ID', 'Column', 'Original Value', 'New Value', '% Diff', 'Injection Status'].map(h => (
                       <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
                         {h}
                       </th>
@@ -152,6 +153,10 @@ export default function AuditReportViewer() {
                 <tbody className="divide-y divide-slate-100">
                   {filteredListPriceChanges.map((c, i) => {
                     const diffNum = parseFloat(c.financial_impact || '0');
+                    const manifestEntry = manifestRaw.find(m => m.model_id === c.model_id && m.node_type === 'BasePrice');
+                    const statusText = manifestEntry ? '✅ Successfully Patched' : '❔ Pending/Unknown';
+                    const statusStyle = statusText.includes('✅') ? 'bg-green-100 text-green-700 border-green-200' : 'bg-slate-100 text-slate-500 border-slate-200';
+                    
                     return (
                       <tr key={i} className="hover:bg-slate-50/80 transition-colors">
                         <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{i + 1}</td>
@@ -164,12 +169,17 @@ export default function AuditReportViewer() {
                              {c.financial_impact || 'N/A'}
                            </span>
                         </td>
+                        <td className="px-4 py-3">
+                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md border ${statusStyle}`}>
+                             {statusText}
+                           </span>
+                        </td>
                       </tr>
                     );
                   })}
                   {filteredListPriceChanges.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-12">
+                      <td colSpan={7} className="text-center py-12">
                         <div className="flex flex-col items-center justify-center">
                           <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-3">
                             <Zap size={16} className="text-slate-300" />
@@ -202,7 +212,7 @@ export default function AuditReportViewer() {
               <table className="table-fixed border-collapse text-left text-xs w-full">
                 <thead className="bg-[#464775]/5 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
                   <tr>
-                    {['#', 'Model ID', 'Option Column', 'Original Value', 'New Value', '% Diff'].map(h => (
+                    {['#', 'Model ID', 'Option Column', 'Original Value', 'New Value', '% Diff', 'Injection Status'].map(h => (
                       <th key={h} className="px-4 py-3 text-[10px] font-bold text-[#464775] border-b border-[#464775]/20 uppercase tracking-wider">
                         {h}
                       </th>
@@ -212,6 +222,10 @@ export default function AuditReportViewer() {
                 <tbody className="divide-y divide-slate-100">
                   {filteredOptionPriceChanges.map((c, i) => {
                     const diffNum = parseFloat(c.financial_impact || '0');
+                    const manifestEntry = manifestRaw.find(m => m.target_node === c.option_code || m.target_node === (c.column_name || '').split('-CUSTOM-')[0].trim());
+                    const statusText = manifestEntry ? (manifestEntry.status === 'VERIFIED_EXACT_MATCH_WBT' ? '✅ Successfully Patched' : manifestEntry.status.includes('NOT_FOUND') ? '⚠️ Skipped: Not in XML' : '⚠️ Injection Failed') : '❔ Pending/Unknown';
+                    const statusStyle = statusText.includes('✅') ? 'bg-green-100 text-green-700 border-green-200' : statusText.includes('⚠️') ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200';
+                    
                     return (
                       <tr key={i} className="hover:bg-slate-50/80 transition-colors">
                         <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{i + 1}</td>
@@ -224,12 +238,17 @@ export default function AuditReportViewer() {
                              {c.financial_impact || 'N/A'}
                            </span>
                         </td>
+                        <td className="px-4 py-3">
+                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md border ${statusStyle}`}>
+                             {statusText}
+                           </span>
+                        </td>
                       </tr>
                     );
                   })}
                   {filteredOptionPriceChanges.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-12">
+                      <td colSpan={7} className="text-center py-12">
                         <div className="flex flex-col items-center justify-center">
                           <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-3">
                             <Zap size={16} className="text-slate-300" />
