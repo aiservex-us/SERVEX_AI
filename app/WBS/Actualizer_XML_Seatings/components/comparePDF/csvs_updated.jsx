@@ -73,7 +73,7 @@ export default function DataViewer() {
         return JSON.parse(record[tab]);
       }
     } catch (e) {
-      console.error("Error interpretando JSONB slot:", e);
+      console.error("Error interpreting JSONB slot:", e);
     }
     
     return [];

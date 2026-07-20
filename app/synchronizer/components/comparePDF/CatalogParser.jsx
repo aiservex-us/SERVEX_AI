@@ -84,7 +84,7 @@ const LesroPricingFix = () => {
         setResults(finalData);
         exportToCSV(finalData);
       } catch (err) {
-        console.error("Error procesando PDF:", err);
+        console.error("Error processing PDF:", err);
       } finally {
         setLoading(false);
       }
@@ -110,7 +110,7 @@ const LesroPricingFix = () => {
 
   if (!pdfLib) return <div className="p-10 text-[#6264A7] font-sans flex items-center gap-3">
     <RefreshCw className="animate-spin" size={20} />
-    Loading motor de sincronización...
+    Loading synchronization engine...
   </div>;
 
   return (
@@ -121,7 +121,7 @@ const LesroPricingFix = () => {
           <div className="bg-white p-1 rounded shadow-sm">
             <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
           </div>
-          <h2 className="text-white font-semibold text-[14px]">Lesro Master Sync | SVX Copilot</h2>
+          <h2 className="text-white font-semibold text-[14px]">Lesro Master Sync | Servex Copilot</h2>
         </div>
         {loading && (
           <div className="flex items-center gap-2 text-white text-[10px] bg-[#4f508a] px-3 py-1 rounded-full animate-pulse">
@@ -140,15 +140,15 @@ const LesroPricingFix = () => {
               <div className="flex items-center gap-2 mb-3 bg-white/20 w-fit px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
                 <Zap size={12} className="fill-white" /> AI-Powered Extraction
               </div>
-              <h1 className="text-2xl font-bold mb-2">Sincronizador Automático de Catalogs</h1>
+              <h1 className="text-2xl font-bold mb-2">Automatic Catalog Synchronizer</h1>
               <p className="text-[13px] opacity-90 leading-relaxed">
-                Esta herramienta procesa el PDF oficial de Lesro, extrae los SKUs y las 12 categorías de precios (G2-G13). 
-                Al finalizar, generará automáticamente un file **CSV estructurado** listo para ser importado en el motor de sincronización SVX.
+                This tool processes the official Lesro PDF, extracts the SKUs and the 12 price categories (G2-G13). 
+                Upon completion, it will automatically generate a structured **CSV file** ready to be imported into the SVX synchronization engine.
               </p>
             </div>
             <div className="bg-white/10 backdrop-blur-md p-6 rounded-lg border border-white/20 flex flex-col items-center">
               <FileSpreadsheet size={40} className="mb-2 text-green-300" />
-              <span className="text-[10px] font-bold">FORMATO DE SALIDA</span>
+              <span className="text-[10px] font-bold">OUTPUT FORMAT</span>
               <span className="text-lg font-black">CSV UTF-8</span>
             </div>
           </div>
@@ -163,7 +163,7 @@ const LesroPricingFix = () => {
           <div className="lg:col-span-1 space-y-4">
             <div className="bg-white p-5 rounded-lg border border-[#E1DFDD] shadow-sm">
               <h3 className="font-bold text-[#6264A7] mb-4 flex items-center gap-2">
-                <Info size={14} /> Guía de proceso
+                <Info size={14} /> Process Guide
               </h3>
               <div className="space-y-4 relative">
                 {[
@@ -187,7 +187,7 @@ const LesroPricingFix = () => {
             <div className="bg-[#FFF4CE] p-4 rounded-lg border border-[#F3D372] flex gap-3">
               <AlertCircle size={18} className="text-[#7A5407] shrink-0" />
               <p className="text-[10px] text-[#7A5407] leading-tight">
-                <strong>Nota:</strong> Verifique que el PDF no esté protegido por contraseña para permitir la lectura de SKUs.
+                <strong>Nota:</strong> Verify that the PDF is not password protected to allow SKU reading.
               </p>
             </div>
           </div>
@@ -201,7 +201,7 @@ const LesroPricingFix = () => {
               </div>
               
               <h3 className="text-sm font-bold mb-1">Arrastra tu catálogo aquí</h3>
-              <p className="text-[#616161] mb-6">Soporta formatos PDF de lista de precios Lesro</p>
+              <p className="text-[#616161] mb-6">Supports Lesro price list PDF formats</p>
               
               <input 
                 type="file" 
@@ -210,7 +210,7 @@ const LesroPricingFix = () => {
                 className="text-[11px] file:bg-[#6264A7] file:text-white file:border-0 file:py-2.5 file:px-6 file:rounded-md file:font-bold cursor-pointer file:shadow-md file:hover:bg-[#4f508a] transition-all"
               />
               
-              {loading && <p className="mt-4 text-[#6264A7] font-bold animate-pulse">Analizando estructura de precios...</p>}
+              {loading && <p className="mt-4 text-[#6264A7] font-bold animate-pulse">Analyzing price structure...</p>}
             </div>
           </div>
         </div>
@@ -281,7 +281,7 @@ const LesroPricingFix = () => {
             {/* Footer de la tabla */}
             <div className="p-4 bg-[#FAF9F8] border-t flex items-center gap-2 text-[#616161]">
               <Info size={14} />
-              <p>El file CSV ha sido optimizado para la importación directa. No requiere limpieza manual de datos.</p>
+              <p>The CSV file has been optimized for direct import. No manual data cleaning is required.</p>
             </div>
           </div>
         )}

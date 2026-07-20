@@ -13,7 +13,7 @@ export default function PanelClientPage() {
     // Esto ahora solo closeá la sesión de Google y borrará 'sb-customer-session'
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error('Error al close sesión:', error.message);
+      console.error('Error logging out:', error.message);
     } else {
       // Redirigir a la page de login de clientes
       router.push('/'); 

@@ -76,7 +76,7 @@ const IncertData = () => {
 
                   <p className="text-sm text-slate-500 leading-relaxed font-light mb-8">
                     Through a few simple actions, our system fully automates <strong className="font-medium text-slate-700">3 weeks of manual analysis, data comparison, updating, and strict verification</strong>.
-                    The entire operational lifecycle that previously took weeks is now flawlessly executed in mere seconds by <strong className="font-semibold text-slate-700">Alysa SVX Copilot</strong>.
+                    The entire operational lifecycle that previously took weeks is now flawlessly executed in mere seconds by <strong className="font-semibold text-slate-700">Alysa Servex Copilot</strong>.
                   </p>
 
                   <div className="flex flex-col gap-1 mt-auto">

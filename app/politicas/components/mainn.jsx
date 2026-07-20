@@ -36,10 +36,10 @@ export default function Page() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            GLYNNE Panel AI es el entorno donde los desarrolladores diseñan, configuran y prueban sus modelos inteligentes antes de integrarlos
-            al <strong>motor de procesamiento LLM</strong>. Aquí puedes modificar la estructura, personalidad y comportamiento de cada agente,
-            asignar roles específicos y definir parámetros técnicos avanzados . Es el punto de enlace entre la creatividad humana y la autonomía
-            generativa, optimizado para que cada ajuste se traduzca en rendimiento, coherencia y precisión dentro del ecosistema GLYNNE.
+            GLYNNE Panel AI is the environment where developers design, configure, and test their intelligent models before integrating them
+            into the <strong>LLM processing engine</strong>. Here you can modify the structure, personality, and behavior of each agent,
+            assign specific roles and define advanced technical parameters. It is the link between human creativity and generative autonomy,
+            optimized so that each adjustment translates into performance, consistency, and precision within the GLYNNE ecosystem.
           </motion.p>
 
           {/* Botón que abre el popup */}
@@ -53,7 +53,7 @@ export default function Page() {
           >
             <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
             <span className="relative z-10 font-medium">
-              Iniciar entorno de desarrollo GLYNNE dev AI
+              Start GLYNNE dev AI development environment
             </span>
           </motion.button>
 
@@ -70,7 +70,7 @@ export default function Page() {
 
         {/* Leyenda inferior */}
         <div className="w-full text-center absolute bottom-4 text-gray-500 text-xs tracking-wide">
-          © GLYNNE 2025 - Innovación impulsada por inteligencia artificial
+          © GLYNNE 2025 - Innovation powered by artificial intelligence
         </div>
       </div>
 

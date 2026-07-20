@@ -184,7 +184,7 @@ export default function Content({ setActiveView }) {
       <section>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">
-            SVX CoPilot · Trending Insights
+            Servex Copilot · Trending Insights
           </h2>
           <button className="text-[#464775] text-xs font-bold hover:underline">
             View All

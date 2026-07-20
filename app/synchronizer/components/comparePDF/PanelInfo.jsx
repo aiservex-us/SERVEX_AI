@@ -15,7 +15,7 @@ const SyncInfoPanelFull = () => {
 
   const tabs = [
     { id: 'how', label: 'Protocolo de Sincronización', icon: Settings },
-    { id: 'process', label: 'Experimentación de Datos', icon: Cpu },
+    { id: 'process', label: 'Experimentación of Data', icon: Cpu },
     { id: 'solution', label: 'Impacto en el Día a Día', icon: Briefcase },
     { id: 'formats', label: 'Formatos Requeridos', icon: FileCheck },
   ];
@@ -23,7 +23,7 @@ const SyncInfoPanelFull = () => {
   const accordionData = [
     {
       title: "1. Selección de Entidad y Vinculación Crítica",
-      content: "Para iniciar cualquier proceso de sincronización en SVX Copilot, el primer paso fundamental es la elección de la empresa o entidad. Esta no es una simple etiqueta; es el marco lógico que permite al sistema entender bajo qué reglas de negocio se deben procesar los tratados. Al seleccionar la empresa, el sistema carga los diccionarios de SKUs específicos, permitiendo que la vinculación sea exacta. Esto evita que los datos se dispersen o se mezclen con otros portafolios, garantizando que el user esté trabajando en un ambiente sanitario y aislado para su cliente específico.",
+      content: "Para iniciar cualquier proceso de sincronización en Servex Copilot, el primer paso fundamental es la elección de la empresa o entidad. Esta no es una simple etiqueta; es el marco lógico que permite al sistema entender bajo qué reglas de negocio se deben procesar los tratados. Al seleccionar la empresa, el sistema carga los diccionarios de SKUs específicos, permitiendo que la vinculación sea exacta. Esto evita que los datos se dispersen o se mezclen con otros portafolios, garantizando que el user esté trabajando en un ambiente sanitario y aislado para su cliente específico.",
       icon: Building2
     },
     {
@@ -46,13 +46,13 @@ const SyncInfoPanelFull = () => {
         <div className="z-10 flex-1">
           <div className="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded-full border border-[#EDEBE9]">
             <Database size={14} className="text-[#6264A7]" />
-            <span className="text-[10px] font-bold text-[#6264A7] uppercase tracking-[0.1em]">SVX Copilot Architecture</span>
+            <span className="text-[10px] font-bold text-[#6264A7] uppercase tracking-[0.1em]">Servex Copilot Architecture</span>
           </div>
           <h1 className="text-2xl md:text-4xl font-black text-[#242424] leading-tight mb-4 tracking-tight">
-            Gestión de Sincronización <span className="text-[#6264A7]">de Datos</span>
+            Synchronization Management <span className="text-[#6264A7]">of Data</span>
           </h1>
           <p className="text-[14px] text-[#605E5C] leading-relaxed max-w-4xl">
-            Sincronizar datos con SVX Copilot requiere un flujo estructurado donde cada file subido es analizado para permitirle escoger exactamente qué empresa quiere vincular. 
+            Synchronizing data with Servex Copilot requires a structured flow where each uploaded file is analyzed to allow you to choose exactly which company to link. 
           </p>
         </div>
         <div className="relative shrink-0 hidden lg:block opacity-20 group-hover:opacity-40 transition-opacity">
@@ -90,10 +90,10 @@ const SyncInfoPanelFull = () => {
               <div className="lg:col-span-8 space-y-6">
                 <div className="bg-white p-6 rounded-xl border border-[#EDEBE9] shadow-sm">
                   <h2 className="text-[16px] font-bold text-[#6264A7] mb-4 flex items-center gap-2">
-                    <ListTree size={20} /> Flujo Maestro de Operación
+                    <ListTree size={20} /> Master Operation Flow
                   </h2>
                   <p className="text-[13px] text-[#605E5C] leading-[1.8]">
-                    El proceso de sincronización no es una simple carga de documentos. Es una arquitectura diseñada para que los colaboradores puedan gestionar cambios masivos sin riesgo de error. Al subir un PDF o CSV, el sistema primero le pide confirm la **Entidad Vinculada**. Esto es vital porque cada empresa posee tratados y estructuras de precios únicas. Una vez que SVX Copilot identifica la empresa, procede a descomponer el file en los paréntesis de datos más pequeños posibles: desde el SKU individual hasta los complejos precios de grado G2, G3 y superiores.
+                    The synchronization process is not a simple document upload. It is an architecture designed so that collaborators can manage massive changes without risk of error. Upon uploading a PDF or CSV, the system first asks to confirm the **Linked Entity**. This is vital because each company has unique treaties and price structures. Once Servex Copilot identifies the company, it proceeds to decompose the file into the smallest possible data brackets: from the individual SKU to the complex G2, G3, and higher grade prices.
                   </p>
                 </div>
 
@@ -127,15 +127,15 @@ const SyncInfoPanelFull = () => {
                   </h3>
                   <div className="space-y-4">
                     <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-                      <p className="text-[11px] font-bold text-[#FFD700] uppercase mb-1">Capacidad de Respuesta</p>
+                      <p className="text-[11px] font-bold text-[#FFD700] uppercase mb-1">Responsiveness</p>
                       <p className="text-[12px] opacity-80 italic leading-snug">
-                        "El sistema reduce el tiempo de comparación de catálogos de 8 horas manuales a 45 segundos de procesamiento digital."
+                        "The system reduces catalog comparison time from 8 manual hours to 45 seconds of digital processing."
                       </p>
                     </div>
                     <div className="p-3 bg-white/5 rounded-lg border border-white/10">
                       <p className="text-[11px] font-bold text-[#4ECB71] uppercase mb-1">Precisión Operativa</p>
                       <p className="text-[12px] opacity-80 leading-snug">
-                        Validación automática de 12 niveles de precios y SKUs alfanuméricos en tiempo real.
+                        Automatic validation of 12 price levels and alphanumeric SKUs in real-time.
                       </p>
                     </div>
                   </div>
@@ -154,13 +154,13 @@ const SyncInfoPanelFull = () => {
                 <h3 className="text-xl font-bold mb-4">Solución a Problemas del Día a Día</h3>
                 <div className="text-[13px] text-[#605E5C] space-y-4 leading-relaxed">
                   <p>
-                    Los colaboradores a menudo se enfrentan al reto de catálogos que cambian constantemente. La update manual no solo es lenta, sino peligrosa para la rentabilidad de la empresa. SVX Copilot soluciona esto permitiendo una carga fluida donde el sistema hace el trabajo sucio.
+                    Collaborators often face the challenge of constantly changing catalogs. Manual updating is not only slow, but dangerous for the company's profitability. Servex Copilot solves this by allowing a smooth upload where the system does the dirty work.
                   </p>
                   <p>
-                    <strong>Eliminación de Errores:</strong> Al leer directamente del PDF fuente, se eliminan los errores de dedo al transcribir precios. El sistema le indica exactamente qué precio subió o bajó, permitiéndole actualizar su lista de tratados de manera instantánea.
+                    <strong>Error Elimination:</strong> By reading directly from the source PDF, typo errors when transcribing prices are eliminated. The system tells you exactly which price went up or down, allowing you to update your treaty list instantly.
                   </p>
                   <p>
-                    <strong>Agilidad Comercial:</strong> Si una fábrica envía un new PDF de precios un viernes por la tarde, usted puede tener el sistema sincronizado en 5 minutos, asegurando que el equipo de ventas siempre cotice con los datos más recientes.
+                    <strong>Agilidad Comercial:</strong> If a factory sends a new price PDF on a Friday afternoon, you can have the system synchronized in 5 minutes, ensuring that the sales team always quotes with the most recent data.
                   </p>
                 </div>
               </div>
@@ -170,7 +170,7 @@ const SyncInfoPanelFull = () => {
                   <ShieldCheck size={24} /> Tratados Seguros e Íntegros
                 </h3>
                 <p className="text-[14px] opacity-90 leading-relaxed mb-6">
-                  La seguridad y la solidaridad del sistema radican en su transparencia. Cada cambio detectado en la experimentación de datos queda registrado. Usted puede ver el "antes" y el "después" de cada tratado, lo que garantiza que la información que se sincroniza con la plataforma central sea coherente, auditable y esté libre de corrupciones visuales o técnicas.
+                  The security and solidarity of the system lie in its transparency. Every change detected in data experimentation is recorded. You can see the "before" and "after" of each treaty, which guarantees that the information synchronized with the central platform is consistent, auditable, and free of visual or technical corruption.
                 </p>
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div className="bg-white/10 p-3 rounded-xl border border-white/20">
@@ -192,20 +192,20 @@ const SyncInfoPanelFull = () => {
               <div className="p-8 md:p-12">
                 <div className="max-w-4xl">
                   <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                    <FileText className="text-[#6264A7]" /> Guía de Formatos y Requisitos Técnicos
+                    <FileText className="text-[#6264A7]" /> Format Guide and Technical Requirements
                   </h3>
                   <div className="text-[14px] text-[#605E5C] space-y-6 leading-relaxed">
                     <p>
-                      Para que la plataforma **SVX Compiler** pueda ejecutar sus algoritmos de lectura profunda, los files deben presentarse en un formato estándar. Esto no es solo por orden, sino por capacidad de procesamiento: el sistema necesita identificar las anclas de datos (como el SKU) para poder comparar el tratado anterior con el new.
+                      In order for the **SVX Compiler** platform to execute its deep reading algorithms, files must be presented in a standard format. This is not just for order, but for processing capacity: the system needs to identify data anchors (such as the SKU) to be able to compare the previous treaty with the new one.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8">
                       <div className="p-6 bg-[#FAF9F8] rounded-xl border border-[#EDEBE9]">
                         <h4 className="font-bold text-[#242424] mb-3 border-b pb-2">Files PDF</h4>
-                        <p className="text-[12px]">El PDF debe ser de origen digital (no escaneado como imagen). Esto permite que el motor de extracción lea las capas de texto y asigne correctamente cada precio al SKU correspondiente en la tabla de tratados.</p>
+                        <p className="text-[12px]">The PDF must be of digital origin (not scanned as an image). This allows the extraction engine to read the text layers and correctly assign each price to the corresponding SKU in the treaties table.</p>
                       </div>
                       <div className="p-6 bg-[#FAF9F8] rounded-xl border border-[#EDEBE9]">
                         <h4 className="font-bold text-[#242424] mb-3 border-b pb-2">Files CSV</h4>
-                        <p className="text-[12px]">Debe estar codificado en UTF-8 y seguir la estructura de columnas requerida: SKU, Dimensiones y los 12 niveles de precios. Esto asegura que la inyección de datos a la nube sea limpia y sin caracteres rotos.</p>
+                        <p className="text-[12px]">It must be UTF-8 encoded and follow the required column structure: SKU, Dimensions, and the 12 price levels. This ensures that data injection to the cloud is clean and without broken characters.</p>
                       </div>
                     </div>
                   </div>
@@ -222,8 +222,8 @@ const SyncInfoPanelFull = () => {
               SVX
             </div>
             <div className="flex flex-col">
-              <span className="text-[14px] font-black tracking-tight text-[#242424]">Centro de Inteligencia de Datos</span>
-              <span className="text-[11px] opacity-70">Sincronizador SVX Copilot v2.5.10 | Sanitario & Seguro</span>
+              <span className="text-[14px] font-black tracking-tight text-[#242424]">Data Intelligence Center</span>
+              <span className="text-[11px] opacity-70">Sincronizador Servex Copilot v2.5.10 | Sanitario & Seguro</span>
             </div>
           </div>
           <div className="flex gap-4 w-full md:w-auto">

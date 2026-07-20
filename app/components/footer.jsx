@@ -134,7 +134,7 @@ const ServexModernFooter = () => {
             {/* PAYMENT METHODS */}
             <div className="pt-4 space-y-2">
               <h4 className="text-[11px] font-bold uppercase text-gray-900">
-                Métodos de Pago
+                Payment Methods
               </h4>
               <div className="flex flex-wrap gap-2">
                 {paymentMethods.map((m, i) => (

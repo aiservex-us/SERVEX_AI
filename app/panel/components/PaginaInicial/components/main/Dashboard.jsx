@@ -91,7 +91,7 @@ export default function DashboardRight() {
           icon={<Boxes size={16} />}
           label="Catalog Automation"
           value="CET · BIM · 20/20"
-          description="SVX Copilot automates the creation, structuring, and maintenance of electronic catalogs for specification platforms used by manufacturers, dealers, and designers."
+          description="Servex Copilot automates the creation, structuring, and maintenance of electronic catalogs for specification platforms used by manufacturers, dealers, and designers."
           isOpen={openIndex === 0}
           onClick={() => toggleItem(0)}
         />
@@ -182,7 +182,7 @@ export default function DashboardRight() {
       <section className="bg-[#fff]/5 border border-[#6264A7]/20 rounded-xl p-6 text-center">
  
         <h3 className="text-slate-800 font-bold text-sm mb-1 uppercase tracking-tight">
-          Svx Copilot Pro
+          Servex Copilot Pro
         </h3>
         <p className="text-slate-500 mb-5 text-[11px] leading-tight px-2">
           AI copilot designed to automate and scale the creation, 

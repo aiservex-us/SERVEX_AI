@@ -13,7 +13,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SVX Copilot",
+  title: "Servex Copilot",
   description: "Generated GLYNNE S.A.S col",
 };
 

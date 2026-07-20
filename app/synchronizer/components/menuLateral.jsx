@@ -184,7 +184,7 @@ export default function MenuLateral({
           );
         })}
 
-        {/* TARJETA SVX COPILOT (Sin la leyenda dentro) */}
+        {/* TARJETA Servex Copilot (Sin la leyenda dentro) */}
         <div className={`
           mt-3 flex items-center rounded-xl transition-all duration-300
           ${collapsed ? 'justify-center h-12' : 'p-2 bg-[#6264A7]/5 border border-[#6264A7]/10'}

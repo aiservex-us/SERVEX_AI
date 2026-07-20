@@ -81,7 +81,7 @@ export default function Chart() {
       <div className="flex flex-col gap-4 mb-6">
         <div className="max-w-2xl">
           <h2 className="text-[15px] font-semibold tracking-tight text-slate-900">
-            SVX Copilot · Backend Optimization Analytics
+            Servex Copilot · Backend Optimization Analytics
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-slate-500">
             Real-time performance metrics of XML catalog synchronization workflows. 
@@ -183,7 +183,7 @@ export default function Chart() {
                  <div className="flex justify-between items-end text-[10px] text-[#464775] font-bold uppercase mb-2 tracking-wide">
                    <span className="flex items-center gap-1.5">
                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                     SVX Copilot
+                     Servex Copilot
                    </span>
                    <span className="text-emerald-600 font-black">{current.svxTime}</span>
                  </div>

@@ -81,7 +81,7 @@ export default function MenuInicial() {
           <AlertCircle className="text-amber-500 mb-2" size={32} />
           <h3 className="text-[14px] font-bold text-slate-800 uppercase tracking-wider">Panel bloqueado</h3>
           <p className={"text-[12px] text-slate-500 max-w-xs mt-1"}>
-            La sección Change Tracker está disponible únicamente para entornos de escritorio (PC).
+            The Change Tracker section is only available for desktop (PC) environments.
           </p>
         </div>
       );

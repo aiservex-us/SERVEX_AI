@@ -83,7 +83,7 @@ export default function DataViewer() {
       try {
         return JSON.parse(trimmed);
       } catch (e) {
-        console.error("Error parseando string con formato JSON:", e);
+        console.error("Error parsing JSON formatted string:", e);
       }
     }
     
@@ -108,7 +108,7 @@ export default function DataViewer() {
       
       return parsedRows.filter(row => Object.keys(row).length > 0 && Object.values(row).some(Boolean));
     } catch (csvError) {
-      console.error("Error parseando formato CSV plano nativo:", csvError);
+      console.error("Error parsing native plain CSV format:", csvError);
     }
   }
   

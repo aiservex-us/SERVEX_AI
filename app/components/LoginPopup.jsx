@@ -81,7 +81,7 @@ export function LoginPopup({ visible, onClose }) {
               Empieza ahora
             </h3>
             <p className="text-xs text-gray-600 text-center mb-4">
-              Inicia sesión para recibir recomendaciones personalizadas.
+              Log in to receive personalized recommendations.
             </p>
 
             {/* Google */}
@@ -90,7 +90,7 @@ export function LoginPopup({ visible, onClose }) {
               className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-black text-white text-sm font-semibold shadow-md hover:bg-gray-900 transition mb-3"
             >
               <FaGoogle className="w-4 h-4" />
-              Continuar con Google
+              Continue with Google
             </button>
 
             {/* Microsoft */}
@@ -99,7 +99,7 @@ export function LoginPopup({ visible, onClose }) {
               className="w-full flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-[#2F2F2F] text-white text-sm font-semibold shadow-md hover:bg-[#1f1f1f] transition"
             >
               <FaMicrosoft className="w-4 h-4" />
-              Continuar con Microsoft
+              Continue with Microsoft
             </button>
           </motion.div>
         </motion.div>

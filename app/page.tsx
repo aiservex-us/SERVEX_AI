@@ -117,7 +117,7 @@ const WelcomePopup: React.FC<WelcomePopupProps> = ({ isOpen, onClose }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <PortalSection
-              title="SVX COPILOT"
+              title="Servex Copilot"
               subtitle="(PARTNERS & SERVEX AGENTS AREA)"
               colorClass="bg-[#414141]"
               gradientClass="from-[#717171] to-[#414141]"

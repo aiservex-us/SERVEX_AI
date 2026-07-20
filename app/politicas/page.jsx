@@ -21,7 +21,7 @@ const sections = [
     id: "svx-1",
     title: "Perimeter Infrastructure Concept",
     icon: Layers,
-    content: "SVX COPILOT is a software architecture designed to act as an efficiency wall surrounding Servex US's core business model. Its purpose is to shield the CET Designer workflow by absorbing and automating all peripheral management tasks that consume operational time.",
+    content: "Servex Copilot is a software architecture designed to act as an efficiency wall surrounding Servex US's core business model. Its purpose is to shield the CET Designer workflow by absorbing and automating all peripheral management tasks that consume operational time.",
     span: "col-span-1 md:col-span-2 lg:col-span-2"
   },
   {
@@ -35,14 +35,14 @@ const sections = [
     id: "svx-3",
     title: "Centralization of Isolated Tools",
     icon: Database,
-    content: "The platform unifies processes that are traditionally scattered across disconnected tools. SVX COPILOT integrates analysis, validation, and data management into a single control panel, enabling previously isolated tools to operate under a unified artificial intelligence logic.",
+    content: "The platform unifies processes that are traditionally scattered across disconnected tools. Servex Copilot integrates analysis, validation, and data management into a single control panel, enabling previously isolated tools to operate under a unified artificial intelligence logic.",
     span: "col-span-1"
   },
   {
     id: "svx-4",
     title: "Extra-CET Automation",
     icon: Zap,
-    content: "SVX COPILOT manages the entire technical process outside of catalog development in CET Designer. From specification extraction to database structuring, it ensures that information reaches the designer already filtered and optimized by the software infrastructure.",
+    content: "Servex Copilot manages the entire technical process outside of catalog development in CET Designer. From specification extraction to database structuring, it ensures that information reaches the designer already filtered and optimized by the software infrastructure.",
     span: "col-span-1"
   },
   {
@@ -56,7 +56,7 @@ const sections = [
     id: "svx-6",
     title: "Intelligent Requirement Interpretation",
     icon: ShieldCheck,
-    content: "Utilizing neural networks and natural language processing, SVX COPILOT interprets complex requirements. This allows the system to make logical decisions regarding data structure, minimizing the human review needed to avoid formatting or drafting errors.",
+    content: "Utilizing neural networks and natural language processing, Servex Copilot interprets complex requirements. This allows the system to make logical decisions regarding data structure, minimizing the human review needed to avoid formatting or drafting errors.",
     span: "col-span-1 md:col-span-2 lg:col-span-3"
   },
   {
@@ -84,7 +84,7 @@ const sections = [
     id: "svx-10",
     title: "The Technological Efficiency Wall",
     icon: Zap,
-    content: "SVX COPILOT functions as an intelligent membrane: all incoming data is cleaned, categorized, and prepared by AI. Likewise, every deliverable is validated by the platform, ensuring consistent quality and maintaining the human focus on technical expertise.",
+    content: "Servex Copilot functions as an intelligent membrane: all incoming data is cleaned, categorized, and prepared by AI. Likewise, every deliverable is validated by the platform, ensuring consistent quality and maintaining the human focus on technical expertise.",
     span: "col-span-1"
   },
   {
@@ -98,7 +98,7 @@ const sections = [
     id: "svx-12",
     title: "Exponential Scalability",
     icon: Database,
-    content: "Thanks to AI-guided infrastructure, Servex's growth does not rely on linear hiring for administrative tasks. SVX COPILOT enables production scaling while maintaining operational agility through automated processing power.",
+    content: "Thanks to AI-guided infrastructure, Servex's growth does not rely on linear hiring for administrative tasks. Servex Copilot enables production scaling while maintaining operational agility through automated processing power.",
     span: "col-span-1"
   },
   {
@@ -140,7 +140,7 @@ export default function TechnicalOverview() {
               <span className="font-bold">Efficiency Wall.</span>
             </h1>
             <p className="text-sm md:text-base text-gray-500 font-light leading-relaxed max-w-2xl">
-              Discover the engineering principles behind SVX Copilot. A software architecture designed to absorb and automate peripheral management tasks, shielding your core workflow.
+              Discover the engineering principles behind Servex Copilot. A software architecture designed to absorb and automate peripheral management tasks, shielding your core workflow.
             </p>
           </motion.div>
         </div>

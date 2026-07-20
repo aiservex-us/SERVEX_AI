@@ -166,7 +166,7 @@ const SidebarTeams = () => {
 
         {/* 4. MAIN CTA */}
         <section className="bg-white border border-[#464775]/20 rounded-lg p-3 text-center shadow-sm">
-          <h3 className="text-slate-800 font-bold text-[10px] mb-0.5 uppercase tracking-tight">Svx Copilot</h3>
+          <h3 className="text-slate-800 font-bold text-[10px] mb-0.5 uppercase tracking-tight">Servex Copilot</h3>
           <p className="text-slate-400 mb-2 text-[8px]">Scale your creation.</p>
           <button className="bg-[#F8F9FA] text-[#464775] border border-slate-200 w-full py-1.5 rounded-md font-bold text-[9px] hover:bg-slate-100 transition-colors">
             Upgrade

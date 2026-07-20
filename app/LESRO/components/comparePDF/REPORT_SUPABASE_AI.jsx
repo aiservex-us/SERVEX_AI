@@ -44,7 +44,7 @@ const AgentInfo = () => {
           </div>
         </div>
         <p className="text-[#464775] font-bold text-[10px] uppercase tracking-[0.25em] animate-pulse">
-          Sincronizando con SVX_AI...
+          Synchronizing with SVX_AI...
         </p>
         <div className="mt-6 flex gap-1.5">
           {[0, 1, 2, 3, 4].map(i => (
@@ -93,7 +93,7 @@ const AgentInfo = () => {
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#464775] text-white text-[10px] font-bold uppercase tracking-[0.15em] rounded hover:bg-[#3b3c63] active:scale-[0.98] transition-all shadow-sm group"
           >
             <RefreshCw size={12} className="group-hover:rotate-180 transition-transform duration-500" />
-            Actualizar Reporte
+            Update Report
           </button>
         </div>
       </div>
@@ -121,7 +121,7 @@ const AgentInfo = () => {
                   <span className="text-[8px] font-bold text-white/80 tracking-wider">v4.10</span>
                 </div>
               </div>
-              <p className="text-white/60 text-[9px] uppercase tracking-[0.2em] mt-1 font-bold">Auditoría de Ingeniería</p>
+              <p className="text-white/60 text-[9px] uppercase tracking-[0.2em] mt-1 font-bold">Engineering Audit</p>
             </div>
           </div>
           <div className="flex items-center gap-3">

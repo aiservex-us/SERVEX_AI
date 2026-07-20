@@ -25,7 +25,7 @@ const QUICK_PROMPTS = [
 ];
 
 export default function TeamsAgentChat({ currentSection }) {
-  const [selectedAgent] = useState({ agent_name: "SVX Copilot", role: "AI Engine" });
+  const [selectedAgent] = useState({ agent_name: "Servex Copilot", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -236,7 +236,7 @@ export default function TeamsAgentChat({ currentSection }) {
             <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
           </div>
           <div className="flex flex-col gap-0">
-            <span className="text-[13px] font-semibold tracking-tight text-gray-900 leading-none">SVX Copilot</span>
+            <span className="text-[13px] font-semibold tracking-tight text-gray-900 leading-none">Servex Copilot</span>
 
           </div>
         </div>
@@ -485,7 +485,7 @@ export default function TeamsAgentChat({ currentSection }) {
             >
               <div className="p-2">
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-1">
-                  Comandos de Auditoría
+                  Audit Commands
                 </div>
                 {SLASH_COMMANDS.map((cmd) => (
                   <button
@@ -577,7 +577,7 @@ export default function TeamsAgentChat({ currentSection }) {
         </div>
 
         <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
-          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of SVX Copilot and its underlying processes.
+          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Servex Copilot and its underlying processes.
         </p>
       </footer>
 

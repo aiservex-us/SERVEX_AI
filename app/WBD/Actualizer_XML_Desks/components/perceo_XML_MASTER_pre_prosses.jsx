@@ -167,7 +167,7 @@ const WBDDataMatrix = () => {
       setProducts(extracted);
       setCurrentPage(1); // Reiniciar a la primera page tras una recarga exitosa
     } catch (err) {
-      console.error("Error en procesamiento de matriz de datos WBD:", err);
+      console.error("Error processing WBD data matrix:", err);
       setError(err.message || "Error processing catalog information WBD.");
     } finally {
       setLoading(false);

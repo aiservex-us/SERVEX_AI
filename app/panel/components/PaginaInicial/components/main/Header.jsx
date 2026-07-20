@@ -135,7 +135,7 @@ export default function Header() {
               className="bg-white rounded-lg shadow-2xl max-w-[512px] w-full p-6 min-[800px]:p-8 text-[#242424] border border-gray-200"
             >
               <h2 className="text-[20px] min-[800px]:text-[24px] font-semibold mb-4">
-                Sign out of SVX Copilot
+                Sign out of Servex Copilot
               </h2>
 
               <p className="text-[14px] min-[800px]:text-[15px] mb-6">

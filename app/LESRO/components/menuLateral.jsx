@@ -213,7 +213,7 @@ export default function MenuLateral({
             );
           })}
 
-          {/* TARJETA SVX COPILOT */}
+          {/* TARJETA Servex Copilot */}
           <div className={`
             mt-2 flex items-center rounded-xl transition-all duration-300
             ${collapsed ? 'justify-center h-10' : 'p-2 bg-[#464775] text-white shadow-lg shadow-[#464775]/20'}
@@ -234,7 +234,7 @@ export default function MenuLateral({
             `}>
               <div className="flex flex-col leading-tight text-white">
                 <p className="text-[10px] font-black tracking-tight uppercase">
-                  Svx Copilot
+                  Servex Copilot
                 </p>
                 <p className="text-[7.5px] opacity-70 font-medium whitespace-nowrap">
                   Next-gen Intelligence

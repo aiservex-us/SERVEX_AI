@@ -208,7 +208,7 @@ const Viewport = () => {
 
       <header className="h-10 flex items-center justify-between px-6 bg-[#FFFFFF] border-b border-[#EDEBE9] z-20">
         <div className="text-[11px] font-medium text-[#605E5C]">
-          Project / <span className="text-[#464775] font-bold">SVX copilot v1.2</span>
+          Project / <span className="text-[#464775] font-bold">Servex Copilot v1.2</span>
         </div>
         <div className="flex items-center gap-2">
           {isChatActive && (

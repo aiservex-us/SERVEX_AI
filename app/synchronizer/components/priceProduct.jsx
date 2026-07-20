@@ -271,7 +271,7 @@ const PanelMenur = () => {
                   <img src="/logo2.png" alt="LESRO" className="h-14 w-auto mb-4 object-contain opacity-90" />
                   <div className="flex items-center gap-3">
                     <div className="w-5 h-5 border-2 border-[#6264A7]/20 border-t-[#6264A7] rounded-full animate-spin"></div>
-                    <span className="text-sm font-semibold text-[#242424]">Loading datos de <span className="text-[#6264A7]">LESRO</span> desde la base de datos...</span>
+                    <span className="text-sm font-semibold text-[#242424]">Loading data from <span className="text-[#6264A7]">LESRO</span> from the database...</span>
                   </div>
                </div>
             ) : (

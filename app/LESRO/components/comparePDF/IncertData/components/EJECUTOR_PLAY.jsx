@@ -153,14 +153,14 @@ const EJECUTOR_PLAY = ({
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Proceso de Update Iniciado</h3>
+              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Update Process Started</h3>
               <p className="text-[11px] text-gray-500 font-medium">Catalog: {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-start gap-3 text-left">
               <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={16} />
               <p className="text-[10px] text-amber-800 leading-tight">
-                <strong>IMPORTANTE:</strong> El sistema está sincronizando datos críticos. <strong>No cambies de sección</strong> ni reinicies la aplicación hasta que el monitor de salida finalice.
+                <strong>IMPORTANTE:</strong> The system is synchronizing critical data. <strong>Do not change sections</strong> nor restart the application until the output monitor finishes.
               </p>
             </div>
 

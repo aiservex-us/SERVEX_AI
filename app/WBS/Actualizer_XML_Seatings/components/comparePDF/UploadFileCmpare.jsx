@@ -177,7 +177,7 @@ const SVXCopilotEnterprise = () => {
           {/* CONSOLA */}
           <div className="lg:col-span-9 bg-white border border-[#EDEBE9] rounded-lg p-6 shadow-sm flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-sm font-bold">Consola de Análisis</h2>
+              <h2 className="text-sm font-bold">Analysis Console</h2>
               <BsFileEarmarkArrowUp size={22} className={data.length > 0 ? "text-[#464775]" : "text-[#EDEBE9]"} />
             </div>
 
@@ -190,8 +190,8 @@ const SVXCopilotEnterprise = () => {
                   className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}
                 >
                   <FiUploadCloud size={48} className="text-[#464775] mb-4" />
-                  <p className="text-xs font-bold text-[#464775]">Arrastre y suelte el file CSV aquí</p>
-                  <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-tighter">Soporte nativo para arquitectura SERVEX_AI</p>
+                  <p className="text-xs font-bold text-[#464775]">Drag and drop the CSV file here</p>
+                  <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-tighter">Native support for SERVEX_AI architecture</p>
                 </div>
               ) : (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-grow overflow-hidden flex flex-col">

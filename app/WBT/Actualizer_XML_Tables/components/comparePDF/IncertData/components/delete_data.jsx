@@ -35,7 +35,7 @@ const DeleteTenantButton = ({ currentTenant = 'WBT', onDeleted }) => {
         <div className="flex gap-3 text-gray-600">
           <AlertTriangle size={18} className="text-rose-600 shrink-0" />
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-semibold text-gray-900">Settings de Tenant</span>
+            <span className="text-xs font-semibold text-gray-900">Tenant Settings</span>
             <p className="text-[11px] leading-relaxed text-gray-500">
               Gestión crítica: eliminación de registros y data relacionada para {currentTenant}.
             </p>
@@ -56,16 +56,16 @@ const DeleteTenantButton = ({ currentTenant = 'WBT', onDeleted }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm">
           <div className="bg-white rounded-lg shadow-2xl w-[400px] overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center px-5 py-3 border-b border-gray-100">
-              <h2 className="text-sm font-bold text-gray-900">Eliminar Tenant</h2>
+              <h2 className="text-sm font-bold text-gray-900">Delete Tenant</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={18} />
               </button>
             </div>
             
             <div className="p-5 text-sm text-gray-600">
-              <p className="mb-4">¿Estás seguro de que deseas eliminar el tenant <strong>{currentTenant}</strong>?</p>
+              <p className="mb-4">Are you sure you want to delete the tenant <strong>{currentTenant}</strong>?</p>
               <p className="text-xs bg-rose-50 text-rose-700 p-3 rounded">
-                Esta acción eliminará permanentemente toda la información, catálogos y flujos de datos asociados. Esta operación no se puede deshacer.
+                This action will permanently delete all associated information, catalogs, and data flows. This operation cannot be undone.
               </p>
             </div>
 

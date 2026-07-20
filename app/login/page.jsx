@@ -24,7 +24,7 @@ export default function LoginPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         const audio = new Audio('/tu-sonido.mp3');
-        audio.play().catch(err => console.log("El navegador bloqueó el autoplay:", err));
+        audio.play().catch(err => console.log("Browser blocked autoplay:", err));
         router.push('/panel');
       }
     });

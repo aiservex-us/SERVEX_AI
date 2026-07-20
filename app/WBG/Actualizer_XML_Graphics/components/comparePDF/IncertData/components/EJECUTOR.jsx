@@ -60,7 +60,7 @@ const SVXUnifiedPlatform = () => {
         setHasExistingData(true);
       }
     } catch (err) {
-      console.error('[-] Error al verificar el registro de catálogo activo:', err);
+      console.error('[-] Error verifying active catalog record:', err);
     }
   };
 
@@ -78,7 +78,7 @@ const SVXUnifiedPlatform = () => {
       handleFullReset();
       showAlert("Previous record cleared. You may proceed to upload the new CSV.", "success");
     } catch (err) {
-      console.error('[-] Error al vaciar la columna csv_new_raw:', err);
+      console.error('[-] Error clearing csv_new_raw column:', err);
       showAlert(`Error: ${err.message}`, "error");
     } finally {
       setIsClearingBackend(false);
@@ -218,7 +218,7 @@ const SVXUnifiedPlatform = () => {
       setHasExistingData(true);
       showAlert("CSV matrix successfully processed and saved to csv_new_raw", "success");
     } catch (err) {
-      console.error('[-] Error crítico en la persistencia cloud de Supabase:', err);
+      console.error('[-] Critical error in Supabase cloud persistence:', err);
       showAlert(err.message, "error");
     } finally {
       setIsProcessing(false);

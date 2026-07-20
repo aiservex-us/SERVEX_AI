@@ -105,7 +105,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed m-0">
-                    Hola, soy <strong>Alysa</strong>. Para garantizar la seguridad corporativa y trazabilidad de este módulo, necesito registrar algunos datos sobre tu acceso. ¿Comenzamos?
+                    Hola, soy <strong>Alysa</strong>. To ensure corporate security and traceability of this module, I need to register some data about your access. Shall we begin?
                   </p>
                 </div>
               </div>
@@ -115,7 +115,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 onClick={() => setChatStep(1)}
                 className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px"
               >
-                Comenzar
+                Start
               </button>
             </div>
           </motion.div>
@@ -129,7 +129,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
-                    ¡Perfecto! Para empezar, <strong>¿cuál es tu nombre y apellido?</strong>
+                    Perfect! To start, <strong>¿cuál es tu nombre y apellido?</strong>
                   </p>
                   <div className="relative group">
                     <input 
@@ -175,7 +175,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                       onChange={e => setCargo(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && cargo.trim() && setChatStep(3)}
                       className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
-                      placeholder="Ej. Analista de Datos..." 
+                      placeholder="E.g., Data Analyst..." 
                     />
                   </div>
                 </div>
@@ -211,7 +211,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                       onChange={e => setDelegadoPor(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && delegadoPor.trim() && setChatStep(4)}
                       className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
-                      placeholder="Nombre de la autoridad..." 
+                      placeholder="Name of the authority..." 
                     />
                   </div>
                 </div>
@@ -275,7 +275,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px flex items-center disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 {isSubmitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                {isSubmitting ? 'Registrando...' : 'Finalizar y Acceder'}
+                {isSubmitting ? 'Registering...' : 'Finalizar y Acceder'}
               </button>
             </div>
           </motion.form>
@@ -290,7 +290,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
     setErrorMsg('');
 
     if (!nombre.trim() || !cargo.trim() || !delegadoPor.trim()) {
-      setErrorMsg('Por favor llena los campos obligatorios (Nombre, Cargo y Quién Delega).');
+      setErrorMsg('Please fill in the required fields (Name, Role, and Delegated By).');
       return;
     }
 
@@ -317,7 +317,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
         setLockStatus('unlocked');
       }
     } catch (e) {
-      setErrorMsg('Error al registrar delegación. Intenta nuevamente.');
+      setErrorMsg('Error registering delegation. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -327,7 +327,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
     return (
       <div className="min-h-screen bg-[#FFF] flex flex-col items-center justify-center">
         <Loader2 className="animate-spin text-[#464775] mb-4" size={48} />
-        <p className="text-[#464775] font-medium animate-pulse">Validando acceso corporativo...</p>
+        <p className="text-[#464775] font-medium animate-pulse">Validating corporate access...</p>
       </div>
     );
   }
@@ -384,9 +384,9 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
 
             <div className="relative z-10 text-[#2B2C4B]">
               <div className="text-4xl font-bold mb-4 text-[#464775]"><Lock size={40} /></div>
-              <p className="text-sm opacity-80 mb-2 font-medium">Module en Uso</p>
+              <p className="text-sm opacity-80 mb-2 font-medium">Module in Use</p>
               <h2 className="text-2xl font-semibold leading-snug">
-                El acceso a {moduleName} está restringido temporalmente para evitar colisiones.
+                Access to {moduleName} is temporarily restricted to prevent collisions.
               </h2>
             </div>
           </div>
@@ -402,7 +402,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
                 Acceso Restringido
               </h1>
               <p className="text-sm text-gray-500 mb-8 text-center leading-relaxed">
-                Este módulo está actualmente delegado y en uso exclusivo por otro user.
+                This module is currently delegated and in exclusive use by another user.
               </p>
 
               <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 mb-8 text-center">
@@ -477,9 +477,9 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
 
             <div className="relative z-10 text-[#2B2C4B]">
               <div className="text-4xl font-bold mb-4 text-[#464775]"><Shield size={40} /></div>
-              <p className="text-sm opacity-80 mb-2 font-medium">Registro de Delegación</p>
+              <p className="text-sm opacity-80 mb-2 font-medium">Delegation Registry</p>
               <h2 className="text-2xl font-semibold leading-snug">
-                El módulo {moduleName} requiere un registro formal para garantizar trazabilidad durante el procesamiento.
+                The module {moduleName} requires a formal registry to guarantee traceability during processing.
               </h2>
             </div>
           </div>

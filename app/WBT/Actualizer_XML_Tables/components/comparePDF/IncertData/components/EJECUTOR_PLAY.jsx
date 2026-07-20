@@ -82,7 +82,7 @@ const EJECUTOR_PLAY = ({
       }
   
       const result = await response.json();
-      console.log('[✓] Respuesta de SERVEX_AI Engine (WBT):', result);
+      console.log('[✓] SERVEX_AI Engine Response (WBT):', result);
   
     } catch (err) {
       console.error(`Secondary Process halted: ${err.message}`);

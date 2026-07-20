@@ -161,7 +161,7 @@ const LesroSyncCopilot = () => {
             <div className="bg-white rounded-sm p-0.5">
               <img src="/logo2.png" alt="SVX" className="h-3.5 w-auto" />
             </div>
-            <span className="text-[12px] font-bold tracking-tight">SVX Copilot</span>
+            <span className="text-[12px] font-bold tracking-tight">Servex Copilot</span>
           </div>
 
           <nav className="flex items-center h-full">

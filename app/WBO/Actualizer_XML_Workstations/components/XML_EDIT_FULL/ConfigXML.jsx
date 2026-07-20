@@ -79,7 +79,7 @@ const ConfigXML = ({ externalSearchSKU }) => {
         return config.basePrice + Object.values(config.selections).reduce((a, b) => a + b.price, 0);
     };
 
-    if (loadingXML) return <div className="p-10 text-[10px] font-bold text-[#464775]">CARGANDO PIM...</div>;
+    if (loadingXML) return <div className="p-10 text-[10px] font-bold text-[#464775]">LOADING PIM...</div>;
 
     return (
         <div className="flex-grow h-full bg-[#F9F9F9] flex flex-col shadow-2xl overflow-hidden">

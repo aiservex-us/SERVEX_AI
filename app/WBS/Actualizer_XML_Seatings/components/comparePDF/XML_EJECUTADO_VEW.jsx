@@ -37,7 +37,7 @@ const IndependentLESROVisualizer = () => {
       <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#464775] mb-4">
         <Database size={40} />
       </motion.div>
-      <p className="text-slate-600 font-bold">Iniciando Auditoría de Precios Lesro...</p>
+      <p className="text-slate-600 font-bold">Starting Lesro Price Audit...</p>
     </div>
   );
 

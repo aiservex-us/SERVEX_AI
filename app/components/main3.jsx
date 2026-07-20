@@ -11,7 +11,7 @@ export default function TutorialBanner() {
           <div className="relative w-[420px] h-[420px] md:w-[480px] md:h-[480px]">
             <Image
               src="/ball.gif" // aquí va la esfera
-              alt="SVX Copilot Core"
+              alt="Servex Copilot Core"
               fill
               className="object-contain "
               priority
@@ -36,11 +36,11 @@ export default function TutorialBanner() {
             </span>
 
             <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900">
-              SVX Copilot
+              Servex Copilot
             </h2>
 
             <p className="mt-4 text-sm text-gray-500 max-w-sm">
-              SVX Copilot is the unified artificial intelligence that acts as the
+              Servex Copilot is the unified artificial intelligence that acts as the
               brain of the SERVEX ecosystem, coordinating data, processes, and
               automation from a single core.
             </p>

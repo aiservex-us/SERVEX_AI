@@ -185,7 +185,7 @@ const InitPage = () => {
                       <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-white rounded-full animate-pulse" />
                     </div>
                     <div className="flex flex-col items-start text-left flex-1">
-                      <span className="text-[13px] font-bold text-gray-800 leading-none">SVX Copilot</span>
+                      <span className="text-[13px] font-bold text-gray-800 leading-none">Servex Copilot</span>
                       <span className="text-[11px] text-gray-500 font-medium mt-1 truncate">Online · Chat with Alysa</span>
                     </div>
                   </button>

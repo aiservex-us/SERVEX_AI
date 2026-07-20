@@ -91,15 +91,15 @@ const HeroSection = () => {
       {/* 3. CONTENIDO PRINCIPAL */}
       <div className="relative z-20 max-w-[100vw] mx-auto w-full">
         
-        {/* Título Principal - Enfocado en Svx Copilot & Command */}
+        {/* Título Principal - Enfocado en Servex Copilot & Command */}
         <h1 className="text-4xl md:text-[300%] font-light text-[#1a1a1a] leading-[1.1] tracking-tighter max-w-3xl">
           <span className="font-bold">Next-Gen Orchestration:</span> <br />
-          SVX Copilot & Command Engine.
+          Servex Copilot & Command Engine.
         </h1>
 
         {/* Texto Descriptivo - Ajustado a la funcionalidad de XML y Catalog Creator */}
         <p className="text-s md:text-base lg:text-lg font-light text-gray-500 mb-12 max-w-xl md:max-w-2xl leading-relaxed">
-          Automate the complexity of <span className="text-black font-normal">Catalog Creator XML architectures</span>. Our SVX Copilot delivers an ultra-sophisticated audit engine that synchronizes data pipelines directly into Configura’s ecosystem, replacing manual legacy workflows with <span className="text-black font-normal">intelligent PIM orchestration and automated XML schema validation.</span>
+          Automate the complexity of <span className="text-black font-normal">Catalog Creator XML architectures</span>. Our Servex Copilot delivers an ultra-sophisticated audit engine that synchronizes data pipelines directly into Configura’s ecosystem, replacing manual legacy workflows with <span className="text-black font-normal">intelligent PIM orchestration and automated XML schema validation.</span>
         </p> 
 
         {/* Footer del Hero */}
