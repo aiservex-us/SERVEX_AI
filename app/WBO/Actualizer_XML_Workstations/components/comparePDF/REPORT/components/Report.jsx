@@ -76,11 +76,12 @@ export default function AuditReportViewer() {
       <div className="w-full max-w-[90vw] mx-auto">
         
         {/* Header Principal */}
-        <div className="mb-6 rounded-lg p-10 border border-[#222222] bg-[#0A0A0A] flex flex-col items-center justify-center text-center shadow-lg">
-           <h1 className="text-2xl font-light text-[#E0E0E0] tracking-wide">
-            Development Analysis Center: <span className="font-normal text-white">{reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}</span>
+        <div className="mb-6 rounded-lg p-10 border border-[#464775]/20 bg-gradient-to-tr from-white/90 via-white/80 to-[#464775]/5 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_2px_15px_rgba(70,71,117,0.05)] relative overflow-hidden">
+           <div className="absolute top-[-50%] right-[-10%] w-[40%] h-[200%] rotate-[15deg] bg-gradient-to-b from-[#464775]/5 to-transparent pointer-events-none" />
+           <h1 className="text-2xl font-light text-[#242424] tracking-wide relative z-10">
+            Development Analysis Center: <span className="font-normal text-[#464775]">{reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}</span>
            </h1>
-           <p className="text-xs text-[#888888] mt-3 font-light tracking-[0.15em] uppercase">
+           <p className="text-xs text-[#616161] mt-3 font-light tracking-[0.15em] uppercase relative z-10">
              {metadataRaw?.title || 'Monitoring of catalog synchronization and positional reconciliation.'}
            </p>
         </div>
