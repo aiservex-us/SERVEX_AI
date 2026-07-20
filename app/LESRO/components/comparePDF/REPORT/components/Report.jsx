@@ -172,6 +172,40 @@ export default function AuditReportViewer() {
 
 
 
+        {/* Data Map / Information Section */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+          <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+             <div className="flex items-center gap-2 text-[#464775]">
+                <Zap size={16} />
+                <h3 className="font-semibold text-[13px] tracking-tight">List Price Variations</h3>
+             </div>
+             <p className="text-[11.5px] text-slate-500 leading-relaxed font-light">
+               Monitors all direct changes to the base list price of each SKU. Essential for tracking baseline profitability and primary cost updates.
+             </p>
+          </div>
+          <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-teal-500/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+             <div className="flex items-center gap-2 text-teal-600">
+                <Database size={16} />
+                <h3 className="font-semibold text-[13px] tracking-tight">Option Price Variations</h3>
+             </div>
+             <p className="text-[11.5px] text-slate-500 leading-relaxed font-light">
+               Tracks modifications in secondary pricing matrices, finishes, and optional upgrades that affect the complex pricing structure.
+             </p>
+          </div>
+          <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+             <div className="flex items-center gap-2 text-amber-600">
+                <Activity size={16} />
+                <h3 className="font-semibold text-[13px] tracking-tight">Additions & Deletions</h3>
+             </div>
+             <p className="text-[11.5px] text-slate-500 leading-relaxed font-light">
+               Identifies newly introduced models and discontinued items from the catalog. Maps structural expansions or reductions in the product line.
+             </p>
+          </div>
+        </div>
+
               <div className="flex flex-col gap-6 w-full">
 
         {/* Contenido: Module 1 - Variaciones de List Prices */}
