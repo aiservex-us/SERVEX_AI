@@ -44,22 +44,13 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
       
       setCurrentUser(user);
 
-      const { data, error } = await supabase
-        .from('ClientsSERVEX')
-        .select('user_id, user_personal_data')
-        .eq('company_name', 'LESRO')
-        .single();
-        
-      if (error || !data) {
-        console.error("No LESRO config found");
-        setLockStatus('unlocked');
-        setLoading(false);
-        return;
-      }
+      const res = await fetch(`${apiURL}/api/v1/module_delegation/${moduleName}`);
+      const responseData = await res.json();
 
-      if (!data.user_personal_data) {
+      if (!responseData.locked) {
         setLockStatus('no_delegation');
-      } else {
+      } else if (responseData.data) {
+        const data = responseData.data;
         if (data.user_id === user?.id) {
           if (redirectUrl) {
             router.push(redirectUrl);
@@ -68,7 +59,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
           }
         } else {
           try {
-            const parsedData = typeof data.user_personal_data === 'string' ? JSON.parse(data.user_personal_data) : data.user_personal_data;
+            const parsedData = typeof data.delegation_data === 'string' ? JSON.parse(data.delegation_data) : data.delegation_data;
             setOwnerInfo(parsedData);
           } catch (e) {
             setOwnerInfo({ nombre: "User Desconocido", cargo: "Operador" });
@@ -310,15 +301,12 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
     };
 
     try {
-      const { error } = await supabase
-        .from('ClientsSERVEX')
-        .update({
-          user_id: currentUser?.id,
-          user_personal_data: JSON.stringify(delegationData)
-        })
-        .eq('company_name', 'LESRO');
-        
-      if (error) throw error;
+      const res = await fetch(`${apiURL}/api/v1/module_delegation/${moduleName}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: currentUser?.id, delegation_data: delegationData })
+      });
+      if (!res.ok) throw new Error("Error API");
 
       if (redirectUrl) {
         router.push(redirectUrl);

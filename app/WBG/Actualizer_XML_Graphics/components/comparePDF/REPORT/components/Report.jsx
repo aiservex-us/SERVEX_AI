@@ -279,7 +279,7 @@ export default function AuditReportViewer() {
 
           {/* Footer del Panel */}
           <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border border-[#E0E0E0] rounded-md text-[10px] font-semibold text-[#616161] flex justify-between items-center shadow-sm mt-2">
-            <span>TOTAL CAMBIOS INYECTADOS EN PASO ACTUAL: {changesP.length}</span>
+            <span>TOTAL CHANGES INJECTED IN CURRENT STEP: {changesP.length}</span>
             <span className="uppercase text-[#5B5FC7] font-bold tracking-wider">
               {reportDataP?.pipeline_metadata?.company_processed || activeRecord?.company_name || 'SERVEX US'}
             </span>
