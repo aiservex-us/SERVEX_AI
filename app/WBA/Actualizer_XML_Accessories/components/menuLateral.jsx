@@ -161,23 +161,21 @@ export default function MenuLateral({
                     <Icon size={collapsed ? 15 : 17} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
                   
-                  {!collapsed && (
-                    <div className="flex flex-col items-start overflow-hidden text-left w-full">
-                      <span className={`text-[9px] uppercase tracking-wider leading-none ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'}`}>
-                        {item.label}
+                  <div className={`flex flex-col items-start overflow-hidden text-left transition-all duration-[400ms] ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[160px] opacity-100 w-full'}`}>
+                    <span className={`text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-opacity duration-500 delay-100 ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
+                      {item.label}
+                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[8px] text-slate-400 font-medium uppercase tracking-tighter whitespace-nowrap transition-opacity duration-500 delay-150 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
+                        {item.sub}
                       </span>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[8px] text-slate-400 font-medium uppercase tracking-tighter">
-                          {item.sub}
+                      {item.id === 'incert_delete' && (
+                        <span className={`min-[400px]:hidden text-[8px] text-red-500/80 font-bold uppercase tracking-tighter bg-red-50 px-1.5 py-0.5 rounded-full border border-red-100 whitespace-nowrap transition-opacity duration-500 delay-200 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
+                          Desktop Only
                         </span>
-                        {item.id === 'incert_delete' && (
-                          <span className="min-[400px]:hidden text-[8px] text-red-500/80 font-bold uppercase tracking-tighter bg-red-50 px-1.5 py-0.5 rounded-full border border-red-100">
-                            Desktop Only
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               </button>
             );
