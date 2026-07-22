@@ -99,8 +99,8 @@ export default function AuditReportViewer() {
              </p>
           </div>
           <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-teal-500/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-             <div className="flex items-center gap-2 text-teal-600">
+             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+             <div className="flex items-center gap-2 text-[#464775]">
                 <Database size={16} />
                 <h3 className="font-semibold text-[13px] tracking-tight">Option Price Variations</h3>
              </div>
@@ -109,8 +109,8 @@ export default function AuditReportViewer() {
              </p>
           </div>
           <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-             <div className="flex items-center gap-2 text-amber-600">
+             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+             <div className="flex items-center gap-2 text-[#464775]">
                 <Activity size={16} />
                 <h3 className="font-semibold text-[13px] tracking-tight">Additions & Deletions</h3>
              </div>
@@ -189,7 +189,7 @@ export default function AuditReportViewer() {
           {/* Contenido: Module 1.5 - Variaciones de Opciones */}
           <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
             <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
-              <Zap size={16} className="text-amber-500" />
+              <Zap size={16} className="text-[#5B5FC7]" />
               <h2 className="text-sm font-bold text-[#242424]">Option Price Variations ({filteredOptionPriceChanges.length})</h2>
             </div>
             <div className="w-full flex flex-col">
