@@ -154,30 +154,31 @@ const AgentInfo = () => {
 
         {/* Cuerpo del Reporte */}
         <div className="p-10 lg:p-16">
-          <div className="prose prose-slate max-w-none
+                    <div className="prose prose-slate max-w-none
             prose-headings:text-[#464775] prose-headings:font-bold
-            prose-h2:text-lg prose-h2:border-b prose-h2:border-[#F0F0F0] prose-h2:pb-3 prose-h2:mt-8
+            prose-h2:text-lg prose-h2:border-b prose-h2:border-[#464775]/10 prose-h2:pb-3 prose-h2:mt-8
             prose-h3:text-[13px] prose-h3:text-[#464775]/90
-            prose-p:text-[#424242] prose-p:leading-relaxed prose-p:text-[12px]
+            prose-p:text-[#464775]/80 prose-p:leading-relaxed prose-p:text-[12px]
             prose-strong:text-[#464775] prose-strong:font-bold
-            prose-li:text-[#424242]">
+            prose-li:text-[#464775]/80">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 table: ({node, ...props}) => (
-                  <div className="my-6 overflow-hidden rounded border border-[#EDEBE9]">
-                    <table className="min-w-full divide-y divide-[#EDEBE9]" {...props} />
+                  <div className="my-6 overflow-hidden rounded-xl border border-[#464775]/20 shadow-[0_4px_20px_-4px_rgba(70,71,117,0.1)] transition-shadow duration-300 hover:shadow-[0_8px_30px_-4px_rgba(70,71,117,0.15)]">
+                    <table className="min-w-full divide-y divide-[#464775]/10" {...props} />
                   </div>
                 ),
-                thead: ({node, ...props}) => <thead className="bg-[#F8F9FA]" {...props} />,
+                thead: ({node, ...props}) => <thead className="bg-gradient-to-r from-[#464775]/10 to-[#464775]/5 backdrop-blur-sm" {...props} />,
                 th: ({node, ...props}) => (
-                  <th className="px-5 py-3 text-left text-[10px] font-bold text-[#616161] uppercase tracking-wider" {...props} />
+                  <th className="px-5 py-4 text-left text-[11px] font-bold text-[#464775] uppercase tracking-widest border-b border-[#464775]/20" {...props} />
                 ),
+                tr: ({node, ...props}) => <tr className="hover:bg-[#464775]/[0.04] transition-all duration-300 group cursor-default" {...props} />,
                 td: ({node, ...props}) => (
-                  <td className="px-5 py-3 text-[11px] text-[#242424] border-t border-[#EDEBE9] transition-colors hover:bg-[#F9F9F9]" {...props} />
+                  <td className="px-5 py-3 text-[12px] text-[#464775]/80 border-t border-[#464775]/10 transition-colors group-hover:text-[#464775] group-hover:font-medium" {...props} />
                 ),
                 blockquote: ({node, ...props}) => (
-                  <div className="bg-[#FAF9F8] border-l-2 border-[#464775] px-5 py-4 my-6 text-[11px] italic text-[#484644]">
+                  <div className="bg-gradient-to-r from-[#464775]/10 to-transparent border-l-4 border-[#464775] px-5 py-4 my-6 text-[12px] italic text-[#464775]/90 rounded-r-lg">
                     {props.children}
                   </div>
                 )

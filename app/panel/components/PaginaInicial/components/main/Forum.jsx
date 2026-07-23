@@ -157,23 +157,24 @@ const Forum = () => {
   };
 
   // Renderizado Markdown minimalista y corporativo para muro tipo red social
-  const renderMarkdown = (content) => (
+    const renderMarkdown = (content) => (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
         h1: ({node, ...props}) => <h1 className="text-[1.1rem] font-bold text-[#464775] mb-2 mt-4 tracking-tight" {...props} />,
-        h2: ({node, ...props}) => <h2 className="text-sm font-bold text-[#464775] mb-2 mt-4" {...props} />,
-        h3: ({node, ...props}) => <h3 className="text-[13px] font-bold text-[#464775] mb-1 mt-3" {...props} />,
-        p: ({node, ...props}) => <p className="mb-3 text-[13px] text-slate-800 leading-relaxed" {...props} />,
-        ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-0.5 mb-3 text-[13px] text-slate-800" {...props} />,
+        h2: ({node, ...props}) => <h2 className="text-sm font-bold text-[#464775] mb-2 mt-4 border-b border-[#464775]/10 pb-2" {...props} />,
+        h3: ({node, ...props}) => <h3 className="text-[13px] font-bold text-[#464775]/90 mb-1 mt-3" {...props} />,
+        p: ({node, ...props}) => <p className="mb-3 text-[12px] text-[#464775]/80 leading-relaxed" {...props} />,
+        ul: ({node, ...props}) => <ul className="list-disc list-inside space-y-0.5 mb-3 text-[12px] text-[#464775]/80" {...props} />,
         table: ({node, ...props}) => (
-          <div className="w-full overflow-x-auto my-3 border border-gray-100 rounded-lg">
-            <table className="w-full text-left border-collapse text-[11px]" {...props} />
+          <div className="w-full overflow-x-auto my-4 border border-[#464775]/20 rounded-xl shadow-[0_4px_20px_-4px_rgba(70,71,117,0.1)] transition-shadow duration-300 hover:shadow-[0_8px_30px_-4px_rgba(70,71,117,0.15)]">
+            <table className="w-full text-left border-collapse text-[11px] divide-y divide-[#464775]/10" {...props} />
           </div>
         ),
-        thead: ({node, ...props}) => <thead className="bg-[#464775]/5 border-b border-gray-100 text-[#464775] uppercase tracking-wider font-bold text-[9px]" {...props} />,
-        th: ({node, ...props}) => <th className="px-3 py-2 whitespace-nowrap" {...props} />,
-        td: ({node, ...props}) => <td className="px-3 py-2 border-b border-gray-50 text-slate-800 last:border-0" {...props} />,
+        thead: ({node, ...props}) => <thead className="bg-gradient-to-r from-[#464775]/10 to-[#464775]/5 backdrop-blur-sm text-[#464775] uppercase tracking-widest font-bold text-[9px] border-b border-[#464775]/20" {...props} />,
+        th: ({node, ...props}) => <th className="px-4 py-3 whitespace-nowrap" {...props} />,
+        tr: ({node, ...props}) => <tr className="hover:bg-[#464775]/[0.04] transition-all duration-300 group cursor-default" {...props} />,
+        td: ({node, ...props}) => <td className="px-4 py-3 text-[#464775]/80 border-t border-[#464775]/10 transition-colors group-hover:text-[#464775] group-hover:font-medium last:border-0" {...props} />,
         strong: ({node, ...props}) => <strong className="font-bold text-[#464775]" {...props} />,
       }}
     >
