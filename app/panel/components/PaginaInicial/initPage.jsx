@@ -10,6 +10,7 @@ import Content from './components/main/Content';
 import Chart from './components/main/Chart';
 import DashboardRight from './components/main/Dashboard';
 import Forum from './components/main/Forum';
+import Profile from './components/main/Profile';
 
 // VISTAS ADICIONALES
 import Calendar from './components/menuEmpresas';
@@ -62,6 +63,13 @@ const InitPage = () => {
         return (
           <div key="foro" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Forum />
+          </div>
+        );
+
+      case 'profile':
+        return (
+          <div key="profile" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade h-[calc(100vh-100px)]">
+            <Profile />
           </div>
         );
 
