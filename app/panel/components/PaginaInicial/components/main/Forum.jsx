@@ -186,34 +186,21 @@ const Forum = () => {
     <div className="relative w-full h-full flex flex-col font-sans overflow-hidden bg-white">
       
       {/* HEADER NAVBAR (Minimalista) */}
-      <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-slate-900 rounded-md flex items-center justify-center">
-            <ShieldCheck className="w-4 h-4 text-white" />
-          </div>
-          <h1 className="text-[15px] font-bold text-slate-900 tracking-tight">Audit Network</h1>
-        </div>
-        
-        <div className="flex-1 max-w-lg mx-6 relative hidden md:block">
+      <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-center px-6 shrink-0 z-10 sticky top-0">
+        <div className="w-full max-w-2xl relative">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <Search className="h-3.5 w-3.5 text-slate-400" />
           </div>
           <input
             type="text"
-            className="block w-full pl-9 pr-3 py-1.5 bg-slate-100 border-none rounded-full text-[13px] focus:outline-none focus:ring-1 focus:ring-slate-300 transition-all text-slate-800 placeholder-slate-500"
+            className="block w-full pl-9 pr-8 py-1.5 bg-slate-100 border-none rounded-full text-[13px] focus:outline-none focus:ring-1 focus:ring-slate-300 transition-all text-slate-800 placeholder-slate-500"
             placeholder="Search feed..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button onClick={fetchAuditData} className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <button onClick={fetchAuditData} className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <div className="w-8 h-8 rounded-full bg-slate-900 ml-2 overflow-hidden flex items-center justify-center">
-             <span className="text-white text-[10px] font-bold">ME</span>
-          </div>
         </div>
       </header>
 
