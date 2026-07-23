@@ -478,10 +478,11 @@ export default function TeamsAgentChat({ currentSection }) {
         <AnimatePresence>
           {showSlashMenu && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white/80 backdrop-blur-md border border-white/60 rounded-xl shadow-xl z-50 overflow-hidden"
+              initial={{ opacity: 0, y: 20, scale: 0.95, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: 10, scale: 0.95, filter: 'blur(4px)' }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white border border-slate-200 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-50 overflow-hidden"
             >
               <div className="p-2">
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-1">
