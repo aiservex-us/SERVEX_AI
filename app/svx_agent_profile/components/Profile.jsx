@@ -1,7 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/app/lib/supabaseClient';
 import { Mail, Phone, MapPin, Calendar, Briefcase, Award, ShieldCheck, Camera, Edit3 } from 'lucide-react';
 
+
 export default function Profile() {
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('AI_Users')
+          .select('user_personal_data')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (data && data.user_personal_data) {
+          setProfileData(data.user_personal_data);
+        }
+      }
+      setLoading(false);
+    };
+    fetchProfile();
+  }, []);
+
+  const nombre = profileData?.nombre || "System Administrator";
+  const cargo = profileData?.cargo || "Administrador General";
+  const iniciales = nombre.substring(0, 2).toUpperCase();
+  const funcion = profileData?.funcion || "Liderazgo de estrategias tecnológicas y gestión de sistemas de IA dentro de la plataforma.";
+  const delegadoPor = profileData?.delegado_por || "No especificado";
+
+
   return (
     <div className="w-full h-full bg-[#F8F9FA] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
       
@@ -21,7 +52,7 @@ export default function Profile() {
           <div className="relative group">
             <div className="w-32 h-32 sm:w-40 sm:h-40 bg-white rounded-full p-1.5 shadow-xl shrink-0">
               <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden relative">
-                <span className="text-white text-4xl font-bold">ME</span>
+                <span className="text-white text-4xl font-bold">{iniciales}</span>
                 {/* Hover overlay for avatar */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
                   <Camera className="text-white" size={24} />
@@ -36,7 +67,7 @@ export default function Profile() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                  System Administrator
+                  {nombre}
                   <ShieldCheck className="text-[#464775] fill-indigo-100" size={24} />
                 </h1>
                 <p className="text-slate-500 font-medium">Head of Data Engineering & Audits</p>

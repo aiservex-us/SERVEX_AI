@@ -4,6 +4,8 @@ import { useEffect } from 'react'; // Importante añadir useEffect
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient'; // Usamos el cliente estándar (Azure)
 import PanelMenur from './components/PaginaInicial/initPage';
+import GlobalOnboarding from './components/GlobalOnboarding';
+
 
 export default function PanelPage() {
   const router = useRouter();
@@ -39,7 +41,9 @@ export default function PanelPage() {
           {/* Contenedor del Menú */}
           <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
             <div className="p-1 w-full h-full">
-              <PanelMenur />
+              <GlobalOnboarding>
+                <PanelMenur />
+              </GlobalOnboarding>
             </div>
           </div>
         </div>
