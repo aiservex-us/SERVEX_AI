@@ -1,24 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { Mail, Phone, MapPin, Calendar, Briefcase, Award, ShieldCheck, Camera, Edit3 } from 'lucide-react';
+import ProfileCompletionModal from './ProfileCompletionModal';
+
 
 
 export default function Profile() {
   const [profileData, setProfileData] = useState(null);
+  const [completeData, setCompleteData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [needsCompletion, setNeedsCompletion] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setCurrentUser(user);
         const { data, error } = await supabase
           .from('AI_Users')
-          .select('user_personal_data')
+          .select('user_personal_data, user_personal_data_complete')
           .eq('user_id', user.id)
           .single();
         
-        if (data && data.user_personal_data) {
-          setProfileData(data.user_personal_data);
+        if (data) {
+          if (data.user_personal_data) {
+            setProfileData(data.user_personal_data);
+          }
+          if (data.user_personal_data_complete) {
+            setCompleteData(data.user_personal_data_complete);
+          } else {
+            setNeedsCompletion(true);
+          }
+        } else {
+          // If no data row exists at all in AI_Users, theoretically the global onboarding handles it.
+          // But if they bypassed it somehow, we still show completion.
+          setNeedsCompletion(true);
         }
       }
       setLoading(false);
@@ -26,14 +43,28 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
+  const handleComplete = (data) => {
+    setCompleteData(data);
+    setNeedsCompletion(false);
+  };
+
+
   const nombre = profileData?.nombre || "System Administrator";
   const cargo = profileData?.cargo || "Administrador General";
   const iniciales = nombre.substring(0, 2).toUpperCase();
-  const funcion = profileData?.funcion || "Liderazgo de estrategias tecnológicas y gestión de sistemas de IA dentro de la plataforma.";
-  const delegadoPor = profileData?.delegado_por || "No especificado";
+  // We use descripcion from completeData if available, fallback to funcion from onboarding
+  const funcion = completeData?.descripcion || profileData?.funcion || "Liderazgo de estrategias tecnológicas y gestión de sistemas de IA dentro de la plataforma.";
+  const telefono = completeData?.telefono || "{telefono}";
+  const ubicacion = completeData?.ubicacion || "Grand Rapids, MI";
+  const fotoBase64 = completeData?.fotoBase64 || null;
+
 
 
   return (
+    <>
+    {needsCompletion && currentUser && (
+      <ProfileCompletionModal currentUser={currentUser} onComplete={handleComplete} />
+    )}
     <div className="w-full h-full bg-[#F8F9FA] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
       
       {/* HEADER / PORTADA */}
@@ -52,7 +83,11 @@ export default function Profile() {
           <div className="relative group">
             <div className="w-32 h-32 sm:w-40 sm:h-40 bg-white rounded-full p-1.5 shadow-xl shrink-0">
               <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden relative">
-                <span className="text-white text-4xl font-bold">{iniciales}</span>
+                {fotoBase64 ? (
+                  <img src={fotoBase64} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white text-4xl font-bold">{iniciales}</span>
+                )}
                 {/* Hover overlay for avatar */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
                   <Camera className="text-white" size={24} />
@@ -70,7 +105,7 @@ export default function Profile() {
                   {nombre}
                   <ShieldCheck className="text-[#464775] fill-indigo-100" size={24} />
                 </h1>
-                <p className="text-slate-500 font-medium">Head of Data Engineering & Audits</p>
+                <p className="text-slate-500 font-medium">{cargo}</p>
               </div>
               <div className="flex gap-3">
                 <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm flex items-center gap-2">
@@ -92,7 +127,7 @@ export default function Profile() {
             <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
               <h2 className="text-[15px] font-bold text-[#464775] mb-4">About Me</h2>
               <p className="text-[13px] text-slate-600 leading-relaxed">
-                Lead system administrator overseeing the catalog data pipelines, AI integrations, and cloud infrastructure for Servex US. Focused on ensuring 100% data integrity across all catalog XML parsers and maintaining the automated Copilot ecosystem.
+                {funcion}
               </p>
             </div>
 
@@ -106,7 +141,7 @@ export default function Profile() {
                   </div>
                   <div>
                     <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Email</p>
-                    <p className="text-[13px] text-slate-800 font-medium">admin@servex-us.com</p>
+                    <p className="text-[13px] text-slate-800 font-medium">{currentUser?.email || 'admin@servex-us.com'}</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -115,7 +150,7 @@ export default function Profile() {
                   </div>
                   <div>
                     <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Phone</p>
-                    <p className="text-[13px] text-slate-800 font-medium">+1 (555) 123-4567</p>
+                    <p className="text-[13px] text-slate-800 font-medium">{telefono}</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -124,7 +159,7 @@ export default function Profile() {
                   </div>
                   <div>
                     <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Location</p>
-                    <p className="text-[13px] text-slate-800 font-medium">Grand Rapids, MI</p>
+                    <p className="text-[13px] text-slate-800 font-medium">{ubicacion}</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -207,5 +242,6 @@ export default function Profile() {
         </div>
       </div>
     </div>
+    </>
   );
 }
