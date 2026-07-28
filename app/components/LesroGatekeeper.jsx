@@ -55,7 +55,10 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
           .eq('user_id', user.id)
           .limit(1);
 
-        if (aiUsersData && aiUsersData.length > 0 && aiUsersData[0].user_personal_data) {
+        if (aiError) {
+          console.warn("⚠️ Error fetching from AI_Users (Table might not exist):", aiError.message);
+          // Fall through to show the form
+        } else if (aiUsersData && aiUsersData.length > 0 && aiUsersData[0].user_personal_data) {
           // Ya existe información centralizada. Procedemos a "auto-delegar" este módulo en silencio.
           const globalData = aiUsersData[0].user_personal_data;
           

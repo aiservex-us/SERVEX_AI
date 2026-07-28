@@ -56,7 +56,10 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
           .eq('user_id', user.id)
           .limit(1);
 
-        if (aiUsersData && aiUsersData.length > 0 && aiUsersData[0].user_personal_data) {
+        if (aiError) {
+          console.warn("⚠️ Error fetching from AI_Users (Table might not exist):", aiError.message);
+          // Fall through to show the form
+        } else if (aiUsersData && aiUsersData.length > 0 && aiUsersData[0].user_personal_data) {
           // Ya existe información centralizada. Procedemos a "auto-delegar" este módulo en silencio.
           const globalData = aiUsersData[0].user_personal_data;
           
@@ -100,8 +103,9 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
       }
     } catch (error) {
       console.error("Error checking module delegation:", error);
-      // Por defecto en caso de error, permitimos el acceso para no bloquear la app
-      setLockStatus('unlocked');
+      // 🔥 FIX: No desbloquear el módulo si hay un error crítico (como tabla inexistente). 
+      // En su lugar, mostrar el formulario para registrar al usuario.
+      setLockStatus('no_delegation');
     }
     setLoading(false);
   };
