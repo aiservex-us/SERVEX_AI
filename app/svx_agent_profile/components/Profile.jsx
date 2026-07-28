@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/app/lib/supabaseClient';
-import { Mail, Phone, MapPin, Calendar, Briefcase, Award, ShieldCheck, Camera, Edit3, Image as ImageIcon, Send, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Briefcase, Award, ShieldCheck, Camera, Edit3, Image as ImageIcon, Send, MessageSquare, TrendingUp, Zap, CheckCircle, Activity, Share2 } from 'lucide-react';
 
 
 
@@ -18,8 +18,17 @@ export default function Profile() {
   const [isPosting, setIsPosting] = useState(false);
   const fileInputRef = useRef(null);
 
-
-
+  // Profile Edit States
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    nombre: '',
+    cargo: '',
+    funcion: '',
+    delegado_por: '',
+    telefono: '',
+    ubicacion: '',
+    fotoBase64: ''
+  });
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -101,6 +110,52 @@ export default function Profile() {
     }
 
     setIsPosting(false);
+    setIsPosting(false);
+  };
+
+  const handleSaveProfile = async () => {
+    setIsPosting(true);
+    const delegationData = {
+      ...profileData,
+      nombre: editForm.nombre,
+      cargo: editForm.cargo,
+      funcion: editForm.funcion,
+      delegado_por: editForm.delegado_por,
+    };
+    const newCompleteData = {
+      ...completeData,
+      fotoBase64: editForm.fotoBase64,
+      descripcion: editForm.funcion,
+      telefono: editForm.telefono,
+      ubicacion: editForm.ubicacion,
+    };
+
+    const { error } = await supabase.from('AI_Users').update({
+      user_personal_data: delegationData,
+      user_personal_data_complete: newCompleteData
+    }).eq('user_id', currentUser.id);
+
+    if (!error) {
+      setProfileData(delegationData);
+      setCompleteData(newCompleteData);
+      setIsEditing(false);
+    } else {
+      console.error("Error updating profile:", error);
+    }
+    setIsPosting(false);
+  };
+
+  const openEditModal = () => {
+    setEditForm({
+      nombre: profileData?.nombre || '',
+      cargo: profileData?.cargo || '',
+      funcion: completeData?.descripcion || profileData?.funcion || '',
+      delegado_por: profileData?.delegado_por || '',
+      telefono: completeData?.telefono || '',
+      ubicacion: completeData?.ubicacion || '',
+      fotoBase64: completeData?.fotoBase64 || ''
+    });
+    setIsEditing(true);
   };
 
   const nombre = profileData?.nombre || "System Administrator";
@@ -142,7 +197,7 @@ export default function Profile() {
 
         {/* LOGO CENTERED */}
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          <img src="/logo.png" alt="Servex Logo" className="h-16 sm:h-20 object-contain drop-shadow-xl opacity-90" />
+          <img src="/logo.png" alt="Servex Logo" className="h-8 sm:h-10 object-contain drop-shadow-xl opacity-90" />
         </div>
 
         {/* Cover Edit Button */}
@@ -182,7 +237,7 @@ export default function Profile() {
                 <p className="text-slate-500 font-medium">{cargo}</p>
               </div>
               <div className="flex gap-3">
-                <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm flex items-center gap-2">
+                <button onClick={openEditModal} className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm flex items-center gap-2">
                   <Edit3 size={16} />
                   Edit Profile
                 </button>
@@ -251,6 +306,79 @@ export default function Profile() {
 
           {/* RIGHT COLUMN - ACTIVITY & FORUM */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* COMMUNITY WELCOME CARD (TEAMS STYLE) */}
+            <div className="bg-white rounded p-5 border border-[#EDEBE9] shadow-sm flex items-start gap-4">
+               <div className="w-10 h-10 rounded bg-[#F3F2F1] flex items-center justify-center shrink-0">
+                 <MessageSquare className="text-[#464775]" size={20} />
+               </div>
+               <div>
+                 <h2 className="text-[14px] font-semibold text-[#242424] mb-1">Centro de Colaboración</h2>
+                 <p className="text-[13px] text-[#616161] max-w-2xl leading-relaxed">
+                   Este espacio está diseñado para compartir información de soporte, sugerencias, herramientas y aportar al equipo. Crea publicaciones y mantente al tanto del estado y resultados de los módulos en tiempo real.
+                 </p>
+               </div>
+            </div>
+
+            {/* ANALYTICS CARD (TEAMS STYLE) */}
+            <div className="bg-white rounded p-6 border border-[#EDEBE9] shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center shrink-0">
+                    <Activity className="text-white" size={16} />
+                  </div>
+                  <div>
+                    <h4 className="text-[14px] font-semibold text-[#242424]">Servex Copilot · Backend Optimization Analytics</h4>
+                    <p className="text-[12px] text-[#616161]">Real-time performance metrics of XML catalog synchronization workflows.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-5">
+                {['Cleansing', 'Comparison', 'Restructuring', 'Updating', 'Configuration', 'Matrix Comparison'].map(tag => (
+                  <span key={tag} className="px-2.5 py-1 rounded-full bg-[#F3F2F1] text-[#242424] text-[11px] font-medium border border-[#E1DFDD]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <div className="bg-[#F8F8F8] rounded p-4 border-l-4 border-[#464775] mb-5">
+                <p className="text-[13px] text-[#242424] leading-relaxed">
+                  "Deep matrix analysis comparing thousands of legacy pricing nodes against incoming data to detect precise variations."
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-white p-3 border border-[#EDEBE9] rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="text-[#464775]" size={14} />
+                    <p className="text-[11px] text-[#616161] font-semibold">Time Saved</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#242424]">99.94%</p>
+                </div>
+                <div className="bg-white p-3 border border-[#EDEBE9] rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="text-[#616161]" size={14} />
+                    <p className="text-[11px] text-[#616161] font-semibold">Manual Workflow</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#242424]">80 Hrs</p>
+                </div>
+                <div className="bg-[#F3F2F1] p-3 border border-[#EDEBE9] rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="text-[#464775]" size={14} />
+                    <p className="text-[11px] text-[#464775] font-semibold">Servex Copilot</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#464775]">2.5 Min</p>
+                </div>
+                <div className="bg-white p-3 border border-[#EDEBE9] rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle className="text-[#107C41]" size={14} />
+                    <p className="text-[11px] text-[#616161] font-semibold">Accuracy Rate</p>
+                  </div>
+                  <p className="text-2xl font-bold text-[#242424]">99.9%</p>
+                </div>
+              </div>
+            </div>
 
             {/* CREATE POST CARD */}
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
@@ -380,6 +508,84 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* EDIT PROFILE MODAL */}
+      {isEditing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-bold text-slate-800">Edit Profile</h2>
+              <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-5">
+               {/* Photo */}
+               <div className="flex flex-col items-center gap-3">
+                 <div className="w-24 h-24 rounded-full bg-slate-200 overflow-hidden relative group shadow-inner">
+                   {editForm.fotoBase64 ? (
+                     <img src={editForm.fotoBase64} alt="Avatar" className="w-full h-full object-cover" />
+                   ) : (
+                     <div className="w-full h-full flex items-center justify-center text-slate-400">
+                       <Camera size={32} />
+                     </div>
+                   )}
+                   <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
+                     <Camera size={24} className="text-white" />
+                     <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                       const file = e.target.files[0];
+                       if (file) {
+                         const reader = new FileReader();
+                         reader.onloadend = () => setEditForm(prev => ({...prev, fotoBase64: reader.result}));
+                         reader.readAsDataURL(file);
+                       }
+                     }} />
+                   </label>
+                 </div>
+                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Profile Photo</span>
+               </div>
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                 <div>
+                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nombre Completo</label>
+                   <input type="text" value={editForm.nombre} onChange={e => setEditForm({...editForm, nombre: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                 </div>
+                 <div>
+                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Cargo</label>
+                   <input type="text" value={editForm.cargo} onChange={e => setEditForm({...editForm, cargo: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                 </div>
+                 <div>
+                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Teléfono</label>
+                   <input type="text" value={editForm.telefono} onChange={e => setEditForm({...editForm, telefono: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                 </div>
+                 <div>
+                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Ubicación</label>
+                   <input type="text" value={editForm.ubicacion} onChange={e => setEditForm({...editForm, ubicacion: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                 </div>
+                 <div className="sm:col-span-2">
+                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Delegado Por</label>
+                   <input type="text" value={editForm.delegado_por} onChange={e => setEditForm({...editForm, delegado_por: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                 </div>
+                 <div className="sm:col-span-2">
+                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Acerca de / Función Principal</label>
+                   <textarea rows={3} value={editForm.funcion} onChange={e => setEditForm({...editForm, funcion: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] resize-none transition-shadow bg-slate-50 focus:bg-white"></textarea>
+                 </div>
+               </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+               <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+                 Cancelar
+               </button>
+               <button onClick={handleSaveProfile} disabled={isPosting} className="px-5 py-2 text-sm font-medium text-white bg-[#464775] rounded-lg hover:bg-[#35365e] transition-colors disabled:opacity-50 shadow-sm flex items-center gap-2">
+                 {isPosting ? 'Guardando...' : 'Guardar Cambios'}
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
 
   );
