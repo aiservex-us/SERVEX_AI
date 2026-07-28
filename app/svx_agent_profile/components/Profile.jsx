@@ -8,6 +8,7 @@ export default function Profile() {
   const [profileData, setProfileData] = useState(null);
   const [completeData, setCompleteData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
   
   
 
@@ -15,7 +16,7 @@ export default function Profile() {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        
+        setCurrentUser(user);
         const { data, error } = await supabase
           .from('AI_Users')
           .select('user_personal_data, user_personal_data_complete')
