@@ -10,15 +10,15 @@ export default function Profile() {
   const [completeData, setCompleteData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  
+
   // Social Wall States
   const [posts, setPosts] = useState([]);
   const [newPostText, setNewPostText] = useState('');
   const [newPostImageBase64, setNewPostImageBase64] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const fileInputRef = useRef(null);
-  
-  
+
+
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -30,7 +30,7 @@ export default function Profile() {
           .select('user_personal_data, user_personal_data_complete, publication')
           .eq('user_id', user.id)
           .single();
-        
+
         if (data) {
           if (data.user_personal_data) {
             setProfileData(data.user_personal_data);
@@ -51,7 +51,7 @@ export default function Profile() {
 
 
 
-  
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -65,9 +65,9 @@ export default function Profile() {
 
   const handlePostSubmit = async () => {
     if (!newPostText.trim() && !newPostImageBase64) return;
-    
+
     setIsPosting(true);
-    
+
     const newPost = {
       // eslint-disable-next-line react-hooks/purity
       id: Date.now().toString(),
@@ -82,15 +82,15 @@ export default function Profile() {
         initials: iniciales
       }
     };
-    
+
     const updatedPosts = [newPost, ...posts];
-    
+
     try {
       const { error } = await supabase
         .from('AI_Users')
         .update({ publication: updatedPosts })
         .eq('user_id', currentUser.id);
-        
+
       if (!error) {
         setPosts(updatedPosts);
         setNewPostText('');
@@ -99,7 +99,7 @@ export default function Profile() {
     } catch (e) {
       console.error('Error posting:', e);
     }
-    
+
     setIsPosting(false);
   };
 
@@ -115,18 +115,19 @@ export default function Profile() {
 
 
   return (
-    <div className="w-full h-full bg-[#F8F9FA] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
-      
+    <div className="w-full h-full bg-[#FFF] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+
       {/* HEADER / PORTADA */}
       <div className="relative w-full h-48 sm:h-64 bg-white rounded-b-3xl overflow-hidden shadow-md shrink-0 border-b border-slate-200">
         <div className="absolute inset-0 bg-[url('/fondo.jpg')] mix-blend-overlay opacity-20 bg-cover bg-center" />
-        
+
         {/* DECORATIVE BUBBLES FROM MAIN1 */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-[#464775]/20 to-[#464775]/40" />
-          
+
           <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
-            <style dangerouslySetInnerHTML={{__html: `
+            <style dangerouslySetInnerHTML={{
+              __html: `
               @keyframes float-bubble {
                 0%, 100% { transform: translateY(0) scale(1); }
                 50% { transform: translateY(-25px) scale(1.02); }
@@ -143,7 +144,7 @@ export default function Profile() {
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
           <img src="/logo.png" alt="Servex Logo" className="h-16 sm:h-20 object-contain drop-shadow-xl opacity-90" />
         </div>
-        
+
         {/* Cover Edit Button */}
         <button className="absolute top-4 right-4 bg-white/40 hover:bg-white/60 backdrop-blur-md text-[#464775] p-2 rounded-full transition-colors flex items-center justify-center z-30 shadow-sm border border-white/40">
           <Camera size={16} />
@@ -192,10 +193,10 @@ export default function Profile() {
 
         {/* MAIN CONTENT GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* LEFT COLUMN - ABOUT & INFO */}
           <div className="lg:col-span-1 space-y-6">
-            
+
             {/* About Card */}
             <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
               <h2 className="text-[15px] font-bold text-[#464775] mb-4">About Me</h2>
@@ -250,7 +251,7 @@ export default function Profile() {
 
           {/* RIGHT COLUMN - ACTIVITY & FORUM */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* CREATE POST CARD */}
             <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
               <div className="flex gap-4">
@@ -268,14 +269,14 @@ export default function Profile() {
                     placeholder="¿Qué estás pensando?"
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[13.5px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/20 focus:bg-white transition-all resize-none min-h-[80px]"
                   />
-                  
+
                   {/* Image Preview */}
                   {newPostImageBase64 && (
                     <div className="relative mt-3 inline-block">
                       <div className="rounded-xl overflow-hidden max-h-64 border border-slate-200">
                         <img src={newPostImageBase64} alt="Preview" className="w-full h-auto object-cover max-h-64" />
                       </div>
-                      <button 
+                      <button
                         onClick={() => setNewPostImageBase64('')}
                         className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-black/80 transition-colors"
                       >
@@ -286,14 +287,14 @@ export default function Profile() {
 
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                     <div className="flex items-center gap-2">
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
                         ref={fileInputRef}
                         onChange={handleImageUpload}
                       />
-                      <button 
+                      <button
                         onClick={() => fileInputRef.current?.click()}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-500 hover:text-[#464775] transition-colors text-sm font-medium"
                       >
@@ -301,7 +302,7 @@ export default function Profile() {
                         <span>Foto</span>
                       </button>
                     </div>
-                    <button 
+                    <button
                       onClick={handlePostSubmit}
                       disabled={isPosting || (!newPostText.trim() && !newPostImageBase64)}
                       className="flex items-center gap-2 px-5 py-2 bg-[#464775] text-white rounded-lg hover:bg-[#35365e] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -343,13 +344,13 @@ export default function Profile() {
                         {post.text}
                       </p>
                     )}
-                    
+
                     {post.image && (
                       <div className="rounded-xl overflow-hidden border border-slate-200 mt-2 mb-4 bg-slate-50">
                         <img src={post.image} alt="Post attachment" className="w-full h-auto max-h-[500px] object-contain" />
                       </div>
                     )}
-                    
+
                     {/* Interaction Bar Mockup */}
                     <div className="flex items-center gap-6 pt-3 border-t border-slate-100">
                       <button className="flex items-center gap-1.5 text-slate-500 hover:text-emerald-600 transition-colors text-sm font-medium">
@@ -364,7 +365,7 @@ export default function Profile() {
                   </div>
                 </div>
               ))}
-              
+
               {posts.length === 0 && (
                 <div className="bg-white/50 backdrop-blur-sm border border-slate-100 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center">
                   <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
@@ -380,6 +381,6 @@ export default function Profile() {
         </div>
       </div>
     </div>
-    
+
   );
 }
