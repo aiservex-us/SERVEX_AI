@@ -69,9 +69,11 @@ export default function Profile() {
     setIsPosting(true);
     
     const newPost = {
+      // eslint-disable-next-line react-hooks/purity
       id: Date.now().toString(),
       text: newPostText,
       image: newPostImageBase64,
+      // eslint-disable-next-line react-hooks/purity
       timestamp: new Date().toISOString(),
       author: {
         name: nombre,
@@ -116,11 +118,34 @@ export default function Profile() {
     <div className="w-full h-full bg-[#F8F9FA] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
       
       {/* HEADER / PORTADA */}
-      <div className="relative w-full h-48 sm:h-64 bg-gradient-to-r from-[#464775] to-[#6264A7] rounded-b-3xl overflow-hidden shadow-md shrink-0">
-        <div className="absolute inset-0 bg-[url('/fondo.jpg')] mix-blend-overlay opacity-30 bg-cover bg-center" />
+      <div className="relative w-full h-48 sm:h-64 bg-white rounded-b-3xl overflow-hidden shadow-md shrink-0 border-b border-slate-200">
+        <div className="absolute inset-0 bg-[url('/fondo.jpg')] mix-blend-overlay opacity-20 bg-cover bg-center" />
+        
+        {/* DECORATIVE BUBBLES FROM MAIN1 */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-[#464775]/20 to-[#464775]/40" />
+          
+          <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+            <style dangerouslySetInnerHTML={{__html: `
+              @keyframes float-bubble {
+                0%, 100% { transform: translateY(0) scale(1); }
+                50% { transform: translateY(-25px) scale(1.02); }
+              }
+            `}} />
+            <div className="absolute top-[10%] left-[2%] w-[250px] h-[250px] rounded-full backdrop-blur-[12px]" style={{ background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 20%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.5) 100%)', boxShadow: 'inset -15px -15px 30px rgba(70, 71, 117, 0.15), inset 10px 10px 25px rgba(255,255,255,0.9), 0 20px 40px rgba(70,71,117,0.05)', animation: 'float-bubble 8s ease-in-out infinite' }} />
+            <div className="absolute top-[15%] left-[25%] w-[380px] h-[380px] rounded-full backdrop-blur-[16px] z-10" style={{ background: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 25%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0.7) 100%)', boxShadow: 'inset -25px -25px 50px rgba(70, 71, 117, 0.2), inset 15px 15px 30px rgba(255,255,255,1), 0 30px 60px rgba(70,71,117,0.1)', animation: 'float-bubble 12s ease-in-out infinite reverse' }} />
+            <div className="absolute top-[5%] right-[15%] w-[220px] h-[220px] rounded-full backdrop-blur-[8px]" style={{ background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 25%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.4) 100%)', boxShadow: 'inset -10px -10px 20px rgba(70, 71, 117, 0.15), inset 8px 8px 20px rgba(255,255,255,0.8), 0 15px 30px rgba(70,71,117,0.05)', animation: 'float-bubble 9s ease-in-out infinite 2s' }} />
+            <div className="absolute bottom-[5%] right-[2%] w-[450px] h-[450px] rounded-full backdrop-blur-[20px]" style={{ background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0.02) 70%, rgba(255,255,255,0.4) 100%)', boxShadow: 'inset -30px -30px 60px rgba(70, 71, 117, 0.1), inset 20px 20px 40px rgba(255,255,255,0.7), 0 40px 80px rgba(70,71,117,0.08)', animation: 'float-bubble 15s ease-in-out infinite 1s' }} />
+          </div>
+        </div>
+
+        {/* LOGO CENTERED */}
+        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+          <img src="/logo.png" alt="Servex Logo" className="h-16 sm:h-20 object-contain drop-shadow-xl opacity-90" />
+        </div>
         
         {/* Cover Edit Button */}
-        <button className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white p-2 rounded-full transition-colors flex items-center justify-center">
+        <button className="absolute top-4 right-4 bg-white/40 hover:bg-white/60 backdrop-blur-md text-[#464775] p-2 rounded-full transition-colors flex items-center justify-center z-30 shadow-sm border border-white/40">
           <Camera size={16} />
         </button>
       </div>
