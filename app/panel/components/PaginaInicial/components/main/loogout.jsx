@@ -84,8 +84,8 @@ export default function Sidebar({ activeView, setActiveView }) {
 
             <SidebarIcon
               icon={<User />}
-              active={activeView === 'profile'}
-              onClick={() => setActiveView('profile')}
+              active={false}
+              onClick={() => router.push('/svx_agent_profile')}
             />
 
             <div className="h-[1px] bg-slate-300 mx-1.5 min-[800px]:mx-2 my-1 min-[800px]:my-2" />
