@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/app/lib/supabaseClient';
-import { Mail, Phone, MapPin, Calendar, Briefcase, Award, ShieldCheck, Camera, Edit3 } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Briefcase, Award, ShieldCheck, Camera, Edit3, Image as ImageIcon, Send, MessageSquare } from 'lucide-react';
 
 
 
@@ -9,6 +10,13 @@ export default function Profile() {
   const [completeData, setCompleteData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  
+  // Social Wall States
+  const [posts, setPosts] = useState([]);
+  const [newPostText, setNewPostText] = useState('');
+  const [newPostImageBase64, setNewPostImageBase64] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
+  const fileInputRef = useRef(null);
   
   
 
@@ -19,7 +27,7 @@ export default function Profile() {
         setCurrentUser(user);
         const { data, error } = await supabase
           .from('AI_Users')
-          .select('user_personal_data, user_personal_data_complete')
+          .select('user_personal_data, user_personal_data_complete, publication')
           .eq('user_id', user.id)
           .single();
         
@@ -30,6 +38,9 @@ export default function Profile() {
           if (data.user_personal_data_complete) {
             setCompleteData(data.user_personal_data_complete);
           }
+          if (data.publication && Array.isArray(data.publication)) {
+            setPosts(data.publication);
+          }
         }
       }
       setLoading(false);
@@ -39,6 +50,56 @@ export default function Profile() {
 
 
 
+
+  
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewPostImageBase64(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePostSubmit = async () => {
+    if (!newPostText.trim() && !newPostImageBase64) return;
+    
+    setIsPosting(true);
+    
+    const newPost = {
+      id: Date.now().toString(),
+      text: newPostText,
+      image: newPostImageBase64,
+      timestamp: new Date().toISOString(),
+      author: {
+        name: nombre,
+        role: cargo,
+        avatar: fotoBase64 || null,
+        initials: iniciales
+      }
+    };
+    
+    const updatedPosts = [newPost, ...posts];
+    
+    try {
+      const { error } = await supabase
+        .from('AI_Users')
+        .update({ publication: updatedPosts })
+        .eq('user_id', currentUser.id);
+        
+      if (!error) {
+        setPosts(updatedPosts);
+        setNewPostText('');
+        setNewPostImageBase64('');
+      }
+    } catch (e) {
+      console.error('Error posting:', e);
+    }
+    
+    setIsPosting(false);
+  };
 
   const nombre = profileData?.nombre || "System Administrator";
   const cargo = profileData?.cargo || "Administrador General";
@@ -165,64 +226,129 @@ export default function Profile() {
           {/* RIGHT COLUMN - ACTIVITY & FORUM */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Experience / Roles */}
-            <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[15px] font-bold text-[#464775]">Current Roles</h2>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="flex gap-4 relative">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100 z-10">
-                    <Briefcase className="text-indigo-600" size={20} />
-                  </div>
-                  <div className="absolute left-6 top-12 bottom-[-24px] w-px bg-slate-100" />
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">System Architect</h3>
-                    <p className="text-xs text-indigo-600 font-medium mb-1">Servex US Core Team</p>
-                    <p className="text-[13px] text-slate-600">Managing global deployment and catalog integration (WBO, WBD, WBA, etc.) for internal operations.</p>
-                  </div>
+            {/* CREATE POST CARD */}
+            <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                  {fotoBase64 ? (
+                    <img src={fotoBase64} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white text-sm font-bold">{iniciales}</span>
+                  )}
                 </div>
+                <div className="flex-1">
+                  <textarea
+                    value={newPostText}
+                    onChange={(e) => setNewPostText(e.target.value)}
+                    placeholder="¿Qué estás pensando?"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[13.5px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/20 focus:bg-white transition-all resize-none min-h-[80px]"
+                  />
+                  
+                  {/* Image Preview */}
+                  {newPostImageBase64 && (
+                    <div className="relative mt-3 inline-block">
+                      <div className="rounded-xl overflow-hidden max-h-64 border border-slate-200">
+                        <img src={newPostImageBase64} alt="Preview" className="w-full h-auto object-cover max-h-64" />
+                      </div>
+                      <button 
+                        onClick={() => setNewPostImageBase64('')}
+                        className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
 
-                <div className="flex gap-4 relative">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100 z-10">
-                    <Award className="text-emerald-600" size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">AI Platform Maintainer</h3>
-                    <p className="text-xs text-emerald-600 font-medium mb-1">Servex Copilot Initiative</p>
-                    <p className="text-[13px] text-slate-600">Supervising prompt engineering and LLM integrations ensuring zero-hallucination pipelines.</p>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        ref={fileInputRef}
+                        onChange={handleImageUpload}
+                      />
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-500 hover:text-[#464775] transition-colors text-sm font-medium"
+                      >
+                        <ImageIcon size={18} />
+                        <span>Foto</span>
+                      </button>
+                    </div>
+                    <button 
+                      onClick={handlePostSubmit}
+                      disabled={isPosting || (!newPostText.trim() && !newPostImageBase64)}
+                      className="flex items-center gap-2 px-5 py-2 bg-[#464775] text-white rounded-lg hover:bg-[#35365e] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isPosting ? 'Publicando...' : 'Publicar'}
+                      {!isPosting && <Send size={14} />}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Recent Forum Activity Mockup */}
-            <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[15px] font-bold text-[#464775]">Recent Activity</h2>
-                <button className="text-[11px] font-bold text-[#464775] hover:text-indigo-800 transition-colors uppercase tracking-widest">View All</button>
-              </div>
-
-              <div className="space-y-4">
-                {/* Mock Post 1 */}
-                <div className="p-4 border border-slate-100 rounded-xl hover:shadow-md transition-shadow cursor-pointer bg-[#F8F9FA]/50 group">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-[13px] font-bold text-slate-800 group-hover:text-[#464775] transition-colors">WBO Catalog Update Authorized</h3>
-                    <span className="text-[10px] text-slate-400 font-medium">2 hours ago</span>
+            {/* FEED SECTION */}
+            <div className="space-y-6">
+              {posts.map((post) => (
+                <div key={post.id} className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex gap-3 items-center">
+                      <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                        {post.author?.avatar ? (
+                          <img src={post.author.avatar} alt={post.author.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white text-sm font-bold">{post.author?.initials}</span>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-[14px] font-bold text-slate-900">{post.author?.name}</h3>
+                        <p className="text-[11px] text-slate-500">{post.author?.role}</p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-400">
+                      {post.timestamp ? formatDistanceToNow(new Date(post.timestamp), { addSuffix: true }) : 'Recientemente'}
+                    </span>
                   </div>
-                  <p className="text-[12px] text-slate-600 line-clamp-2">The latest WBO price list update was successfully processed through the actualizer pipeline. Zero anomalies detected in list prices.</p>
-                </div>
 
-                {/* Mock Post 2 */}
-                <div className="p-4 border border-slate-100 rounded-xl hover:shadow-md transition-shadow cursor-pointer bg-[#F8F9FA]/50 group">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-[13px] font-bold text-slate-800 group-hover:text-[#464775] transition-colors">Copilot System Prompt Refinement</h3>
-                    <span className="text-[10px] text-slate-400 font-medium">1 day ago</span>
+                  <div className="pl-[52px]">
+                    {post.text && (
+                      <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap mb-4">
+                        {post.text}
+                      </p>
+                    )}
+                    
+                    {post.image && (
+                      <div className="rounded-xl overflow-hidden border border-slate-200 mt-2 mb-4 bg-slate-50">
+                        <img src={post.image} alt="Post attachment" className="w-full h-auto max-h-[500px] object-contain" />
+                      </div>
+                    )}
+                    
+                    {/* Interaction Bar Mockup */}
+                    <div className="flex items-center gap-6 pt-3 border-t border-slate-100">
+                      <button className="flex items-center gap-1.5 text-slate-500 hover:text-emerald-600 transition-colors text-sm font-medium">
+                        <Award size={16} />
+                        <span>Reconocer</span>
+                      </button>
+                      <button className="flex items-center gap-1.5 text-slate-500 hover:text-[#464775] transition-colors text-sm font-medium">
+                        <MessageSquare size={16} />
+                        <span>Comentar</span>
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-[12px] text-slate-600 line-clamp-2">Pushed new guardrails to the Audit_Agent to ensure the AI behaves as a senior strategic analyst across all W* branches.</p>
                 </div>
-              </div>
+              ))}
+              
+              {posts.length === 0 && (
+                <div className="bg-white/50 backdrop-blur-sm border border-slate-100 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                    <MessageSquare size={20} />
+                  </div>
+                  <h3 className="text-slate-800 font-bold mb-1">El muro está vacío</h3>
+                  <p className="text-slate-500 text-sm">Sé el primero en compartir algo con el equipo.</p>
+                </div>
+              )}
             </div>
 
           </div>
