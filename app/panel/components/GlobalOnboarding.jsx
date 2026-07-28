@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Sparkles, Loader2, User, CheckCircle } from 'lucide-react';
+import { Sparkles, Loader2, User, CheckCircle, Camera, Upload } from 'lucide-react';
 
 export default function GlobalOnboarding({ children }) {
   const [loading, setLoading] = useState(true);
@@ -17,6 +17,13 @@ export default function GlobalOnboarding({ children }) {
   const [funcion, setFuncion] = useState('');
   const [delegadoPor, setDelegadoPor] = useState('');
   const [comentarios, setComentarios] = useState('');
+  
+  // Extra states for complete profile
+  const [fotoBase64, setFotoBase64] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [ubicacion, setUbicacion] = useState('');
+  const fileInputRef = React.useRef(null);
+  
   const [chatStep, setChatStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -57,6 +64,18 @@ export default function GlobalOnboarding({ children }) {
     setLoading(false);
   };
 
+  
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFotoBase64(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setErrorMsg('');
@@ -69,10 +88,19 @@ export default function GlobalOnboarding({ children }) {
         comentarios,
         timestamp: new Date().toISOString()
       };
+      
+      const completeData = {
+        fotoBase64,
+        descripcion: funcion, // Use function as description since we merged it
+        telefono,
+        ubicacion,
+        timestamp: new Date().toISOString()
+      };
 
       const { error } = await supabase.from('AI_Users').insert([{
         user_id: currentUser.id,
-        user_personal_data: delegationData
+        user_personal_data: delegationData,
+        user_personal_data_complete: completeData
       }]);
 
       if (error) {
@@ -283,6 +311,109 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
+                    Perfecto. Ahora, <strong>sube una foto de perfil</strong> para que te identifiquemos en la plataforma.
+                  </p>
+                  <div className="relative flex flex-col items-center gap-4">
+                    {fotoBase64 ? (
+                      <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#464775]/20 relative group">
+                        <img src={fotoBase64} alt="Avatar" className="w-full h-full object-cover" />
+                        <button onClick={() => fileInputRef.current?.click()} className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 hover:border-[#464775] hover:text-[#464775] transition-colors bg-white"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                        <span className="text-[10px] font-medium uppercase tracking-wider">Subir</span>
+                      </button>
+                    )}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => setChatStep(6)}
+                className="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-gray-300 transition-all"
+              >
+                Omitir
+              </button>
+              <button 
+                onClick={() => setChatStep(6)}
+                disabled={!fotoBase64}
+                className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </motion.div>
+        );
+      case 6:
+        return (
+          <motion.div key="step-6" {...animationProps} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="flex gap-4 items-start mb-6">
+              <Avatar />
+              <div className="flex flex-col flex-1">
+                <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
+                <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
+                  <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
+                    Excelente. Ahora, por favor ingresa tu <strong>teléfono y ubicación</strong>.
+                  </p>
+                  <div className="space-y-3">
+                    <input 
+                      type="text" 
+                      value={telefono} 
+                      onChange={e => setTelefono(e.target.value)}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
+                      placeholder="Teléfono (Ej: +1 (555) 123-4567)" 
+                    />
+                    <input 
+                      type="text" 
+                      value={ubicacion} 
+                      onChange={e => setUbicacion(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && setChatStep(7)}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
+                      placeholder="Ubicación (Ej: Grand Rapids, MI)" 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => setChatStep(7)}
+                className="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-gray-300 transition-all"
+              >
+                Omitir
+              </button>
+              <button 
+                onClick={() => setChatStep(7)}
+                className="bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px"
+              >
+                Next
+              </button>
+            </div>
+          </motion.div>
+        );
+      case 7:
+        return (
+          <motion.div key="step-7" {...animationProps} className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+            <div className="flex gap-4 items-start mb-6">
+              <Avatar />
+              <div className="flex flex-col flex-1">
+                <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
+                <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
+                  <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
                     Todo listo. Si tienes algún comentario final, escríbelo. Si no, solo dale click a Finalizar.
                   </p>
                   <div className="relative">
@@ -363,7 +494,7 @@ export default function GlobalOnboarding({ children }) {
             <div className="text-4xl font-bold mb-4 text-[#464775]"><User size={40} /></div>
             <p className="text-sm opacity-80 mb-2 font-medium">Global Profile Setup</p>
             <h2 className="text-2xl font-semibold leading-snug">
-              Welcome to SERVEX AI Platform. Let's setup your profile.
+              Welcome to SERVEX AI Platform. Let&apos;s setup your profile.
             </h2>
           </div>
         </div>

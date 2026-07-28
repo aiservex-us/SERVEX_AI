@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { Mail, Phone, MapPin, Calendar, Briefcase, Award, ShieldCheck, Camera, Edit3 } from 'lucide-react';
-import ProfileCompletionModal from './ProfileCompletionModal';
 
 
 
@@ -9,14 +8,14 @@ export default function Profile() {
   const [profileData, setProfileData] = useState(null);
   const [completeData, setCompleteData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [needsCompletion, setNeedsCompletion] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  
+  
 
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setCurrentUser(user);
+        
         const { data, error } = await supabase
           .from('AI_Users')
           .select('user_personal_data, user_personal_data_complete')
@@ -29,13 +28,7 @@ export default function Profile() {
           }
           if (data.user_personal_data_complete) {
             setCompleteData(data.user_personal_data_complete);
-          } else {
-            setNeedsCompletion(true);
           }
-        } else {
-          // If no data row exists at all in AI_Users, theoretically the global onboarding handles it.
-          // But if they bypassed it somehow, we still show completion.
-          setNeedsCompletion(true);
         }
       }
       setLoading(false);
@@ -43,10 +36,7 @@ export default function Profile() {
     fetchProfile();
   }, []);
 
-  const handleComplete = (data) => {
-    setCompleteData(data);
-    setNeedsCompletion(false);
-  };
+
 
 
   const nombre = profileData?.nombre || "System Administrator";
@@ -61,10 +51,6 @@ export default function Profile() {
 
 
   return (
-    <>
-    {needsCompletion && currentUser && (
-      <ProfileCompletionModal currentUser={currentUser} onComplete={handleComplete} />
-    )}
     <div className="w-full h-full bg-[#F8F9FA] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
       
       {/* HEADER / PORTADA */}
@@ -242,6 +228,6 @@ export default function Profile() {
         </div>
       </div>
     </div>
-    </>
+    
   );
 }
