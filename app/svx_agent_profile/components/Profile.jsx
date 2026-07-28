@@ -68,16 +68,68 @@ export default function Profile() {
     <div className="w-full h-full bg-[#F8F9FA] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
       
       {/* HEADER / PORTADA */}
-      <div className="relative w-full h-48 sm:h-64 bg-gradient-to-r from-[#464775] to-[#6264A7] rounded-b-3xl overflow-hidden shadow-md shrink-0">
-        <div className="absolute inset-0 bg-[url('/fondo.jpg')] mix-blend-overlay opacity-30 bg-cover bg-center" />
-        
+      <div className="relative w-full h-64 sm:h-80 bg-white overflow-hidden shrink-0 border-b border-slate-200">
+        <div className="absolute inset-0 bg-[url('/fondo.jpg')] mix-blend-overlay opacity-20 bg-cover bg-center" />
+
+        {/* DECORATIVE BUBBLES FROM MAIN1 */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-[#464775]/20 to-[#464775]/40" />
+          
+          {/* Decorative Floating 3D Glass Spheres */}
+          <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center">
+            <style dangerouslySetInnerHTML={{__html: `
+              @keyframes float-bubble {
+                0%, 100% { transform: translateY(0) scale(1); }
+                50% { transform: translateY(-25px) scale(1.02); }
+              }
+            `}} />
+            
+            {/* Sphere 1 */}
+            <div 
+              className="absolute top-[10%] left-[2%] w-[250px] h-[250px] rounded-full backdrop-blur-[12px]"
+              style={{ 
+                background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 20%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.5) 100%)',
+                boxShadow: 'inset -15px -15px 30px rgba(70, 71, 117, 0.15), inset 10px 10px 25px rgba(255,255,255,0.9), 0 20px 40px rgba(70,71,117,0.05)',
+                animation: 'float-bubble 8s ease-in-out infinite'
+              }} 
+            />
+            {/* Sphere 2 */}
+            <div 
+              className="absolute top-[15%] left-[25%] w-[380px] h-[380px] rounded-full backdrop-blur-[16px] z-10"
+              style={{ 
+                background: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 25%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0.7) 100%)',
+                boxShadow: 'inset -25px -25px 50px rgba(70, 71, 117, 0.2), inset 15px 15px 30px rgba(255,255,255,1), 0 30px 60px rgba(70,71,117,0.1)',
+                animation: 'float-bubble 12s ease-in-out infinite reverse'
+              }}
+            />
+            {/* Sphere 3 */}
+            <div 
+              className="absolute top-[5%] right-[15%] w-[220px] h-[220px] rounded-full backdrop-blur-[8px]"
+              style={{ 
+                background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 25%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.4) 100%)',
+                boxShadow: 'inset -10px -10px 20px rgba(70, 71, 117, 0.15), inset 8px 8px 20px rgba(255,255,255,0.8), 0 15px 30px rgba(70,71,117,0.05)',
+                animation: 'float-bubble 9s ease-in-out infinite 2s'
+              }}
+            />
+            {/* Sphere 4 */}
+            <div 
+              className="absolute bottom-[5%] right-[2%] w-[450px] h-[450px] rounded-full backdrop-blur-[20px]"
+              style={{ 
+                background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0.02) 70%, rgba(255,255,255,0.4) 100%)',
+                boxShadow: 'inset -30px -30px 60px rgba(70, 71, 117, 0.1), inset 20px 20px 40px rgba(255,255,255,0.7), 0 40px 80px rgba(70,71,117,0.08)',
+                animation: 'float-bubble 15s ease-in-out infinite 1s'
+              }}
+            />
+          </div>
+        </div>
+
         {/* Cover Edit Button */}
         <button className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white p-2 rounded-full transition-colors flex items-center justify-center">
           <Camera size={16} />
         </button>
       </div>
 
-      <div className="px-6 sm:px-12 max-w-6xl mx-auto pb-12">
+      <div className="px-6 sm:px-12 w-full pb-12">
         {/* AVATAR & BASIC INFO */}
         <div className="relative flex flex-col sm:flex-row gap-6 sm:items-end -mt-16 sm:-mt-20 mb-8">
           <div className="relative group">
@@ -118,13 +170,13 @@ export default function Profile() {
         </div>
 
         {/* MAIN CONTENT GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           
           {/* LEFT COLUMN - ABOUT & INFO */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="xl:col-span-1 space-y-6">
             
             {/* About Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 relative overflow-hidden">
               <h2 className="text-[15px] font-bold text-[#464775] mb-4">About Me</h2>
               <p className="text-[13px] text-slate-600 leading-relaxed">
                 {funcion}
@@ -132,7 +184,7 @@ export default function Profile() {
             </div>
 
             {/* Personal Info Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 relative overflow-hidden">
               <h2 className="text-[15px] font-bold text-[#464775] mb-4">Personal Information</h2>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
@@ -176,10 +228,10 @@ export default function Profile() {
           </div>
 
           {/* RIGHT COLUMN - ACTIVITY & FORUM */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="xl:col-span-3 space-y-6">
             
             {/* Experience / Roles */}
-            <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 relative overflow-hidden">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-[15px] font-bold text-[#464775]">Current Roles</h2>
               </div>
@@ -211,7 +263,7 @@ export default function Profile() {
             </div>
 
             {/* Recent Forum Activity Mockup */}
-            <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 relative overflow-hidden">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-[15px] font-bold text-[#464775]">Recent Activity</h2>
                 <button className="text-[11px] font-bold text-[#464775] hover:text-indigo-800 transition-colors uppercase tracking-widest">View All</button>
