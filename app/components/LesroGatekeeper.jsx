@@ -48,6 +48,35 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
       const responseData = await res.json();
 
       if (!responseData.locked) {
+        // 🚀 VERIFICACIÓN CENTRALIZADA: Buscar en AI_Users antes de pedir datos
+        const { data: aiUsersData, error: aiError } = await supabase
+          .from('AI_Users')
+          .select('user_personal_data')
+          .eq('user_id', user.id)
+          .limit(1);
+
+        if (aiUsersData && aiUsersData.length > 0 && aiUsersData[0].user_personal_data) {
+          // Ya existe información centralizada. Procedemos a "auto-delegar" este módulo en silencio.
+          const globalData = aiUsersData[0].user_personal_data;
+          
+          const autoRes = await fetch(`${apiURL}/api/v1/module_delegation/lesro`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: user.id, delegation_data: globalData })
+          });
+
+          if (autoRes.ok) {
+            setLoading(false);
+            if (redirectUrl) {
+              router.push(redirectUrl);
+            } else {
+              setLockStatus('unlocked');
+            }
+            return; // Termina la ejecución exitosamente
+          }
+        }
+        
+        // Si no hay datos en AI_Users, procedemos a pedir la información
         setLockStatus('no_delegation');
       } else if (responseData.data) {
         const data = responseData.data;
