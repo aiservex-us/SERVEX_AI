@@ -140,8 +140,13 @@ export default function TeamsAgentChat({ currentSection }) {
         const match = window.location.pathname.match(/^\/(WB[A-Z])/i);
         const modulePrefix = match ? match[1].toLowerCase() : 'wbs';
         
+        const { data: { user } } = await supabase.auth.getUser();
+        const userEmail = user?.email || 'admin@servex-us.com';
+        
         const response = await fetch(`${apiURL}/${modulePrefix}/api/v1/agent/create-audit`, {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: userEmail })
         });
 
         if (!response.ok) {

@@ -213,7 +213,7 @@ export default function Profile({ targetUserId }) {
         )}
       </div>
 
-      <div className="px-6 sm:px-12 max-w-6xl mx-auto pb-12">
+      <div className="px-6 sm:px-12 w-full mx-auto pb-12">
         {/* AVATAR & BASIC INFO */}
         <div className="relative flex flex-col sm:flex-row gap-6 sm:items-end -mt-16 sm:-mt-20 mb-8">
           <div className="relative group">
