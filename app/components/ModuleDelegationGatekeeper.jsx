@@ -359,8 +359,17 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   if (loading || lockStatus === 'checking') {
     return (
       <div className="min-h-screen bg-[#FFF] flex flex-col items-center justify-center">
-        <Loader2 className="animate-spin text-[#464775] mb-4" size={48} />
-        <p className="text-[#464775] font-medium animate-pulse">Validating corporate access...</p>
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes fog-fade {
+            0%, 100% { opacity: 1; filter: blur(0px); transform: scale(1); }
+            50% { opacity: 0.15; filter: blur(12px); transform: scale(1.05); }
+          }
+          .animate-fog {
+            animation: fog-fade 2.5s ease-in-out infinite;
+          }
+        `}} />
+        <img src="/logo2.png" alt="Servex Logo" className="w-40 sm:w-48 h-auto object-contain animate-fog mb-6" />
+        <p className="text-[#464775] font-medium animate-pulse tracking-wide">Validating corporate access...</p>
       </div>
     );
   }

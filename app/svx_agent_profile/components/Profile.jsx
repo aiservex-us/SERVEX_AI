@@ -5,11 +5,12 @@ import { Mail, Phone, MapPin, Calendar, Briefcase, Award, ShieldCheck, Camera, E
 
 
 
-export default function Profile() {
+export default function Profile({ targetUserId }) {
   const [profileData, setProfileData] = useState(null);
   const [completeData, setCompleteData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isOwnProfile, setIsOwnProfile] = useState(true);
 
   // Social Wall States
   const [posts, setPosts] = useState([]);
@@ -34,10 +35,14 @@ export default function Profile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setCurrentUser(user);
+        
+        const profileIdToFetch = targetUserId || user.id;
+        setIsOwnProfile(!targetUserId || targetUserId === user.id);
+
         const { data, error } = await supabase
           .from('AI_Users')
           .select('user_personal_data, user_personal_data_complete, publication')
-          .eq('user_id', user.id)
+          .eq('user_id', profileIdToFetch)
           .single();
 
         if (data) {
@@ -201,9 +206,11 @@ export default function Profile() {
         </div>
 
         {/* Cover Edit Button */}
-        <button className="absolute top-4 right-4 bg-white/40 hover:bg-white/60 backdrop-blur-md text-[#464775] p-2 rounded-full transition-colors flex items-center justify-center z-30 shadow-sm border border-white/40">
-          <Camera size={16} />
-        </button>
+        {isOwnProfile && (
+          <button className="absolute top-4 right-4 bg-white/40 hover:bg-white/60 backdrop-blur-md text-[#464775] p-2 rounded-full transition-colors flex items-center justify-center z-30 shadow-sm border border-white/40">
+            <Camera size={16} />
+          </button>
+        )}
       </div>
 
       <div className="px-6 sm:px-12 max-w-6xl mx-auto pb-12">
@@ -218,9 +225,11 @@ export default function Profile() {
                   <span className="text-white text-4xl font-bold">{iniciales}</span>
                 )}
                 {/* Hover overlay for avatar */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
-                  <Camera className="text-white" size={24} />
-                </div>
+                {isOwnProfile && (
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+                    <Camera className="text-white" size={24} />
+                  </div>
+                )}
               </div>
             </div>
             {/* Status Badge */}
@@ -236,12 +245,14 @@ export default function Profile() {
                 </h1>
                 <p className="text-slate-500 font-medium">{cargo}</p>
               </div>
-              <div className="flex gap-3">
-                <button onClick={openEditModal} className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm flex items-center gap-2">
-                  <Edit3 size={16} />
-                  Edit Profile
-                </button>
-              </div>
+              {isOwnProfile && (
+                <div className="flex gap-3">
+                  <button onClick={openEditModal} className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm font-medium text-sm flex items-center gap-2">
+                    <Edit3 size={16} />
+                    Edit Profile
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -381,7 +392,8 @@ export default function Profile() {
             </div>
 
             {/* CREATE POST CARD */}
-            <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
+            {isOwnProfile && (
+              <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
               <div className="flex gap-4">
                 <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
                   {fotoBase64 ? (
@@ -442,6 +454,7 @@ export default function Profile() {
                 </div>
               </div>
             </div>
+            )}
 
             {/* FEED SECTION */}
             <div className="space-y-6">
