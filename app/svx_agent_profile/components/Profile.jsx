@@ -106,6 +106,17 @@ export default function Profile({ targetUserId }) {
         .eq('user_id', currentUser.id);
 
       if (!error) {
+        try {
+          const { data: auditData } = await supabase.from('ClientSERVEX_Audit').select('id, publication').limit(1).single();
+          const currentForumPubs = auditData?.publication || {};
+          const userKey = currentUser.email || currentUser.id;
+          currentForumPubs[userKey] = updatedPosts;
+          
+          await supabase.from('ClientSERVEX_Audit').update({ publication: currentForumPubs }).eq('id', auditData?.id || 1);
+        } catch (err) {
+          console.error('Error syncing to forum:', err);
+        }
+
         setPosts(updatedPosts);
         setNewPostText('');
         setNewPostImageBase64('');
