@@ -469,7 +469,7 @@ export default function GlobalOnboarding({ children }) {
             animation: fog-fade 2.5s ease-in-out infinite;
           }
         `}} />
-        <img src="/logo2.png" alt="Servex Logo" className="w-40 sm:w-48 h-auto object-contain animate-fog mb-6" />
+        <img src="/logo2.png" alt="Servex Logo" className="h-10 w-auto object-contain animate-fog mb-6" />
         <p className="text-[#464775] font-medium animate-pulse tracking-wide">Loading Profile...</p>
       </div>
     );
