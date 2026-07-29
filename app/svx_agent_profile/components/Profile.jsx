@@ -108,11 +108,13 @@ export default function Profile({ targetUserId }) {
       if (!error) {
         try {
           const { data: auditData } = await supabase.from('ClientSERVEX_Audit').select('id, publication').limit(1).single();
-          const currentForumPubs = auditData?.publication || {};
-          const userKey = currentUser.email || currentUser.id;
-          currentForumPubs[userKey] = updatedPosts;
+          // Use an array to store all posts chronologically across all users
+          const currentForumPubs = Array.isArray(auditData?.publication) ? auditData.publication : [];
           
-          await supabase.from('ClientSERVEX_Audit').update({ publication: currentForumPubs }).eq('id', auditData?.id || 1);
+          // Insert the new post at the top of the feed
+          const newForumPubs = [newPost, ...currentForumPubs];
+          
+          await supabase.from('ClientSERVEX_Audit').update({ publication: newForumPubs }).eq('id', auditData?.id || 1);
         } catch (err) {
           console.error('Error syncing to forum:', err);
         }
