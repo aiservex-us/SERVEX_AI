@@ -368,8 +368,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
             animation: fog-fade 2.5s ease-in-out infinite;
           }
         `}} />
-        <img src="/logo2.png" alt="Servex Logo" className="h-10 w-auto object-contain animate-fog mb-6" />
-        <p className="text-[#464775] font-medium animate-pulse tracking-wide">Validating corporate access...</p>
+        <img src="/logo2.png" alt="Servex Logo" className="h-10 w-auto object-contain animate-fog" />
       </div>
     );
   }
