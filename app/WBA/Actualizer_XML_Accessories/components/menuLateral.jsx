@@ -1,8 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {
-  LayoutDashboard,
+import { LayoutDashboard,
   SearchCode,
   Headphones,
   Settings,
@@ -14,8 +13,7 @@ import {
   FileSpreadsheet,
   UploadCloud,
   BrainCircuit,
-  CheckCircle2
-} from 'lucide-react';
+  CheckCircle2, BarChart2 } from 'lucide-react';
 
 const menuItems = [
   { id: 'reporting', label: 'WBA Home', icon: LayoutDashboard, sub: 'Dashboard' },
@@ -26,6 +24,7 @@ const menuItems = [
   { id: 'inbox_updated', label: 'Current Catalog', icon:  FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'AI_reporter', label: 'AI Resumen', icon: CheckCircle2, sub: 'Output' },
+  { id: 'graphics', label: 'Dashboard Gráfico', icon: BarChart2, sub: 'Analytics' },
 ];
 
 export default function MenuLateral({

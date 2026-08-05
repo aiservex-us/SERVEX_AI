@@ -8,6 +8,7 @@ import TeamsAgentChat from '../components/comparePDF/REPORT/components/AI_contac
 
 
 import MenuLateral from '../components/menuLateral.jsx';
+import ViewportGraphics from './components/comparePDF/aiReporting/compnents/ViewportGraphics.jsx';
 import Dashboard from '../components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from '../components/perceo_XML_MASTER_pre_prosses.jsx';
 import CatalogParser from '../components/PDFsection.jsx';
@@ -98,6 +99,7 @@ export default function MenuInicial() {
       case 'report': return <Report />;
       case 'notifications': return <UploadFileCmpare />;
       case 'reporting': return <AIReporting />;
+      case 'graphics': return <ViewportGraphics />;
       case 'compare': return <Compare />;
       case 'AI_reporter': return <Responce_ai />;
       default:
