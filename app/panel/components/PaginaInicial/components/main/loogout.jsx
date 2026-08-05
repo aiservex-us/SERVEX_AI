@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Home, Grid, Calendar, Box, Settings, LogOut, Users, User } from 'lucide-react';
+import { Home, Grid, Calendar, Box, Settings, LogOut, Users, User, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -77,7 +77,7 @@ export default function Sidebar({ activeView, setActiveView }) {
             />
 
             <SidebarIcon
-              icon={<Users />}
+              icon={<MessageSquare />}
               active={activeView === 'foro'}
               onClick={() => setActiveView('foro')}
             />

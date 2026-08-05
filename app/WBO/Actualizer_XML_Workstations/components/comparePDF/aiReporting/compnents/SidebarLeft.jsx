@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import * as PH from "@phosphor-icons/react";
-import { ChevronRight, Cpu, Microscope, Play, Info } from 'lucide-react';
+import { ChevronRight, Cpu, Microscope, Play, Info, BarChart2 } from 'lucide-react';
 
 // --- SUBCOMPONENTE: STAT ITEM CON ESTILO NEGATIVO ---
 const StatItem = ({ icon, label, description, onClick, isActive }) => (
@@ -125,6 +125,14 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
                   isActive={activeViewport === "explainer"}
                   onClick={() => setActiveViewport("explainer")}
                 />
+                <StatItem
+                  icon={<BarChart2 />}
+                  label="Dashboard Gráfico"
+                  description="Visualización de analíticas y métricas de procesamiento."
+                  isActive={activeViewport === "graphics"}
+                  onClick={() => setActiveViewport("graphics")}
+                />
+
 
            
 

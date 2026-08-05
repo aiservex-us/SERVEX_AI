@@ -6,6 +6,7 @@ import { Menu, X, PanelRightOpen, PanelRightClose } from 'lucide-react';
 import SidebarLeft from './compnents/SidebarLeft';
 import Viewport from './compnents/Viewport';
 import Viewport2 from './compnents/Viewport2';
+import ViewportGraphics from './compnents/ViewportGraphics';
 import SidebarRight from './compnents/SidebarRight';
 
 const AIReporting = () => {
@@ -73,7 +74,9 @@ const AIReporting = () => {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="w-full h-full"
           >
-            {activeViewport === 'explainer' ? (
+            {activeViewport === 'graphics' ? (
+              <ViewportGraphics />
+            ) : activeViewport === 'explainer' ? (
               <Viewport2 />
             ) : (
               <Viewport />

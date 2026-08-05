@@ -39,7 +39,7 @@ export default function Profile({ targetUserId }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setCurrentUser(user);
-        
+
         const profileIdToFetch = targetUserId || user.id;
         setIsOwnProfile(!targetUserId || targetUserId === user.id);
 
@@ -108,7 +108,7 @@ export default function Profile({ targetUserId }) {
   const handleUpdateTaskStatus = async (taskId, newStatus) => {
     const updatedTasks = tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t);
     setTasks(updatedTasks);
-    
+
     try {
       await supabase
         .from('AI_Users')
@@ -180,7 +180,7 @@ export default function Profile({ targetUserId }) {
           <img
             src="/logo2.png"
             alt="Logo"
-            className="w-36 sm:w-48 h-auto object-contain transition-all duration-500 animate-pulse"
+            className="w-12 sm:w-14 h-auto object-contain transition-all duration-500 animate-pulse"
           />
         </div>
       </div>
@@ -333,15 +333,15 @@ export default function Profile({ targetUserId }) {
 
             {/* DASHBOARD HEADER */}
             <div className="bg-white rounded p-5 border border-[#EDEBE9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
-               <div className="flex gap-4 items-center">
-                 <div className="w-10 h-10 rounded bg-[#F3F2F1] flex items-center justify-center shrink-0">
-                   <Activity className="text-[#464775]" size={20} />
-                 </div>
-                 <div>
-                   <h2 className="text-[14px] font-semibold text-[#242424] mb-1">Mi Panel de Productividad</h2>
-                   <p className="text-[13px] text-[#616161]">Gestiona tus tareas, visualiza tus métricas y revisa el historial de módulos asignados.</p>
-                 </div>
-               </div>
+              <div className="flex gap-4 items-center">
+                <div className="w-10 h-10 rounded bg-[#F3F2F1] flex items-center justify-center shrink-0">
+                  <Activity className="text-[#464775]" size={20} />
+                </div>
+                <div>
+                  <h2 className="text-[14px] font-semibold text-[#242424] mb-1">Mi Panel de Productividad</h2>
+                  <p className="text-[13px] text-[#616161]">Gestiona tus tareas, visualiza tus métricas y revisa el historial de módulos asignados.</p>
+                </div>
+              </div>
             </div>
 
             {/* ANALYTICS CARD (TEAMS STYLE) */}
@@ -360,20 +360,20 @@ export default function Profile({ targetUserId }) {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
                 <div className="bg-white p-3 border border-[#EDEBE9] rounded">
-                   <p className="text-[11px] text-[#616161] font-semibold mb-1">Total Tareas</p>
-                   <p className="text-2xl font-bold text-[#242424]">{tasks.length}</p>
+                  <p className="text-[11px] text-[#616161] font-semibold mb-1">Total Tareas</p>
+                  <p className="text-2xl font-bold text-[#242424]">{tasks.length}</p>
                 </div>
                 <div className="bg-white p-3 border border-[#EDEBE9] rounded">
-                   <p className="text-[11px] text-[#616161] font-semibold mb-1">Módulos Asignados</p>
-                   <p className="text-2xl font-bold text-[#242424]">{modules.length}</p>
+                  <p className="text-[11px] text-[#616161] font-semibold mb-1">Módulos Asignados</p>
+                  <p className="text-2xl font-bold text-[#242424]">{modules.length}</p>
                 </div>
                 <div className="bg-[#F3F2F1] p-3 border border-[#EDEBE9] rounded">
-                   <p className="text-[11px] text-[#464775] font-semibold mb-1">Precisión General</p>
-                   <p className="text-2xl font-bold text-[#464775]">99.9%</p>
+                  <p className="text-[11px] text-[#464775] font-semibold mb-1">Precisión General</p>
+                  <p className="text-2xl font-bold text-[#464775]">99.9%</p>
                 </div>
                 <div className="bg-white p-3 border border-[#EDEBE9] rounded">
-                   <p className="text-[11px] text-[#616161] font-semibold mb-1">Tareas Completadas</p>
-                   <p className="text-2xl font-bold text-[#107C41]">{tasks.filter(t => t.status === 'done').length}</p>
+                  <p className="text-[11px] text-[#616161] font-semibold mb-1">Tareas Completadas</p>
+                  <p className="text-2xl font-bold text-[#107C41]">{tasks.filter(t => t.status === 'done').length}</p>
                 </div>
               </div>
             </div>
@@ -399,7 +399,7 @@ export default function Profile({ targetUserId }) {
               <h3 className="text-[14px] font-semibold text-[#242424] mb-4 flex items-center gap-2">
                 <CheckCircle size={16} className="text-[#464775]" /> Bitácora de Actividades
               </h3>
-              
+
               {isOwnProfile && (
                 <div className="mb-6 flex flex-col sm:flex-row gap-2">
                   <input
@@ -451,8 +451,8 @@ export default function Profile({ targetUserId }) {
                                 {task.timestamp ? formatDistanceToNow(new Date(task.timestamp), { addSuffix: true }) : ''}
                               </span>
                               {isOwnProfile && (
-                                <select 
-                                  value={task.status} 
+                                <select
+                                  value={task.status}
                                   onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
                                   className="text-[10px] p-1 border border-slate-200 rounded text-slate-600 bg-slate-50 focus:outline-none"
                                 >
@@ -490,68 +490,68 @@ export default function Profile({ targetUserId }) {
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
-            
-            <div className="p-6 overflow-y-auto space-y-5">
-               {/* Photo */}
-               <div className="flex flex-col items-center gap-3">
-                 <div className="w-24 h-24 rounded-full bg-slate-200 overflow-hidden relative group shadow-inner">
-                   {editForm.fotoBase64 ? (
-                     <img src={editForm.fotoBase64} alt="Avatar" className="w-full h-full object-cover" />
-                   ) : (
-                     <div className="w-full h-full flex items-center justify-center text-slate-400">
-                       <Camera size={32} />
-                     </div>
-                   )}
-                   <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
-                     <Camera size={24} className="text-white" />
-                     <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                       const file = e.target.files[0];
-                       if (file) {
-                         const reader = new FileReader();
-                         reader.onloadend = () => setEditForm(prev => ({...prev, fotoBase64: reader.result}));
-                         reader.readAsDataURL(file);
-                       }
-                     }} />
-                   </label>
-                 </div>
-                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Profile Photo</span>
-               </div>
 
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                 <div>
-                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nombre Completo</label>
-                   <input type="text" value={editForm.nombre} onChange={e => setEditForm({...editForm, nombre: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
-                 </div>
-                 <div>
-                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Cargo</label>
-                   <input type="text" value={editForm.cargo} onChange={e => setEditForm({...editForm, cargo: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
-                 </div>
-                 <div>
-                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Teléfono</label>
-                   <input type="text" value={editForm.telefono} onChange={e => setEditForm({...editForm, telefono: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
-                 </div>
-                 <div>
-                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Ubicación</label>
-                   <input type="text" value={editForm.ubicacion} onChange={e => setEditForm({...editForm, ubicacion: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
-                 </div>
-                 <div className="sm:col-span-2">
-                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Delegado Por</label>
-                   <input type="text" value={editForm.delegado_por} onChange={e => setEditForm({...editForm, delegado_por: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
-                 </div>
-                 <div className="sm:col-span-2">
-                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Acerca de / Función Principal</label>
-                   <textarea rows={3} value={editForm.funcion} onChange={e => setEditForm({...editForm, funcion: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] resize-none transition-shadow bg-slate-50 focus:bg-white"></textarea>
-                 </div>
-               </div>
+            <div className="p-6 overflow-y-auto space-y-5">
+              {/* Photo */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-24 h-24 rounded-full bg-slate-200 overflow-hidden relative group shadow-inner">
+                  {editForm.fotoBase64 ? (
+                    <img src={editForm.fotoBase64} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400">
+                      <Camera size={32} />
+                    </div>
+                  )}
+                  <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
+                    <Camera size={24} className="text-white" />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => setEditForm(prev => ({ ...prev, fotoBase64: reader.result }));
+                        reader.readAsDataURL(file);
+                      }
+                    }} />
+                  </label>
+                </div>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Profile Photo</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nombre Completo</label>
+                  <input type="text" value={editForm.nombre} onChange={e => setEditForm({ ...editForm, nombre: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Cargo</label>
+                  <input type="text" value={editForm.cargo} onChange={e => setEditForm({ ...editForm, cargo: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Teléfono</label>
+                  <input type="text" value={editForm.telefono} onChange={e => setEditForm({ ...editForm, telefono: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Ubicación</label>
+                  <input type="text" value={editForm.ubicacion} onChange={e => setEditForm({ ...editForm, ubicacion: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Delegado Por</label>
+                  <input type="text" value={editForm.delegado_por} onChange={e => setEditForm({ ...editForm, delegado_por: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] transition-shadow bg-slate-50 focus:bg-white" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Acerca de / Función Principal</label>
+                  <textarea rows={3} value={editForm.funcion} onChange={e => setEditForm({ ...editForm, funcion: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-[#464775] focus:ring-1 focus:ring-[#464775] resize-none transition-shadow bg-slate-50 focus:bg-white"></textarea>
+                </div>
+              </div>
             </div>
 
             <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
-               <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
-                 Cancelar
-               </button>
-               <button onClick={handleSaveProfile} disabled={isPosting} className="px-5 py-2 text-sm font-medium text-white bg-[#464775] rounded-lg hover:bg-[#35365e] transition-colors disabled:opacity-50 shadow-sm flex items-center gap-2">
-                 {isPosting ? 'Guardando...' : 'Guardar Cambios'}
-               </button>
+              <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+                Cancelar
+              </button>
+              <button onClick={handleSaveProfile} disabled={isPosting} className="px-5 py-2 text-sm font-medium text-white bg-[#464775] rounded-lg hover:bg-[#35365e] transition-colors disabled:opacity-50 shadow-sm flex items-center gap-2">
+                {isPosting ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
             </div>
           </div>
         </div>
