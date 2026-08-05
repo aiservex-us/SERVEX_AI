@@ -8,7 +8,7 @@ import TeamsAgentChat from '../components/comparePDF/REPORT/components/AI_contac
 
 
 import MenuLateral from '../components/menuLateral.jsx';
-import ViewportGraphics from './components/comparePDF/aiReporting/compnents/ViewportGraphics.jsx';
+import ViewportGraphics from '../components/comparePDF/aiReporting/compnents/ViewportGraphics.jsx';
 import Dashboard from '../components/perceo_XML_MASTER_post_prcess.jsx';
 import PriceProduct from '../components/perceo_XML_MASTER_pre_prosses.jsx';
 import CatalogParser from '../components/PDFsection.jsx';
