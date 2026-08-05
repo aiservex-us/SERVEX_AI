@@ -12,12 +12,16 @@ export default function Profile({ targetUserId }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [isOwnProfile, setIsOwnProfile] = useState(true);
 
-  // Social Wall States
-  const [posts, setPosts] = useState([]);
-  const [newPostText, setNewPostText] = useState('');
-  const [newPostImageBase64, setNewPostImageBase64] = useState('');
+  // Kanban and Timeline States
+  const [tasks, setTasks] = useState([]);
+  const [newTaskText, setNewTaskText] = useState('');
+  const [newTaskStatus, setNewTaskStatus] = useState('todo'); // todo, in-progress, done
   const [isPosting, setIsPosting] = useState(false);
-  const fileInputRef = useRef(null);
+  const [modules] = useState([
+    { id: '1', name: 'WBT - Tables', assignedAt: '2026-03-10' },
+    { id: '2', name: 'WBA - Analysis', assignedAt: '2026-04-15' },
+    { id: '3', name: 'WBD - Design', assignedAt: '2026-05-20' },
+  ]);
 
   // Profile Edit States
   const [isEditing, setIsEditing] = useState(false);
@@ -53,7 +57,11 @@ export default function Profile({ targetUserId }) {
             setCompleteData(data.user_personal_data_complete);
           }
           if (data.publication && Array.isArray(data.publication)) {
-            setPosts(data.publication);
+            const mappedTasks = data.publication.map(p => ({
+              ...p,
+              status: p.status || 'done'
+            }));
+            setTasks(mappedTasks);
           }
         }
       }
@@ -66,69 +74,49 @@ export default function Profile({ targetUserId }) {
 
 
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewPostImageBase64(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handlePostSubmit = async () => {
-    if (!newPostText.trim() && !newPostImageBase64) return;
+  const handleTaskSubmit = async () => {
+    if (!newTaskText.trim()) return;
 
     setIsPosting(true);
 
-    const newPost = {
-      // eslint-disable-next-line react-hooks/purity
+    const newTask = {
       id: Date.now().toString(),
-      text: newPostText,
-      image: newPostImageBase64,
-      // eslint-disable-next-line react-hooks/purity
+      text: newTaskText,
+      status: newTaskStatus,
       timestamp: new Date().toISOString(),
-      author: {
-        name: nombre,
-        role: cargo,
-        avatar: fotoBase64 || null,
-        initials: iniciales
-      }
     };
 
-    const updatedPosts = [newPost, ...posts];
+    const updatedTasks = [newTask, ...tasks];
 
     try {
       const { error } = await supabase
         .from('AI_Users')
-        .update({ publication: updatedPosts })
+        .update({ publication: updatedTasks })
         .eq('user_id', currentUser.id);
 
       if (!error) {
-        try {
-          const { data: auditData } = await supabase.from('ClientSERVEX_Audit').select('id, publication').limit(1).single();
-          // Use an array to store all posts chronologically across all users
-          const currentForumPubs = Array.isArray(auditData?.publication) ? auditData.publication : [];
-          
-          // Insert the new post at the top of the feed
-          const newForumPubs = [newPost, ...currentForumPubs];
-          
-          await supabase.from('ClientSERVEX_Audit').update({ publication: newForumPubs }).eq('id', auditData?.id || 1);
-        } catch (err) {
-          console.error('Error syncing to forum:', err);
-        }
-
-        setPosts(updatedPosts);
-        setNewPostText('');
-        setNewPostImageBase64('');
+        setTasks(updatedTasks);
+        setNewTaskText('');
       }
     } catch (e) {
-      console.error('Error posting:', e);
+      console.error('Error posting task:', e);
     }
 
     setIsPosting(false);
-    setIsPosting(false);
+  };
+
+  const handleUpdateTaskStatus = async (taskId, newStatus) => {
+    const updatedTasks = tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t);
+    setTasks(updatedTasks);
+    
+    try {
+      await supabase
+        .from('AI_Users')
+        .update({ publication: updatedTasks })
+        .eq('user_id', currentUser.id);
+    } catch (e) {
+      console.error('Error updating task:', e);
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -185,7 +173,19 @@ export default function Profile({ targetUserId }) {
   const ubicacion = completeData?.ubicacion || "Grand Rapids, MI";
   const fotoBase64 = completeData?.fotoBase64 || null;
 
-
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-[1000] bg-white flex items-center justify-center p-4">
+        <div className="animate-in fade-in zoom-in duration-1000 max-w-[80%] flex flex-col items-center justify-center">
+          <img
+            src="/logo2.png"
+            alt="Logo"
+            className="w-36 sm:w-48 h-auto object-contain transition-all duration-500 animate-pulse"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full bg-[#FFF] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
@@ -328,19 +328,19 @@ export default function Profile({ targetUserId }) {
             </div>
           </div>
 
-          {/* RIGHT COLUMN - ACTIVITY & FORUM */}
+          {/* RIGHT COLUMN - DASHBOARD & KANBAN */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* COMMUNITY WELCOME CARD (TEAMS STYLE) */}
-            <div className="bg-white rounded p-5 border border-[#EDEBE9] shadow-sm flex items-start gap-4">
-               <div className="w-10 h-10 rounded bg-[#F3F2F1] flex items-center justify-center shrink-0">
-                 <MessageSquare className="text-[#464775]" size={20} />
-               </div>
-               <div>
-                 <h2 className="text-[14px] font-semibold text-[#242424] mb-1">Centro de Colaboración</h2>
-                 <p className="text-[13px] text-[#616161] max-w-2xl leading-relaxed">
-                   Este espacio está diseñado para compartir información de soporte, sugerencias, herramientas y aportar al equipo. Crea publicaciones y mantente al tanto del estado y resultados de los módulos en tiempo real.
-                 </p>
+            {/* DASHBOARD HEADER */}
+            <div className="bg-white rounded p-5 border border-[#EDEBE9] shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+               <div className="flex gap-4 items-center">
+                 <div className="w-10 h-10 rounded bg-[#F3F2F1] flex items-center justify-center shrink-0">
+                   <Activity className="text-[#464775]" size={20} />
+                 </div>
+                 <div>
+                   <h2 className="text-[14px] font-semibold text-[#242424] mb-1">Mi Panel de Productividad</h2>
+                   <p className="text-[13px] text-[#616161]">Gestiona tus tareas, visualiza tus métricas y revisa el historial de módulos asignados.</p>
+                 </div>
                </div>
             </div>
 
@@ -349,186 +349,131 @@ export default function Profile({ targetUserId }) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center shrink-0">
-                    <Activity className="text-white" size={16} />
+                    <TrendingUp className="text-white" size={16} />
                   </div>
                   <div>
-                    <h4 className="text-[14px] font-semibold text-[#242424]">Servex Copilot · Backend Optimization Analytics</h4>
-                    <p className="text-[12px] text-[#616161]">Real-time performance metrics of XML catalog synchronization workflows.</p>
+                    <h4 className="text-[14px] font-semibold text-[#242424]">Mis Optimizaciones</h4>
+                    <p className="text-[12px] text-[#616161]">Rendimiento histórico de mis flujos de trabajo de sincronización.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-5">
-                {['Cleansing', 'Comparison', 'Restructuring', 'Updating', 'Configuration', 'Matrix Comparison'].map(tag => (
-                  <span key={tag} className="px-2.5 py-1 rounded-full bg-[#F3F2F1] text-[#242424] text-[11px] font-medium border border-[#E1DFDD]">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="bg-[#F8F8F8] rounded p-4 border-l-4 border-[#464775] mb-5">
-                <p className="text-[13px] text-[#242424] leading-relaxed">
-                  "Deep matrix analysis comparing thousands of legacy pricing nodes against incoming data to detect precise variations."
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
                 <div className="bg-white p-3 border border-[#EDEBE9] rounded">
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp className="text-[#464775]" size={14} />
-                    <p className="text-[11px] text-[#616161] font-semibold">Time Saved</p>
-                  </div>
-                  <p className="text-2xl font-bold text-[#242424]">99.94%</p>
+                   <p className="text-[11px] text-[#616161] font-semibold mb-1">Total Tareas</p>
+                   <p className="text-2xl font-bold text-[#242424]">{tasks.length}</p>
                 </div>
                 <div className="bg-white p-3 border border-[#EDEBE9] rounded">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Calendar className="text-[#616161]" size={14} />
-                    <p className="text-[11px] text-[#616161] font-semibold">Manual Workflow</p>
-                  </div>
-                  <p className="text-2xl font-bold text-[#242424]">80 Hrs</p>
+                   <p className="text-[11px] text-[#616161] font-semibold mb-1">Módulos Asignados</p>
+                   <p className="text-2xl font-bold text-[#242424]">{modules.length}</p>
                 </div>
                 <div className="bg-[#F3F2F1] p-3 border border-[#EDEBE9] rounded">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Zap className="text-[#464775]" size={14} />
-                    <p className="text-[11px] text-[#464775] font-semibold">Servex Copilot</p>
-                  </div>
-                  <p className="text-2xl font-bold text-[#464775]">2.5 Min</p>
+                   <p className="text-[11px] text-[#464775] font-semibold mb-1">Precisión General</p>
+                   <p className="text-2xl font-bold text-[#464775]">99.9%</p>
                 </div>
                 <div className="bg-white p-3 border border-[#EDEBE9] rounded">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle className="text-[#107C41]" size={14} />
-                    <p className="text-[11px] text-[#616161] font-semibold">Accuracy Rate</p>
-                  </div>
-                  <p className="text-2xl font-bold text-[#242424]">99.9%</p>
+                   <p className="text-[11px] text-[#616161] font-semibold mb-1">Tareas Completadas</p>
+                   <p className="text-2xl font-bold text-[#107C41]">{tasks.filter(t => t.status === 'done').length}</p>
                 </div>
               </div>
             </div>
 
-            {/* CREATE POST CARD */}
-            {isOwnProfile && (
-              <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
-              <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
-                  {fotoBase64 ? (
-                    <img src={fotoBase64} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-white text-sm font-bold">{iniciales}</span>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <textarea
-                    value={newPostText}
-                    onChange={(e) => setNewPostText(e.target.value)}
-                    placeholder="¿Qué estás pensando?"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-[13.5px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/20 focus:bg-white transition-all resize-none min-h-[80px]"
+            {/* TIMELINE SECTION */}
+            <div className="bg-white rounded p-6 border border-[#EDEBE9] shadow-sm">
+              <h3 className="text-[14px] font-semibold text-[#242424] mb-4 flex items-center gap-2">
+                <Calendar size={16} className="text-[#464775]" /> Historial de Módulos
+              </h3>
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-200">
+                {modules.map((mod, i) => (
+                  <div key={mod.id} className="min-w-[150px] bg-slate-50 border border-slate-100 p-3 rounded-lg flex-shrink-0 relative">
+                    <div className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full bg-emerald-500 shadow-sm border-2 border-white" />
+                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">{mod.assignedAt}</p>
+                    <p className="text-[13px] font-semibold text-slate-800">{mod.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* KANBAN BOARD */}
+            <div className="bg-white rounded p-6 border border-[#EDEBE9] shadow-sm">
+              <h3 className="text-[14px] font-semibold text-[#242424] mb-4 flex items-center gap-2">
+                <CheckCircle size={16} className="text-[#464775]" /> Bitácora de Actividades
+              </h3>
+              
+              {isOwnProfile && (
+                <div className="mb-6 flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={newTaskText}
+                    onChange={(e) => setNewTaskText(e.target.value)}
+                    placeholder="Nueva tarea o registro..."
+                    className="flex-1 px-3 py-2 border border-slate-200 rounded text-[13px] focus:outline-none focus:border-[#464775]"
                   />
-
-                  {/* Image Preview */}
-                  {newPostImageBase64 && (
-                    <div className="relative mt-3 inline-block">
-                      <div className="rounded-xl overflow-hidden max-h-64 border border-slate-200">
-                        <img src={newPostImageBase64} alt="Preview" className="w-full h-auto object-cover max-h-64" />
-                      </div>
-                      <button
-                        onClick={() => setNewPostImageBase64('')}
-                        className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-black/80 transition-colors"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        ref={fileInputRef}
-                        onChange={handleImageUpload}
-                      />
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-500 hover:text-[#464775] transition-colors text-sm font-medium"
-                      >
-                        <ImageIcon size={18} />
-                        <span>Foto</span>
-                      </button>
-                    </div>
-                    <button
-                      onClick={handlePostSubmit}
-                      disabled={isPosting || (!newPostText.trim() && !newPostImageBase64)}
-                      className="flex items-center gap-2 px-5 py-2 bg-[#464775] text-white rounded-lg hover:bg-[#35365e] transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isPosting ? 'Publicando...' : 'Publicar'}
-                      {!isPosting && <Send size={14} />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            )}
-
-            {/* FEED SECTION */}
-            <div className="space-y-6">
-              {posts.map((post) => (
-                <div key={post.id} className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-slate-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex gap-3 items-center">
-                      <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
-                        {post.author?.avatar ? (
-                          <img src={post.author.avatar} alt={post.author.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-white text-sm font-bold">{post.author?.initials}</span>
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-[14px] font-bold text-slate-900">{post.author?.name}</h3>
-                        <p className="text-[11px] text-slate-500">{post.author?.role}</p>
-                      </div>
-                    </div>
-                    <span className="text-[11px] font-medium text-slate-400">
-                      {post.timestamp ? formatDistanceToNow(new Date(post.timestamp), { addSuffix: true }) : 'Recientemente'}
-                    </span>
-                  </div>
-
-                  <div className="pl-[52px]">
-                    {post.text && (
-                      <p className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap mb-4">
-                        {post.text}
-                      </p>
-                    )}
-
-                    {post.image && (
-                      <div className="rounded-xl overflow-hidden border border-slate-200 mt-2 mb-4 bg-slate-50">
-                        <img src={post.image} alt="Post attachment" className="w-full h-auto max-h-[500px] object-contain" />
-                      </div>
-                    )}
-
-                    {/* Interaction Bar Mockup */}
-                    <div className="flex items-center gap-6 pt-3 border-t border-slate-100">
-                      <button className="flex items-center gap-1.5 text-slate-500 hover:text-emerald-600 transition-colors text-sm font-medium">
-                        <Award size={16} />
-                        <span>Reconocer</span>
-                      </button>
-                      <button className="flex items-center gap-1.5 text-slate-500 hover:text-[#464775] transition-colors text-sm font-medium">
-                        <MessageSquare size={16} />
-                        <span>Comentar</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {posts.length === 0 && (
-                <div className="bg-white/50 backdrop-blur-sm border border-slate-100 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
-                    <MessageSquare size={20} />
-                  </div>
-                  <h3 className="text-slate-800 font-bold mb-1">El muro está vacío</h3>
-                  <p className="text-slate-500 text-sm">Sé el primero en compartir algo con el equipo.</p>
+                  <select
+                    value={newTaskStatus}
+                    onChange={(e) => setNewTaskStatus(e.target.value)}
+                    className="px-3 py-2 border border-slate-200 rounded text-[13px] bg-slate-50 focus:outline-none focus:border-[#464775]"
+                  >
+                    <option value="todo">Por Hacer</option>
+                    <option value="in-progress">En Progreso</option>
+                    <option value="done">Completado</option>
+                  </select>
+                  <button
+                    onClick={handleTaskSubmit}
+                    disabled={isPosting || !newTaskText.trim()}
+                    className="px-4 py-2 bg-[#464775] text-white rounded text-[13px] font-medium hover:bg-[#35365e] disabled:opacity-50"
+                  >
+                    Agregar
+                  </button>
                 </div>
               )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {['todo', 'in-progress', 'done'].map(status => {
+                  const statusTasks = tasks.filter(t => t.status === status);
+                  const titles = {
+                    'todo': 'Por Hacer',
+                    'in-progress': 'En Progreso',
+                    'done': 'Completado'
+                  };
+                  return (
+                    <div key={status} className="bg-slate-50 rounded-lg p-3 min-h-[300px] border border-slate-100 flex flex-col">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-[12px] font-bold text-slate-700 uppercase tracking-wider">{titles[status]}</h4>
+                        <span className="text-[11px] font-bold text-slate-400 bg-slate-200 px-2 py-0.5 rounded-full">{statusTasks.length}</span>
+                      </div>
+                      <div className="space-y-2 flex-1">
+                        {statusTasks.map(task => (
+                          <div key={task.id} className="bg-white p-3 rounded shadow-sm border border-slate-200 group relative">
+                            <p className="text-[12.5px] text-slate-800 leading-snug mb-2 pr-4">{task.text}</p>
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+                              <span className="text-[10px] text-slate-400">
+                                {task.timestamp ? formatDistanceToNow(new Date(task.timestamp), { addSuffix: true }) : ''}
+                              </span>
+                              {isOwnProfile && (
+                                <select 
+                                  value={task.status} 
+                                  onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
+                                  className="text-[10px] p-1 border border-slate-200 rounded text-slate-600 bg-slate-50 focus:outline-none"
+                                >
+                                  <option value="todo">Mover a Hacer</option>
+                                  <option value="in-progress">Mover a Progreso</option>
+                                  <option value="done">Mover a Completado</option>
+                                </select>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {statusTasks.length === 0 && (
+                          <div className="h-full w-full flex items-center justify-center py-4">
+                            <p className="text-[11px] text-slate-400">Sin tareas</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
           </div>
