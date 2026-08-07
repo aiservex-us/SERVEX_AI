@@ -354,7 +354,7 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
   // Pantalla de carga
   if (loading || lockStatus === 'checking') {
     return (
-      <div className="min-h-screen bg-[#FFF] flex flex-col items-center justify-center">
+      <div className="fixed inset-0 z-[9999] w-screen h-screen bg-[#FFF] flex flex-col items-center justify-center overflow-hidden">
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes fog-fade {
             0%, 100% { opacity: 1; filter: blur(0px); transform: scale(1); }
