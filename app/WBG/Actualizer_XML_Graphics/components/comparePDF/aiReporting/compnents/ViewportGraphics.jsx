@@ -489,7 +489,7 @@ const ViewportGraphics = () => {
               summaryNode={
                 <div>
                   <span className="font-semibold text-[#A80000]">🚨 Top Impacto: </span> 
-                  {data.anomaliesData.sort((a,b)=>b.absChange - a.absChange).slice(0, 1).map((a, i) => (
+                  {([...data.anomaliesData]).sort((a,b)=>b.absChange - a.absChange).slice(0, 1).map((a, i) => (
                     <span key={i}>[{a.name}: ${a.absChange.toLocaleString()}]</span>
                   ))}
                 </div>
