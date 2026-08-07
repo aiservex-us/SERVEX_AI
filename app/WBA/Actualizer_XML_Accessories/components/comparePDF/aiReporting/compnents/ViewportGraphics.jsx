@@ -581,79 +581,8 @@ const ViewportGraphics = () => {
           </div>
         </div>
 
-        {/* === HISTORIAL DE CHAT (Aparece bajo las gráficas) === */}
-        {messages.length > 0 && (
-          <div className="max-w-4xl mx-auto space-y-6 w-full pt-10 border-t border-[#EDEBE9] mt-4">
-            <h3 className="text-[14px] font-semibold text-[#242424] mb-4 text-center">Interacciones con Alysa</h3>
-            {messages.map((msg, idx) => (
-              <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-4 w-full ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-9 h-9 rounded-md shrink-0 flex items-center justify-center text-white text-[11px] font-bold shadow-sm ${msg.from === 'user' ? 'bg-[#464775]' : 'bg-[#EDEBE9] !text-[#605E5C]'}`}>
-                  {msg.from === 'user' ? 'ME' : 'AI'}
-                </div>
-                <div className={`flex flex-col max-w-[85%] ${msg.from === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div className={`flex items-baseline gap-2 mb-1 ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <span className="font-semibold text-[12px] text-[#242424]">{msg.from === 'user' ? 'You' : 'Alysa'}</span>
-                    <span className="text-[10px] text-[#A19F9D]">{msg.time}</span>
-                  </div>
-                  <div className={`p-4 rounded-md text-[13px] leading-relaxed border shadow-sm ${msg.from === 'user' ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-[#EDEBE9] text-[#242424]'}`}>
-                    {msg.from === "bot" ? <div className="prose prose-sm max-w-none text-[#242424]" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }} /> : <p className="whitespace-pre-wrap">{msg.text}</p>}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-            {isLoadingChat && (
-              <div className="flex gap-4 animate-pulse">
-                <div className="w-9 h-9 rounded-md bg-[#EDEBE9]"></div>
-                <div className="h-12 w-24 bg-white border border-[#EDEBE9] rounded-md"></div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
       </div>
 
-      {/* === INPUT FORM FLOTANTE (Alysa) === */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6 z-30">
-        <form onSubmit={handleSendMessage} className="bg-white border border-[#EDEBE9] rounded-xl shadow-lg flex flex-col overflow-hidden focus-within:ring-1 focus-within:ring-[#464775]">
-          <div className="flex items-center gap-2 px-4 py-2 bg-[#FAFAFA] border-b border-[#EDEBE9] relative">
-            <button type="button" onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 text-[10px] font-semibold text-[#605E5C] bg-white border border-[#EDEBE9] px-2 py-1 rounded hover:bg-[#F3F2F1]">
-              <Database size={12} className="text-[#464775]" /> CONTEXTO ANALÍTICO <ChevronDown size={10} />
-            </button>
-            <div className="flex items-center gap-1.5 text-[9px] text-[#A19F9D] font-bold ml-auto uppercase">
-              <Zap size={10} className="text-[#107C10] fill-[#107C10]" /> Alysa Lista
-            </div>
-          </div>
-
-          <div className="px-4 pt-3">
-            {attachedFile && (
-              <div className="flex items-center gap-2 mb-2 bg-[#FAFAFA] w-fit px-2 py-1 rounded border border-[#EDEBE9]">
-                <FileText size={14} className="text-[#464775]" />
-                <span className="text-[11px] font-semibold text-[#464775]">{attachedFile.name}</span>
-                <button type="button" onClick={() => setAttachedFile(null)} className="hover:bg-[#EDEBE9] rounded p-0.5"><X size={12} /></button>
-              </div>
-            )}
-            <textarea 
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Pregúntale a Alysa sobre estas métricas o indícale cómo analizarlas..."
-              className="w-full bg-transparent border-none outline-none text-[13px] py-1 text-[#242424] placeholder:text-[#A19F9D] resize-none min-h-[50px] font-sans"
-              onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); } }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between px-3 py-2 bg-[#FAFAFA] border-t border-[#EDEBE9]">
-            <div className="flex items-center gap-1">
-              <button type="button" onClick={() => fileInputRef.current.click()} className="p-2 text-[#605E5C] hover:text-[#464775] rounded transition-colors"><Paperclip size={18} /></button>
-              <button type="button" onClick={handleMicClick} className={`p-2 rounded transition-all ${isListening ? 'text-[#D83B01] bg-[#D83B01]/10 animate-pulse' : 'text-[#605E5C] hover:text-[#464775]'}`}>
-                <Mic size={18} />
-              </button>
-            </div>
-            <button type="submit" disabled={(!inputValue.trim() && !attachedFile) || isLoadingChat} className="bg-[#464775] text-white px-5 py-1.5 rounded text-[11px] font-semibold flex items-center gap-2 hover:bg-[#3b3c63] transition-all disabled:opacity-50">
-              {isLoadingChat ? "ENVIANDO..." : "PREGUNTAR A ALYSA"} <SendHorizontal size={14} />
-            </button>
-          </div>
-        </form>
-      </div>
 
     </main>
   );
