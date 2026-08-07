@@ -1,7 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard,
+import {
+  LayoutDashboard,
   SearchCode,
   Headphones,
   Settings,
@@ -13,18 +14,20 @@ import { LayoutDashboard,
   FileSpreadsheet,
   UploadCloud,
   BrainCircuit,
-  CheckCircle2, BarChart2 } from 'lucide-react';
+  CheckCircle2, BarChart2
+} from 'lucide-react';
 
 const menuItems = [
   { id: 'reporting', label: 'WBT Home', icon: LayoutDashboard, sub: 'Dashboard' },
-    { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud , sub: 'Ingestion' },
-    { id: 'report', label: 'List Price Changes', icon: BrainCircuit, sub: 'Execution' },
-  { id: 'inbox', label: 'cataloge base', icon:   FileCode, sub: 'Intelligence' },
-  { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'inbox_updated', label: 'Current Catalog', icon:  FileCode, sub: 'Data' },
-  { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'AI_reporter', label: 'AI Resumen', icon: CheckCircle2, sub: 'Output' },
+  { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
+  { id: 'report', label: 'List Price Changes', icon: BrainCircuit, sub: 'Execution' },
   { id: 'graphics', label: 'Dashboard Gráfico', icon: BarChart2, sub: 'Analytics' },
+  { id: 'AI_reporter', label: 'AI Resumen', icon: CheckCircle2, sub: 'Output' },
+  { id: 'inbox', label: 'cataloge base', icon: FileCode, sub: 'Intelligence' },
+  { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
+  { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
+  { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
+
 ];
 
 export default function MenuLateral({
@@ -56,8 +59,8 @@ export default function MenuLateral({
 
       {/* OVERLAY DE FONDO EN MÓVIL (Se activa si el menú se despliega en pantalla chica) */}
       {!collapsed && (
-        <div 
-          onClick={() => setCollapsed(true)} 
+        <div
+          onClick={() => setCollapsed(true)}
           className="md:hidden fixed inset-0 bg-slate-900/10 backdrop-blur-xs z-40 transition-opacity"
         />
       )}
@@ -75,8 +78,8 @@ export default function MenuLateral({
           fixed top-0 bottom-0 left-0 z-40 h-full
           md:sticky md:h-full
           
-          ${collapsed 
-            ? 'w-0 -translate-x-full opacity-0 md:w-[70px] md:translate-x-0 md:opacity-100' 
+          ${collapsed
+            ? 'w-0 -translate-x-full opacity-0 md:w-[70px] md:translate-x-0 md:opacity-100'
             : 'w-[230px] translate-x-0 opacity-100'
           }
         `}
@@ -91,7 +94,7 @@ export default function MenuLateral({
                 className={`object-contain transition-all duration-300 ${collapsed ? 'w-5 h-5' : 'w-7 h-7'}`}
               />
             </Link>
-            
+
             <div className={`
               overflow-hidden transition-all duration-[400ms]
               ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
@@ -102,7 +105,7 @@ export default function MenuLateral({
             </div>
           </div>
 
-          
+
         </div>
 
         {/* SEARCH BAR SECTION */}
@@ -112,7 +115,7 @@ export default function MenuLateral({
             ${collapsed ? 'justify-center h-10' : 'h-8 bg-slate-50/50 border border-slate-100 rounded-lg px-2'}
           `}>
             <SearchCode className={`shrink-0 transition-colors ${searchQuery ? 'text-[#464775]' : 'text-slate-400'} ${collapsed ? 'w-4 h-4' : 'w-3.5 h-3.5'}`} />
-            
+
             <input
               type="text"
               placeholder="Search..."
@@ -149,8 +152,8 @@ export default function MenuLateral({
                 className={`
                   group relative flex flex-col transition-all duration-300 w-full rounded-xl border
                   ${collapsed ? 'items-center justify-center py-3' : 'p-3'}
-                  ${isActive 
-                    ? 'bg-[#464775]/5 border-[#464775]/30 shadow-sm' 
+                  ${isActive
+                    ? 'bg-[#464775]/5 border-[#464775]/30 shadow-sm'
                     : 'bg-white border-slate-100 shadow-sm hover:border-slate-200 hover:bg-slate-50/30'}
                   ${item.id === 'incert_delete' ? 'max-[400px]:opacity-60 max-[400px]:bg-slate-50' : ''}
                 `}
@@ -159,7 +162,7 @@ export default function MenuLateral({
                   <div className={`${isActive ? 'text-[#464775]' : 'text-slate-400'} transition-all duration-300`}>
                     <Icon size={collapsed ? 15 : 17} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
-                  
+
                   <div className={`flex flex-col items-start overflow-hidden text-left transition-all duration-[400ms] ${collapsed ? 'max-w-0 opacity-0' : 'max-w-[160px] opacity-100 w-full'}`}>
                     <span className={`text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-opacity duration-500 delay-100 ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'} ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
                       {item.label}
@@ -215,13 +218,13 @@ export default function MenuLateral({
             <div className="relative shrink-0">
               <div className={`rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-sm transition-all duration-300 ${collapsed ? 'w-6 h-6 p-1' : 'w-7 h-7 p-1.5'}`}>
                 <img
-                  src="/logo2.png" 
+                  src="/logo2.png"
                   alt="Svx"
                   className="w-full h-full object-contain brightness-200"
                 />
               </div>
             </div>
-            
+
             <div className={`
               overflow-hidden transition-all duration-[400ms]
               ${collapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
