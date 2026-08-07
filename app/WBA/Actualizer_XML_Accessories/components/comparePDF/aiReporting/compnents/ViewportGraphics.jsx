@@ -33,7 +33,7 @@ const ViewportGraphics = () => {
         const tableName = moduleName === "LESRO" ? "ClientsSERVEX" : `ClientsSERVEX_${moduleName}`;
         
         const { data: dbData, error: dbError } = await supabase
-          .table(tableName)
+          .from(tableName)
           .select('audit_summary_markdown1')
           .eq('company_name', moduleName)
           .maybeSingle();
