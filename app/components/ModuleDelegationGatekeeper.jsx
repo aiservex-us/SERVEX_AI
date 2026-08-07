@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -109,6 +109,19 @@ export default function ModuleDelegationGatekeeper({ moduleName, redirectUrl, ch
     }
     setLoading(false);
   };
+
+
+  const hasPlayedAudio = useRef(false);
+  useEffect(() => {
+    if (!loading && !hasPlayedAudio.current) {
+      hasPlayedAudio.current = true;
+      try {
+        const audio = new Audio('/universfield-new-notification-030-480567.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log('Audio autoplay prevented', e));
+      } catch (e) {}
+    }
+  }, [loading]);
 
   const renderChatStep = () => {
     const animationProps = {
