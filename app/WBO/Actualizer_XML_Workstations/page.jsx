@@ -94,7 +94,7 @@ export default function MenuInicial() {
 
   
   const [isAiMenuExpanded, setIsAiMenuExpanded] = useState(true);
-  const showAiMenu = ['dashboard', 'kanban', 'inbox', 'inbox_updated', 'report', 'incert_delete'].includes(active);
+  const showAiMenu = ['dashboard', 'kanban', 'inbox', 'inbox_updated', 'report', 'incert_delete', 'graphics'].includes(active);
 
   const renderContent = () => {
     if (active === 'notifications' && isMobileScreen) {
