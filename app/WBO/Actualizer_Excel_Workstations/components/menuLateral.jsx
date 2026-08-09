@@ -20,6 +20,7 @@ import {
 const menuItems = [
   { id: 'reporting', label: 'WBO Home', icon: LayoutDashboard, sub: 'Dashboard' },
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
+  { id: 'xml_results', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
 ];
 
 export default function MenuLateral({
