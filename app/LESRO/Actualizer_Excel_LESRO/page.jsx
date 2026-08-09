@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js';
 import { X, AlertCircle , Sparkles} from 'lucide-react';
-import TeamsAgentChat from '../Actualizer_XML_LESRO/components/comparePDF/REPORT/components/AI_contact.jsx';
+import TeamsAgentChat from '../components/comparePDF/REPORT/components/AI_contact.jsx';
 
 import MenuLateral from './components/menuLateral.jsx';
 import XmlToCsvConverter from './components/XmlToCsvConverter.jsx';

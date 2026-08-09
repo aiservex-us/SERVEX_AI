@@ -1,10 +1,25 @@
-'use client';
+import os
+import re
+
+mod_suffixes = {
+    "LESRO": "LESRO",
+    "WBA": "Accessories",
+    "WBD": "Desks",
+    "WBG": "Graphics",
+    "WBO": "Workstations",
+    "WBS": "Seatings",
+    "WBT": "Tables"
+}
+
+base_dir = "/Users/glynne/Desktop/SERVEX_AI/app"
+
+page_template = """'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js';
 import { X, AlertCircle , Sparkles} from 'lucide-react';
-import TeamsAgentChat from '../Actualizer_XML_Tables/components/comparePDF/REPORT/components/AI_contact.jsx';
+import TeamsAgentChat from '__AI_CONTACT_PATH__';
 
 import MenuLateral from './components/menuLateral.jsx';
 import XmlToCsvConverter from './components/XmlToCsvConverter.jsx';
@@ -23,16 +38,16 @@ export default function ExcelActualizer() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          window.location.href = '/WBT';
+          window.location.href = '/__MOD__';
           return;
         }
         
         const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-        const res = await fetch(`apiURL/api/v1/module_delegation/WBT`.replace('apiURL', apiURL));
+        const res = await fetch(`apiURL/api/v1/module_delegation/__MOD__`.replace('apiURL', apiURL));
         const responseData = await res.json();
         
         if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
-          window.location.href = '/WBT';
+          window.location.href = '/__MOD__';
         }
       } catch (err) {
         console.error('Delegation check failed', err);
@@ -108,7 +123,7 @@ export default function ExcelActualizer() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the WBT management area. Any temporary changes in this view will be closed.
+                  You are about to leave the __MOD__ management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>
@@ -179,3 +194,48 @@ export default function ExcelActualizer() {
     </div>
   );
 }
+"""
+
+for mod, suffix in mod_suffixes.items():
+    xml_folder = f"Actualizer_XML_{suffix}"
+    excel_folder = f"Actualizer_Excel_{suffix}"
+    
+    if mod == "LESRO":
+        src_menu = os.path.join(base_dir, mod, "components", "menuLateral.jsx")
+        ai_contact_path = "../components/comparePDF/REPORT/components/AI_contact.jsx"
+    else:
+        src_menu = os.path.join(base_dir, mod, xml_folder, "components", "menuLateral.jsx")
+        ai_contact_path = f"../{xml_folder}/components/comparePDF/REPORT/components/AI_contact.jsx"
+
+    dest_menu_dir = os.path.join(base_dir, mod, excel_folder, "components")
+    dest_menu = os.path.join(dest_menu_dir, "menuLateral.jsx")
+    dest_page = os.path.join(base_dir, mod, excel_folder, "page.jsx")
+    
+    os.makedirs(dest_menu_dir, exist_ok=True)
+    
+    # 1. Copiar y modificar menuLateral.jsx
+    if os.path.exists(src_menu):
+        with open(src_menu, 'r') as f:
+            menu_content = f.read()
+
+        pattern = r'const menuItems = \[.*?\];'
+        new_items = """const menuItems = [
+  { id: 'converter', label: 'XML to CSV', icon: FileSpreadsheet, sub: 'Data Converter' },
+];"""
+        menu_content = re.sub(pattern, new_items, menu_content, flags=re.DOTALL)
+        
+        # Reemplazar "DATA WBT" (o lo que sea) por "DATA {mod}"
+        menu_content = re.sub(r'DATA (WBT|WBG|WBO|WBS|WBA|LESRO|WBD)', f'DATA {mod}', menu_content)
+
+        with open(dest_menu, 'w') as f:
+            f.write(menu_content)
+    else:
+        print(f"ERROR: No se encontró {src_menu} para {mod}")
+
+    # 2. Recrear page.jsx con el import correcto de AI Contact
+    page_mod_content = page_template.replace("__MOD__", mod).replace("__AI_CONTACT_PATH__", ai_contact_path)
+    with open(dest_page, 'w') as f:
+        f.write(page_mod_content)
+    print(f"Successfully fixed {mod}")
+
+print("All layouts setup complete.")
