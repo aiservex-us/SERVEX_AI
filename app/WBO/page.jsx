@@ -10,7 +10,7 @@ export default function Home() {
 
       {/* Contenedor Sección Hero / Principal */}
       <section className="w-full">
-        <ModuleDelegationGatekeeper moduleName="WBO" redirectUrl="/WBO/Actualizer_XML_Workstations">
+        <ModuleDelegationGatekeeper moduleName="WBO">
           <Main1 />
         </ModuleDelegationGatekeeper>
       </section>

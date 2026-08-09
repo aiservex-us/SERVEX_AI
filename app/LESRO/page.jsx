@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <main className="h-[90vh] bg-[#FFF] text-[#242424] p-8 md:p-16">
       <section className="w-full">
-        <ModuleDelegationGatekeeper moduleName="LESRO" redirectUrl="/LESRO/Actualizer_XML_LESRO">
+        <ModuleDelegationGatekeeper moduleName="LESRO">
           <Main1 />
         </ModuleDelegationGatekeeper>
       </section>
