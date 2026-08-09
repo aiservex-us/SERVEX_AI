@@ -72,7 +72,7 @@ export default function ExcelActualizer() {
   };
 
   const [isAiMenuExpanded, setIsAiMenuExpanded] = useState(true);
-  const showAiMenu = true;
+  const showAiMenu = active !== 'reporting';
 
   const renderContent = () => {
     switch (active) {
