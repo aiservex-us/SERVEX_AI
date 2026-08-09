@@ -9,7 +9,6 @@ import TeamsAgentChat from '../Actualizer_XML_Seatings/components/comparePDF/REP
 import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
-import XmlToCsvConverter from './components/XmlToCsvConverter.jsx';
 
 export default function ExcelActualizer() {
   const [active, setActive] = useState('reporting');
@@ -73,12 +72,11 @@ export default function ExcelActualizer() {
   };
 
   const [isAiMenuExpanded, setIsAiMenuExpanded] = useState(true);
-  const showAiMenu = active !== 'reporting' && active !== 'incert_delete';
+  const showAiMenu = active !== 'reporting';
 
   const renderContent = () => {
     switch (active) {
       case 'reporting': return <AIReporting />;
-      case 'converter': return <XmlToCsvConverter />;
       case 'incert_delete': return <IncertData moduleName="WBS" />;
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
