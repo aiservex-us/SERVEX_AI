@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import InsertXML from './incertXML_excel';
+import DeleteData from '../../../Actualizer_XML_Workstations/components/comparePDF/IncertData/components/delete_data';
 
 const IncertData = ({ moduleName }) => {
   const [isModalDismissed, setIsModalDismissed] = useState(false);
@@ -16,18 +17,11 @@ const IncertData = ({ moduleName }) => {
           
           {/* Overlay del Logo e Information (Card) */}
           <div
-            className={`hidden min-[400px]:block absolute inset-0 z-50 pointer-events-none transition-all duration-500 ease-out ${showOverlay ? 'opacity-100 backdrop-blur-[2px]' : 'opacity-0'
-              }`}
+            className={`hidden min-[400px]:block absolute inset-0 z-50 pointer-events-none transition-all duration-500 ease-out ${showOverlay ? 'opacity-100 backdrop-blur-[2px]' : 'opacity-0'}`}
           >
             <div className="flex items-center justify-center h-full w-full bg-white/95 p-6">
-              <div className={`
-                bg-white border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] 
-                rounded-3xl w-full max-w-4xl p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-16
-                transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden relative
-                ${showOverlay ? 'translate-y-0 scale-100 opacity-100 pointer-events-auto' : 'translate-y-12 scale-95 opacity-0 pointer-events-none'}
-              `}>
+              <div className={`bg-white border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] rounded-3xl w-full max-w-4xl p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-16 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden relative ${showOverlay ? 'translate-y-0 scale-100 opacity-100 pointer-events-auto' : 'translate-y-12 scale-95 opacity-0 pointer-events-none'}`}>
 
-                {/* Close Button */}
                 <button
                   onClick={() => setIsModalDismissed(true)}
                   className="absolute top-6 right-6 p-2 rounded-full text-slate-300 hover:text-slate-600 hover:bg-slate-50 transition-colors z-20"
@@ -37,11 +31,9 @@ const IncertData = ({ moduleName }) => {
                   </svg>
                 </button>
 
-                {/* Elementos decorativos de fondo de la card */}
                 <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#464775]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-sky-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
 
-                {/* Izquierda: Logo y Textos Originales */}
                 <div className="flex-1 flex flex-col items-center justify-center relative z-10">
                   <img
                     src="/alysa_lg.png"
@@ -50,7 +42,7 @@ const IncertData = ({ moduleName }) => {
                   />
                   <div className="text-center">
                     <h3 className="text-[#464775] text-lg lg:text-xl font-extralight tracking-[0.25em]">
-                      CET XML Import Tool
+                      CET Change Development Tool
                     </h3>
                     <p className="text-slate-400 text-[9px] mt-3 font-light tracking-widest uppercase">
                       Development of new technologies · Servex transition
@@ -58,10 +50,8 @@ const IncertData = ({ moduleName }) => {
                   </div>
                 </div>
 
-                {/* Divisor vertical (solo desktop) */}
                 <div className="hidden lg:block w-px h-72 bg-gradient-to-b from-transparent via-slate-200 to-transparent relative z-10" />
 
-                {/* Derecha: Information de Impacto y GLYNNE S.A.S */}
                 <div className="flex-1 flex flex-col justify-center relative z-10">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#464775]/5 border border-[#464775]/10 w-fit mb-6">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#464775] animate-pulse" />
@@ -69,13 +59,13 @@ const IncertData = ({ moduleName }) => {
                   </div>
 
                   <h2 className="text-2xl lg:text-3xl font-light text-slate-800 tracking-tight mb-5 leading-tight">
-                    CET Integration.<br />
-                    <strong className="font-semibold text-[#464775]">Direct XML upload.</strong>
+                    Weeks of work.<br />
+                    <strong className="font-semibold text-[#464775]">Done in seconds.</strong>
                   </h2>
 
                   <p className="text-sm text-slate-500 leading-relaxed font-light mb-8">
-                    Upload your <strong className="font-medium text-slate-700">CET XML files</strong> directly into the 
-                    Servex ecosystem. The data is securely stored in the XML CET import column for processing.
+                    Through a few simple actions, our system fully automates <strong className="font-medium text-slate-700">3 weeks of manual analysis, data comparison, updating, and strict verification</strong>.
+                    The entire operational lifecycle that previously took weeks is now flawlessly executed in mere seconds by <strong className="font-semibold text-slate-700">Alysa Servex Copilot</strong>.
                   </p>
 
                   <div className="flex flex-col gap-1 mt-auto">
@@ -83,7 +73,6 @@ const IncertData = ({ moduleName }) => {
                     <p className="text-[10px] text-slate-500 font-light tracking-wide">Next-gen intelligence ecosystem.</p>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
@@ -92,6 +81,12 @@ const IncertData = ({ moduleName }) => {
             <InsertXML moduleName={moduleName} />
           </div>
         </section>
+
+        {/* Sección de Eliminación */}
+        <section className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          <DeleteData />
+        </section>
+        
       </div>
     </div>
   );
