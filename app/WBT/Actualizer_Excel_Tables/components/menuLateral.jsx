@@ -20,6 +20,7 @@ import {
 const menuItems = [
   { id: 'reporting', label: 'WBT Home', icon: LayoutDashboard, sub: 'Dashboard' },
   { id: 'converter', label: 'XML to CSV', icon: FileSpreadsheet, sub: 'Data Converter' },
+  { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
 ];
 
 export default function MenuLateral({
