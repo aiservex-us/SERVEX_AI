@@ -1,10 +1,34 @@
-'use client';
+import os
+
+src_menu = "/Users/glynne/Desktop/SERVEX_AI/app/WBT/Actualizer_XML_Tables/components/menuLateral.jsx"
+dest_menu = "/Users/glynne/Desktop/SERVEX_AI/app/WBT/Actualizer_Excel_Tables/components/menuLateral.jsx"
+dest_page = "/Users/glynne/Desktop/SERVEX_AI/app/WBT/Actualizer_Excel_Tables/page.jsx"
+
+# 1. Copiar y modificar menuLateral.jsx
+with open(src_menu, 'r') as f:
+    menu_content = f.read()
+
+# Reemplazar los menuItems para que solo tenga la opción del convertidor
+# Encontramos el bloque const menuItems = [ ... ]; y lo reemplazamos
+import re
+pattern = r'const menuItems = \[.*?\];'
+new_items = """const menuItems = [
+  { id: 'converter', label: 'XML to CSV', icon: FileSpreadsheet, sub: 'Data Converter' },
+];"""
+
+menu_content = re.sub(pattern, new_items, menu_content, flags=re.DOTALL)
+
+with open(dest_menu, 'w') as f:
+    f.write(menu_content)
+
+# 2. Recrear page.jsx
+page_content = """'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js';
 import { X, AlertCircle , Sparkles} from 'lucide-react';
-import TeamsAgentChat from '../Actualizer_XML_Graphics/components/comparePDF/REPORT/components/AI_contact.jsx';
+import TeamsAgentChat from '../Actualizer_XML_Tables/components/comparePDF/REPORT/components/AI_contact.jsx';
 
 import MenuLateral from './components/menuLateral.jsx';
 import XmlToCsvConverter from './components/XmlToCsvConverter.jsx';
@@ -23,16 +47,16 @@ export default function ExcelActualizer() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          window.location.href = '/WBG';
+          window.location.href = '/WBT';
           return;
         }
         
         const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-        const res = await fetch(`apiURL/api/v1/module_delegation/WBG`.replace('apiURL', apiURL));
+        const res = await fetch(`${apiURL}/api/v1/module_delegation/WBT`);
         const responseData = await res.json();
         
         if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
-          window.location.href = '/WBG';
+          window.location.href = '/WBT';
         }
       } catch (err) {
         console.error('Delegation check failed', err);
@@ -108,7 +132,7 @@ export default function ExcelActualizer() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the WBG management area. Any temporary changes in this view will be closed.
+                  You are about to leave the WBT management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>
@@ -142,7 +166,7 @@ export default function ExcelActualizer() {
         <div className="flex flex-1 h-full w-full min-w-0 p-2 gap-2 bg-slate-50">
           
           {/* Lado Izquierdo: Contenido Principal */}
-          <div className={`relative group transition-all duration-300 ease-in-out h-full ${showAiMenu && isAiMenuExpanded ? 'w-[65%]' : 'w-full'}`}>
+          <div className={`relative group transition-all duration-300 ease-in-out h-full ${(showAiMenu && isAiMenuExpanded) ? 'w-[65%]' : 'w-full'}`}>
             <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
             <div className="relative bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-hidden flex flex-col">
               
@@ -179,3 +203,9 @@ export default function ExcelActualizer() {
     </div>
   );
 }
+"""
+
+with open(dest_page, 'w') as f:
+    f.write(page_content)
+
+print("Layout setup complete.")
