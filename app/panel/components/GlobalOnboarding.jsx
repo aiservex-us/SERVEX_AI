@@ -121,7 +121,7 @@ export default function GlobalOnboarding({ children }) {
     if (!loading && !hasPlayedAudio.current) {
       hasPlayedAudio.current = true;
       try {
-        const audio = new Audio('/universfield-new-notification-030-480567.mp3');
+        const audio = new Audio('/universfield-new-notification-059-494262.mp3');
         audio.volume = 0.5;
         audio.play().catch(e => console.log('Audio autoplay prevented', e));
       } catch (e) {}
