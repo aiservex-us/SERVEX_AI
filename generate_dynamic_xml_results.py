@@ -1,4 +1,10 @@
-'use client';
+import os
+
+wbo_dir = "/Users/glynne/Desktop/SERVEX_AI/app/WBO/Actualizer_Excel_Workstations"
+components_dir = os.path.join(wbo_dir, "components")
+xml_results_path = os.path.join(components_dir, "XML_Results_WBO.jsx")
+
+jsx_code = """'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
@@ -406,3 +412,9 @@ const WBODataMatrix = () => {
 };
 
 export default WBODataMatrix;
+"""
+
+with open(xml_results_path, "w") as f:
+    f.write(jsx_code)
+
+print("Overwrote XML_Results_WBO.jsx to use dynamic XML options.")
