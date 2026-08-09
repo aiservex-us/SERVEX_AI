@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 // Importamos el componente desde la misma carpeta
-import InsertXML from './IncertData/components/incertXML';
+import InsertXML from '../../components/comparePDF/IncertData/components/incertXML';
 
 const LesroAdminHero = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
