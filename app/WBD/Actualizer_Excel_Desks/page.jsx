@@ -7,10 +7,11 @@ import { X, AlertCircle , Sparkles} from 'lucide-react';
 import TeamsAgentChat from '../Actualizer_XML_Desks/components/comparePDF/REPORT/components/AI_contact.jsx';
 
 import MenuLateral from './components/menuLateral.jsx';
+import AIReporting from './components/presentation_excel.jsx';
 import XmlToCsvConverter from './components/XmlToCsvConverter.jsx';
 
 export default function ExcelActualizer() {
-  const [active, setActive] = useState('converter');
+  const [active, setActive] = useState('reporting');
   const [collapsed, setCollapsed] = useState(true);
   const [showExitModal, setShowExitModal] = useState(false);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
@@ -75,6 +76,7 @@ export default function ExcelActualizer() {
 
   const renderContent = () => {
     switch (active) {
+      case 'reporting': return <AIReporting />;
       case 'converter': return <XmlToCsvConverter />;
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
+  { id: 'reporting', label: 'WBT Home', icon: LayoutDashboard, sub: 'Dashboard' },
   { id: 'converter', label: 'XML to CSV', icon: FileSpreadsheet, sub: 'Data Converter' },
 ];
 
