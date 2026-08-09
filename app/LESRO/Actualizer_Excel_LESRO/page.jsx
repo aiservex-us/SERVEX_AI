@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js';
-import { X, AlertCircle , Sparkles} from 'lucide-react';
-import TeamsAgentChat from '../components/comparePDF/REPORT/components/AI_contact.jsx';
+import { X, AlertCircle } from 'lucide-react';
 
 import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
+import XMLResultsLESRO from './components/XML_Results_LESRO.jsx';
+import CETComparator from './components/CET_Comparator.jsx';
+
 
 export default function ExcelActualizer() {
   const [active, setActive] = useState('reporting');
@@ -28,7 +30,7 @@ export default function ExcelActualizer() {
           return;
         }
         
-        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https:servex-ai-back.onrender.com';
         const res = await fetch(`apiURL/api/v1/module_delegation/LESRO`.replace('apiURL', apiURL));
         const responseData = await res.json();
         
@@ -71,13 +73,14 @@ export default function ExcelActualizer() {
     router.push('/panel');
   };
 
-  const [isAiMenuExpanded, setIsAiMenuExpanded] = useState(true);
-  const showAiMenu = active !== 'reporting';
-
+    
   const renderContent = () => {
     switch (active) {
       case 'reporting': return <AIReporting />;
       case 'incert_delete': return <IncertData moduleName="LESRO" />;
+      case 'xml_results': return <XMLResultsLESRO />;
+      case 'cet_comparator': return <CETComparator />;
+
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
     }
@@ -144,22 +147,11 @@ export default function ExcelActualizer() {
         <div className="flex flex-1 h-full w-full min-w-0 p-2 gap-2 bg-slate-50">
           
           {/* Lado Izquierdo: Contenido Principal */}
-          <div className={`relative group transition-all duration-300 ease-in-out h-full ${showAiMenu && isAiMenuExpanded ? 'w-[65%]' : 'w-full'}`}>
+          <div className={`relative group transition-all duration-300 ease-in-out h-full w-full`}>
             <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
             <div className="relative bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-hidden flex flex-col">
               
-              {/* Toolbar Superior (Sólo visible si corresponde el menú IA) */}
-              {showAiMenu && (
-                <div className="absolute top-3 right-3 z-[90]">
-                  <button 
-                    onClick={() => setIsAiMenuExpanded(!isAiMenuExpanded)}
-                    className={`flex items-center justify-center p-1.5 rounded-lg shadow-sm border transition-all ${isAiMenuExpanded ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                    title={isAiMenuExpanded ? 'Ocultar Copilot' : 'Show Copilot'}
-                  >
-                    <Sparkles size={18} />
-                  </button>
-                </div>
-              )}
+              
 
               <div className="flex-1 w-full relative overflow-y-auto">
                 <div className="p-1 w-full h-full">
@@ -169,12 +161,7 @@ export default function ExcelActualizer() {
             </div>
           </div>
 
-          {/* Lado Derecho: Asistente IA (Menú Lateral Derecho) */}
-          {(showAiMenu && isAiMenuExpanded) && (
-            <div className="relative w-[35%] h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col animate-in slide-in-from-right-8 duration-300">
-              <TeamsAgentChat currentSection={active} />
-            </div>
-          )}
+          
           
         </div>
       </main>

@@ -14,12 +14,14 @@ import {
   FileSpreadsheet,
   UploadCloud,
   BrainCircuit,
-  CheckCircle2, BarChart2
+  CheckCircle2, BarChart2, Activity
 } from 'lucide-react';
 
 const menuItems = [
   { id: 'reporting', label: 'WBT Home', icon: LayoutDashboard, sub: 'Dashboard' },
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
+  { id: 'xml_results', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
+  { id: 'cet_comparator', label: 'CET XML Comparator', icon: Activity, sub: 'Audit' }
 ];
 
 export default function MenuLateral({
