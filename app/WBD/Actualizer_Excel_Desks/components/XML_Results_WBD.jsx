@@ -6,8 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RefreshCw, 
   Filter, 
-  AlertCircle
+  AlertCircle,
+  Download
 } from 'lucide-react';
+import Papa from 'papaparse';
 
 const WBODataMatrix = () => {
   const [products, setProducts] = useState([]);
@@ -244,6 +246,33 @@ const WBODataMatrix = () => {
     return { total, filtered: filtered.length, avgPrice };
   }, [products, filtered]);
 
+  const exportToCSV = () => {
+    if (!filtered || filtered.length === 0) return;
+    
+    const allHeaders = [...baseHeaders, ...optionHeaders];
+    
+    const csvData = filtered.map(p => {
+      const row = {};
+      allHeaders.forEach(header => {
+        let value = p[header] !== undefined ? p[header] : p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
+        if (header === "Base Price") value = p.basePrice;
+        row[header] = value !== undefined ? value : "-";
+      });
+      return row;
+    });
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `WBD_XML_Results_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
@@ -264,6 +293,15 @@ const WBODataMatrix = () => {
       >
         <RefreshCw size={12} /> Retry Loading
       </button>
+              <button 
+                onClick={exportToCSV}
+                type="button"
+                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center"
+                title="Export current view to CSV"
+              >
+                <Download size={13} />
+              </button>
+
     </div>
   );
 
@@ -312,6 +350,15 @@ const WBODataMatrix = () => {
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
+              <button 
+                onClick={exportToCSV}
+                type="button"
+                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center"
+                title="Export current view to CSV"
+              >
+                <Download size={13} />
+              </button>
+
             </div>
           </div>
 
