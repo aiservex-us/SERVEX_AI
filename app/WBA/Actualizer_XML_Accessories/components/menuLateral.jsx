@@ -16,6 +16,7 @@ import {
   UploadCloud,
   BrainCircuit,
   CheckCircle2, BarChart2
+, ArrowRightLeft
 } from 'lucide-react';
 
 const menuItems = [
@@ -28,7 +29,7 @@ const menuItems = [
   { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'excel_redirect', label: 'Exported XML Results', icon: FileSpreadsheet, sub: 'Data', link: '/WBA/Actualizer_Excel_Accessories' },
+  { id: 'excel_redirect', label: 'Transform to Excel', icon: ArrowRightLeft, sub: 'Data', link: '/WBA/Actualizer_Excel_Accessories' },
 
 
 ];
