@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   SearchCode,
@@ -27,6 +28,8 @@ const menuItems = [
   { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
+  { id: 'excel_redirect', label: 'Exported XML Results', icon: FileSpreadsheet, sub: 'Data', link: '/WBO/Actualizer_Excel_Workstations' },
+
 
 ];
 
@@ -36,6 +39,7 @@ export default function MenuLateral({
   collapsed,
   setCollapsed
 }) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredItems = menuItems.filter(item =>
@@ -140,6 +144,10 @@ export default function MenuLateral({
               <button
                 key={item.id}
                 onClick={() => {
+                  if (item.link) {
+                    router.push(item.link);
+                    return;
+                  }
                   if (item.id === 'incert_delete' && typeof window !== 'undefined' && window.innerWidth < 400) {
                     alert("This feature is only available on desktop.");
                     return;
