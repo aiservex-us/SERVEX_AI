@@ -49,7 +49,7 @@ export default function CriticalExcelModal({ xmlRoute, moduleName = 'default' })
           >
             {/* Left side: The beautiful 3D glass circles */}
             <div className={`hidden md:flex w-[40%] relative items-center justify-center overflow-hidden bg-gradient-to-b ${theme.primaryGradient} to-white p-10 border-r border-slate-100`}>
-              <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px' }}>
+              <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px', filter: isWBT ? 'drop-shadow(0 20px 30px rgba(0,0,0,0.15))' : 'none' }}>
                 <div
                   className={`absolute top-[20%] left-[10%] w-[180px] h-[180px] ${!isWBT ? 'rounded-full' : ''} bg-gradient-to-br ${theme.primaryGradientShape} backdrop-blur-xl border border-white/60 z-10`}
                   style={{
