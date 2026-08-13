@@ -72,10 +72,10 @@ export default function CriticalExcelModal({ xmlRoute }) {
                   Action Required
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 mb-3">
-                  Paso Crítico Requerido
+                  Critical Step Required
                 </h2>
                 <p className="text-[14px] text-slate-500 font-medium leading-relaxed max-w-md">
-                  Para utilizar este módulo correctamente, depende estrictamente de que en el sistema el XML esté actualizado.
+                  This module strictly depends on the system's XML data being fully updated prior to processing.
                 </p>
               </div>
 
@@ -113,13 +113,13 @@ export default function CriticalExcelModal({ xmlRoute }) {
                   onClick={() => setIsOpen(false)}
                   className="w-full sm:w-auto px-6 py-3 rounded-xl text-[13px] font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-800 transition-colors"
                 >
-                  Aceptar y cerrar
+                  Accept and close
                 </button>
                 <button
                   onClick={() => router.push(xmlRoute)}
                   className="w-full sm:flex-1 px-6 py-3 rounded-xl text-[13px] font-bold text-white bg-[#464775] hover:bg-[#36375a] shadow-lg shadow-[#464775]/25 hover:shadow-xl hover:-translate-y-px transition-all flex items-center justify-center gap-2 group"
                 >
-                  Verificar en el panel de actualizacion
+                  Verify in Update Panel
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
