@@ -324,7 +324,8 @@ export default function UploadClientXML() {
         const csvNewPayload = {
           company_name: 'WBG',
           user_id: user.id,
-          csv_new_raw: sanitizeCSV(csvNewContent)
+          csv_new_raw: sanitizeCSV(csvNewContent),
+          CSV_final: sanitizeCSV(csvNewContent)
         };
         const { error: csvNewError } = await supabase
           .from('ClientsSERVEX_WBG')

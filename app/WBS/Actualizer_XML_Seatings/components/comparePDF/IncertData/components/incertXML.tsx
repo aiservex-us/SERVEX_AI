@@ -294,6 +294,7 @@ export default function UploadClientXML() {
       }
       if (csvNewContent.trim()) {
         payload.csv_new_raw = sanitizeCSV(csvNewContent);
+        payload.CSV_final = sanitizeCSV(csvNewContent);
       }
 
       const { error } = await supabase
