@@ -746,7 +746,7 @@ export default function CETComparator() {
               </button>
             </div>
             <div className="px-8 py-6 flex gap-4">
-              <div className={`p-2 h-fit rounded-full shrink-0 ${modalConfig.isError ? 'bg-[#C4314B]/10 text-[#C4314B]' : modalConfig.type === 'confirm' ? 'bg-[#5B5FC7]/10 text-[#5B5FC7]' : 'bg-emerald-600/10 text-emerald-600'}`}>
+              <div className={`p-2 h-fit rounded-full shrink-0 ${modalConfig.isError ? 'bg-[#C4314B]/10 text-[#C4314B]' : modalConfig.type === 'confirm' ? 'bg-[#7f1d1d]/10 text-[#7f1d1d]' : 'bg-emerald-600/10 text-emerald-600'}`}>
                 <AlertCircle size={22} className="currentColor" />
               </div>
               <div className="flex-1 mt-1">
@@ -761,7 +761,7 @@ export default function CETComparator() {
                   <button onClick={closeModal} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
                     Cancel
                   </button>
-                  <button onClick={() => { closeModal(); if (modalConfig.onConfirm) modalConfig.onConfirm(); }} className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#5B5FC7] rounded hover:bg-[#4F52B2] transition-all shadow-md">
+                  <button onClick={() => { closeModal(); if (modalConfig.onConfirm) modalConfig.onConfirm(); }} className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#7f1d1d] rounded hover:bg-[#5a1515] transition-all shadow-md">
                     Confirm and apply
                   </button>
                 </>
