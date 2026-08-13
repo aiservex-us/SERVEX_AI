@@ -199,7 +199,7 @@ export default function XmlToCsvConverter() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <div className="bg-white border border-[#EDEBE9] shadow-sm p-1.5 rounded">
-                <Database size={14} className="text-[#464775]" />
+                <Database size={14} className="text-[#003873]" />
               </div>
               <span className="text-[#616161] font-semibold uppercase tracking-wider text-[10px]">Excel Actualizer</span>
             </div>
@@ -220,7 +220,7 @@ export default function XmlToCsvConverter() {
             {products.length === 0 ? (
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 bg-[#464775] text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-[#35365e] transition-all shadow-md hover:shadow-lg"
+                className="flex items-center gap-2 bg-[#003873] text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-[#002244] transition-all shadow-md hover:shadow-lg"
               >
                 <FileUp size={16} />
                 Upload XML
@@ -258,7 +258,7 @@ export default function XmlToCsvConverter() {
         {loading && (
           <div className="flex items-center justify-center p-20 bg-white border border-[#EDEBE9] rounded-xl shadow-sm">
             <div className="flex flex-col items-center gap-4">
-              <Sparkles className="animate-spin text-[#464775]" size={32} />
+              <Sparkles className="animate-spin text-[#003873]" size={32} />
               <p className="text-sm text-[#616161]">Parsing XML file...</p>
             </div>
           </div>
@@ -287,7 +287,7 @@ export default function XmlToCsvConverter() {
           >
             <div className="p-4 border-b border-[#EDEBE9] bg-[#F5F5F5] flex justify-between items-center">
               <div className="flex items-center gap-3 text-[#242424]">
-                <FileText size={16} className="text-[#464775]" />
+                <FileText size={16} className="text-[#003873]" />
                 <span className="font-semibold text-sm">Preview: {fileName}</span>
               </div>
               <div className="text-xs text-[#616161] bg-white px-3 py-1 rounded-full border border-[#EDEBE9]">
@@ -306,7 +306,7 @@ export default function XmlToCsvConverter() {
                       </th>
                     ))}
                     {optionHeaders.map(h => (
-                      <th key={h} className="py-3 px-4 text-[10px] uppercase font-bold text-[#464775] border-b border-[#EDEBE9] border-r bg-[#F5F6FA] whitespace-nowrap">
+                      <th key={h} className="py-3 px-4 text-[10px] uppercase font-bold text-[#003873] border-b border-[#EDEBE9] border-r bg-[#F5F6FA] whitespace-nowrap">
                         {h}
                       </th>
                     ))}

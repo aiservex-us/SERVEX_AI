@@ -73,8 +73,8 @@ const WBmfgAdminHero = () => {
 
           {/* Hero Content */}
           <div className="flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 mb-8 rounded-full border border-[#464775]/20 bg-[#464775]/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#464775]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#464775] animate-pulse" />
+            <div className="inline-flex items-center gap-2 mb-8 rounded-full border border-[#003873]/20 bg-[#003873]/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#003873]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#003873] animate-pulse" />
               Internal Administration Platform
             </div>
 
@@ -93,11 +93,11 @@ const WBmfgAdminHero = () => {
 
               <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-black/30">
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  <svg className="w-4 h-4 text-[#003873]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                   Data Control
                 </span>
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  <svg className="w-4 h-4 text-[#003873]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                   ETL Optimized
                 </span>
               </div>
@@ -107,7 +107,7 @@ const WBmfgAdminHero = () => {
       </div>
 
       {/* --- LADO DERECHO (VISUAL) --- */}
-      <div className="hidden lg:flex w-[35%] h-full relative items-center justify-center overflow-hidden border-l border-gray-100 bg-gradient-to-b from-[#464775]/40 via-[#464775]/10 to-white">
+      <div className="hidden lg:flex w-[35%] h-full relative items-center justify-center overflow-hidden border-l border-gray-100 bg-gradient-to-b from-[#003873]/40 via-[#003873]/10 to-white">
         
         {/* Decorative Floating 3D Glass Shapes (Ultra Pro) */}
         <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px', filter: 'drop-shadow(0 25px 35px rgba(0,0,0,0.15)) drop-shadow(0 5px 15px rgba(0,0,0,0.05))' }}>
@@ -116,7 +116,7 @@ const WBmfgAdminHero = () => {
           <div
             className="absolute top-[15%] left-[5%] w-[180px] h-[180px] backdrop-blur-md"
             style={{
-              background: 'linear-gradient(135deg, #46477533, rgba(255,255,255,0.1))',
+              background: 'linear-gradient(135deg, #00387333, rgba(255,255,255,0.1))',
               transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
               boxShadow: 'inset 0 0 40px rgba(255,255,255,0.4), inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 15px rgba(0,0,0,0.2)',
               borderRadius: '9999px'
@@ -125,7 +125,7 @@ const WBmfgAdminHero = () => {
 
           {/* Shape 2: Main center, solid professional color */}
           <div
-            className="absolute top-[20%] left-[20%] w-[200px] h-[200px] bg-gradient-to-br from-[#464775]/80 to-[#36375a]/40 backdrop-blur-xl z-10"
+            className="absolute top-[20%] left-[20%] w-[200px] h-[200px] bg-gradient-to-br from-[#003873]/80 to-[#002244]/40 backdrop-blur-xl z-10"
             style={{
               transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
               boxShadow: 'inset 0 0 50px rgba(255,255,255,0.2), inset 2px 2px 5px rgba(255,255,255,0.4), inset -4px -4px 15px rgba(0,0,0,0.4)',
@@ -137,7 +137,7 @@ const WBmfgAdminHero = () => {
           <div
             className="absolute top-[30%] right-[25%] w-[160px] h-[160px] backdrop-blur-md z-10"
             style={{
-              background: 'linear-gradient(45deg, rgba(255,255,255,0.3), #4647751A)',
+              background: 'linear-gradient(45deg, rgba(255,255,255,0.3), #0038731A)',
               transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
               boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), inset 1px 1px 3px rgba(255,255,255,0.9), inset -1px -1px 10px rgba(0,0,0,0.1)',
               borderRadius: '9999px'
@@ -158,7 +158,7 @@ const WBmfgAdminHero = () => {
           <div
             className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] backdrop-blur-2xl blur-[2px]"
             style={{
-              backgroundColor: '#4647754D',
+              backgroundColor: '#0038734D',
               transform: 'rotateX(45deg) rotateY(15deg) translateZ(150px)',
               boxShadow: 'inset 0 0 20px rgba(255,255,255,0.2), inset 2px 2px 10px rgba(255,255,255,0.5)',
               borderRadius: '9999px'
@@ -168,12 +168,12 @@ const WBmfgAdminHero = () => {
         </div>
 
         <div className="absolute top-12 right-12 cursor-pointer group z-20">
-          <div className="w-6 h-[1.5px] bg-[#464775] mb-1.5 transition-all group-hover:w-8" />
-          <div className="w-4 h-[1.5px] bg-[#464775] ml-auto" />
+          <div className="w-6 h-[1.5px] bg-[#003873] mb-1.5 transition-all group-hover:w-8" />
+          <div className="w-4 h-[1.5px] bg-[#003873] ml-auto" />
         </div>
 
         <div className="relative z-20 rotate-90 pointer-events-none opacity-30 mix-blend-multiply">
-          <span className="text-[#464775] font-black text-[120px] tracking-tighter select-none leading-none">
+          <span className="text-[#003873] font-black text-[120px] tracking-tighter select-none leading-none">
             WB Workstations
           </span>
         </div>

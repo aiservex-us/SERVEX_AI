@@ -95,7 +95,7 @@ const LesroAdminHero = () => {
             <div className="flex flex-col items-center gap-8">
               <button 
                 onClick={toggleModal}
-                className="inline-flex items-center justify-center rounded-full bg-[#334155] px-12 py-4 text-sm font-bold text-white shadow-xl shadow-[#464775]/20 transition-all hover:scale-[1.05] hover:bg-[#334155] active:scale-[0.98]"
+                className="inline-flex items-center justify-center rounded-full bg-[#334155] px-12 py-4 text-sm font-bold text-white shadow-xl shadow-[#003873]/20 transition-all hover:scale-[1.05] hover:bg-[#334155] active:scale-[0.98]"
               >
                 Insert the data
               </button>
