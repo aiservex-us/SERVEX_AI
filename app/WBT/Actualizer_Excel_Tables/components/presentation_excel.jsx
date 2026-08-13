@@ -108,21 +108,22 @@ const WBmfgAdminHero = () => {
 
       {/* --- LADO DERECHO (VISUAL) --- */}
       <div className="hidden lg:flex w-[35%] h-full relative items-center justify-center overflow-hidden border-l border-gray-100 bg-gradient-to-b from-[#003873]/40 via-[#003873]/10 to-white">
+        
+        {/* Decorative Floating 3D Glass Shapes (Ultra Pro) */}
+        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px', filter: 'drop-shadow(0 25px 35px rgba(0,0,0,0.15)) drop-shadow(0 5px 15px rgba(0,0,0,0.05))' }}>
 
-        {/* Decorative Floating 3D Glass Hexagons (Ultra Pro) */}
-        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px', filter: 'drop-shadow(0 25px 35px rgba(0,0,0,0.1)) drop-shadow(0 5px 15px rgba(0,0,0,0.05))' }}>
-
-          {/* Hexagon 1: Back left */}
+          {/* Shape 1: Back left */}
           <div
-            className="absolute top-[15%] left-[5%] w-[180px] h-[180px] bg-gradient-to-br from-[#003873]/20 to-white/10 backdrop-blur-md"
+            className="absolute top-[15%] left-[5%] w-[180px] h-[180px] backdrop-blur-md"
             style={{
+              background: 'linear-gradient(135deg, #00387333, rgba(255,255,255,0.1))',
               transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
               boxShadow: 'inset 0 0 40px rgba(255,255,255,0.4), inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 15px rgba(0,0,0,0.2)',
               clipPath: 'polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)'
             }}
           />
 
-          {/* Hexagon 2: Main center, solid professional muted blue */}
+          {/* Shape 2: Main center, solid professional color */}
           <div
             className="absolute top-[20%] left-[20%] w-[200px] h-[200px] bg-gradient-to-br from-[#003873]/80 to-[#002244]/40 backdrop-blur-xl z-10"
             style={{
@@ -132,17 +133,18 @@ const WBmfgAdminHero = () => {
             }}
           />
 
-          {/* Hexagon 3: Thin, right side rotated deeply */}
+          {/* Shape 3: Thin, right side rotated deeply */}
           <div
-            className="absolute top-[30%] right-[25%] w-[160px] h-[160px] bg-gradient-to-tr from-white/30 to-[#003873]/10 backdrop-blur-md z-10"
+            className="absolute top-[30%] right-[25%] w-[160px] h-[160px] backdrop-blur-md z-10"
             style={{
+              background: 'linear-gradient(45deg, rgba(255,255,255,0.3), #0038731A)',
               transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
               boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), inset 1px 1px 3px rgba(255,255,255,0.9), inset -1px -1px 10px rgba(0,0,0,0.1)',
               clipPath: 'polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)'
             }}
           />
 
-          {/* Hexagon 4: Middle right */}
+          {/* Shape 4: Middle right */}
           <div
             className="absolute bottom-[35%] right-[10%] w-[190px] h-[190px] bg-white/40 backdrop-blur-lg"
             style={{
@@ -152,10 +154,11 @@ const WBmfgAdminHero = () => {
             }}
           />
 
-          {/* Hexagon 5: Blurry foreground bottom left */}
+          {/* Shape 5: Blurry foreground bottom left */}
           <div
-            className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] bg-[#003873]/30 backdrop-blur-2xl blur-[2px]"
+            className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] backdrop-blur-2xl blur-[2px]"
             style={{
+              backgroundColor: '#0038734D',
               transform: 'rotateX(45deg) rotateY(15deg) translateZ(150px)',
               boxShadow: 'inset 0 0 20px rgba(255,255,255,0.2), inset 2px 2px 10px rgba(255,255,255,0.5)',
               clipPath: 'polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)'
@@ -170,7 +173,7 @@ const WBmfgAdminHero = () => {
         </div>
 
         <div className="relative z-20 rotate-90 pointer-events-none opacity-30 mix-blend-multiply">
-          <span className="text-[#2B2C4B] font-black text-[120px] tracking-tighter select-none leading-none">
+          <span className="text-[#003873] font-black text-[120px] tracking-tighter select-none leading-none">
             WB Tables
           </span>
         </div>

@@ -76,8 +76,8 @@ const LesroAdminHero = () => {
 
           {/* Hero Content */}
           <div className="flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 mb-8 rounded-full border border-[#464775]/20 bg-[#464775]/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#464775]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#464775] animate-pulse" />
+            <div className="inline-flex items-center gap-2 mb-8 rounded-full border border-[#334155]/20 bg-[#334155]/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#334155]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#334155] animate-pulse" />
               Internal Administration Platform
             </div>
 
@@ -95,18 +95,18 @@ const LesroAdminHero = () => {
             <div className="flex flex-col items-center gap-8">
               <button 
                 onClick={toggleModal}
-                className="inline-flex items-center justify-center rounded-full bg-[#464775] px-12 py-4 text-sm font-bold text-white shadow-xl shadow-[#464775]/20 transition-all hover:scale-[1.05] hover:bg-[#3b3c63] active:scale-[0.98]"
+                className="inline-flex items-center justify-center rounded-full bg-[#334155] px-12 py-4 text-sm font-bold text-white shadow-xl shadow-[#464775]/20 transition-all hover:scale-[1.05] hover:bg-[#334155] active:scale-[0.98]"
               >
                 Insert the data
               </button>
               
               <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-black/30">
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  <svg className="w-4 h-4 text-[#334155]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   Data Control
                 </span>
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  <svg className="w-4 h-4 text-[#334155]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   ETL Optimized
                 </span>
               </div>
@@ -116,7 +116,7 @@ const LesroAdminHero = () => {
       </div>
 
       {/* --- LADO DERECHO (VISUAL) --- */}
-      <div className="hidden lg:flex w-[35%] h-full bg-[#464775] relative items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex w-[35%] h-full bg-[#334155] relative items-center justify-center overflow-hidden">
         <div className="absolute top-12 right-12 cursor-pointer group z-10">
           <div className="w-6 h-[1.5px] bg-white mb-1.5 transition-all group-hover:w-8" />
           <div className="w-4 h-[1.5px] bg-white ml-auto" />
