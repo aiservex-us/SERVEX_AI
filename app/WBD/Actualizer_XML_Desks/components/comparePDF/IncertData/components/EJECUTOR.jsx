@@ -203,7 +203,7 @@ const SVXUnifiedPlatform = () => {
     setIsProcessing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const payload = { company_name: currentTenant, csv_new_raw: sanitizedJsonData, created_at: new Date().toISOString() };
+      const payload = { company_name: currentTenant, csv_new_raw: sanitizedJsonData, CSV_final: sanitizedJsonData, created_at: new Date().toISOString() };
       if (user) payload.user_id = user.id;
       let supabaseError = null;
       if (user) {
