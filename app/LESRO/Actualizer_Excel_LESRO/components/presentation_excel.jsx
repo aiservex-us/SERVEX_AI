@@ -69,7 +69,7 @@ const LesroAdminHero = () => {
                 LESRO
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
-                Excel & CSV Converter
+                Client Export Module
               </span>
             </div>
           </div>
@@ -78,7 +78,7 @@ const LesroAdminHero = () => {
           <div className="flex flex-col items-center">
             <div className="inline-flex items-center gap-2 mb-8 rounded-full border border-[#334155]/20 bg-[#334155]/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#334155]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#334155] animate-pulse" />
-              Internal Administration Platform
+              Data Distribution Center
             </div>
 
             <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-black leading-[1] mb-8">
@@ -103,11 +103,11 @@ const LesroAdminHero = () => {
               <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-black/30">
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#334155]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                  Data Control
+                  1-Click Export
                 </span>
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#334155]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                  ETL Optimized
+                  Client Verified
                 </span>
               </div>
             </div>

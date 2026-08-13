@@ -66,7 +66,7 @@ const WBmfgAdminHero = () => {
                 WB Seating
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
-                Excel & CSV Converter
+                Client Export Module
               </span>
             </div>
           </div>
@@ -75,17 +75,16 @@ const WBmfgAdminHero = () => {
           <div className="flex flex-col items-center">
             <div className="inline-flex items-center gap-2 mb-8 rounded-full border border-[#b91c1c]/20 bg-[#b91c1c]/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#b91c1c]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#b91c1c] animate-pulse" />
-              Internal Administration Platform
+              Data Distribution Center
             </div>
 
             <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-black leading-[1] mb-8">
-              WB mfg Excel <br />
-              <span className="text-black/25">Data Processing</span>
+              Export Data <br />
+              <span className="text-black/25">For Complete Client</span>
             </h2>
             
             <p className="max-w-xl text-base sm:text-lg text-black/50 leading-relaxed mb-12 font-light">
-              Centralized processing for XML parsing, CSV generation,
-              and Excel data extraction within the <span className="text-black/80 font-medium">SERVEX ecosystem</span>.
+              Seamlessly format, preview, and export complete datasets directly to your clients through the <span className="text-black/80 font-medium">SERVEX ecosystem</span>.
             </p>
 
             {/* Botón que dispara el modal */}
@@ -94,11 +93,11 @@ const WBmfgAdminHero = () => {
               <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-black/30">
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#b91c1c]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                  Data Control
+                  1-Click Export
                 </span>
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#b91c1c]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                  ETL Optimized
+                  Client Verified
                 </span>
               </div>
             </div>
