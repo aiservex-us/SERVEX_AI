@@ -10,6 +10,7 @@ import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
 import XMLResultsWBT from './components/XML_Results_WBT.jsx';
+import CSVFinalResultsWBT from './components/CSV_Final_Results_WBT.jsx';
 import CETComparator from './components/CET_Comparator.jsx';
 
 
@@ -80,6 +81,7 @@ export default function ExcelActualizer() {
       case 'reporting': return <AIReporting />;
       case 'incert_delete': return <IncertData moduleName="WBT" />;
       case 'xml_results': return <XMLResultsWBT />;
+      case 'csv_final_results': return <CSVFinalResultsWBT />;
       case 'cet_comparator': return <CETComparator />;
 
       default:
