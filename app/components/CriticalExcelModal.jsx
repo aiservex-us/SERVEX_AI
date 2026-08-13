@@ -121,7 +121,7 @@ export default function CriticalExcelModal({ xmlRoute, moduleName = 'default' })
               <div className="space-y-4 mb-10">
                 {/* Feature 1 */}
                 <div className={`group flex gap-4 items-start p-4 bg-white rounded-2xl border border-slate-100 shadow-sm ${theme.borderHover} hover:shadow-md transition-all duration-300 cursor-default`}>
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${theme.fill} to-${theme.primaryFillBgAlt.replace('bg-', '')} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300`}>
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${theme.fill} to-${theme.fillAlt.replace('bg-', '')} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300`}>
                     <FileCode className={`w-6 h-6 ${theme.text}`} strokeWidth={1.5} />
                   </div>
                   <div>
