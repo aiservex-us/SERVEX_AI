@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js';
 import { X, AlertCircle } from 'lucide-react';
+import CriticalExcelModal from '../../components/CriticalExcelModal.jsx';
 
 import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
@@ -88,6 +89,7 @@ export default function ExcelActualizer() {
 
   return (
     <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+      <CriticalExcelModal xmlRoute="/WBT/Actualizer_XML_Tables" />
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
