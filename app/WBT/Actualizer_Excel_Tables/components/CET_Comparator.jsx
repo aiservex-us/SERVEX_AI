@@ -238,17 +238,25 @@ export default function CETComparator() {
       if (typeof csvArray === 'string') {
         csvArray = JSON.parse(csvArray);
       }
+      
+      // Dynamically detect keys based on the first row of the CSV
+      const firstRow = csvArray.length > 0 ? csvArray[0] : {};
+      const allKeys = Object.keys(firstRow);
+      
+      const skuKey = allKeys.find(k => k.toLowerCase().includes('model #') || k.toLowerCase().includes('sku')) || 'sku';
+      const priceKey = allKeys.find(k => k.toLowerCase().includes('list price') || k.toLowerCase().includes('base price')) || 'Base Price';
+      const descKey = allKeys.find(k => k.toLowerCase().includes('model name') || k.toLowerCase().includes('description')) || 'description';
+      const classKey = allKeys.find(k => k.toLowerCase().includes('classic/ premium') || k.toLowerCase().includes('classification')) || 'classification';
 
       const newModels = reportData.summary.new_models_list || [];
       const deletedModels = reportData.summary.deleted_models_list || [];
       const listPriceChanges = reportData.detected_changes.filter(c => c.column_name === 'List Price') || [];
       const optionPriceChanges = reportData.detected_changes.filter(c => c.column_name !== 'List Price') || [];
 
-      // 1. Deletions (filter out deleted parent SKUs, and also their /C or /P variants)
+      // 1. Deletions
       let updatedCSV = csvArray.filter(row => {
-        if (!row.sku) return true; // keep if no sku
-        // Check if sku exactly matches or starts with deletedModel + "/"
-        return !deletedModels.some(delSku => row.sku === delSku || row.sku.startsWith(delSku + '/'));
+        if (!row[skuKey]) return true;
+        return !deletedModels.some(delSku => row[skuKey] === delSku || row[skuKey].startsWith(delSku + '/'));
       });
 
       // 2. Modifications
@@ -263,36 +271,23 @@ export default function CETComparator() {
 
       updatedCSV = updatedCSV.map(row => {
         let modifiedRow = { ...row };
-        const sku = modifiedRow.sku || "";
+        const sku = modifiedRow[skuKey] || "";
         
-        // Find parent sku if it's a variant
         let parentSku = sku;
         if (sku.includes('/')) {
             parentSku = sku.split('/')[0];
         }
 
-        // Apply list price (to both parent and variants, though technically variant has a different base price mathematically, 
-        // but wait! XML_Results_WBT calculates basePrice = basePrice + optPrice.
-        // We will just update basePrice directly for parents. For variants, it's safer to re-calculate or just apply delta.
-        // Since CET_Comparator only tracks List Price for the PARENT SKU, we add the delta to the variant as well.
         if (lpMap.has(parentSku)) {
-           // Actually, if we have the new list price for the parent, we can just update the parent. 
-           // For variants, we might need to know the optPrice.
-           // To be safe and since listPriceChanges gives the absolute new price, we can apply it.
-           // If it's a variant, let's just assume the basePrice change applies.
-           // Wait, the user said "todo 1 a 1". Let's just blindly update if the SKU matches exactly, OR if we need to update variants.
-           // Let's just update the exact SKU if there's no suffix in the csv, or if we map parent->variant.
-           // If it's a variant, we'll calculate the difference and add it.
            const oldParentPrice = listPriceChanges.find(c => c.model_id === parentSku)?.old_value.replace(/[^0-9.-]+/g,"");
            const newParentPrice = lpMap.get(parentSku);
            if (oldParentPrice !== undefined) {
                const delta = parseFloat(newParentPrice) - parseFloat(oldParentPrice);
-               const currentVal = parseFloat(modifiedRow['Base Price'] || "0");
-               modifiedRow['Base Price'] = (currentVal + delta).toString();
+               const currentVal = parseFloat(modifiedRow[priceKey] || "0");
+               modifiedRow[priceKey] = (currentVal + delta).toString();
            }
         }
 
-        // Apply option prices
         if (opMap.has(parentSku)) {
           const ops = opMap.get(parentSku);
           for (const optCode in ops) {
@@ -372,10 +367,10 @@ export default function CETComparator() {
                     const suffixSku = `${sku}/${optCode}`;
                     
                     updatedCSV.push({
-                      sku: suffixSku,
-                      description: `${description} [Option ${optCode}]`,
-                      classification,
-                      "Base Price": (basePrice + optPrice).toString(),
+                      [skuKey]: suffixSku,
+                      [descKey]: `${description} [Option ${optCode}]`,
+                      [classKey]: classification,
+                      [priceKey]: (basePrice + optPrice).toString(),
                       ...pStatic,
                       ...productOptionPrices
                     });
@@ -386,7 +381,12 @@ export default function CETComparator() {
             }
             if (!hasSuffixes) {
               updatedCSV.push({
-                sku, description, classification, "Base Price": basePrice.toString(), ...pStatic, ...productOptionPrices
+                [skuKey]: sku, 
+                [descKey]: description, 
+                [classKey]: classification, 
+                [priceKey]: basePrice.toString(), 
+                ...pStatic, 
+                ...productOptionPrices
               });
             }
           }
@@ -394,6 +394,7 @@ export default function CETComparator() {
       }
 
       // Save to Supabase
+// Save to Supabase
       const { error: saveError } = await supabase
         .from('ClientsSERVEX_WBT')
         .update({ 
