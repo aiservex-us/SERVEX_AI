@@ -109,25 +109,12 @@ const CSVFinalResultsWBO = () => {
 
   const exportToCSV = () => {
     if (!filtered || filtered.length === 0) return;
-    
-    const allHeaders = [...baseHeaders, ...optionHeaders];
-    
-    const csvData = filtered.map(p => {
-      const row = {};
-      allHeaders.forEach(header => {
-        let value = p[header] !== undefined ? p[header] : p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
-        if (header === "Base Price") value = p.basePrice;
-        row[header] = value !== undefined ? value : "-";
-      });
-      return row;
-    });
-
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const csvString = Papa.unparse(filtered);
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `WBO_XML_Results_${new Date().toISOString().slice(0,10)}.csv`);
+    link.href = url;
+    link.setAttribute('download', `CSV_Final_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -264,18 +251,7 @@ const CSVFinalResultsWBO = () => {
                             {realIndex}
                           </td>
 
-                          {baseHeaders.map((header) => {
-                            let value = p[header] || p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
-                            if (header === "Base Price") value = `$${p.basePrice.toLocaleString()}`;
-                            
-                            return (
-                              <td key={header} className="p-0 text-slate-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
-                                <div className={`px-3 py-1.5 font-sans text-[11px] whitespace-nowrap truncate ${header === 'SKU' || header === 'Base Price' ? 'font-bold font-mono' : 'font-medium'}`} title={value}>
-                                  {value}
-                                </div>
-                              </td>
-                            );
-                          })}
+                          
 
                           {optionHeaders.map(oh => (
                             <td key={oh} className="p-0 text-[#7f1d1d] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
@@ -295,7 +271,7 @@ const CSVFinalResultsWBO = () => {
 
           <div className="bg-gradient-to-r from-slate-50/40 to-white px-4 py-2 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-slate-500 select-none">
             <div className="flex gap-4">
-              <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length + optionHeaders.length}</span>
+              <span className="uppercase tracking-tight">TOTAL COLUMNS: {optionHeaders.length}</span>
               <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
             </div>
             
