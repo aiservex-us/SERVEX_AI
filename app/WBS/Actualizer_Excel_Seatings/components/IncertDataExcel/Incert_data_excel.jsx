@@ -31,7 +31,7 @@ const IncertData = ({ moduleName }) => {
                   </svg>
                 </button>
 
-                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#003873]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#7f1d1d]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-sky-500/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
 
                 <div className="flex-1 flex flex-col items-center justify-center relative z-10">
@@ -41,7 +41,7 @@ const IncertData = ({ moduleName }) => {
                     className="w-72 lg:w-80 h-auto object-contain drop-shadow-2xl mb-8 transition-transform duration-700 hover:scale-105"
                   />
                   <div className="text-center">
-                    <h3 className="text-[#003873] text-lg lg:text-xl font-extralight tracking-[0.25em]">
+                    <h3 className="text-[#7f1d1d] text-lg lg:text-xl font-extralight tracking-[0.25em]">
                       CET Change Development Tool
                     </h3>
                     <p className="text-slate-400 text-[9px] mt-3 font-light tracking-widest uppercase">
@@ -53,14 +53,14 @@ const IncertData = ({ moduleName }) => {
                 <div className="hidden lg:block w-px h-72 bg-gradient-to-b from-transparent via-slate-200 to-transparent relative z-10" />
 
                 <div className="flex-1 flex flex-col justify-center relative z-10">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#003873]/5 border border-[#003873]/10 w-fit mb-6">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#003873] animate-pulse" />
-                    <span className="text-[9px] font-bold tracking-widest text-[#003873] uppercase">Powered by SVX</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#7f1d1d]/5 border border-[#7f1d1d]/10 w-fit mb-6">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#7f1d1d] animate-pulse" />
+                    <span className="text-[9px] font-bold tracking-widest text-[#7f1d1d] uppercase">Powered by SVX</span>
                   </div>
 
                   <h2 className="text-2xl lg:text-3xl font-light text-slate-800 tracking-tight mb-5 leading-tight">
                     Weeks of work.<br />
-                    <strong className="font-semibold text-[#003873]">Done in seconds.</strong>
+                    <strong className="font-semibold text-[#7f1d1d]">Done in seconds.</strong>
                   </h2>
 
                   <p className="text-sm text-slate-500 leading-relaxed font-light mb-8">
