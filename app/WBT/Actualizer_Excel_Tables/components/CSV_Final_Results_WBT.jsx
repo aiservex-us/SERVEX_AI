@@ -263,13 +263,15 @@ const CSVFinalResultsWBT = () => {
 
                           
 
-                          {optionHeaders.map(oh => (
-                            <td key={oh} className="p-0 text-[#7f1d1d] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
-                              <div className="px-3 py-1.5 font-mono text-[11px] font-semibold whitespace-nowrap truncate">
-                                {p[oh] !== undefined ? `$${p[oh].toLocaleString()}` : "-"}
-                              </div>
-                            </td>
-                          ))}
+                          {optionHeaders.map(oh => {
+                            let value = p[oh];
+                            if (value === null || value === undefined) value = '-';
+                            return (
+                              <td key={oh} className="px-3 py-1.5 text-[11px] font-medium text-slate-600 border-r border-slate-100 whitespace-nowrap truncate border-b border-slate-50 min-w-[160px] max-w-[280px]" title={String(value)}>
+                                {String(value)}
+                              </td>
+                            );
+                          })}
                         </motion.tr>
                       );
                     })}
