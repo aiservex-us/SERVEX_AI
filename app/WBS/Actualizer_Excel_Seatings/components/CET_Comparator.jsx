@@ -278,12 +278,9 @@ export default function CETComparator() {
         }
 
         if (lpMap.has(parentSku)) {
-           const oldParentPrice = listPriceChanges.find(c => c.model_id === parentSku)?.old_value.replace(/[^0-9.-]+/g,"");
            const newParentPrice = lpMap.get(parentSku);
-           if (oldParentPrice !== undefined) {
-               const delta = parseFloat(newParentPrice) - parseFloat(oldParentPrice);
-               const currentVal = parseFloat(modifiedRow[priceKey] || "0");
-               modifiedRow[priceKey] = (currentVal + delta).toString();
+           if (newParentPrice !== undefined) {
+               modifiedRow[priceKey] = newParentPrice;
            }
         }
 
