@@ -1,7 +1,7 @@
 'use client';
 import { supabase } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search, AlertCircle, Play } from 'lucide-react';
+import { X, RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search, AlertCircle, Play } from 'lucide-react';
 
 
 export default function CETComparator() {
@@ -11,6 +11,18 @@ export default function CETComparator() {
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isApplyingChanges, setIsApplyingChanges] = useState(false);
+
+  const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', title: '', message: '', onConfirm: null, isError: false });
+
+  const showAlert = (message, title="Notification", isError=false) => {
+    setModalConfig({ isOpen: true, type: 'alert', title, message, onConfirm: null, isError });
+  };
+
+  const showConfirm = (message, onConfirm, title="Confirmation") => {
+    setModalConfig({ isOpen: true, type: 'confirm', title, message, onConfirm, isError: false });
+  };
+
+  const closeModal = () => setModalConfig({ ...modalConfig, isOpen: false });
 
   const calculatePercentage = (oldVal, newVal) => {
     const oldNum = parseFloat(oldVal);
@@ -107,11 +119,11 @@ export default function CETComparator() {
   const computeComparison = async () => {
     if (!activeRecord) return;
     if (!activeRecord.xml_actualizer_raw) {
-      alert("Baseline XML (xml_actualizer_raw) not found.");
+      showAlert("Baseline XML (xml_actualizer_raw) not found.", "Missing Data", true);
       return;
     }
     if (!activeRecord.XM_CET_import) {
-      alert("Modified XML (XM_CET_import) not found.");
+      showAlert("Modified XML (XM_CET_import) not found.", "Missing Data", true);
       return;
     }
 
@@ -216,8 +228,10 @@ export default function CETComparator() {
 
   const applyDeltasToCSV = () => {
     if (!reportData || !activeRecord) return;
-    const confirm = window.confirm("Are you sure you want to apply these detected changes to the original CSV Database? This will overwrite the database directly.");
-    if (confirm) executeApplyDeltas();
+    showConfirm(
+      "Are you sure you want to apply these detected changes to the original CSV Database? This will overwrite the database directly.",
+      () => executeApplyDeltas()
+    );
   };
 
   const executeApplyDeltas = async () => {
@@ -394,10 +408,10 @@ export default function CETComparator() {
 
       if (saveError) throw saveError;
       
-      alert("Changes successfully applied to CSV Database!");
+      showAlert("Changes successfully applied to CSV Database!", "Success", false);
     } catch (err) {
       console.error(err);
-      alert(`Error applying changes: ${err.message}`);
+      showAlert(`Error applying changes: ${err.message}`, "Error", true);
     } finally {
       setIsApplyingChanges(false);
     }
@@ -704,6 +718,50 @@ export default function CETComparator() {
           </>
         )}
       </div>
+
+      {modalConfig.isOpen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            onClick={closeModal}
+          />
+          <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <span className="text-[14px] font-bold text-[#242424]">{modalConfig.title}</span>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-8 py-6 flex gap-4">
+              <div className={`p-2 h-fit rounded-full shrink-0 ${modalConfig.isError ? 'bg-[#C4314B]/10 text-[#C4314B]' : modalConfig.type === 'confirm' ? 'bg-[#7f1d1d]/10 text-[#7f1d1d]' : 'bg-emerald-600/10 text-emerald-600'}`}>
+                <AlertCircle size={22} className="currentColor" />
+              </div>
+              <div className="flex-1 mt-1">
+                <p className="text-[13px] text-[#616161] leading-relaxed">
+                  {modalConfig.message}
+                </p>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
+              {modalConfig.type === 'confirm' ? (
+                <>
+                  <button onClick={closeModal} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
+                    Cancel
+                  </button>
+                  <button onClick={() => { closeModal(); if (modalConfig.onConfirm) modalConfig.onConfirm(); }} className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#7f1d1d] rounded hover:bg-[#5a1515] transition-all shadow-md">
+                    Confirm and apply
+                  </button>
+                </>
+              ) : (
+                <button onClick={closeModal} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
+                  Close
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
