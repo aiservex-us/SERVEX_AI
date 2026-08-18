@@ -23,6 +23,7 @@ const menuItems = [
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
   { id: 'xml_results', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'cet_comparator', label: 'CET XML Comparator', icon: Activity, sub: 'Audit' },
+  { id: 'csv_final', label: 'CSV Final Results', icon: KanbanSquare, sub: 'Data' },
   { id: 'xml_redirect', label: 'Ejecutar Actualizacion de XML inicial!!', icon: RefreshCcw, sub: 'Action', link: '/WBD/Actualizer_XML_Desks' }
 ];
 

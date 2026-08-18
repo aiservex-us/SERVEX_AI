@@ -11,6 +11,7 @@ import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
 import XMLResultsWBD from './components/XML_Results_WBD.jsx';
 import CETComparator from './components/CET_Comparator.jsx';
+import CSVFinalResultsWBD from './components/CSV_Final_Results_WBD.jsx';
 
 
 export default function ExcelActualizer() {
@@ -81,6 +82,7 @@ export default function ExcelActualizer() {
       case 'incert_delete': return <IncertData moduleName="WBD" />;
       case 'xml_results': return <XMLResultsWBD />;
       case 'cet_comparator': return <CETComparator />;
+      case 'csv_final': return <CSVFinalResultsWBD />;
 
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
