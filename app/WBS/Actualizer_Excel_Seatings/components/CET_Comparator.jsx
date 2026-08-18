@@ -270,7 +270,7 @@ export default function CETComparator() {
 
       updatedCSV = updatedCSV.map(row => {
         let modifiedRow = { ...row };
-        const sku = modifiedRow[skuKey] || "";
+        const sku = String(modifiedRow[skuKey] || "").trim();
         
         let parentSku = sku;
         if (sku.includes('/')) {
