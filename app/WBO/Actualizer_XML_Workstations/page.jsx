@@ -43,6 +43,10 @@ export default function MenuInicial() {
         const res = await fetch(`${apiURL}/api/v1/module_delegation/WBO`);
         const responseData = await res.json();
         
+        if (responseData.status === 'error' || !res.ok) {
+          console.warn('Delegation check returned an error, bypassing redirect:', responseData);
+          return;
+        }
         if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
           window.location.href = '/WBO';
         }

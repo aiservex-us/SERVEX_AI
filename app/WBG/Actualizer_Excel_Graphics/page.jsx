@@ -31,10 +31,14 @@ export default function ExcelActualizer() {
           return;
         }
         
-        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https:servex-ai-back.onrender.com';
-        const res = await fetch(`apiURL/api/v1/module_delegation/WBG`.replace('apiURL', apiURL));
+        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+        const res = await fetch(`${apiURL}/api/v1/module_delegation/WBG`);
         const responseData = await res.json();
         
+        if (responseData.status === 'error' || !res.ok) {
+          console.warn('Delegation check returned an error, bypassing redirect:', responseData);
+          return;
+        }
         if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
           window.location.href = '/WBG';
         }
