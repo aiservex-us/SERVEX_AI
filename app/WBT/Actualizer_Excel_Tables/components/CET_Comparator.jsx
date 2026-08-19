@@ -7,10 +7,10 @@ import { X, RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search,
 export default function CETComparator() {
   const [loading, setLoading] = useState(true);
   const [isComputing, setIsComputing] = useState(false);
-  const [isApplyingChanges, setIsApplyingChanges] = useState(false);
   const [activeRecord, setActiveRecord] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isApplyingChanges, setIsApplyingChanges] = useState(false);
 
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', title: '', message: '', onConfirm: null, isError: false });
 
@@ -23,7 +23,6 @@ export default function CETComparator() {
   };
 
   const closeModal = () => setModalConfig({ ...modalConfig, isOpen: false });
-
 
   const calculatePercentage = (oldVal, newVal) => {
     const oldNum = parseFloat(oldVal);
@@ -217,23 +216,21 @@ export default function CETComparator() {
       if (updateError) throw updateError;
 
       setReportData(reportPayload);
-      showAlert("Comparison completed and saved successfully!", "Success", false);
+      alert("Comparison completed and saved successfully!");
 
     } catch (err) {
       console.error(err);
-      showAlert(`Error during comparison: ${err.message}`, "Error", true);
+      alert(`Error during comparison: ${err.message}`);
     } finally {
       setIsComputing(false);
     }
   };
 
-  
-    const applyDeltasToCSV = () => {
+  const applyDeltasToCSV = () => {
     if (!reportData || !activeRecord) return;
     showConfirm(
       "Are you sure you want to apply these detected changes to the original CSV Database? This will overwrite the database directly.",
-      executeApplyDeltas,
-      "Apply Deltas to CSV"
+      () => executeApplyDeltas()
     );
   };
 
@@ -287,7 +284,7 @@ export default function CETComparator() {
 
       updatedCSV = updatedCSV.map(row => {
         let modifiedRow = { ...row };
-        const sku = modifiedRow[skuKey] || "";
+        const sku = String(modifiedRow[skuKey] || "").trim();
         
         let parentSku = sku;
         if (sku.includes('/')) {
@@ -295,12 +292,9 @@ export default function CETComparator() {
         }
 
         if (lpMap.has(parentSku)) {
-           const oldParentPrice = listPriceChanges.find(c => c.model_id === parentSku)?.old_value.replace(/[^0-9.-]+/g,"");
            const newParentPrice = lpMap.get(parentSku);
-           if (oldParentPrice !== undefined) {
-               const delta = parseFloat(newParentPrice) - parseFloat(oldParentPrice);
-               const currentVal = parseFloat(modifiedRow[priceKey] || "0");
-               modifiedRow[priceKey] = (currentVal + delta).toString();
+           if (newParentPrice !== undefined) {
+               modifiedRow[priceKey] = newParentPrice;
            }
         }
 
@@ -326,16 +320,12 @@ export default function CETComparator() {
         }
 
         const productsXML = Array.from(doc.getElementsByTagName("Product"));
-        const staticFields = {
-          "Weight": "-", "Classic/ Premium": "-", "Top": "-", "Casebody": "-", "Top D": "-", "Top L": "-", 
-          "Casebody W": "-", "Casebody D": "-", "OA H": "-", "Assembly": "-", "Deadbolt Lock(s)": "-", 
-          "# of Optional Locks Required": "-", "3, 6, 9, 12 Replacement Tote Trays": "-", "Tote Tray Lid": "-", 
-          "Power Supply Modules": "-", "Hemisphere (only power option available for Mini Nucleus) (-HEM)": "-", 
-          "Connecting Magnets for HangOut Stools 2 Locations (-2MA)": "-", "Connecting Magnets for HangOut Stools 4 Locations (-4MA)": "-", 
-          "Connecting Magnets for HangOut Stools 6 Locations (-6MA)": "-", "Connecting Magnets for HangOut Stools 8 Locations (-8MA)": "-", 
-          "Premium Armor Edge™ Colors (-S2_)": "-", "Non-Standard Edge Band": "-", "Premium Laminate Top Upcharge for Workstations": "-", 
-          "Markerboard 48 x 48 60 x 60 48 x 84 (-__MB)": "-", "Chemical Resistant 48 x 48, 60 x 60 48 x 84 (-09C)": "-", "Custom Sizes": "-"
-        };
+        const staticFields = {};
+        allKeys.forEach(k => {
+          if (k !== skuKey && k !== priceKey && k !== descKey && k !== classKey) {
+            staticFields[k] = "-";
+          }
+        });
 
         for (const p of productsXML) {
           const sku = p.getElementsByTagName("Code")[0]?.textContent;
@@ -346,9 +336,6 @@ export default function CETComparator() {
             const priceElement = p.getElementsByTagName("Price")[0];
             const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
             
-            const materials = Array.from(p.getElementsByTagName("MaterialRef")).map(m => m.textContent);
-            let pStatic = { ...staticFields, "Top": materials[0] || "-", "Casebody": materials[1] || "-" };
-
             const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
             const productOptionPrices = {};
             let hasSuffixes = false;
@@ -387,7 +374,7 @@ export default function CETComparator() {
                       [descKey]: `${description} [Option ${optCode}]`,
                       [classKey]: classification,
                       [priceKey]: (basePrice + optPrice).toString(),
-                      ...pStatic,
+                      ...staticFields,
                       ...productOptionPrices
                     });
                     hasSuffixes = true;
@@ -401,7 +388,7 @@ export default function CETComparator() {
                 [descKey]: description, 
                 [classKey]: classification, 
                 [priceKey]: basePrice.toString(), 
-                ...pStatic, 
+                ...staticFields, 
                 ...productOptionPrices
               });
             }
@@ -409,13 +396,11 @@ export default function CETComparator() {
         }
       }
 
-      // Save to Supabase
-// Save to Supabase
       const { error: saveError } = await supabase
         .from('ClientsSERVEX_WBT')
         .update({ 
            CSV_final: updatedCSV,
-           csv_new_raw: updatedCSV // Keep them synced just in case
+           csv_new_raw: updatedCSV
         })
         .eq('id', activeRecord.id);
 
@@ -498,7 +483,7 @@ export default function CETComparator() {
           <div className="flex flex-col items-center justify-center min-h-[40vh] bg-slate-50/50 border border-slate-100 rounded-xl">
              <AlertCircle size={32} className="text-slate-300 mb-3" />
              <p className="text-sm font-medium text-slate-500">No comparison results found in Anormals_raw.</p>
-             <p className="text-xs text-slate-400 mt-1">Click Click "Execute CET Comparison"quot;Execute CET ComparisonClick "Execute CET Comparison"quot; to analyze the XML DOMs.</p>
+             <p className="text-xs text-slate-400 mt-1">Click "Execute CET Comparison" to analyze the XML DOMs.</p>
           </div>
         ) : (
           <>
@@ -731,7 +716,7 @@ export default function CETComparator() {
           </>
         )}
       </div>
-    
+
       {modalConfig.isOpen && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
           <div
@@ -774,7 +759,7 @@ export default function CETComparator() {
           </div>
         </div>
       )}
-    
-</div>
+
+    </div>
   );
 }
