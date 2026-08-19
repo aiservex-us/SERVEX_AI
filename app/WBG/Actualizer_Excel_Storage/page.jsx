@@ -93,7 +93,7 @@ export default function ExcelActualizer() {
 
   return (
     <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
-      <CriticalExcelModal xmlRoute="/WBG/Actualizer_XML_Graphics" />
+      <CriticalExcelModal xmlRoute="/WBG/Actualizer_XML_Storage" />
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">

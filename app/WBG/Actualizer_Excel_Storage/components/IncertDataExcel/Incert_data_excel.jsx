@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import InsertXML from './incertXML_excel';
-import DeleteData from '../../../Actualizer_XML_Graphics/components/comparePDF/IncertData/components/delete_data';
+import DeleteData from '../../../Actualizer_XML_Storage/components/comparePDF/IncertData/components/delete_data';
 
 const IncertData = ({ moduleName }) => {
   const [isModalDismissed, setIsModalDismissed] = useState(false);

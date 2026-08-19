@@ -1,7 +1,7 @@
 'use client';
 import { supabase } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search, AlertCircle, Play } from 'lucide-react';
+import { X, RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search, AlertCircle, Play } from 'lucide-react';
 
 
 export default function CETComparator() {
@@ -10,6 +10,19 @@ export default function CETComparator() {
   const [activeRecord, setActiveRecord] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isApplyingChanges, setIsApplyingChanges] = useState(false);
+
+  const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', title: '', message: '', onConfirm: null, isError: false });
+
+  const showAlert = (message, title="Notification", isError=false) => {
+    setModalConfig({ isOpen: true, type: 'alert', title, message, onConfirm: null, isError });
+  };
+
+  const showConfirm = (message, onConfirm, title="Confirmation") => {
+    setModalConfig({ isOpen: true, type: 'confirm', title, message, onConfirm, isError: false });
+  };
+
+  const closeModal = () => setModalConfig({ ...modalConfig, isOpen: false });
 
   const calculatePercentage = (oldVal, newVal) => {
     const oldNum = parseFloat(oldVal);
@@ -23,7 +36,7 @@ export default function CETComparator() {
     setLoading(true);
     const { data, error } = await supabase
       .from('ClientsSERVEX_WBG')
-      .select('id, company_name, xml_actualizer_raw, XM_CET_import, Anormals_raw, created_at')
+      .select('id, company_name, xml_actualizer_raw, XM_CET_import, created_at')
       .eq('company_name', 'WBG')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -33,14 +46,7 @@ export default function CETComparator() {
       console.error("Error fetching record:", error);
     } else if (data) {
       setActiveRecord(data);
-      if (data.Anormals_raw) {
-        try {
-          const parsed = JSON.parse(data.Anormals_raw);
-          setReportData(parsed);
-        } catch (e) {
-          console.error("Failed to parse Anormals_raw:", e);
-        }
-      }
+      // Removed Anormals_raw check because the column does not exist in ClientsSERVEX_WBG
     }
     setLoading(false);
   };
@@ -82,7 +88,7 @@ export default function CETComparator() {
           const options = Array.from(featureNode.getElementsByTagName("Option"));
           for (const opt of options) {
             const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-            if (optCode !== "C" && optCode !== "P") {
+            if (optCode !== "G" && optCode !== "P") {
               const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
               const optPriceElem = opt.querySelector("OptionPrice > Value");
               const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
@@ -104,13 +110,16 @@ export default function CETComparator() {
   };
 
   const computeComparison = async () => {
-    if (!activeRecord) return;
+    if (!activeRecord) {
+      showAlert("No database record found for WBT. Please upload the required XML files first.", "Missing Data", true);
+      return;
+    }
     if (!activeRecord.xml_actualizer_raw) {
-      alert("Baseline XML (xml_actualizer_raw) not found.");
+      showAlert("Baseline XML (xml_actualizer_raw) not found.", "Missing Data", true);
       return;
     }
     if (!activeRecord.XM_CET_import) {
-      alert("Modified XML (XM_CET_import) not found.");
+      showAlert("Modified XML (XM_CET_import) not found.", "Missing Data", true);
       return;
     }
 
@@ -192,15 +201,12 @@ export default function CETComparator() {
         detected_changes: [...listPriceChanges, ...optionPriceChanges]
       };
 
-      // Guardar en Supabase (Anormals_raw)
-      
-      
-      const { error: updateError } = await supabase
-        .from('ClientsSERVEX_WBG')
-        .update({ Anormals_raw: JSON.stringify(reportPayload) })
-        .eq('id', activeRecord.id);
-
-      if (updateError) throw updateError;
+      // Removed database save for Anormals_raw since column doesn't exist yet
+      // const { error: updateError } = await supabase
+      //   .from('ClientsSERVEX_WBG')
+      //   .update({ Anormals_raw: JSON.stringify(reportPayload) })
+      //   .eq('id', activeRecord.id);
+      // if (updateError) throw updateError;
 
       setReportData(reportPayload);
       alert("Comparison completed and saved successfully!");
@@ -210,6 +216,212 @@ export default function CETComparator() {
       alert(`Error during comparison: ${err.message}`);
     } finally {
       setIsComputing(false);
+    }
+  };
+
+  const applyDeltasToCSV = () => {
+    if (!reportData || !activeRecord) return;
+    showConfirm(
+      "Are you sure you want to apply these detected changes to the original CSV Database? This will overwrite the database directly.",
+      () => executeApplyDeltas()
+    );
+  };
+
+  const executeApplyDeltas = async () => {
+    setIsApplyingChanges(true);
+
+    try {
+      const { data: dbData, error: dbError } = await supabase
+        .from('ClientsSERVEX_WBG')
+        .select('CSV_final')
+        .eq('id', activeRecord.id)
+        .single();
+        
+      if (dbError) throw dbError;
+      if (!dbData.CSV_final) throw new Error("CSV_final is empty in the database. Nothing to edit.");
+
+      let csvArray = dbData.CSV_final;
+      if (typeof csvArray === 'string') {
+        csvArray = JSON.parse(csvArray);
+      }
+      
+      // Dynamically detect keys based on the first row of the CSV
+            const allKeys = [
+        "Model #", "List Price", "Weight", "Classic/ Premium", "Model Name", "Description",
+        "W", "H", "D", "OA D", "OA H w/ Glides", "OA H w/ Casters", "Assembly", "Top Mount Handle (-TH)",
+        "Recessed Cup Holder (-RC)", "Legrand Power (-PWR1)", "Deadbolt Lock(s)", "# of Optional Locks Required",
+        "Wardrobe Bar Lock(s)", "Keyed Combination Lock (-MS)", "Zephyr Electronic Lock-ADA (-2810)",
+        "CompX Lock (ADA Compliant) (-Regulator)", "REplay® Interlock Wall System", "Cam Padlock Hasp (-PADLCAM)",
+        "Hidden Casters (RB &LRD models only) (available on Circulation Under Desk Cabinet & Modular InlineDesk Cabinets) (-HC)",
+        "3, 6, 9, 12 Replacement Standard Tote Trays", "Standard Tote Tray Lid", "Magnet Docking (-M)",
+        "Grommet w/Cover (-GR)", "PER Metal Shelf (LRS and LRD) (30, 36 and 48 W)", "Non-Standard Edge Band",
+        "Custom 2 Colored Casebody (Premium only)", "Laminate Markerboard Panel (per side) Heights 48 and Under or Heights over 48 (-__MB)",
+        "Recycling or Waste Decal Black or White (Qty 1)", "Double-Prong Coat Hook (-CHR_D)", "Recessed Pull (-RP)",
+        "Wire Pull (-WPCS)", "Round Number Plate (RDNP)", "Rectangle Number Plate (NumPl)", "Garment Rod (-GR)",
+        "Finished Base Cabinet End (per end) Premium Only", "Finished Wall Cabinet End (per end) Premium Only",
+        "Finished Tall Cabinet End (per end) Premium Only", "Locking Casters (Per Table) (-CA)",
+        "Grand Hank Glides (Per Table) (-HG)", "Soft Touch Glides (Per Table) (-FG)", "Steel Glides (Per Table) (-SG)",
+        "Connecting Magnets for HangOut Stools 2 Locations (-2MA)", "Custom 2 Colored Casebody Media Center Kit 2 & Curved Workstation",
+        "Premium Armor Edge™ Colors (-S2_)", "Premium Laminate Upcharge for TOPS 36x36 & OVER",
+        "Markerboard TOPS 36x36 & OVER (-__MB)", "Custom Design"
+      ];
+      
+      const skuKey = allKeys.find(k => k.toLowerCase().includes('model #') || k.toLowerCase().includes('sku')) || 'sku';
+      const priceKey = allKeys.find(k => k.toLowerCase().includes('list price') || k.toLowerCase().includes('base price')) || 'Base Price';
+      const descKey = allKeys.find(k => k.toLowerCase().includes('model name') || k.toLowerCase().includes('description')) || 'description';
+      const classKey = allKeys.find(k => k.toLowerCase().includes('classic/ premium') || k.toLowerCase().includes('classification')) || 'classification';
+
+      const newModels = reportData.summary.new_models_list || [];
+      const deletedModels = reportData.summary.deleted_models_list || [];
+      const listPriceChanges = reportData.detected_changes.filter(c => c.column_name === 'List Price') || [];
+      const optionPriceChanges = reportData.detected_changes.filter(c => c.column_name !== 'List Price') || [];
+
+      // 1. Deletions
+      let updatedCSV = csvArray.filter(row => {
+        if (!row[skuKey]) return true;
+        return !deletedModels.some(delSku => row[skuKey] === delSku || row[skuKey].startsWith(delSku + '/'));
+      });
+
+      // 2. Modifications
+      const lpMap = new Map();
+      listPriceChanges.forEach(c => lpMap.set(c.model_id, c.new_value.replace(/[^0-9.-]+/g,"")));
+
+      const opMap = new Map();
+      optionPriceChanges.forEach(c => {
+        if (!opMap.has(c.model_id)) opMap.set(c.model_id, {});
+        opMap.get(c.model_id)[c.column_name] = c.new_value.replace(/[^0-9.-]+/g,"");
+      });
+
+      updatedCSV = updatedCSV.map(row => {
+        let modifiedRow = { ...row };
+        const sku = String(modifiedRow[skuKey] || "").trim();
+        
+        let parentSku = sku;
+        if (sku.includes('/')) {
+            parentSku = sku.split('/')[0];
+        }
+
+        if (lpMap.has(parentSku)) {
+           const newParentPrice = lpMap.get(parentSku);
+           if (newParentPrice !== undefined) {
+               modifiedRow[priceKey] = newParentPrice;
+           }
+        }
+
+        if (opMap.has(parentSku)) {
+          const ops = opMap.get(parentSku);
+          for (const optCode in ops) {
+            modifiedRow[optCode] = ops[optCode];
+          }
+        }
+        return modifiedRow;
+      });
+
+      // 3. Additions
+      if (newModels.length > 0 && activeRecord.XM_CET_import) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(activeRecord.XM_CET_import, 'text/xml');
+        
+        const globalFeatures = Array.from(doc.getElementsByTagName("Feature"));
+        const featureMap = new Map();
+        for (const f of globalFeatures) {
+          const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+          if (fCode) featureMap.set(fCode, f);
+        }
+
+        const productsXML = Array.from(doc.getElementsByTagName("Product"));
+        const staticFields = {};
+        allKeys.forEach(k => {
+          if (k !== skuKey && k !== priceKey && k !== descKey && k !== classKey) {
+            staticFields[k] = "-";
+          }
+        });
+
+        for (const p of productsXML) {
+          const sku = p.getElementsByTagName("Code")[0]?.textContent;
+          if (sku && newModels.includes(sku)) {
+            const description = p.getElementsByTagName("Description")[0]?.textContent || "";
+            const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
+              || p.getElementsByTagName("ClassificationRef")[0]?.textContent || "-";
+            const priceElement = p.getElementsByTagName("Price")[0];
+            const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
+            
+            const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+            const productOptionPrices = {};
+            let hasSuffixes = false;
+
+            for (const ref of featureRefs) {
+              const refCode = ref.textContent;
+              const featureNode = featureMap.get(refCode);
+              if (featureNode) {
+                const options = Array.from(featureNode.getElementsByTagName("Option"));
+                for (const opt of options) {
+                  const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+                  if (optCode !== "G" && optCode !== "P") {
+                    const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
+                    const optPriceElem = opt.querySelector("OptionPrice > Value");
+                    const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+                    if (optDesc) productOptionPrices[optDesc] = optPrice.toString();
+                  }
+                }
+              }
+            }
+
+            for (const ref of featureRefs) {
+              const refCode = ref.textContent;
+              const featureNode = featureMap.get(refCode);
+              if (featureNode) {
+                const options = Array.from(featureNode.getElementsByTagName("Option"));
+                for (const opt of options) {
+                  const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+                  if (optCode === "G" || optCode === "P") {
+                    const optPriceElem = opt.querySelector("OptionPrice > Value");
+                    const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+                    const suffixSku = `${sku}/${optCode}`;
+                    
+                    updatedCSV.push({
+                      [skuKey]: suffixSku,
+                      [descKey]: `${description} [Option ${optCode}]`,
+                      [classKey]: classification,
+                      [priceKey]: (basePrice + optPrice).toString(),
+                      ...staticFields,
+                      ...productOptionPrices
+                    });
+                    hasSuffixes = true;
+                  }
+                }
+              }
+            }
+            if (!hasSuffixes) {
+              updatedCSV.push({
+                [skuKey]: sku, 
+                [descKey]: description, 
+                [classKey]: classification, 
+                [priceKey]: basePrice.toString(), 
+                ...staticFields, 
+                ...productOptionPrices
+              });
+            }
+          }
+        }
+      }
+
+      const { error: saveError } = await supabase
+        .from('ClientsSERVEX_WBG')
+        .update({ 
+           CSV_final: updatedCSV,
+           csv_new_raw: updatedCSV
+        })
+        .eq('id', activeRecord.id);
+
+      if (saveError) throw saveError;
+      
+      showAlert("Changes successfully applied to CSV Database!", "Success", false);
+    } catch (err) {
+      console.error(err);
+      showAlert(`Error applying changes: ${err.message}`, "Error", true);
+    } finally {
+      setIsApplyingChanges(false);
     }
   };
 
@@ -248,14 +460,26 @@ export default function CETComparator() {
         <div className="mb-6 rounded-lg p-10 border border-[#7f1d1d]/20 bg-gradient-to-tr from-white/90 via-white/80 to-[#7f1d1d]/5 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_2px_15px_rgba(70,71,117,0.05)] relative overflow-hidden">
            <div className="absolute top-[-50%] right-[-10%] w-[40%] h-[200%] rotate-[15deg] bg-gradient-to-b from-[#7f1d1d]/5 to-transparent pointer-events-none" />
            
-           <button 
-             onClick={computeComparison} 
-             disabled={isComputing}
-             className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-[#7f1d1d] text-white rounded-md text-xs font-semibold hover:bg-[#34355a] transition-all disabled:opacity-50 z-20 shadow-sm"
-           >
-             {isComputing ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
-             {isComputing ? "Computing Deltas..." : "Execute CET Comparison"}
-           </button>
+           <div className="absolute top-4 right-4 flex gap-2 z-20">
+             <button 
+               onClick={computeComparison} 
+               disabled={isComputing}
+               className="flex items-center gap-2 px-4 py-2 bg-[#7f1d1d] text-white rounded-md text-xs font-semibold hover:bg-[#34355a] transition-all disabled:opacity-50 shadow-sm"
+             >
+               {isComputing ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
+               {isComputing ? "Computing Deltas..." : "Execute CET Comparison"}
+             </button>
+             {reportData && (
+               <button
+                 onClick={applyDeltasToCSV}
+                 disabled={isApplyingChanges}
+                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-sm"
+               >
+                 {isApplyingChanges ? <RefreshCw size={14} className="animate-spin" /> : <Database size={14} />}
+                 {isApplyingChanges ? "Applying..." : "Apply Deltas to CSV"}
+               </button>
+             )}
+           </div>
 
            <h1 className="text-2xl font-light text-[#242424] tracking-wide relative z-10">
             CET Matrix Comparator: <span className="font-normal text-[#7f1d1d]">WBG</span>
@@ -502,6 +726,50 @@ export default function CETComparator() {
           </>
         )}
       </div>
+
+      {modalConfig.isOpen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            onClick={closeModal}
+          />
+          <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <span className="text-[14px] font-bold text-[#242424]">{modalConfig.title}</span>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-8 py-6 flex gap-4">
+              <div className={`p-2 h-fit rounded-full shrink-0 ${modalConfig.isError ? 'bg-[#C4314B]/10 text-[#C4314B]' : modalConfig.type === 'confirm' ? 'bg-[#7f1d1d]/10 text-[#7f1d1d]' : 'bg-emerald-600/10 text-emerald-600'}`}>
+                <AlertCircle size={22} className="currentColor" />
+              </div>
+              <div className="flex-1 mt-1">
+                <p className="text-[13px] text-[#616161] leading-relaxed">
+                  {modalConfig.message}
+                </p>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
+              {modalConfig.type === 'confirm' ? (
+                <>
+                  <button onClick={closeModal} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
+                    Cancel
+                  </button>
+                  <button onClick={() => { closeModal(); if (modalConfig.onConfirm) modalConfig.onConfirm(); }} className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#7f1d1d] rounded hover:bg-[#5a1515] transition-all shadow-md">
+                    Confirm and apply
+                  </button>
+                </>
+              ) : (
+                <button onClick={closeModal} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
+                  Close
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
