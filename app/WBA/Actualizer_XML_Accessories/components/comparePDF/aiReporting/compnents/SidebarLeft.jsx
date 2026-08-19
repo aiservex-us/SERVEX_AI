@@ -127,7 +127,7 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
                 />
                 <StatItem
                   icon={<BarChart2 />}
-                  label="Dashboard Gráfico"
+                  label="Graphics Dashboard"
                   description="Visualización de analíticas y métricas de procesamiento."
                   isActive={activeViewport === "graphics"}
                   onClick={() => setActiveViewport("graphics")}

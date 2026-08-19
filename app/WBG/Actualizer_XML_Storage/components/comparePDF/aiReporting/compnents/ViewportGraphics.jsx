@@ -25,16 +25,16 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="bg-white border border-[#EDEBE9] p-3 shadow-md text-[#242424] text-xs" style={{ borderRadius: '4px' }}>
         <p className="font-semibold mb-2 pb-1 border-b border-[#EDEBE9] text-[#464775]">
-          {label || payload[0]?.payload?.name || 'Datos'}
+          {label || payload[0]?.payload?.name || 'Data'}
         </p>
         {payload.map((entry, index) => (
           <div key={`item-${index}`} className="flex justify-between gap-6 py-0.5">
             <span style={{ color: entry.color }} className="font-medium">{entry.name || entry.dataKey}:</span>
             <span className="font-mono text-[#605E5C]">
-              {typeof entry.value === 'number' && entry.name !== 'Variación %' && entry.name !== 'Cantidad'
+              {typeof entry.value === 'number' && entry.name !== 'Variation %' && entry.name !== 'Quantity'
                 ? `$${entry.value.toLocaleString()}`
                 : entry.value}
-              {entry.name === 'Variación %' ? '%' : ''}
+              {entry.name === 'Variation %' ? '%' : ''}
             </span>
           </div>
         ))}
@@ -109,7 +109,7 @@ const ViewportGraphics = () => {
     let currentSection = '';
 
     lines.forEach(line => {
-      if (line.includes('Total Modelos Comunes Evaluados')) result.metrics.total = parseInt(line.replace(/\D/g, ''), 10) || 0;
+      if (line.includes('Total Models Comunes Evaluados')) result.metrics.total = parseInt(line.replace(/\D/g, ''), 10) || 0;
       if (line.includes('Modelos Modificados')) {
         const match = line.match(/: (\d+)/);
         if(match) result.metrics.modified = parseInt(match[1], 10);
@@ -181,7 +181,7 @@ const ViewportGraphics = () => {
   const handleMicClick = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Tu navegador no soporta reconocimiento de voz.");
+      alert("Your browser does not support speech recognition.");
       return;
     }
 
@@ -219,14 +219,14 @@ const ViewportGraphics = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.name.endsWith('.csv')) setAttachedFile(file);
-    else alert("Por favor selecciona un archivo CSV válido");
+    else alert("Please select a valid CSV file");
   };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputValue.trim() && !attachedFile) return;
 
-    const userText = attachedFile ? `${inputValue} (Archivo adjunto: ${attachedFile.name})`.trim() : inputValue;
+    const userText = attachedFile ? `${inputValue} (Attached file: ${attachedFile.name})`.trim() : inputValue;
 
     const newMessage = {
       from: 'user',
@@ -246,7 +246,7 @@ const ViewportGraphics = () => {
         body: JSON.stringify({
           user_id: userId,
           mensaje: userText,
-          rol: "especialista en datos empresariales"
+          rol: "business data specialist"
         }),
       });
       const resData = await response.json();
@@ -258,7 +258,7 @@ const ViewportGraphics = () => {
     } catch {
       setMessages(prev => [...prev, {
         from: 'bot',
-        text: "**Error de conexión con el servidor (Alysa)**",
+        text: "**Connection error with server (Alysa)**",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
     } finally {
@@ -270,38 +270,38 @@ const ViewportGraphics = () => {
   if (loading) return (
     <div className="w-full h-full bg-[#FAFAFA] flex flex-col items-center justify-center p-6">
       <Cpu size={48} className="animate-pulse text-[#464775] mb-4" />
-      <p className="text-[#605E5C] text-[13px] font-semibold">Cargando métricas del catálogo...</p>
+      <p className="text-[#605E5C] text-[13px] font-semibold">Loading catalog metrics...</p>
     </div>
   );
 
   if (error || !data) return (
     <div className="w-full h-full bg-[#FAFAFA] flex flex-col items-center justify-center p-6">
       <AlertCircle size={48} className="text-[#A80000] mb-4" />
-      <h3 className="text-[15px] font-semibold text-[#242424] mb-2">Error de Conexión</h3>
+      <h3 className="text-[15px] font-semibold text-[#242424] mb-2">Connection Error</h3>
       <p className="text-[13px] text-[#605E5C] text-center">{error}</p>
     </div>
   );
 
   const pieData = [
-    { name: 'Sin Cambios', value: Math.max(0, data.metrics.total - data.metrics.modified - data.metrics.new - data.metrics.deleted) },
-    { name: 'Modificados', value: data.metrics.modified },
-    { name: 'Nuevos', value: data.metrics.new },
-    { name: 'Eliminados', value: data.metrics.deleted }
+    { name: 'No Changes', value: Math.max(0, data.metrics.total - data.metrics.modified - data.metrics.new - data.metrics.deleted) },
+    { name: 'Modified', value: data.metrics.modified },
+    { name: 'New', value: data.metrics.new },
+    { name: 'Deleted', value: data.metrics.deleted }
   ];
 
   const getAvg = (arr, key) => arr.length ? arr.reduce((acc, el) => acc + el[key], 0) / arr.length : 0;
   const radarData = [
-    { subject: 'Aumentos', original: getAvg(data.aumentos, 'original'), nuevo: getAvg(data.aumentos, 'nuevo') },
-    { subject: 'Reducciones', original: getAvg(data.reducciones, 'original'), nuevo: getAvg(data.reducciones, 'nuevo') },
-    { subject: 'Anomalías', original: getAvg(data.anomaliesData, 'original'), nuevo: getAvg(data.anomaliesData, 'nuevo') },
+    { subject: 'Increases', original: getAvg(data.aumentos, 'original'), nuevo: getAvg(data.aumentos, 'nuevo') },
+    { subject: 'Decreases', original: getAvg(data.reducciones, 'original'), nuevo: getAvg(data.reducciones, 'nuevo') },
+    { subject: 'Anomalies', original: getAvg(data.anomaliesData, 'original'), nuevo: getAvg(data.anomaliesData, 'nuevo') },
   ];
 
-  let severityLevels = { 'Crítico (>500%)': 0, 'Alto (100-500%)': 0, 'Medio (<100%)': 0, 'Baja (<-90%)': 0 };
+  let severityLevels = { 'Critical (>500%)': 0, 'High (100-500%)': 0, 'Medium (<100%)': 0, 'Low (<-90%)': 0 };
   data.anomaliesData.forEach(a => {
-    if (a.varPercent >= 500) severityLevels['Crítico (>500%)']++;
-    else if (a.varPercent >= 100) severityLevels['Alto (100-500%)']++;
-    else if (a.varPercent <= -90) severityLevels['Baja (<-90%)']++;
-    else severityLevels['Medio (<100%)']++;
+    if (a.varPercent >= 500) severityLevels['Critical (>500%)']++;
+    else if (a.varPercent >= 100) severityLevels['High (100-500%)']++;
+    else if (a.varPercent <= -90) severityLevels['Low (<-90%)']++;
+    else severityLevels['Medium (<100%)']++;
   });
   const radialData = Object.keys(severityLevels).map((k, i) => ({
     name: k, Cantidad: severityLevels[k], fill: BRAND_COLORS[i % BRAND_COLORS.length]
@@ -324,7 +324,7 @@ const ViewportGraphics = () => {
       {explanation && (
         <div className="mt-4 pt-3 border-t border-[#EDEBE9] shrink-0">
           <p className="text-[11px] text-[#605E5C] leading-snug">
-             <span className="font-semibold text-[#464775]">💡 Interpretación: </span> 
+             <span className="font-semibold text-[#464775]">💡 Interpretation: </span> 
              {explanation}
           </p>
         </div>
@@ -367,13 +367,13 @@ const ViewportGraphics = () => {
             <PH.ChartBar size={24} weight="duotone" />
           </div>
           <div>
-            <h2 className="text-[18px] font-semibold text-[#242424] m-0 leading-tight">Dashboard de Analíticas</h2>
-            <p className="text-[13px] text-[#605E5C] m-0 mt-0.5">Inspección de datos estratégicos y telemetría de precios.</p>
+            <h2 className="text-[18px] font-semibold text-[#242424] m-0 leading-tight">Analytics Dashboard</h2>
+            <p className="text-[13px] text-[#605E5C] m-0 mt-0.5">Strategic data inspection and price telemetry.</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {messages.length > 0 && (
-            <button onClick={() => setShowDeleteConfirm(true)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-md transition-all mr-1" title="Limpiar Chat">
+            <button onClick={() => setShowDeleteConfirm(true)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-md transition-all mr-1" title="Clear Chat">
               <Trash2 size={16} />
             </button>
           )}
@@ -388,10 +388,10 @@ const ViewportGraphics = () => {
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {[
-              { label: 'Total Modelos', val: data.metrics.total, icon: Database, color: 'text-[#464775]' },
-              { label: 'Modificados', val: data.metrics.modified, icon: Activity, color: 'text-[#0078D4]' },
-              { label: 'Nuevos', val: data.metrics.new, icon: TrendingUp, color: 'text-[#107C10]' },
-              { label: 'Eliminados', val: data.metrics.deleted, icon: TrendingDown, color: 'text-[#D83B01]' }
+              { label: 'Total Models', val: data.metrics.total, icon: Database, color: 'text-[#464775]' },
+              { label: 'Modified', val: data.metrics.modified, icon: Activity, color: 'text-[#0078D4]' },
+              { label: 'New', val: data.metrics.new, icon: TrendingUp, color: 'text-[#107C10]' },
+              { label: 'Deleted', val: data.metrics.deleted, icon: TrendingDown, color: 'text-[#D83B01]' }
             ].map((kpi, idx) => (
               <div key={idx} className="bg-white p-4 rounded-md border border-[#EDEBE9] hover:shadow-sm transition-shadow flex items-center gap-4">
                 <div className={`p-2.5 rounded bg-[#FAFAFA] ${kpi.color}`}>
@@ -408,8 +408,8 @@ const ViewportGraphics = () => {
           <div className="flex flex-col gap-6 mb-6">
             <CardContainer 
               colSpan={1} 
-              title="Composición del Catálogo" 
-              explanation="Distribución general de los productos. Un volumen alto de modelos 'Sin Cambios' representa estabilidad operativa."
+              title="Catalog Composition" 
+              explanation="Distribución general de los productos. Un volumen alto de modelos 'No Changes' representa estabilidad operativa."
               summaryNode={
                 <div className="grid grid-cols-2 gap-2">
                   <div><span className="font-semibold">Total:</span> {data.metrics.total}</div>
@@ -432,12 +432,12 @@ const ViewportGraphics = () => {
 
             <CardContainer 
               colSpan={2} 
-              title="Top Variaciones Estratégicas" 
-              explanation="Compara el 'Precio Base' contra el 'Precio Ajustado'. Permite auditar visualmente los impactos más fuertes."
+              title="Top Strategic Variations" 
+              explanation="Compares the 'Base Price' against the 'Adjusted Price'. Allows visual auditing of the strongest impacts."
               summaryNode={
                 <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-[#107C10]">🔥 Aumentos: {data.aumentos.slice(0, 2).map(a => `${a.name}(+${a.varPercent}%)`).join(', ')}</span>
-                  <span className="font-semibold text-[#D83B01]">📉 Reducciones: {data.reducciones.slice(0, 2).map(r => `${r.name}(${r.varPercent}%)`).join(', ')}</span>
+                  <span className="font-semibold text-[#107C10]">🔥 Increases: {data.aumentos.slice(0, 2).map(a => `${a.name}(+${a.varPercent}%)`).join(', ')}</span>
+                  <span className="font-semibold text-[#D83B01]">📉 Decreases: {data.reducciones.slice(0, 2).map(r => `${r.name}(${r.varPercent}%)`).join(', ')}</span>
                 </div>
               }
             >
@@ -448,8 +448,8 @@ const ViewportGraphics = () => {
                   <YAxis tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
                   <RechartsTooltip content={<CustomTooltip />} />
                   <Legend iconType="rect" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
-                  <Bar dataKey="original" name="Precio Base" fill="#C8C6C4" radius={[2, 2, 0, 0]} barSize={16} />
-                  <Bar dataKey="nuevo" name="Precio Ajustado" fill="#464775" radius={[2, 2, 0, 0]} barSize={16} />
+                  <Bar dataKey="original" name="Base Price" fill="#C8C6C4" radius={[2, 2, 0, 0]} barSize={16} />
+                  <Bar dataKey="nuevo" name="Adjusted Price" fill="#464775" radius={[2, 2, 0, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContainer>
@@ -458,11 +458,11 @@ const ViewportGraphics = () => {
           <div className="flex flex-col gap-6 mb-6">
             <CardContainer 
               colSpan={1} 
-              title="Trayectoria de Anomalías" 
-              explanation="Rastrea la evolución entre precios. Las separaciones pronunciadas entre líneas alertan sobre posibles errores."
+              title="Anomalies Trajectory" 
+              explanation="Tracks the evolution between prices. Pronounced separations between lines warn of potential errors."
               summaryNode={
                 <div>
-                  <span className="font-semibold">⚠️ Top Alertas: </span> 
+                  <span className="font-semibold">⚠️ Top Alerts: </span> 
                   {data.anomaliesData.slice(0, 1).map((a, i) => (
                     <span key={i}>[{a.fullName}] Var: {a.varPercent}% (${a.original} → ${a.nuevo})</span>
                   ))}
@@ -476,19 +476,19 @@ const ViewportGraphics = () => {
                   <YAxis tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false}/>
                   <RechartsTooltip content={<CustomTooltip />} />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
-                  <Line type="monotone" dataKey="original" name="Histórico" stroke="#A19F9D" strokeWidth={2} dot={{r: 3, fill: '#A19F9D'}} activeDot={{r: 5}}/>
-                  <Line type="monotone" dataKey="nuevo" name="Nuevo Valor" stroke="#0078D4" strokeWidth={2} dot={{r: 3, fill: '#0078D4'}} activeDot={{r: 5}}/>
+                  <Line type="monotone" dataKey="original" name="Historical" stroke="#A19F9D" strokeWidth={2} dot={{r: 3, fill: '#A19F9D'}} activeDot={{r: 5}}/>
+                  <Line type="monotone" dataKey="nuevo" name="New Value" stroke="#0078D4" strokeWidth={2} dot={{r: 3, fill: '#0078D4'}} activeDot={{r: 5}}/>
                 </LineChart>
               </ResponsiveContainer>
             </CardContainer>
 
             <CardContainer 
               colSpan={1} 
-              title="Magnitud Financiera Neta (Riesgo)" 
-              explanation="Cuantifica en área el impacto monetario total ($) desplazado por las anomalías detectadas en el catálogo."
+              title="Net Financial Magnitude (Risk)" 
+              explanation="Quantifies in area the total monetary impact ($) displaced by the anomalies detected in the catalog."
               summaryNode={
                 <div>
-                  <span className="font-semibold text-[#A80000]">🚨 Top Impacto: </span> 
+                  <span className="font-semibold text-[#A80000]">🚨 Top Impact: </span> 
                   {([...data.anomaliesData]).sort((a,b)=>b.absChange - a.absChange).slice(0, 1).map((a, i) => (
                     <span key={i}>[{a.name}: ${a.absChange.toLocaleString()}]</span>
                   ))}
@@ -507,7 +507,7 @@ const ViewportGraphics = () => {
                   <XAxis dataKey="name" tick={{fontSize: 10, fill: '#605E5C'}} angle={-25} textAnchor="end" axisLine={false} tickLine={false}/>
                   <YAxis tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
                   <RechartsTooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="absChange" name="Variación Absoluta ($)" stroke="#464775" strokeWidth={2} fillOpacity={1} fill="url(#colorAbs)" />
+                  <Area type="monotone" dataKey="absChange" name="Absolute Variation ($)" stroke="#464775" strokeWidth={2} fillOpacity={1} fill="url(#colorAbs)" />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContainer>
@@ -516,16 +516,16 @@ const ViewportGraphics = () => {
           <div className="flex flex-col gap-6 mb-6">
             <CardContainer 
               colSpan={1} 
-              title="Dispersión de Volatilidad" 
-              explanation="Posiciona los errores. Los puntos más altos (eje Y) y a la derecha (eje X) requieren revisión urgente."
+              title="Volatility Dispersion" 
+              explanation="Positions the errors. The highest points (Y axis) and to the right (X axis) require urgent review."
               summaryNode={
-                <div><span className="font-semibold">Volatilidad máxima:</span> {data.anomaliesData.length > 0 ? `${Math.max(...data.anomaliesData.map(d=>d.varPercent))}%` : '0%'}</div>
+                <div><span className="font-semibold">Maximum volatility:</span> {data.anomaliesData.length > 0 ? `${Math.max(...data.anomaliesData.map(d=>d.varPercent))}%` : '0%'}</div>
               }
             >
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EDEBE9"/>
-                  <XAxis type="number" dataKey="nuevo" name="Precio Nuevo" tick={{fontSize: 10, fill: '#605E5C'}} tickFormatter={(v)=>`$${v/1000}k`} axisLine={false} tickLine={false}/>
+                  <XAxis type="number" dataKey="nuevo" name="New Price" tick={{fontSize: 10, fill: '#605E5C'}} tickFormatter={(v)=>`$${v/1000}k`} axisLine={false} tickLine={false}/>
                   <YAxis type="number" dataKey="varPercent" name="Variación %" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false}/>
                   <ZAxis type="number" dataKey="absChange" range={[40, 300]} />
                   <RechartsTooltip cursor={{strokeDasharray: '3 3'}} content={<CustomTooltip />} />
@@ -536,12 +536,12 @@ const ViewportGraphics = () => {
 
             <CardContainer 
               colSpan={1} 
-              title="Ejes de Comportamiento" 
-              explanation="Cruza los promedios globales. Un área irregular sugiere que el catálogo ha sufrido un desbalance sistémico."
+              title="Behavioral Axes" 
+              explanation="Crosses global averages. An irregular area suggests the catalog has suffered a systemic imbalance."
               summaryNode={
                 <div className="text-[10px]">
-                  <div><span className="font-semibold">Prom. Aum:</span> ${radarData[0].nuevo.toFixed(0)}</div>
-                  <div><span className="font-semibold">Prom. Red:</span> ${radarData[1].nuevo.toFixed(0)}</div>
+                  <div><span className="font-semibold">Avg. Incr:</span> ${radarData[0].nuevo.toFixed(0)}</div>
+                  <div><span className="font-semibold">Avg. Decr:</span> ${radarData[1].nuevo.toFixed(0)}</div>
                 </div>
               }
             >
@@ -550,8 +550,8 @@ const ViewportGraphics = () => {
                   <PolarGrid stroke="#EDEBE9" />
                   <PolarAngleAxis dataKey="subject" tick={{fill: '#242424', fontSize: 11}} />
                   <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{fontSize: 9, fill: '#A19F9D'}} />
-                  <Radar name="Precio Base" dataKey="original" stroke="#A19F9D" fill="#A19F9D" fillOpacity={0.2} />
-                  <Radar name="Precio Final" dataKey="nuevo" stroke="#464775" fill="#464775" fillOpacity={0.4} />
+                  <Radar name="Base Price" dataKey="original" stroke="#A19F9D" fill="#A19F9D" fillOpacity={0.2} />
+                  <Radar name="Final Price" dataKey="nuevo" stroke="#464775" fill="#464775" fillOpacity={0.4} />
                   <Legend wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
                   <RechartsTooltip content={<CustomTooltip />} />
                 </RadarChart>
@@ -560,8 +560,8 @@ const ViewportGraphics = () => {
 
             <CardContainer 
               colSpan={1} 
-              title="Clúster de Severidad" 
-              explanation="Clasifica las anomalías. Barras densas en niveles 'Críticos' obligan a rechazar la actualización."
+              title="Severity Cluster" 
+              explanation="Classifies the anomalies. Dense bars in 'Critical' levels force rejecting the update."
               summaryNode={
                 <div className="flex gap-2 flex-wrap">
                   {radialData.map(r => (
