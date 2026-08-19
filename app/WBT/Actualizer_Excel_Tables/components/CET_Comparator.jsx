@@ -36,7 +36,7 @@ export default function CETComparator() {
     setLoading(true);
     const { data, error } = await supabase
       .from('ClientsSERVEX_WBT')
-      .select('id, company_name, xml_actualizer_raw, XM_CET_import, Anormals_raw, created_at')
+      .select('id, company_name, xml_actualizer_raw, XM_CET_import, created_at')
       .eq('company_name', 'WBT')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -46,14 +46,7 @@ export default function CETComparator() {
       console.error("Error fetching record:", error);
     } else if (data) {
       setActiveRecord(data);
-      if (data.Anormals_raw) {
-        try {
-          const parsed = JSON.parse(data.Anormals_raw);
-          setReportData(parsed);
-        } catch (e) {
-          console.error("Failed to parse Anormals_raw:", e);
-        }
-      }
+      // Removed Anormals_raw check because the column does not exist in ClientsSERVEX_WBT
     }
     setLoading(false);
   };
@@ -208,15 +201,12 @@ export default function CETComparator() {
         detected_changes: [...listPriceChanges, ...optionPriceChanges]
       };
 
-      // Guardar en Supabase (Anormals_raw)
-      
-      
-      const { error: updateError } = await supabase
-        .from('ClientsSERVEX_WBT')
-        .update({ Anormals_raw: JSON.stringify(reportPayload) })
-        .eq('id', activeRecord.id);
-
-      if (updateError) throw updateError;
+      // Removed database save for Anormals_raw since column doesn't exist yet
+      // const { error: updateError } = await supabase
+      //   .from('ClientsSERVEX_WBT')
+      //   .update({ Anormals_raw: JSON.stringify(reportPayload) })
+      //   .eq('id', activeRecord.id);
+      // if (updateError) throw updateError;
 
       setReportData(reportPayload);
       alert("Comparison completed and saved successfully!");
