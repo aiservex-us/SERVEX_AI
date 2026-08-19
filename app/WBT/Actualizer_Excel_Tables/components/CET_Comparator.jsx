@@ -117,7 +117,10 @@ export default function CETComparator() {
   };
 
   const computeComparison = async () => {
-    if (!activeRecord) return;
+    if (!activeRecord) {
+      showAlert("No database record found for WBT. Please upload the required XML files first.", "Missing Data", true);
+      return;
+    }
     if (!activeRecord.xml_actualizer_raw) {
       showAlert("Baseline XML (xml_actualizer_raw) not found.", "Missing Data", true);
       return;

@@ -108,8 +108,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
 
       const { error } = await supabase
         .from(`ClientsSERVEX_${moduleName}`)
-        .update(payload)
-        .eq('user_id', user.id)
+        .upsert(payload, { onConflict: 'company_name' })
         .select('');
 
       if (error) {
