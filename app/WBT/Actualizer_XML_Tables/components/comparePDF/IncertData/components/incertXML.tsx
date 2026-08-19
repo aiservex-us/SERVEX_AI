@@ -281,27 +281,39 @@ export default function UploadClientXML() {
 
       console.log('[+] Starting structural sanitation on CSV contents...');
       
-      const payload: any = {
-        company_name: 'WBT',
-        user_id: user.id,
-      };
-
       if (xmlContent.trim()) {
-        payload.xml_raw = xmlContent;
-      }
-      if (csvContent.trim()) {
-        payload.csv_raw = sanitizeCSV(csvContent);
-      }
-      if (csvNewContent.trim()) {
-        payload.csv_new_raw = sanitizeCSV(csvNewContent);
-        payload.CSV_final = sanitizeCSV(csvNewContent);
+        const { error: errXml } = await supabase
+          .from('ClientsSERVEX_WBT')
+          .update({ xml_raw: xmlContent })
+          .eq('user_id', user.id);
+        if (errXml) throw errXml;
       }
 
-      const { error } = await supabase
-        .from('ClientsSERVEX_WBT')
-        .update(payload)
-        .eq('user_id', user.id)
-        .select('');
+      if (csvContent.trim()) {
+        const sanitizedOld = sanitizeCSV(csvContent);
+        const { error: errCsvOld } = await supabase
+          .from('ClientsSERVEX_WBT')
+          .update({ csv_raw: sanitizedOld })
+          .eq('user_id', user.id);
+        if (errCsvOld) throw errCsvOld;
+      }
+
+      if (csvNewContent.trim()) {
+        const sanitizedNew = sanitizeCSV(csvNewContent);
+        const { error: errCsvNew1 } = await supabase
+          .from('ClientsSERVEX_WBT')
+          .update({ csv_new_raw: sanitizedNew })
+          .eq('user_id', user.id);
+        if (errCsvNew1) throw errCsvNew1;
+
+        const { error: errCsvNew2 } = await supabase
+          .from('ClientsSERVEX_WBT')
+          .update({ CSV_final: sanitizedNew })
+          .eq('user_id', user.id);
+        if (errCsvNew2) throw errCsvNew2;
+      }
+
+      let error = null;
 
       if (error) {
         console.error('Supabase Full Error:', error);
