@@ -313,22 +313,15 @@ export default function UploadClientXML() {
         if (errCsvNew2) throw errCsvNew2;
       }
 
-      let error = null;
-
-      if (error) {
-        console.error('Supabase Full Error:', error);
-        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
-      } else {
-        setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
-        setXmlContent('');
-        setCsvContent('');
-        setCsvNewContent('');
-        // Refrescar el estado de columnas existentes tras guardar
-        await checkExistingFiles();
-      }
-    } catch (err: unknown) {
+      setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
+      setXmlContent('');
+      setCsvContent('');
+      setCsvNewContent('');
+      // Refrescar el estado de columnas existentes tras guardar
+      await checkExistingFiles();
+    } catch (err: any) {
       console.error(err);
-      setMessage({ text: 'Unexpected client-side error', type: 'error' });
+      setMessage({ text: err?.message ? `DB Error: ${err.message}` : 'Unexpected client-side error', type: 'error' });
     } finally {
       setLoading(false);
     }
