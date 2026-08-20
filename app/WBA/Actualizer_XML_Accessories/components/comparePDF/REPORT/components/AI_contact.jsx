@@ -14,9 +14,9 @@ import {
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
-  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructurar XML y comparar catálogo (Step 2)' },
-  { id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download el XML resultante procesado' },
-  { id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generar reporte de auditoría completo y publicarlo en el foro' },
+  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)' },
+  { id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
+  { id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
 ];
 
 const QUICK_PROMPTS = [
@@ -150,7 +150,7 @@ export default function TeamsAgentChat({ currentSection }) {
         });
 
         if (!response.ok) {
-          throw new Error('Falla en la respuesta del generador de auditoría');
+          throw new Error('Audit generator response failed');
         }
         
         await response.json();
@@ -176,7 +176,7 @@ export default function TeamsAgentChat({ currentSection }) {
         });
 
         if (!response.ok) {
-          throw new Error('Falla en la respuesta del motor de comparación');
+          throw new Error('Comparison engine response failed');
         }
         
         await response.json();
@@ -449,7 +449,7 @@ export default function TeamsAgentChat({ currentSection }) {
                   <div className="flex flex-col items-start gap-1">
                     <div className="flex items-baseline gap-2">
                       <span className="text-[12px] font-semibold text-gray-800">{selectedAgent.agent_name}</span>
-                      <span className="text-[10px] text-gray-400 font-medium">Pensando...</span>
+                      <span className="text-[10px] text-gray-400 font-medium">Thinking...</span>
                     </div>
                     <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl rounded-tl-sm shadow-sm">
                       {[0, 1, 2].map((i) => (
