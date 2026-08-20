@@ -109,7 +109,7 @@ export default function TeamsAgentChat({ currentSection }) {
           .single();
 
         if (error || !data || !data.xml_actualizer_raw) {
-          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: No se encontró el file XML en la base de datos para WBG.", time: nowTime }]);
+          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: XML file not found in the database for WBG.", time: nowTime }]);
         } else {
           const blob = new Blob([data.xml_actualizer_raw], { type: 'application/xml' });
           const url = window.URL.createObjectURL(blob);
@@ -121,10 +121,10 @@ export default function TeamsAgentChat({ currentSection }) {
           link.parentNode.removeChild(link);
           window.URL.revokeObjectURL(url);
           
-          setMessages(prev => [...prev, { from: "bot", text: "✅ Descarga iniciada. El file WBG.xml ha sido guardado exitosamente.", time: nowTime }]);
+          setMessages(prev => [...prev, { from: "bot", text: "✅ Download started. The file WBG.xml has been saved successfully.", time: nowTime }]);
         }
       } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: "❌ An error occurred inesperado al intentar descargar el XML.", time: nowTime }]);
+        setMessages(prev => [...prev, { from: "bot", text: "❌ An unexpected error occurred while trying to download the XML.", time: nowTime }]);
       } finally {
         setIsLoading(false);
       }
@@ -134,7 +134,7 @@ export default function TeamsAgentChat({ currentSection }) {
 
     if (queryToSend === '/createAuditor') {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: "📊 Generando reporte de auditoría inteligente y publicándolo en el Foro...", time: nowTime }]);
+      setMessages(prev => [...prev, { from: "bot", text: "📊 Generating smart audit report and publishing it to the Forum...", time: nowTime }]);
       
       try {
         const match = window.location.pathname.match(/^\/(WB[A-Z])/i);
@@ -154,9 +154,9 @@ export default function TeamsAgentChat({ currentSection }) {
         }
         
         await response.json();
-        setMessages(prev => [...prev, { from: "bot", text: "✅ ¡Auditoría generada y publicada en el foro exitosamente!", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        setMessages(prev => [...prev, { from: "bot", text: "✅ Audit successfully generated and published to the forum!", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: `❌ Error generando la auditoría: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        setMessages(prev => [...prev, { from: "bot", text: `❌ Error generating audit: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       }
       setIsLoading(false);
       return;
@@ -164,7 +164,7 @@ export default function TeamsAgentChat({ currentSection }) {
 
     if (queryToSend === '/executeProcess') {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Iniciando motor ETL para procesamiento de catálogos en la nube (WBG). Por favor, espera...", time: nowTime }]);
+      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (WBG). Please wait...", time: nowTime }]);
       
       try {
         const formData = new FormData();
@@ -180,10 +180,10 @@ export default function TeamsAgentChat({ currentSection }) {
         }
         
         await response.json();
-        setMessages(prev => [...prev, { from: "bot", text: "✅ ¡Proceso ETL completado exitosamente! El catálogo ha sido reestructurado y comparado. Ya puedes revisar la auditoría en 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        setMessages(prev => [...prev, { from: "bot", text: "✅ ETL process completed successfully! The catalog has been restructured and compared. You can now review the audit in 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
         window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'report' }));
       } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: `❌ Error durante la ejecución del proceso ETL: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        setMessages(prev => [...prev, { from: "bot", text: `❌ Error during ETL process execution: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       }
       setIsLoading(false);
       return;
