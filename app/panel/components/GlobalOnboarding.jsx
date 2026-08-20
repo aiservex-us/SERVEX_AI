@@ -156,7 +156,7 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed m-0">
-                    Hola, soy <strong>Alysa</strong>. Bienvenid@ a SERVEX AI. Antes de mostrarte el Panel Principal, necesito configurar tu Perfil. ¿Comenzamos?
+                    Hi, I'm <strong>Alysa</strong>. Welcome to SERVEX AI. Before showing you the Main Panel, I need to configure your Profile. Shall we begin?
                   </p>
                 </div>
               </div>
@@ -180,7 +180,7 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
-                    Perfecto. Primero que todo, <strong>¿Cuál es tu nombre completo?</strong>
+                    Perfect. First of all, <strong>What is your full name?</strong>
                   </p>
                   <div className="relative">
                     <input 
@@ -216,7 +216,7 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
-                    Mucho gusto, {nombre}. <strong>¿Qué cargo ocupas actualmente?</strong>
+                    Nice to meet you, {nombre}. <strong>What is your current role?</strong>
                   </p>
                   <div className="relative">
                     <input 
@@ -252,7 +252,7 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
-                    Entendido. <strong>¿Quién autoriza o delega tu acceso a la plataforma?</strong>
+                    Understood. <strong>Who authorizes or delegates your access to the platform?</strong>
                   </p>
                   <div className="relative">
                     <input 
@@ -288,7 +288,7 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
-                    Casi terminamos. <strong>¿Cuál es tu función principal en el área?</strong>
+                    Almost done. <strong>What is your main function in the area?</strong>
                   </p>
                   <div className="relative">
                     <textarea 
@@ -324,7 +324,7 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
-                    Perfecto. Ahora, <strong>sube una foto de perfil</strong> para que te identifiquemos en la plataforma.
+                    Perfect. Now, <strong>upload a profile picture</strong> so we can identify you on the platform.
                   </p>
                   <div className="relative flex flex-col items-center gap-4">
                     {fotoBase64 ? (
@@ -340,7 +340,7 @@ export default function GlobalOnboarding({ children }) {
                         className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-500 hover:border-[#464775] hover:text-[#464775] transition-colors bg-white"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-                        <span className="text-[10px] font-medium uppercase tracking-wider">Subir</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wider">Upload</span>
                       </button>
                     )}
                     <input 
@@ -359,7 +359,7 @@ export default function GlobalOnboarding({ children }) {
                 onClick={() => setChatStep(6)}
                 className="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-gray-300 transition-all"
               >
-                Omitir
+                Skip
               </button>
               <button 
                 onClick={() => setChatStep(6)}
@@ -380,7 +380,7 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
-                    Excelente. Ahora, por favor ingresa tu <strong>teléfono y ubicación</strong>.
+                    Excellent. Now, please enter your <strong>phone and location</strong>.
                   </p>
                   <div className="space-y-3">
                     <input 
@@ -388,7 +388,7 @@ export default function GlobalOnboarding({ children }) {
                       value={telefono} 
                       onChange={e => setTelefono(e.target.value)}
                       className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
-                      placeholder="Teléfono (Ej: +1 (555) 123-4567)" 
+                      placeholder="Phone (E.g.: +1 (555) 123-4567)" 
                     />
                     <input 
                       type="text" 
@@ -396,7 +396,7 @@ export default function GlobalOnboarding({ children }) {
                       onChange={e => setUbicacion(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && setChatStep(7)}
                       className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 text-[13px] text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#464775]/40 transition-all shadow-inner placeholder-gray-400"
-                      placeholder="Ubicación (Ej: Grand Rapids, MI)" 
+                      placeholder="Location (E.g.: Grand Rapids, MI)" 
                     />
                   </div>
                 </div>
@@ -407,7 +407,7 @@ export default function GlobalOnboarding({ children }) {
                 onClick={() => setChatStep(7)}
                 className="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-gray-300 transition-all"
               >
-                Omitir
+                Skip
               </button>
               <button 
                 onClick={() => setChatStep(7)}
@@ -427,7 +427,7 @@ export default function GlobalOnboarding({ children }) {
                 <span className="text-[11px] font-semibold text-gray-400 mb-1 ml-1">Alysa</span>
                 <div className="px-5 py-4 bg-gray-50/80 backdrop-blur-md border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm w-full">
                   <p className="text-gray-700 text-[13.5px] leading-relaxed mb-4">
-                    Todo listo. Si tienes algún comentario final, escríbelo. Si no, solo dale click a Finalizar.
+                    All set. If you have any final comments, write them down. If not, just click Finish.
                   </p>
                   <div className="relative">
                     <input 
@@ -456,9 +456,9 @@ export default function GlobalOnboarding({ children }) {
                   className="flex items-center gap-2 bg-[#464775] text-white px-6 py-2.5 rounded-xl text-[13px] font-medium hover:bg-[#35365e] transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <><Loader2 size={16} className="animate-spin" /> Procesando...</>
+                    <><Loader2 size={16} className="animate-spin" /> Processing...</>
                   ) : (
-                    <><CheckCircle size={16} /> Finalizar</>
+                    <><CheckCircle size={16} /> Finish</>
                   )}
                 </button>
               </div>
