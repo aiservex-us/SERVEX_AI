@@ -283,16 +283,10 @@ export default function UploadClientXML() {
       
       if (xmlContent.trim()) {
         console.log('[+] Uploading XML...');
-        const xmlPayload = {
-          company_name: 'WBG',
-          user_id: user.id,
-          xml_raw: xmlContent
-        };
         const { error: xmlError } = await supabase
           .from('ClientsSERVEX_WBG')
-          .update(xmlPayload)
-          .eq('user_id', user.id)
-          .select('');
+          .update({ xml_raw: xmlContent })
+          .eq('user_id', user.id);
           
         if (xmlError) {
           console.error('Supabase XML Error:', xmlError);
@@ -302,16 +296,10 @@ export default function UploadClientXML() {
 
       if (csvContent.trim()) {
         console.log('[+] Uploading CSV Base...');
-        const csvPayload = {
-          company_name: 'WBG',
-          user_id: user.id,
-          csv_raw: sanitizeCSV(csvContent)
-        };
         const { error: csvError } = await supabase
           .from('ClientsSERVEX_WBG')
-          .update(csvPayload)
-          .eq('user_id', user.id)
-          .select('');
+          .update({ csv_raw: sanitizeCSV(csvContent) })
+          .eq('user_id', user.id);
           
         if (csvError) {
           console.error('Supabase CSV Base Error:', csvError);
@@ -321,21 +309,25 @@ export default function UploadClientXML() {
 
       if (csvNewContent.trim()) {
         console.log('[+] Uploading CSV New...');
-        const csvNewPayload = {
-          company_name: 'WBG',
-          user_id: user.id,
-          csv_new_raw: sanitizeCSV(csvNewContent),
-          CSV_final: sanitizeCSV(csvNewContent)
-        };
-        const { error: csvNewError } = await supabase
+        const sanitizedNew = sanitizeCSV(csvNewContent);
+        const { error: csvNewError1 } = await supabase
           .from('ClientsSERVEX_WBG')
-          .update(csvNewPayload)
-          .eq('user_id', user.id)
-          .select('');
+          .update({ csv_new_raw: sanitizedNew })
+          .eq('user_id', user.id);
           
-        if (csvNewError) {
-          console.error('Supabase CSV New Error:', csvNewError);
-          throw new Error(`CSV New DB Error: ${csvNewError.message}`);
+        if (csvNewError1) {
+          console.error('Supabase CSV New Error 1:', csvNewError1);
+          throw new Error(`CSV New DB Error (1): ${csvNewError1.message}`);
+        }
+
+        const { error: csvNewError2 } = await supabase
+          .from('ClientsSERVEX_WBG')
+          .update({ CSV_final: sanitizedNew })
+          .eq('user_id', user.id);
+          
+        if (csvNewError2) {
+          console.error('Supabase CSV New Error 2:', csvNewError2);
+          throw new Error(`CSV New DB Error (2): ${csvNewError2.message}`);
         }
       }
 

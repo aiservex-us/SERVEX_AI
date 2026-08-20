@@ -6,15 +6,13 @@ import { supabase } from '@/app/lib/supabaseClient';
 import { usePathname } from 'next/navigation';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, ScatterChart, Scatter, ZAxis, AreaChart, Area,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, RadialBarChart, RadialBar
+  PieChart, Pie, Cell, LineChart, Line, ScatterChart, Scatter, ZAxis, AreaChart, Area, ComposedChart
 } from 'recharts';
 import { 
   AlertCircle, TrendingUp, TrendingDown, Database, Activity, Cpu,
-  SendHorizontal, Paperclip, Mic, Trash2, ChevronDown, Zap, X, FileText
+  Trash2, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
-import { marked } from "marked";
 
 // Colores corporativos SERVEX (Estilo Teams)
 const PRIMARY = '#464775'; 
@@ -29,7 +27,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         </p>
         {payload.map((entry, index) => (
           <div key={`item-${index}`} className="flex justify-between gap-6 py-0.5">
-            <span style={{ color: entry.color }} className="font-medium">{entry.name || entry.dataKey}:</span>
+            <span style={{ color: entry.color || entry.fill }} className="font-medium">{entry.name || entry.dataKey}:</span>
             <span className="font-mono text-[#605E5C]">
               {typeof entry.value === 'number' && entry.name !== 'Variation %' && entry.name !== 'Quantity'
                 ? `$${entry.value.toLocaleString()}`
@@ -55,7 +53,6 @@ const ViewportGraphics = () => {
   const [messages, setMessages] = useState([]);
   const [isLoadingChat, setIsLoadingChat] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [attachedFile, setAttachedFile] = useState(null);
   const [userId] = useState(`USER-${Math.floor(Math.random() * 10000)}`);
@@ -101,7 +98,7 @@ const ViewportGraphics = () => {
 
   const parseMarkdown = (md) => {
     const result = {
-      metrics: { total: 0, modified: 0, new: 0, deleted: 0 },
+      metrics: { total: 0, modified: 0, new: 0, deleted: 0, totalCells: 0 },
       aumentos: [], reducciones: [], anomaliesData: []
     };
 
@@ -109,7 +106,7 @@ const ViewportGraphics = () => {
     let currentSection = '';
 
     lines.forEach(line => {
-      if (line.includes('Total Models Comunes Evaluados')) result.metrics.total = parseInt(line.replace(/\D/g, ''), 10) || 0;
+      if (line.includes('Total Modelos Comunes Evaluados') || line.includes('Total Models Comunes Evaluados')) result.metrics.total = parseInt(line.replace(/\D/g, ''), 10) || 0;
       if (line.includes('Modelos Modificados')) {
         const match = line.match(/: (\d+)/);
         if(match) result.metrics.modified = parseInt(match[1], 10);
@@ -122,6 +119,10 @@ const ViewportGraphics = () => {
          const match = line.match(/: (\d+)/);
          if(match) result.metrics.deleted = parseInt(match[1], 10);
       }
+      if (line.includes('Total Cambios en Celdas')) {
+         const match = line.match(/: (\d+)/);
+         if(match) result.metrics.totalCells = parseInt(match[1], 10);
+      }
 
       if (line.includes('Top 5 Mayores Aumentos')) currentSection = 'aumentos';
       else if (line.includes('Top 5 Mayores Reducciones')) currentSection = 'reducciones';
@@ -133,7 +134,7 @@ const ViewportGraphics = () => {
         const match = line.match(regexVar);
         if (match) {
           result.aumentos.push({
-            name: match[1].substring(0, 10) + '...', original: parseFloat(match[2]), nuevo: parseFloat(match[3]), varPercent: parseFloat(match[4])
+            name: match[1].substring(0, 15) + '...', fullName: match[1], original: parseFloat(match[2]), nuevo: parseFloat(match[3]), varPercent: parseFloat(match[4]), absChange: Math.abs(parseFloat(match[3]) - parseFloat(match[2]))
           });
         }
       }
@@ -142,7 +143,7 @@ const ViewportGraphics = () => {
         const match = line.match(regexVar);
         if (match) {
           result.reducciones.push({
-            name: match[1].substring(0, 10) + '...', original: parseFloat(match[2]), nuevo: parseFloat(match[3]), varPercent: parseFloat(match[4])
+            name: match[1].substring(0, 15) + '...', fullName: match[1], original: parseFloat(match[2]), nuevo: parseFloat(match[3]), varPercent: parseFloat(match[4]), absChange: Math.abs(parseFloat(match[3]) - parseFloat(match[2]))
           });
         }
       }
@@ -152,7 +153,7 @@ const ViewportGraphics = () => {
         const match = line.match(regexAnom);
         if (match) {
           result.anomaliesData.push({
-            name: match[1].substring(0, 9) + '..', fullName: match[1], varPercent: parseFloat(match[2]),
+            name: match[1].substring(0, 12) + '..', fullName: match[1], varPercent: parseFloat(match[2]),
             original: parseFloat(match[3]), nuevo: parseFloat(match[4]),
             absChange: Math.abs(parseFloat(match[4]) - parseFloat(match[3]))
           });
@@ -282,30 +283,44 @@ const ViewportGraphics = () => {
     </div>
   );
 
-  const pieData = [
-    { name: 'No Changes', value: Math.max(0, data.metrics.total - data.metrics.modified - data.metrics.new - data.metrics.deleted) },
+
+  // --- PROCESAMIENTO DE DATOS PARA LAS 5 NUEVAS GRÁFICAS ---
+
+  // 1. Catalog Stability Index (Gauge)
+  const gaugeData = [
+    { name: 'Untouched', value: Math.max(0, data.metrics.total - data.metrics.modified - data.metrics.new - data.metrics.deleted) },
     { name: 'Modified', value: data.metrics.modified },
     { name: 'New', value: data.metrics.new },
     { name: 'Deleted', value: data.metrics.deleted }
   ];
 
-  const getAvg = (arr, key) => arr.length ? arr.reduce((acc, el) => acc + el[key], 0) / arr.length : 0;
-  const radarData = [
-    { subject: 'Increases', original: getAvg(data.aumentos, 'original'), nuevo: getAvg(data.aumentos, 'nuevo') },
-    { subject: 'Decreases', original: getAvg(data.reducciones, 'original'), nuevo: getAvg(data.reducciones, 'nuevo') },
-    { subject: 'Anomalies', original: getAvg(data.anomaliesData, 'original'), nuevo: getAvg(data.anomaliesData, 'nuevo') },
-  ];
+  // 2. Price Deviation Quadrant (Scatter)
+  const scatterData = [...data.aumentos, ...data.reducciones, ...data.anomaliesData].map(item => ({
+    name: item.name,
+    Original: item.original,
+    'Variation %': item.varPercent,
+    absChange: item.absChange || Math.abs(item.nuevo - item.original)
+  }));
 
-  let severityLevels = { 'Critical (>500%)': 0, 'High (100-500%)': 0, 'Medium (<100%)': 0, 'Low (<-90%)': 0 };
-  data.anomaliesData.forEach(a => {
-    if (a.varPercent >= 500) severityLevels['Critical (>500%)']++;
-    else if (a.varPercent >= 100) severityLevels['High (100-500%)']++;
-    else if (a.varPercent <= -90) severityLevels['Low (<-90%)']++;
-    else severityLevels['Medium (<100%)']++;
-  });
-  const radialData = Object.keys(severityLevels).map((k, i) => ({
-    name: k, Cantidad: severityLevels[k], fill: BRAND_COLORS[i % BRAND_COLORS.length]
-  })).filter(d => d.Cantidad > 0);
+  // 3. Diverging Volatility (Diverging Bar)
+  const divergingData = [...data.aumentos, ...data.reducciones].map(item => ({
+    name: item.name,
+    'Variation %': item.varPercent,
+    fill: item.varPercent > 0 ? '#107C10' : '#A80000'
+  })).sort((a,b) => b['Variation %'] - a['Variation %']);
+
+  // 4. Financial Impact Distribution (BarChart by absChange)
+  const impactData = [...data.anomaliesData, ...data.aumentos, ...data.reducciones]
+    // Filter duplicates by name
+    .filter((v,i,a)=>a.findIndex(t=>(t.name === v.name))===i)
+    .sort((a,b) => b.absChange - a.absChange)
+    .slice(0, 10); // Top 10 impacts
+
+  // 5. Transition Delta (Composed Bar + Line Chart)
+  const transitionData = [...data.aumentos, ...data.reducciones]
+    .filter((v,i,a)=>a.findIndex(t=>(t.name === v.name))===i)
+    .slice(0, 7); // Top 7 mostly
+
 
   const CardContainer = ({ title, children, explanation, colSpan = 1, summaryNode }) => (
     <div className={`bg-white rounded-md border border-[#EDEBE9] p-5 flex flex-col lg:col-span-${colSpan} hover:shadow-sm transition-shadow h-[480px]`}>
@@ -380,18 +395,18 @@ const ViewportGraphics = () => {
         </div>
       </header>
 
-      {/* Contenedor scrolleable general (Gráficas + Chat) */}
+      {/* Contenedor scrolleable general */}
       <div className="flex-1 overflow-y-auto pb-[180px] p-6 relative">
         
-        {/* === SECCIÓN DE GRÁFICAS === */}
         <div className="w-full max-w-6xl mx-auto">
           {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             {[
               { label: 'Total Models', val: data.metrics.total, icon: Database, color: 'text-[#464775]' },
               { label: 'Modified', val: data.metrics.modified, icon: Activity, color: 'text-[#0078D4]' },
               { label: 'New', val: data.metrics.new, icon: TrendingUp, color: 'text-[#107C10]' },
-              { label: 'Deleted', val: data.metrics.deleted, icon: TrendingDown, color: 'text-[#D83B01]' }
+              { label: 'Deleted', val: data.metrics.deleted, icon: TrendingDown, color: 'text-[#D83B01]' },
+              { label: 'Cell Changes', val: data.metrics.totalCells || 0, icon: FileText, color: 'text-[#5C2D91]' }
             ].map((kpi, idx) => (
               <div key={idx} className="bg-white p-4 rounded-md border border-[#EDEBE9] hover:shadow-sm transition-shadow flex items-center gap-4">
                 <div className={`p-2.5 rounded bg-[#FAFAFA] ${kpi.color}`}>
@@ -406,23 +421,23 @@ const ViewportGraphics = () => {
           </div>
 
           <div className="flex flex-col gap-6 mb-6">
+            
+            {/* 1. Catalog Stability Index */}
             <CardContainer 
               colSpan={1} 
-              title="Catalog Composition" 
-              explanation="Distribución general de los productos. Un volumen alto de modelos 'No Changes' representa estabilidad operativa."
+              title="Catalog Stability Index" 
+              explanation="Gauge showing the proportion of the catalog that remained untouched vs modified. A higher 'Untouched' arc indicates operational stability."
               summaryNode={
                 <div className="grid grid-cols-2 gap-2">
-                  <div><span className="font-semibold">Total:</span> {data.metrics.total}</div>
-                  <div><span className="font-semibold">Modificados:</span> {data.metrics.modified}</div>
-                  <div><span className="font-semibold">Nuevos:</span> {data.metrics.new}</div>
-                  <div><span className="font-semibold">Eliminados:</span> {data.metrics.deleted}</div>
+                  <div><span className="font-semibold">Untouched:</span> {gaugeData[0].value}</div>
+                  <div><span className="font-semibold">Modified:</span> {gaugeData[1].value}</div>
                 </div>
               }
             >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value" stroke="none">
-                    {pieData.map((e, i) => <Cell key={`c-${i}`} fill={BRAND_COLORS[i % BRAND_COLORS.length]} />)}
+                  <Pie data={gaugeData} cx="50%" cy="80%" startAngle={180} endAngle={0} innerRadius={90} outerRadius={120} paddingAngle={2} dataKey="value" stroke="none">
+                    {gaugeData.map((e, i) => <Cell key={`c-${i}`} fill={BRAND_COLORS[i % BRAND_COLORS.length]} />)}
                   </Pie>
                   <RechartsTooltip content={<CustomTooltip />} />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
@@ -430,159 +445,114 @@ const ViewportGraphics = () => {
               </ResponsiveContainer>
             </CardContainer>
 
+            {/* 2. Transition Delta */}
             <CardContainer 
               colSpan={2} 
-              title="Top Strategic Variations" 
-              explanation="Compares the 'Base Price' against the 'Adjusted Price'. Allows visual auditing of the strongest impacts."
+              title="Transition Delta" 
+              explanation="Side-by-side comparison of Base vs Adjusted Price for top items, overlaid with the Percentage Variation trendline."
               summaryNode={
                 <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-[#107C10]">🔥 Increases: {data.aumentos.slice(0, 2).map(a => `${a.name}(+${a.varPercent}%)`).join(', ')}</span>
-                  <span className="font-semibold text-[#D83B01]">📉 Decreases: {data.reducciones.slice(0, 2).map(r => `${r.name}(${r.varPercent}%)`).join(', ')}</span>
+                  <span className="font-semibold text-[#107C10]">🔥 Top Variation: {transitionData[0]?.name} ({transitionData[0]?.varPercent}%)</span>
                 </div>
               }
             >
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={[...data.aumentos, ...data.reducciones]} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EDEBE9"/>
+                <ComposedChart data={transitionData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid stroke="#EDEBE9" strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" tick={{fontSize: 10, fill: '#605E5C'}} interval={0} angle={-15} textAnchor="end" height={60} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
+                  <YAxis yAxisId="left" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
+                  <YAxis yAxisId="right" orientation="right" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} />
                   <RechartsTooltip content={<CustomTooltip />} />
-                  <Legend iconType="rect" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
-                  <Bar dataKey="original" name="Base Price" fill="#C8C6C4" radius={[2, 2, 0, 0]} barSize={16} />
-                  <Bar dataKey="nuevo" name="Adjusted Price" fill="#464775" radius={[2, 2, 0, 0]} barSize={16} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
+                  <Bar yAxisId="left" dataKey="original" name="Base Price" fill="#C8C6C4" barSize={20} radius={[2, 2, 0, 0]} />
+                  <Bar yAxisId="left" dataKey="nuevo" name="Adjusted Price" fill="#464775" barSize={20} radius={[2, 2, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="varPercent" name="Variation %" stroke="#107C10" strokeWidth={3} dot={{r:5, fill:'#107C10', stroke:'#fff', strokeWidth:2}} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </CardContainer>
+          </div>
+
+          <div className="flex flex-col gap-6 mb-6">
+            
+            {/* 3. Diverging Volatility */}
+            <CardContainer 
+              colSpan={1} 
+              title="Diverging Volatility" 
+              explanation="Contrasts the extremes of the catalog updates. Positive percentage shifts branch right, while negative shifts branch left."
+              summaryNode={
+                <div>
+                  <span className="font-semibold text-[#107C10]">Highest Increase: {divergingData[0]?.['Variation %']}%</span> | 
+                  <span className="font-semibold text-[#A80000]"> Highest Decrease: {divergingData[divergingData.length-1]?.['Variation %']}%</span>
+                </div>
+              }
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={divergingData} layout="vertical" margin={{ top: 5, right: 30, left: 30, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#EDEBE9"/>
+                  <XAxis type="number" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false}/>
+                  <YAxis dataKey="name" type="category" tick={{fontSize: 9, fill: '#605E5C'}} axisLine={false} tickLine={false} width={80}/>
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Bar dataKey="Variation %" radius={[2, 2, 2, 2]} barSize={12}>
+                    {divergingData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </CardContainer>
-          </div>
 
-          <div className="flex flex-col gap-6 mb-6">
+            {/* 4. Financial Impact Distribution */}
             <CardContainer 
               colSpan={1} 
-              title="Anomalies Trajectory" 
-              explanation="Tracks the evolution between prices. Pronounced separations between lines warn of potential errors."
+              title="Financial Impact Distribution" 
+              explanation="Ranks anomalies and top variations purely by their absolute dollar impact, directing attention to the costliest shifts."
               summaryNode={
                 <div>
-                  <span className="font-semibold">⚠️ Top Alerts: </span> 
-                  {data.anomaliesData.slice(0, 1).map((a, i) => (
-                    <span key={i}>[{a.fullName}] Var: {a.varPercent}% (${a.original} → ${a.nuevo})</span>
-                  ))}
+                  <span className="font-semibold text-[#A80000]">🚨 Highest $ Displacement: </span> 
+                  [{impactData[0]?.name}: ${impactData[0]?.absChange.toLocaleString()}]
                 </div>
               }
             >
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.anomaliesData} margin={{ top: 5, right: 15, left: 0, bottom: 20 }}>
+                <BarChart data={impactData} margin={{ top: 20, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EDEBE9"/>
-                  <XAxis dataKey="name" tick={{fontSize: 10, fill: '#605E5C'}} angle={-25} textAnchor="end" axisLine={false} tickLine={false}/>
-                  <YAxis tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false}/>
-                  <RechartsTooltip content={<CustomTooltip />} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
-                  <Line type="monotone" dataKey="original" name="Historical" stroke="#A19F9D" strokeWidth={2} dot={{r: 3, fill: '#A19F9D'}} activeDot={{r: 5}}/>
-                  <Line type="monotone" dataKey="nuevo" name="New Value" stroke="#0078D4" strokeWidth={2} dot={{r: 3, fill: '#0078D4'}} activeDot={{r: 5}}/>
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContainer>
-
-            <CardContainer 
-              colSpan={1} 
-              title="Net Financial Magnitude (Risk)" 
-              explanation="Quantifies in area the total monetary impact ($) displaced by the anomalies detected in the catalog."
-              summaryNode={
-                <div>
-                  <span className="font-semibold text-[#A80000]">🚨 Top Impact: </span> 
-                  {([...data.anomaliesData]).sort((a,b)=>b.absChange - a.absChange).slice(0, 1).map((a, i) => (
-                    <span key={i}>[{a.name}: ${a.absChange.toLocaleString()}]</span>
-                  ))}
-                </div>
-              }
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.anomaliesData} margin={{ top: 5, right: 15, left: 0, bottom: 20 }}>
-                  <defs>
-                    <linearGradient id="colorAbs" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#464775" stopOpacity={0.6}/>
-                      <stop offset="95%" stopColor="#464775" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EDEBE9"/>
-                  <XAxis dataKey="name" tick={{fontSize: 10, fill: '#605E5C'}} angle={-25} textAnchor="end" axisLine={false} tickLine={false}/>
+                  <XAxis dataKey="name" tick={{fontSize: 10, fill: '#605E5C'}} interval={0} angle={-25} textAnchor="end" height={60} axisLine={false} tickLine={false}/>
                   <YAxis tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
                   <RechartsTooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="absChange" name="Absolute Variation ($)" stroke="#464775" strokeWidth={2} fillOpacity={1} fill="url(#colorAbs)" />
-                </AreaChart>
+                  <Bar dataKey="absChange" name="Absolute Impact ($)" fill="#A80000" radius={[2, 2, 0, 0]} barSize={25} />
+                </BarChart>
               </ResponsiveContainer>
             </CardContainer>
+
           </div>
 
           <div className="flex flex-col gap-6 mb-6">
+            
+            {/* 5. Price Deviation Quadrant */}
             <CardContainer 
               colSpan={1} 
-              title="Volatility Dispersion" 
-              explanation="Positions the errors. The highest points (Y axis) and to the right (X axis) require urgent review."
+              title="Price Deviation Quadrant" 
+              explanation="A matrix plotting original price vs percentage variation. Helps answer: Are huge percentage jumps happening on cheap items (low risk) or expensive ones (high risk)?"
               summaryNode={
-                <div><span className="font-semibold">Maximum volatility:</span> {data.anomaliesData.length > 0 ? `${Math.max(...data.anomaliesData.map(d=>d.varPercent))}%` : '0%'}</div>
+                <div><span className="font-semibold">Outliers plotted:</span> {scatterData.length} models</div>
               }
             >
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#EDEBE9"/>
-                  <XAxis type="number" dataKey="nuevo" name="New Price" tick={{fontSize: 10, fill: '#605E5C'}} tickFormatter={(v)=>`$${v/1000}k`} axisLine={false} tickLine={false}/>
-                  <YAxis type="number" dataKey="varPercent" name="Variación %" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false}/>
-                  <ZAxis type="number" dataKey="absChange" range={[40, 300]} />
+                  <XAxis type="number" dataKey="Original" name="Original Price" tick={{fontSize: 10, fill: '#605E5C'}} tickFormatter={(v)=>`$${v/1000}k`} axisLine={false} tickLine={false}/>
+                  <YAxis type="number" dataKey="Variation %" name="Variation %" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false}/>
+                  <ZAxis type="number" dataKey="absChange" range={[40, 300]} name="Absolute Change" />
                   <RechartsTooltip cursor={{strokeDasharray: '3 3'}} content={<CustomTooltip />} />
-                  <Scatter name="Anomalías" data={data.anomaliesData} fill="#D83B01" opacity={0.7} />
+                  <Scatter name="Deviations" data={scatterData} fill="#0078D4" opacity={0.7} />
                 </ScatterChart>
               </ResponsiveContainer>
             </CardContainer>
 
-            <CardContainer 
-              colSpan={1} 
-              title="Behavioral Axes" 
-              explanation="Crosses global averages. An irregular area suggests the catalog has suffered a systemic imbalance."
-              summaryNode={
-                <div className="text-[10px]">
-                  <div><span className="font-semibold">Avg. Incr:</span> ${radarData[0].nuevo.toFixed(0)}</div>
-                  <div><span className="font-semibold">Avg. Decr:</span> ${radarData[1].nuevo.toFixed(0)}</div>
-                </div>
-              }
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
-                  <PolarGrid stroke="#EDEBE9" />
-                  <PolarAngleAxis dataKey="subject" tick={{fill: '#242424', fontSize: 11}} />
-                  <PolarRadiusAxis angle={30} domain={[0, 'auto']} tick={{fontSize: 9, fill: '#A19F9D'}} />
-                  <Radar name="Base Price" dataKey="original" stroke="#A19F9D" fill="#A19F9D" fillOpacity={0.2} />
-                  <Radar name="Final Price" dataKey="nuevo" stroke="#464775" fill="#464775" fillOpacity={0.4} />
-                  <Legend wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
-                  <RechartsTooltip content={<CustomTooltip />} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </CardContainer>
-
-            <CardContainer 
-              colSpan={1} 
-              title="Severity Cluster" 
-              explanation="Classifies the anomalies. Dense bars in 'Critical' levels force rejecting the update."
-              summaryNode={
-                <div className="flex gap-2 flex-wrap">
-                  {radialData.map(r => (
-                    <div key={r.name}><span className="font-semibold" style={{color: r.fill}}>{r.name.split(' ')[0]}:</span> {r.Cantidad}</div>
-                  ))}
-                </div>
-              }
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="25%" outerRadius="90%" barSize={12} data={radialData}>
-                  <RadialBar minAngle={15} background clockWise dataKey="Cantidad" cornerRadius={2} />
-                  <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={{ fontSize: '11px', right: 0, color: '#605E5C' }} />
-                  <RechartsTooltip content={<CustomTooltip />} />
-                </RadialBarChart>
-              </ResponsiveContainer>
-            </CardContainer>
           </div>
         </div>
 
       </div>
-
 
     </main>
   );
