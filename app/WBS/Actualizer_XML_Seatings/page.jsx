@@ -193,8 +193,15 @@ export default function MenuInicial() {
         {/* CONTENEDOR SPLIT */}
         <div className="flex flex-1 h-full w-full min-w-0 p-2 gap-2 bg-slate-50">
           
-          {/* Lado Izquierdo: Contenido Principal */}
-          <div className={`relative group transition-all duration-300 ease-in-out h-full ${(showAiMenu && isAiMenuExpanded) ? 'md:w-[65%] w-full' : 'w-full'}`}>
+          {/* Lado Izquierdo: Asistente IA */}
+          {(showAiMenu && isAiMenuExpanded) && (
+            <div className="hidden md:flex relative w-[50%] h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex-col animate-in slide-in-from-left-8 duration-300">
+              <TeamsAgentChat currentSection={active} />
+            </div>
+          )}
+
+          {/* Lado Derecho: Contenido Principal */}
+          <div className={`relative group transition-all duration-300 ease-in-out h-full ${(showAiMenu && isAiMenuExpanded) ? 'md:w-[50%] w-full' : 'w-full'}`}>
             <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
             <div className="relative bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-hidden flex flex-col">
               
@@ -218,13 +225,6 @@ export default function MenuInicial() {
               </div>
             </div>
           </div>
-
-          {/* Lado Derecho: Asistente IA (Menú Lateral Derecho) */}
-          {(showAiMenu && isAiMenuExpanded) && (
-            <div className="hidden md:flex relative w-[35%] h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex-col animate-in slide-in-from-right-8 duration-300">
-              <TeamsAgentChat currentSection={active} />
-            </div>
-          )}
           
         </div>
       </main>
