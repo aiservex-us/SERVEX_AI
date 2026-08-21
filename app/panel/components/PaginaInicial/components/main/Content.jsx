@@ -142,7 +142,7 @@ export default function Content({ setActiveView }) {
               Welcome to <br />
               <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#464775] to-[#2B2C4B]">SERVEX Client Copilot</span>
             </h1>
-            <p className="text-gray-500 text-sm md:text-base mb-8 leading-relaxed font-light max-w-xl">
+            <p className="hidden md:block text-gray-500 text-sm md:text-base mb-8 leading-relaxed font-light max-w-xl">
               Your centralized AI hub designed to manage and streamline all your operations. 
               Harness autonomous agents to simplify complex workflows and boost productivity 
               across your entire organization.
