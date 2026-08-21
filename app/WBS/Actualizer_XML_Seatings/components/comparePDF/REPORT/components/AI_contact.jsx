@@ -86,7 +86,7 @@ const BotMessage = ({text, isNew, onType }) => {
   );
 };
 
-export default function TeamsAgentChat({currentSection, renderTool }) {
+export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolPanel }) {
   const [selectedAgent] = useState({agent_name: "Alysa", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
