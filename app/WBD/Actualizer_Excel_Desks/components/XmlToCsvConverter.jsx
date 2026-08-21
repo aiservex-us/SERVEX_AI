@@ -7,14 +7,28 @@ import Papa from 'papaparse';
 
 export default function XmlToCsvConverter() {
   const [products, setProducts] = useState([]);
-  const [optionHeaders, setOptionHeaders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fileName, setFileName] = useState("");
   
   const fileInputRef = useRef(null);
 
-  const baseHeaders = ["SKU", "Description", "Classification", "Base Price"];
+  const DESKS_HEADERS = [
+    "Model #", "List Price", "Weight", "Classic/\r\nPremium", "Model Name", "Top", "Legs/Base/Casebody", 
+    "\r\nTop\r\nD\"", "Top\r\nL\"", "Casebody\r\nW\"", "Casebody\r\nH\"", "Casebody\r\nD\"", "OA D\"", 
+    "OA H\" \r\nw/ Glides", "OA H\" \r\nw/ Casters", "Assembly", "Locking Casters\r\n (Per Desk)\r\n (-CA)", 
+    "Wheelbarrow\r\n(2 Casters)\r\n(-2CA)", "GIB Casters\r\n (-C)", "Grand Hank Glides \r\n (Per Desk)\r\n(-HG)", 
+    "Soft Touch Glides \r\n (Per Desk)\r\n(-FG)", "Steel Glides \r\n (Per Desk)\r\n(-SG)", "Plastic Book Box \r\n(-P14CH)", 
+    "Plastic Book Box \r\n(-P16CH)", "Plastic Book Box \r\n(-P20CH)", "Plastic Book Box \r\n(-P23CH)", "Backpack Hook (1) \r\n(-BPH)", 
+    "3\" Tote\r\nTray Kit\r\n (-GK_S)", "Under Mount Tote Runners 12mm Drop (Set of 2)\r\n(-GTR)", "3\", 6\", 9\", 12\" Replacement Tote Trays", 
+    "Tote Tray Lid", "Wire Basket \r\n(-LW)", "Swivel Cup Holder \r\n(-SCH)", "Connector Bar\r\n(-CB)", "Power Supply \r\nModules", 
+    "Large Pencil Drawer \r\n(-LPD)", "9\"H Perforated Metal \r\nModesty Panel \r\n(-913_)", "12\"H Perforated Metal Modesty Panel \r\n(-S)", 
+    "12\"H Laminate \r\nModesty Panel\r\n(-LMOD_)", "12\"H Laminate Modesty Panel\r\nCLASSIC\r\n (TDLAMMOD)", 
+    "12\"H Laminate Modesty Panel\r\nPREMIUM\r\n (TDLAMMOD)", "Metal Wire Management\r\n36\", 48\", 60\" or 72\"L\r\n(-WM)", 
+    "Grommet w/Cover \r\n(-GR)", "Deadbolt Lock(s)", "# of Optional Locks Required", "Premium \r\nArmor Edge™ Colors \r\n(-S2_)", 
+    "Non-Standard\r\n Edge Band", "Premium Laminate\r\nUpcharge for \r\nTops UNDER 36\"x36\" ", "Premium Laminate\r\nUpcharge for\r\n Tops 36\"x36\" & OVER", 
+    "Markerboard\r\nDesks\r\n(-__MB)", "Markerboard\r\nTables\r\n(-__MB)", "Chemical \r\nResistant\r\n(-09C)", "Custom Sizes"
+  ];
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -46,7 +60,6 @@ export default function XmlToCsvConverter() {
 
       const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
       const featureMap = new Map();
-      const allPossibleOptionsMap = new Map();
 
       for (const f of globalFeatures) {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
@@ -59,31 +72,8 @@ export default function XmlToCsvConverter() {
       const extracted = [];
 
       for (const p of productsXML) {
-        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                if (optCode) allPossibleOptionsMap.set(optCode, optCode);
-              }
-            }
-          }
-        }
-      }
-
-      const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
-      setOptionHeaders(dynamicOptionHeaders);
-
-      for (const p of productsXML) {
         const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
-        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
-          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
-          || "N/A";
         
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
@@ -108,6 +98,42 @@ export default function XmlToCsvConverter() {
           }
         }
         
+        const createRow = (baseSku, optSuffixCode, optPrice) => {
+          const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
+          const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
+          const finalPrice = basePrice + (optPrice || 0);
+
+          const row = {};
+          // Initialize all to "-" or 0 to match master struct
+          DESKS_HEADERS.forEach(h => row[h] = "-");
+
+          // Map base fields
+          row["Model #"] = finalSku;
+          row["List Price"] = finalPrice;
+          row["Model Name"] = finalDesc;
+          
+          // These fields don't exist natively in generic XML but are required for structure
+          row["Weight"] = 0;
+          row["Classic/\r\nPremium"] = "-";
+          row["Top"] = "-";
+          row["Legs/Base/Casebody"] = "-";
+          row["# of Optional Locks Required"] = 0;
+
+          // Map extracted options to the respective columns if their code is in the header
+          Object.keys(productOptionPrices).forEach(optCode => {
+            const matchingHeader = DESKS_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
+            if (matchingHeader) {
+              row[matchingHeader] = productOptionPrices[optCode];
+            } else if (optCode.includes('MB')) {
+               // Special case for MB Markerboards
+               const mbHeader = DESKS_HEADERS.find(h => h.includes("(__MB)"));
+               if (mbHeader) row[mbHeader] = productOptionPrices[optCode];
+            }
+          });
+
+          return row;
+        };
+
         for (const ref of featureRefs) {
           const refCode = ref.textContent;
           const featureNode = featureMap.get(refCode);
@@ -120,14 +146,8 @@ export default function XmlToCsvConverter() {
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
                 
                 const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e.sku === suffixSku)) {
-                  extracted.push({
-                    sku: suffixSku,
-                    description: `${description} [Option ${optCode}]`,
-                    classification,
-                    basePrice: basePrice + optPrice,
-                    ...productOptionPrices
-                  });
+                if (!extracted.find(e => e["Model #"] === suffixSku)) {
+                  extracted.push(createRow(sku, optCode, optPrice));
                   hasSuffixes = true;
                 }
               }
@@ -136,13 +156,7 @@ export default function XmlToCsvConverter() {
         }
         
         if (!hasSuffixes) {
-          extracted.push({
-            sku,
-            description,
-            classification,
-            basePrice,
-            ...productOptionPrices
-          });
+          extracted.push(createRow(sku, null, 0));
         }
       }
 
@@ -157,22 +171,9 @@ export default function XmlToCsvConverter() {
   const exportToCSV = () => {
     if (products.length === 0) return;
     
-    const allHeaders = [...baseHeaders, ...optionHeaders];
-    
-    const dataForCsv = products.map(prod => {
-      const row = {
-        "SKU": prod.sku,
-        "Description": prod.description,
-        "Classification": prod.classification,
-        "Base Price": prod.basePrice
-      };
-      optionHeaders.forEach(opt => {
-        row[opt] = prod[opt] !== undefined ? prod[opt] : "0";
-      });
-      return row;
+    const csv = Papa.unparse(products, {
+      columns: DESKS_HEADERS
     });
-
-    const csv = Papa.unparse(dataForCsv);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -201,11 +202,11 @@ export default function XmlToCsvConverter() {
               <div className="bg-white border border-[#EDEBE9] shadow-sm p-1.5 rounded">
                 <Database size={14} className="text-[#7f1d1d]" />
               </div>
-              <span className="text-[#616161] font-semibold uppercase tracking-wider text-[10px]">Excel Actualizer</span>
+              <span className="text-[#616161] font-semibold uppercase tracking-wider text-[10px]">WBD Desks Actualizer</span>
             </div>
-            <h1 className="text-2xl font-semibold text-[#242424] tracking-tight">XML to CSV Converter</h1>
+            <h1 className="text-2xl font-semibold text-[#242424] tracking-tight">XML to CSV Converter (Master Format)</h1>
             <p className="text-[13px] text-[#616161] mt-1 max-w-xl">
-              Upload your resulting XML file to automatically generate a CSV file with the exact structure required by the system.
+              Upload your WBD XML file. The generated CSV will exactly match the 53-column Master Price List structure.
             </p>
           </div>
           
@@ -259,7 +260,7 @@ export default function XmlToCsvConverter() {
           <div className="flex items-center justify-center p-20 bg-white border border-[#EDEBE9] rounded-xl shadow-sm">
             <div className="flex flex-col items-center gap-4">
               <Sparkles className="animate-spin text-[#7f1d1d]" size={32} />
-              <p className="text-sm text-[#616161]">Parsing XML file...</p>
+              <p className="text-sm text-[#616161]">Parsing XML file & mapping to Master structure...</p>
             </div>
           </div>
         )}
@@ -274,7 +275,7 @@ export default function XmlToCsvConverter() {
               <FileUp size={28} className="text-[#616161]" />
             </div>
             <h3 className="text-[15px] font-semibold text-[#242424] mb-2">Drag and drop or click to upload</h3>
-            <p className="text-[13px] text-[#616161]">Support for valid CET Designer XML files</p>
+            <p className="text-[13px] text-[#616161]">Support for valid CET Designer XML files (WBD Desks)</p>
           </div>
         )}
 
@@ -288,25 +289,20 @@ export default function XmlToCsvConverter() {
             <div className="p-4 border-b border-[#EDEBE9] bg-[#F5F5F5] flex justify-between items-center">
               <div className="flex items-center gap-3 text-[#242424]">
                 <FileText size={16} className="text-[#7f1d1d]" />
-                <span className="font-semibold text-sm">Preview: {fileName}</span>
+                <span className="font-semibold text-sm">Preview (Master Format): {fileName}</span>
               </div>
               <div className="text-xs text-[#616161] bg-white px-3 py-1 rounded-full border border-[#EDEBE9]">
-                Showing first 50 of {products.length} rows
+                Showing first 50 of {products.length} rows (53 Columns)
               </div>
             </div>
             
             <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
-              <table className="w-full text-left border-collapse min-w-[1200px]">
+              <table className="w-full text-left border-collapse min-w-[3000px]">
                 <thead className="sticky top-0 bg-white z-10 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                   <tr>
                     <th className="py-3 px-4 text-[10px] uppercase font-bold text-[#616161] border-b border-[#EDEBE9] border-r bg-[#F8F8F8] whitespace-nowrap min-w-[50px] text-center">#</th>
-                    {baseHeaders.map(h => (
+                    {DESKS_HEADERS.map(h => (
                       <th key={h} className="py-3 px-4 text-[10px] uppercase font-bold text-[#616161] border-b border-[#EDEBE9] border-r bg-[#F8F8F8] whitespace-nowrap">
-                        {h}
-                      </th>
-                    ))}
-                    {optionHeaders.map(h => (
-                      <th key={h} className="py-3 px-4 text-[10px] uppercase font-bold text-[#7f1d1d] border-b border-[#EDEBE9] border-r bg-[#F5F6FA] whitespace-nowrap">
                         {h}
                       </th>
                     ))}
@@ -316,14 +312,12 @@ export default function XmlToCsvConverter() {
                   {products.slice(0, 50).map((p, idx) => (
                     <tr key={idx} className="border-b border-[#EDEBE9] hover:bg-slate-50 transition-colors">
                       <td className="py-2.5 px-4 border-r border-[#EDEBE9] text-center text-[#616161] font-mono">{idx + 1}</td>
-                      <td className="py-2.5 px-4 border-r border-[#EDEBE9] font-medium">{p.sku}</td>
-                      <td className="py-2.5 px-4 border-r border-[#EDEBE9] truncate max-w-[200px]" title={p.description}>{p.description}</td>
-                      <td className="py-2.5 px-4 border-r border-[#EDEBE9] text-[#616161]">{p.classification}</td>
-                      <td className="py-2.5 px-4 border-r border-[#EDEBE9] font-semibold text-green-700">${p.basePrice?.toFixed(2)}</td>
-                      {optionHeaders.map(opt => (
-                        <td key={opt} className={`py-2.5 px-4 border-r border-[#EDEBE9] text-right font-mono
-                          ${p[opt] ? 'text-[#242424]' : 'text-slate-300'}`}>
-                          {p[opt] ? `$${p[opt].toFixed(2)}` : '-'}
+                      {DESKS_HEADERS.map((h, cIdx) => (
+                        <td key={cIdx} className={`py-2.5 px-4 border-r border-[#EDEBE9] whitespace-nowrap ${
+                          h === "List Price" ? 'font-semibold text-green-700' : 
+                          (p[h] !== "-" && p[h] !== 0) ? 'font-medium' : 'text-slate-400 font-mono'
+                        }`}>
+                          {h === "List Price" ? `$${p[h]?.toFixed(2)}` : p[h]}
                         </td>
                       ))}
                     </tr>
