@@ -327,7 +327,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                         ease: [0.23, 1, 0.32, 1],
                         layout: { duration: 0.3, ease: "easeOut" }
                       }}
-                      className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : ''}`}
+                      className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
                       {/* Avatar */}
                       <motion.div
@@ -345,7 +345,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                       </motion.div>
 
                       {/* Bubble col */}
-                      <div className={`flex flex-col max-w-[78%] gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
+                      <div className={`flex flex-col min-w-0 max-w-[88%] md:max-w-[85%] gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
                         <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                           <span className="text-[12px] font-semibold text-gray-800">
                             {isUser ? 'You' : selectedAgent.agent_name}
@@ -355,10 +355,10 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
                         <motion.div
                           whileHover={{ y: -1 }}
-                          className={`text-[13.5px] leading-relaxed relative
+                          className={`text-[13.5px] leading-relaxed relative break-words min-w-0
                           ${isUser
                               ? 'px-4 py-3 rounded-2xl shadow-sm bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
-                              : 'py-2 text-gray-800'
+                              : 'py-2 text-gray-800 w-full overflow-hidden'
                             }`}
                         >
                           {msg.from === "bot" ? (
@@ -515,7 +515,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
         }
 
         /* Prose markdown */
-        .prose-light { font-size: 13.5px; line-height: 1.7; color: #1f2937; }
+        .prose-light { font-size: 13.5px; line-height: 1.7; color: #1f2937; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
         .prose-light p  { margin: 0 0 10px; }
         .prose-light p:last-child { margin-bottom: 0; }
         .prose-light strong { color: #3730a3; font-weight: 600; }
