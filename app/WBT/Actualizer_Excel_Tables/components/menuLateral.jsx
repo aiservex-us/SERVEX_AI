@@ -22,7 +22,6 @@ const menuItems = [
   { id: 'reporting', label: 'WBT Home', icon: LayoutDashboard, sub: 'Dashboard' },
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
   { id: 'xml_results', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'csv_final_results', label: 'CSV Final Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'cet_comparator', label: 'CET XML Comparator', icon: Activity, sub: 'Audit' },
   { id: 'xml_redirect', label: 'Ejecutar Actualizacion de XML inicial!!', icon: RefreshCcw, sub: 'Action', link: '/WBT/Actualizer_XML_Tables' }
 ];
