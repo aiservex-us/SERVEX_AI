@@ -105,7 +105,7 @@ export default function XmlToCsvConverter() {
 
           const row = {};
           // Initialize all to "-" or 0 to match master struct
-          DESKS_HEADERS.forEach(h => row[h] = "-");
+          DESKS_HEADERS.forEach(h => row[h] = "");
 
           // Map base fields
           row["Model #"] = finalSku;
@@ -113,11 +113,11 @@ export default function XmlToCsvConverter() {
           row["Model Name"] = finalDesc;
           
           // These fields don't exist natively in generic XML but are required for structure
-          row["Weight"] = 0;
+          row["Weight"] = "";
           row["Classic/\r\nPremium"] = "-";
-          row["Top"] = "-";
-          row["Legs/Base/Casebody"] = "-";
-          row["# of Optional Locks Required"] = 0;
+          row["Top"] = "";
+          row["Legs/Base/Casebody"] = "";
+          row["# of Optional Locks Required"] = "";
 
           // Map extracted options to the respective columns if their code is in the header
           Object.keys(productOptionPrices).forEach(optCode => {
@@ -172,7 +172,8 @@ export default function XmlToCsvConverter() {
     if (products.length === 0) return;
     
     const csv = Papa.unparse(products, {
-      columns: DESKS_HEADERS
+      columns: DESKS_HEADERS,
+      delimiter: ";"
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -315,7 +316,7 @@ export default function XmlToCsvConverter() {
                       {DESKS_HEADERS.map((h, cIdx) => (
                         <td key={cIdx} className={`py-2.5 px-4 border-r border-[#EDEBE9] whitespace-nowrap ${
                           h === "List Price" ? 'font-semibold text-green-700' : 
-                          (p[h] !== "-" && p[h] !== 0) ? 'font-medium' : 'text-slate-400 font-mono'
+                          (p[h] !== "" && p[h] !== 0) ? 'font-medium' : 'text-slate-400 font-mono'
                         }`}>
                           {h === "List Price" ? `$${p[h]?.toFixed(2)}` : p[h]}
                         </td>
