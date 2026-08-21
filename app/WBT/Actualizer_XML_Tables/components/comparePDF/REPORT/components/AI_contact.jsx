@@ -7,13 +7,17 @@ import {supabase } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
-  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
+  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search, BrainCircuit, CheckCircle2
 , Download
 } from 'lucide-react';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
+  {id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML' },
+  {id: 'prices', icon: BrainCircuit, label: '/listPriceChanges', desc: 'List Price Changes' },
+  {id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard' },
+  {id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Resumen' },
   {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)' },
   {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
   {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
@@ -82,7 +86,7 @@ const BotMessage = ({text, isNew, onType }) => {
   );
 };
 
-export default function TeamsAgentChat({currentSection }) {
+export default function TeamsAgentChat({ currentSection, renderTool }) {
   const [selectedAgent] = useState({agent_name: "Alysa", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -159,6 +163,39 @@ export default function TeamsAgentChat({currentSection }) {
     setInput("");
     setCharCount(0);
     setIsLoading(true);
+    // WIDGET TOOL HANDLERS
+    if (queryToSend.toLowerCase() === '/importbase') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos...', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+    if (queryToSend.toLowerCase() === '/listpricechanges') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Desplegando el panel de List Price Changes...', isNew: true }, { from: 'tool', toolId: 'report' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+    if (queryToSend.toLowerCase() === '/graphicsdashboard') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Cargando el Dashboard de Analíticas Gráficas...', isNew: true }, { from: 'tool', toolId: 'graphics' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+    if (queryToSend.toLowerCase() === '/airesumen') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Generando ventana de AI Resumen...', isNew: true }, { from: 'tool', toolId: 'AI_reporter' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
 
     
     if (queryToSend.toLowerCase() === '/downloadresultxml') {
@@ -549,22 +586,22 @@ export default function TeamsAgentChat({currentSection }) {
               transition={{type: "spring", stiffness: 400, damping: 25 }}
               className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white border border-slate-200 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-50 overflow-hidden"
             >
-              <div className="p-2">
-                <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-1">
+              <div className="p-1.5">
+                <div className="px-2 py-1 text-[8px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-0.5">
                   Audit Commands
                 </div>
                 {SLASH_COMMANDS.map((cmd) => (
                   <button
                     key={cmd.id}
                     onClick={() => handleCommandSelect(cmd.label)}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-left group"
+                    className="w-full flex items-center gap-2 px-2 py-1 rounded-md hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-left group"
                   >
-                    <div className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500">
-                      <cmd.icon size={16} />
+                    <div className="w-5 h-5 rounded bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500 flex-shrink-0">
+                      <cmd.icon size={11} />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-[13px] font-semibold text-gray-700 group-hover:text-indigo-700">{cmd.label}</span>
-                      <span className="text-[11px] text-gray-400 group-hover:text-indigo-400">{cmd.desc}</span>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-[10px] font-medium text-gray-600 group-hover:text-indigo-700 truncate">{cmd.label}</span>
+                      <span className="text-[8px] text-gray-400 group-hover:text-indigo-400 truncate">{cmd.desc}</span>
                     </div>
                   </button>
                 ))}
@@ -573,74 +610,54 @@ export default function TeamsAgentChat({currentSection }) {
           )}
         </AnimatePresence>
 
-        <div className="max-w-[820px] mx-auto bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl relative focus-within:border-indigo-400 shadow-sm">
-
-          {/* Meta row */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              <Zap size={12} className="text-indigo-400" />
-              <span>Engine v4.10</span>
-            </div>
-
-            {charCount > 0 && (
-              <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
-                {charCount}
-              </span>
-            )}
-          </div>
+        <motion.div 
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="max-w-[820px] mx-auto bg-white/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-gray-200/80 rounded-full relative focus-within:border-indigo-400 focus-within:shadow-[0_4px_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex items-center pr-2 pl-4 py-2"
+        >
+          {/* Main Action Icon */}
+          <button
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-indigo-600 transition-colors flex-shrink-0"
+            title="Attach"
+          >
+            <Plus size={20} />
+          </button>
 
           {/* Textarea */}
-          <div className="flex items-start gap-2 px-3.5 pt-3 pb-1">
-            <Sparkles size={15} className="text-indigo-400 mt-0.5 flex-shrink-0 opacity-70" />
-            <textarea
-              ref={inputRef}
-              rows={1}
-              className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[120px] overflow-y-auto caret-indigo-500 font-sans"
-              placeholder="Ask about processes, data, or system architecture…"
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-            />
-          </div>
+          <textarea
+            ref={inputRef}
+            rows={1}
+            className="flex-1 bg-transparent border-none outline-none resize-none text-[14.5px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[100px] overflow-y-auto px-3 py-1 font-sans self-center mt-1"
+            placeholder="Escribe un comando ('/') o mensaje..."
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
 
-          {/* Actions */}
-          <div className="flex items-center justify-between px-3.5 py-2">
-            <div className="flex items-center gap-0.5">
-              {[
-                {icon: Plus, title: "Attach" },
-                {icon: Mic, title: "Voice" },
-                {icon: HelpCircle, title: "Help" },
-              ].map(({icon: Icon, title }) => (
-                <button
-                  key={title}
-                  title={title}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-                >
-                  <Icon size={17} />
-                </button>
-              ))}
-            </div>
+          {/* Char count (minimalist) */}
+          {charCount > 0 && (
+            <span className="text-[10px] font-medium text-gray-300 mr-3 flex-shrink-0">
+              {charCount}
+            </span>
+          )}
 
-            <button
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || isLoading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
-                ${input.trim() && !isLoading
-                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-200 hover:bg-indigo-600 hover:-translate-y-px'
-                  : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                }`}
-            >
-              {isLoading ? (
-                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>Send</span>
-                  <SendHorizonal size={14} />
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+          {/* Send Button */}
+          <button
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || isLoading}
+            className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300
+              ${input.trim() && !isLoading
+                ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/40 hover:scale-105 active:scale-95'
+                : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+              }`}
+          >
+            {isLoading ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              <SendHorizonal size={15} className={input.trim() ? "ml-0.5" : ""} />
+            )}
+          </button>
+        </motion.div>
 
         <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
           © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
