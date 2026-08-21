@@ -134,7 +134,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
   return (
     <div className={
       isFloating
-        ? "w-[500px] h-[600px] max-h-[85vh] flex flex-col font-sans text-gray-900 border border-gray-200 rounded-2xl shadow-2xl overflow-hidden shadow-indigo-100/50 pointer-events-auto relative"
+        ? "w-full h-full md:w-[500px] md:h-[600px] md:max-h-[85vh] flex flex-col font-sans text-gray-900 md:border md:border-gray-200 md:rounded-2xl md:shadow-2xl overflow-hidden md:shadow-indigo-100/50 pointer-events-auto relative bg-white"
         : "w-full h-[77vh] flex flex-col font-sans text-gray-900 border border-gray-200 rounded-xl shadow-sm overflow-hidden relative"
     }>
 

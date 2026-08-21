@@ -159,9 +159,9 @@ const InitPage = () => {
                 animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
                 exit={{ opacity: 0, x: -250, y: 150, scale: 0.5 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.8 }}
-                className="fixed bottom-24 md:bottom-8 right-4 md:right-10 z-[100] flex flex-col items-end pointer-events-none"
+                className="fixed inset-0 md:top-auto md:left-auto md:bottom-8 md:right-10 z-[100] flex flex-col md:items-end pointer-events-none"
               >
-                <div className="mb-4 pointer-events-auto">
+                <div className="pointer-events-auto w-full h-[100dvh] md:w-auto md:h-auto md:mb-4 flex flex-col">
                   <Products isFloating={true} onClose={() => setIsChatOpen(false)} />
                 </div>
               </motion.div>
