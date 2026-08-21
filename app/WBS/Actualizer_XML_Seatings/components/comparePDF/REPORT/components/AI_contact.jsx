@@ -148,10 +148,13 @@ export default function TeamsAgentChat({currentSection, renderTool }) {
   };
 
   const handleCommandSelect = (cmdLabel) => {
-    setInput(cmdLabel);
-    setCharCount(cmdLabel.length);
+    setInput("");
+    setCharCount(0);
     setShowSlashMenu(false);
-    inputRef.current?.focus();
+    // Add a slight delay to allow React state to settle before sending
+    setTimeout(() => {
+        sendMessage(cmdLabel);
+    }, 50);
   };
 
   const sendMessage = async (overrideText) => {
