@@ -266,50 +266,54 @@ export default function MenuInicial() {
           collapsed={collapsed}
           setCollapsed={setCollapsed}
         />
-        {/* CONTENEDOR SPLIT */}
-        <div className="flex flex-1 h-full w-full min-w-0 p-2 gap-2 bg-slate-50">
-          {/* Lado Izquierdo: Asistente IA */}
-          <div className={`hidden md:flex relative ${isToolsOpen ? 'w-[50%]' : 'w-full'} h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex-col transition-all duration-300`}>
-            <TeamsAgentChat 
-              currentSection={active}
-              onOpenToolPanel={handleSetActive}
-              renderTool={(toolId) => {
-                switch (toolId) {
-                  case 'incert_delete': return <IncertDelete />;
-                  case 'report': return <Report />;
-                  case 'graphics': return <ViewportGraphics />;
-                  case 'AI_reporter': return <Responce_ai />;
-                  default: return null;
-                }
-              }}
-            />
-          </div>
+        {/* CONTENEDOR UNIFICADO */}
+        <div className="flex flex-1 h-full w-full min-w-0 p-2 lg:p-3 bg-slate-50">
+          <div className="flex w-full h-full bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden relative">
+            
+            {/* Lado Izquierdo: Asistente IA */}
+            <div className={`hidden md:flex relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 ${isToolsOpen ? 'w-[50%] border-r border-slate-100 bg-slate-50/50' : 'w-full bg-white'}`}>
+              <TeamsAgentChat 
+                currentSection={active}
+                onOpenToolPanel={handleSetActive}
+                renderTool={(toolId) => {
+                  switch (toolId) {
+                    case 'incert_delete': return <IncertDelete />;
+                    case 'report': return <Report />;
+                    case 'graphics': return <ViewportGraphics />;
+                    case 'AI_reporter': return <Responce_ai />;
+                    default: return null;
+                  }
+                }}
+              />
+            </div>
 
-          {/* Lado Derecho: Contenido Principal */}
-          {isToolsOpen && (
-            <div className={`relative group transition-all duration-300 ease-in-out h-full md:w-[50%] w-full animate-in slide-in-from-right-8`}>
-              <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-              <div className="relative bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-hidden flex flex-col">
-                
-                {/* Toolbar Superior */}
-                <div className="hidden md:block absolute top-3 right-3 z-[90]">
-                  <button 
-                    onClick={() => setIsToolsOpen(false)}
-                    className="flex items-center justify-center p-1.5 rounded-lg shadow-sm border bg-white border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
-                    title="Cerrar panel"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
+            {/* Lado Derecho: Contenido Principal */}
+            <div 
+               className={`relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-white
+               ${isToolsOpen ? 'w-[50%] opacity-100' : 'w-0 opacity-0'}`}
+            >
+                {/* Contenedor interno absoluto para evitar squish en animación */}
+                <div className="absolute top-0 left-0 w-full h-full flex flex-col overflow-hidden min-w-[500px]">
+                  
+                  {/* Toolbar Superior */}
+                  <div className="hidden md:block absolute top-3 right-4 z-[90]">
+                    <button 
+                      onClick={() => setIsToolsOpen(false)}
+                      className="flex items-center justify-center p-1.5 rounded-full shadow-sm border bg-white border-slate-200 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all"
+                      title="Cerrar panel"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
 
-                <div className="flex-1 w-full relative overflow-y-auto">
-                  <div className="p-1 w-full h-full">
-                    {renderContent()}
+                  <div className="flex-1 w-full relative overflow-y-auto">
+                    <div className="p-2 w-full h-full">
+                      {renderContent()}
+                    </div>
                   </div>
                 </div>
-              </div>
             </div>
-          )}
+          </div>
         </div>
       </main>
     </div>
