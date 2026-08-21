@@ -15,7 +15,38 @@ const QUICK_PROMPTS = [
   { icon: Activity, label: "Platform Guide", q: "Explain the End-to-End ingestion pipeline." },
 ];
 
+
+const BotMessage = ({ text, isNew, onType }) => {
+  const [displayedText, setDisplayedText] = useState(isNew ? "" : text);
+
+  useEffect(() => {
+    if (!isNew) {
+      setDisplayedText(text);
+      return;
+    }
+    let i = 0;
+    const intervalId = setInterval(() => {
+      i += 3;
+      setDisplayedText(text.slice(0, i));
+      if (onType) onType();
+      if (i >= text.length) {
+        setDisplayedText(text);
+        clearInterval(intervalId);
+      }
+    }, 15);
+    return () => clearInterval(intervalId);
+  }, [text, isNew, onType]);
+
+  return (
+    <div
+      className="prose-light"
+      dangerouslySetInnerHTML={{ __html: marked.parse(displayedText) }}
+    />
+  );
+};
+
 export default function TeamsAgentChat({ isFloating = false, onClose }) {
+
   const [selectedAgent] = useState({ agent_name: "Alysa SVX", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -112,12 +143,12 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
       if (res.ok) {
         const data = await res.json();
         const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        setMessages([...newRawMessages, { from: 'bot', text: data?.reply || "No response received.", time: botTime }]);
+        setMessages([...newRawMessages, { from: 'bot', text: data?.reply || "No response received.", time: botTime, isNew: true }]);
       } else {
         throw new Error("Server Error");
       }
     } catch (e) {
-      setMessages([...newRawMessages, { from: 'bot', text: 'Error connecting to Alysa. Please ensure the backend is running.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      setMessages([...newRawMessages, { from: 'bot', text: 'Error connecting to Alysa. Please ensure the backend is running.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), isNew: true }]);
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -326,10 +357,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                             }`}
                         >
                           {msg.from === "bot" ? (
-                            <div
-                              className="prose-light"
-                              dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }}
-                            />
+                            <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
                           ) : (
                             <p className="whitespace-pre-wrap m-0">{msg.text}</p>
                           )}
