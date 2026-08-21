@@ -161,7 +161,7 @@ const InitPage = () => {
                 transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.8 }}
                 className="fixed inset-0 md:top-auto md:left-auto md:bottom-8 md:right-10 z-[100] flex flex-col md:items-end pointer-events-none"
               >
-                <div className="pointer-events-auto w-full h-[100dvh] md:w-auto md:h-auto md:mb-4 flex flex-col">
+                <div className="pointer-events-auto w-full h-full md:w-auto md:h-auto md:mb-4 flex flex-col">
                   <Products isFloating={true} onClose={() => setIsChatOpen(false)} />
                 </div>
               </motion.div>
