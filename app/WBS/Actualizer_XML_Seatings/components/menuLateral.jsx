@@ -21,17 +21,11 @@ import {
 
 const menuItems = [
   { id: 'reporting', label: 'WBS Home', icon: LayoutDashboard, sub: 'Dashboard' },
-  { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
-  { id: 'report', label: 'List Price Changes', icon: BrainCircuit, sub: 'Execution' },
-  { id: 'graphics', label: 'Graphics Dashboard', icon: BarChart2, sub: 'Analytics' },
-  { id: 'AI_reporter', label: 'AI Resumen', icon: CheckCircle2, sub: 'Output' },
   { id: 'inbox', label: 'cataloge base', icon: FileCode, sub: 'Intelligence' },
   { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'excel_redirect', label: 'Transform to Excel', icon: ArrowRightLeft, sub: 'Data', link: '/WBS/Actualizer_Excel_Seatings' },
-
-
 ];
 
 export default function MenuLateral({

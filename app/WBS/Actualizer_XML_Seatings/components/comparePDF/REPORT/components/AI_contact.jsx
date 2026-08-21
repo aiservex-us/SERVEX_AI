@@ -7,13 +7,17 @@ import {supabase } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
-  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
+  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search, BrainCircuit, CheckCircle2
 , Download
 } from 'lucide-react';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
+  {id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML' },
+  {id: 'prices', icon: BrainCircuit, label: '/listPriceChanges', desc: 'List Price Changes' },
+  {id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard' },
+  {id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Resumen' },
   {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)' },
   {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
   {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
@@ -82,7 +86,7 @@ const BotMessage = ({text, isNew, onType }) => {
   );
 };
 
-export default function TeamsAgentChat({currentSection }) {
+export default function TeamsAgentChat({currentSection, renderTool }) {
   const [selectedAgent] = useState({agent_name: "Alysa", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -160,7 +164,40 @@ export default function TeamsAgentChat({currentSection }) {
     setCharCount(0);
     setIsLoading(true);
 
-    
+    // WIDGET TOOL HANDLERS
+    if (queryToSend.toLowerCase() === '/importbase') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos...', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+    if (queryToSend.toLowerCase() === '/listpricechanges') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Desplegando el panel de List Price Changes...', isNew: true }, { from: 'tool', toolId: 'report' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+    if (queryToSend.toLowerCase() === '/graphicsdashboard') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Cargando el Dashboard de Analíticas Gráficas...', isNew: true }, { from: 'tool', toolId: 'graphics' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+    if (queryToSend.toLowerCase() === '/airesumen') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Generando ventana de AI Resumen...', isNew: true }, { from: 'tool', toolId: 'AI_reporter' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+ 
     if (queryToSend.toLowerCase() === '/downloadresultxml') {
       const nowTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
       
@@ -445,45 +482,55 @@ export default function TeamsAgentChat({currentSection }) {
                       }}
                       className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
-                      {/* Avatar */}
-                      <motion.div 
-                        whileHover={{scale: 1.05, rotate: isUser ? 5 : -5 }}
-                        className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
-                        ${isUser
-                          ? 'bg-slate-100 text-slate-500 border border-slate-200'
-                          : 'bg-[#464775] text-white'
-                        }`}
-                      >
-                        {isUser ? 'YOU' : <Brain size={15} />}
-                        {!isUser && (
-                          <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
-                        )}
-                      </motion.div>
-
-                      {/* Bubble col */}
-                      <div className={`flex flex-col min-w-0 max-w-[88%] md:max-w-[85%] gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
-                        <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
-                          <span className="text-[12px] font-semibold text-gray-800">
-                            {isUser ? 'You' : selectedAgent.agent_name}
-                          </span>
-                          <span className="text-[10px] text-gray-400">{msg.time}</span>
+                      {msg.from === 'tool' ? (
+                        <div className="w-full my-3 p-1 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden relative">
+                          <div className="w-full h-full overflow-y-auto max-h-[85vh] relative">
+                             {renderTool && renderTool(msg.toolId)}
+                          </div>
                         </div>
+                      ) : (
+                        <>
+                          {/* Avatar */}
+                          <motion.div 
+                            whileHover={{scale: 1.05, rotate: isUser ? 5 : -5 }}
+                            className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
+                            ${isUser
+                              ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                              : 'bg-[#464775] text-white'
+                            }`}
+                          >
+                            {isUser ? 'YOU' : <Brain size={15} />}
+                            {!isUser && (
+                              <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
+                            )}
+                          </motion.div>
 
-                        <motion.div 
-                          whileHover={{y: -1 }}
-                          className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
-                          ${isUser
-                            ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
-                            : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-tl-sm border border-white/60'
-                          }`}
-                        >
-                          {msg.from === "bot" ? (
-                            <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
-                          ) : (
-                            <p className="whitespace-pre-wrap m-0">{msg.text}</p>
-                          )}
-                        </motion.div>
-                      </div>
+                          {/* Bubble col */}
+                          <div className={`flex flex-col min-w-0 max-w-[88%] md:max-w-[85%] gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
+                            <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
+                              <span className="text-[12px] font-semibold text-gray-800">
+                                {isUser ? 'You' : selectedAgent.agent_name}
+                              </span>
+                              <span className="text-[10px] text-gray-400">{msg.time}</span>
+                            </div>
+
+                            <motion.div 
+                              whileHover={{y: -1 }}
+                              className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
+                              ${isUser
+                                ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
+                                : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-tl-sm border border-white/60'
+                              }`}
+                            >
+                              {msg.from === "bot" ? (
+                                <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
+                              ) : (
+                                <p className="whitespace-pre-wrap m-0">{msg.text}</p>
+                              )}
+                            </motion.div>
+                          </div>
+                        </>
+                      )}
                     </motion.div>
                   );
                 })}

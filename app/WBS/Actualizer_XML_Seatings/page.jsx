@@ -196,7 +196,18 @@ export default function MenuInicial() {
           {/* Lado Izquierdo: Asistente IA */}
           {(showAiMenu && isAiMenuExpanded) && (
             <div className="hidden md:flex relative w-[50%] h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex-col animate-in slide-in-from-left-8 duration-300">
-              <TeamsAgentChat currentSection={active} />
+              <TeamsAgentChat 
+                currentSection={active}
+                renderTool={(toolId) => {
+                  switch (toolId) {
+                    case 'incert_delete': return <IncertDelete />;
+                    case 'report': return <Report />;
+                    case 'graphics': return <ViewportGraphics />;
+                    case 'AI_reporter': return <Responce_ai />;
+                    default: return null;
+                  }
+                }}
+              />
             </div>
           )}
 
