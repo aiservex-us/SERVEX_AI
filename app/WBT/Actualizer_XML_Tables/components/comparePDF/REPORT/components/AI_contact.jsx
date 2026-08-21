@@ -24,8 +24,66 @@ const QUICK_PROMPTS = [
   { icon: Activity, label: "ETL Flows", q: "Explain the architecture of the available ETL flows." },
 ];
 
+
+const BotMessage = ({ text, isNew, onType }) => {
+  const processedText = React.useMemo(() => {
+    if (!text) return "";
+    if (text.includes('\t') && !text.includes('|---')) {
+      const lines = text.split('\n');
+      let inTable = false;
+      let newText = [];
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes('\t')) {
+          const cols = line.split('\t').map(c => c.trim().replace(/\|/g, '-'));
+          const mdRow = '| ' + cols.join(' | ') + ' |';
+          if (!inTable) {
+            inTable = true;
+            newText.push(mdRow);
+            newText.push('|' + cols.map(() => '---|').join(''));
+          } else {
+            newText.push(mdRow);
+          }
+        } else {
+          inTable = false;
+          newText.push(line);
+        }
+      }
+      return newText.join('\n');
+    }
+    return text;
+  }, [text]);
+
+  const [displayedText, setDisplayedText] = useState(isNew ? "" : processedText);
+
+  useEffect(() => {
+    if (!isNew) {
+      setDisplayedText(processedText);
+      return;
+    }
+    let i = 0;
+    const intervalId = setInterval(() => {
+      i += 4;
+      setDisplayedText(processedText.slice(0, i));
+      if (onType) onType(true);
+      if (i >= processedText.length) {
+        setDisplayedText(processedText);
+        clearInterval(intervalId);
+      }
+    }, 15);
+    return () => clearInterval(intervalId);
+  }, [processedText, isNew, onType]);
+
+  return (
+    <div
+      className="prose-light"
+      dangerouslySetInnerHTML={{ __html: marked.parse(displayedText) }}
+    />
+  );
+};
+
 export default function TeamsAgentChat({ currentSection }) {
-  const [selectedAgent] = useState({ agent_name: "Servex Copilot", role: "AI Engine" });
+  const [selectedAgent] = useState({ agent_name: "Alysa", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -58,11 +116,16 @@ export default function TeamsAgentChat({ currentSection }) {
 
   const scrollContainerRef = useRef(null);
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToBottom = useCallback((immediate = false) => {
     if (scrollContainerRef.current) {
+      const { scrollHeight, scrollTop, clientHeight } = scrollContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      
+      if (immediate && !isNearBottom) return;
+
       scrollContainerRef.current.scrollTo({
         top: scrollContainerRef.current.scrollHeight,
-        behavior: "smooth"
+        behavior: immediate ? "auto" : "smooth"
       });
     }
   }, []);
@@ -241,7 +304,7 @@ export default function TeamsAgentChat({ currentSection }) {
             <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
           </div>
           <div className="flex flex-col gap-0">
-            <span className="text-[13px] font-semibold tracking-tight text-gray-900 leading-none">Servex Copilot</span>
+            <span className="text-[13px] font-semibold tracking-tight text-gray-900 leading-none">Alysa</span>
 
           </div>
         </div>
@@ -380,7 +443,7 @@ export default function TeamsAgentChat({ currentSection }) {
                         ease: [0.23, 1, 0.32, 1],
                         layout: { duration: 0.3, ease: "easeOut" }
                       }}
-                      className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : ''}`}
+                      className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
                       {/* Avatar */}
                       <motion.div 
@@ -398,7 +461,7 @@ export default function TeamsAgentChat({ currentSection }) {
                       </motion.div>
 
                       {/* Bubble col */}
-                      <div className={`flex flex-col max-w-[78%] gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
+                      <div className={`flex flex-col min-w-0 max-w-[88%] md:max-w-[85%] gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
                         <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                           <span className="text-[12px] font-semibold text-gray-800">
                             {isUser ? 'You' : selectedAgent.agent_name}
@@ -415,10 +478,7 @@ export default function TeamsAgentChat({ currentSection }) {
                           }`}
                         >
                           {msg.from === "bot" ? (
-                            <div
-                              className="prose-light"
-                              dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }}
-                            />
+                            <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
                           ) : (
                             <p className="whitespace-pre-wrap m-0">{msg.text}</p>
                           )}
@@ -451,7 +511,7 @@ export default function TeamsAgentChat({ currentSection }) {
                       <span className="text-[12px] font-semibold text-gray-800">{selectedAgent.agent_name}</span>
                       <span className="text-[10px] text-gray-400 font-medium">Thinking...</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl rounded-tl-sm shadow-sm">
+                    <div className="flex items-center gap-1.5 py-2.5">
                       {[0, 1, 2].map((i) => (
                         <motion.span
                           key={i}
@@ -534,8 +594,8 @@ export default function TeamsAgentChat({ currentSection }) {
             <Sparkles size={15} className="text-indigo-400 mt-0.5 flex-shrink-0 opacity-70" />
             <textarea
               ref={inputRef}
-              rows={3}
-              className="flex-1 bg-transparent border-none outline-none resize-none text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[56px] max-h-[180px] caret-indigo-500 font-sans"
+              rows={1}
+              className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[120px] overflow-y-auto caret-indigo-500 font-sans"
               placeholder="Ask about processes, data, or system architecture…"
               value={input}
               onChange={handleInputChange}
@@ -583,7 +643,7 @@ export default function TeamsAgentChat({ currentSection }) {
         </div>
 
         <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
-          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Servex Copilot and its underlying processes.
+          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
         </p>
       </footer>
 
@@ -608,7 +668,7 @@ export default function TeamsAgentChat({ currentSection }) {
         }
 
         /* Prose markdown — clases de Tailwind no alcanzan innerHTML */
-        .prose-light { font-size: 13.5px; line-height: 1.7; color: #1f2937; }
+        .prose-light { font-size: 13.5px; line-height: 1.7; color: #1f2937; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
         .prose-light p  { margin: 0 0 10px; }
         .prose-light p:last-child { margin-bottom: 0; }
         .prose-light strong { color: #3730a3; font-weight: 600; }
@@ -633,6 +693,26 @@ export default function TeamsAgentChat({ currentSection }) {
         .prose-light ol { padding-left: 20px; margin: 8px 0; }
         .prose-light h1, .prose-light h2, .prose-light h3 {
           color: #111827; font-weight: 600; margin: 16px 0 8px; letter-spacing: -0.02em;
+        }
+
+                .prose-light table {
+          width: 100%; border-collapse: collapse; margin: 16px 0;
+          font-size: 12.5px; border-radius: 8px; overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;
+          display: block; overflow-x: auto; white-space: nowrap;
+        }
+        .prose-light th, .prose-light td {
+          border: 1px solid #e5e7eb; padding: 10px 14px; text-align: left;
+        }
+        .prose-light th {
+          background-color: #f9fafb; font-weight: 600; color: #374151; 
+          text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;
+        }
+        .prose-light td {
+          background-color: #ffffff; color: #4b5563; white-space: normal; min-width: 120px;
+        }
+        .prose-light tr:nth-child(even) td {
+          background-color: #f9fafb;
         }
 
         @media (prefers-reduced-motion: reduce) {

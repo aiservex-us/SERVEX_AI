@@ -222,7 +222,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
             <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
           </div>
           <div className="flex flex-col gap-0">
-            <span className="text-[13px] font-semibold tracking-tight text-gray-900 leading-none">Servex Copilot</span>
+            <span className="text-[13px] font-semibold tracking-tight text-gray-900 leading-none">Alysa</span>
           </div>
         </div>
 
@@ -518,7 +518,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
         </div>
 
         <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
-          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Servex Copilot and its underlying processes.
+          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
         </p>
       </footer>
 
