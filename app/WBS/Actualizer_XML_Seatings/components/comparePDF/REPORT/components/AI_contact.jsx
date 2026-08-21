@@ -620,74 +620,54 @@ export default function TeamsAgentChat({currentSection, renderTool }) {
           )}
         </AnimatePresence>
 
-        <div className="max-w-[820px] mx-auto bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl relative focus-within:border-indigo-400 shadow-sm">
-
-          {/* Meta row */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              <Zap size={12} className="text-indigo-400" />
-              <span>Engine v4.10</span>
-            </div>
-
-            {charCount > 0 && (
-              <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
-                {charCount}
-              </span>
-            )}
-          </div>
+        <motion.div 
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="max-w-[820px] mx-auto bg-white/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-gray-200/80 rounded-full relative focus-within:border-indigo-400 focus-within:shadow-[0_4px_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex items-center pr-2 pl-4 py-2"
+        >
+          {/* Main Action Icon */}
+          <button
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-indigo-600 transition-colors flex-shrink-0"
+            title="Attach"
+          >
+            <Plus size={20} />
+          </button>
 
           {/* Textarea */}
-          <div className="flex items-start gap-2 px-3.5 pt-3 pb-1">
-            <Sparkles size={15} className="text-indigo-400 mt-0.5 flex-shrink-0 opacity-70" />
-            <textarea
-              ref={inputRef}
-              rows={1}
-              className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[120px] overflow-y-auto caret-indigo-500 font-sans"
-              placeholder="Ask about processes, data, or system architecture…"
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-            />
-          </div>
+          <textarea
+            ref={inputRef}
+            rows={1}
+            className="flex-1 bg-transparent border-none outline-none resize-none text-[14.5px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[100px] overflow-y-auto px-3 py-1 font-sans self-center mt-1"
+            placeholder="Escribe un comando ('/') o mensaje..."
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+          />
 
-          {/* Actions */}
-          <div className="flex items-center justify-between px-3.5 py-2">
-            <div className="flex items-center gap-0.5">
-              {[
-                {icon: Plus, title: "Attach" },
-                {icon: Mic, title: "Voice" },
-                {icon: HelpCircle, title: "Help" },
-              ].map(({icon: Icon, title }) => (
-                <button
-                  key={title}
-                  title={title}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-                >
-                  <Icon size={17} />
-                </button>
-              ))}
-            </div>
+          {/* Char count (minimalist) */}
+          {charCount > 0 && (
+            <span className="text-[10px] font-medium text-gray-300 mr-3 flex-shrink-0">
+              {charCount}
+            </span>
+          )}
 
-            <button
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || isLoading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
-                ${input.trim() && !isLoading
-                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-200 hover:bg-indigo-600 hover:-translate-y-px'
-                  : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                }`}
-            >
-              {isLoading ? (
-                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>Send</span>
-                  <SendHorizonal size={14} />
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+          {/* Send Button */}
+          <button
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || isLoading}
+            className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300
+              ${input.trim() && !isLoading
+                ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/40 hover:scale-105 active:scale-95'
+                : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+              }`}
+          >
+            {isLoading ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              <SendHorizonal size={15} className={input.trim() ? "ml-0.5" : ""} />
+            )}
+          </button>
+        </motion.div>
 
         <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
           © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
