@@ -17,25 +17,53 @@ const QUICK_PROMPTS = [
 
 
 const BotMessage = ({ text, isNew, onType }) => {
-  const [displayedText, setDisplayedText] = useState(isNew ? "" : text);
+  const processedText = React.useMemo(() => {
+    if (!text) return "";
+    if (text.includes('\t') && !text.includes('|---')) {
+      const lines = text.split('\n');
+      let inTable = false;
+      let newText = [];
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes('\t')) {
+          const cols = line.split('\t').map(c => c.trim().replace(/\|/g, '-'));
+          const mdRow = '| ' + cols.join(' | ') + ' |';
+          if (!inTable) {
+            inTable = true;
+            newText.push(mdRow);
+            newText.push('|' + cols.map(() => '---|').join(''));
+          } else {
+            newText.push(mdRow);
+          }
+        } else {
+          inTable = false;
+          newText.push(line);
+        }
+      }
+      return newText.join('\n');
+    }
+    return text;
+  }, [text]);
+
+  const [displayedText, setDisplayedText] = useState(isNew ? "" : processedText);
 
   useEffect(() => {
     if (!isNew) {
-      setDisplayedText(text);
+      setDisplayedText(processedText);
       return;
     }
     let i = 0;
     const intervalId = setInterval(() => {
-      i += 3;
-      setDisplayedText(text.slice(0, i));
+      i += 4;
+      setDisplayedText(processedText.slice(0, i));
       if (onType) onType(true);
-      if (i >= text.length) {
-        setDisplayedText(text);
+      if (i >= processedText.length) {
+        setDisplayedText(processedText);
         clearInterval(intervalId);
       }
     }, 15);
     return () => clearInterval(intervalId);
-  }, [text, isNew, onType]);
+  }, [processedText, isNew, onType]);
 
   return (
     <div
@@ -540,6 +568,25 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
         .prose-light ol { padding-left: 20px; margin: 8px 0; }
         .prose-light h1, .prose-light h2, .prose-light h3 {
           color: #111827; font-weight: 600; margin: 16px 0 8px; letter-spacing: -0.02em;
+        }
+        .prose-light table {
+          width: 100%; border-collapse: collapse; margin: 16px 0;
+          font-size: 12.5px; border-radius: 8px; overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;
+          display: block; overflow-x: auto; white-space: nowrap;
+        }
+        .prose-light th, .prose-light td {
+          border: 1px solid #e5e7eb; padding: 10px 14px; text-align: left;
+        }
+        .prose-light th {
+          background-color: #f9fafb; font-weight: 600; color: #374151; 
+          text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;
+        }
+        .prose-light td {
+          background-color: #ffffff; color: #4b5563; white-space: normal; min-width: 120px;
+        }
+        .prose-light tr:nth-child(even) td {
+          background-color: #f9fafb;
         }
       `}</style>
     </div>
