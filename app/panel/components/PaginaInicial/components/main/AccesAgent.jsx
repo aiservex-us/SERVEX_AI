@@ -469,8 +469,8 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
             <Sparkles size={15} className="text-indigo-400 mt-0.5 flex-shrink-0 opacity-70" />
             <textarea
               ref={inputRef}
-              rows={3}
-              className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[56px] max-h-[180px] caret-indigo-500 font-sans"
+              rows={1}
+              className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[120px] overflow-y-auto caret-indigo-500 font-sans"
               placeholder="Ask about processes, data, or system architecture…"
               value={input}
               onChange={handleInputChange}
