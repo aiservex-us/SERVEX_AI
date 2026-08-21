@@ -596,22 +596,22 @@ export default function TeamsAgentChat({currentSection, renderTool }) {
               transition={{type: "spring", stiffness: 400, damping: 25 }}
               className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white border border-slate-200 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-50 overflow-hidden"
             >
-              <div className="p-2">
-                <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-1">
+              <div className="p-1.5">
+                <div className="px-2 py-1 text-[8px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-0.5">
                   Audit Commands
                 </div>
                 {SLASH_COMMANDS.map((cmd) => (
                   <button
                     key={cmd.id}
                     onClick={() => handleCommandSelect(cmd.label)}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-left group"
+                    className="w-full flex items-center gap-2 px-2 py-1 rounded-md hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-left group"
                   >
-                    <div className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500">
-                      <cmd.icon size={16} />
+                    <div className="w-5 h-5 rounded bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500 flex-shrink-0">
+                      <cmd.icon size={11} />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-[13px] font-semibold text-gray-700 group-hover:text-indigo-700">{cmd.label}</span>
-                      <span className="text-[11px] text-gray-400 group-hover:text-indigo-400">{cmd.desc}</span>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-[10px] font-medium text-gray-600 group-hover:text-indigo-700 truncate">{cmd.label}</span>
+                      <span className="text-[8px] text-gray-400 group-hover:text-indigo-400 truncate">{cmd.desc}</span>
                     </div>
                   </button>
                 ))}
