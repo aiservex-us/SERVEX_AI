@@ -28,7 +28,7 @@ const BotMessage = ({ text, isNew, onType }) => {
     const intervalId = setInterval(() => {
       i += 3;
       setDisplayedText(text.slice(0, i));
-      if (onType) onType();
+      if (onType) onType(true);
       if (i >= text.length) {
         setDisplayedText(text);
         clearInterval(intervalId);
@@ -92,11 +92,16 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToBottom = useCallback((immediate = false) => {
     if (scrollContainerRef.current) {
+      const { scrollHeight, scrollTop, clientHeight } = scrollContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      
+      if (immediate && !isNearBottom) return;
+
       scrollContainerRef.current.scrollTo({
         top: scrollContainerRef.current.scrollHeight,
-        behavior: "smooth"
+        behavior: immediate ? "auto" : "smooth"
       });
     }
   }, []);
