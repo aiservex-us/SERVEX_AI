@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { marked } from "marked";
-import { supabase } from '@/app/lib/supabaseClient';
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import {AnimatePresence, motion } from "framer-motion";
+import {marked } from "marked";
+import {supabase } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
@@ -14,19 +14,19 @@ import {
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
-  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)' },
-  { id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
-  { id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
+  {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)' },
+  {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
+  {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
 ];
 
 const QUICK_PROMPTS = [
-  { icon: Shield, label: "RBAC Permissions", q: "How do I configure RBAC permissions on the platform?" },
-  { icon: Activity, label: "ETL Flows", q: "Explain the architecture of the available ETL flows." },
+  {icon: Shield, label: "RBAC Permissions", q: "How do I configure RBAC permissions on the platform?" },
+  {icon: Activity, label: "ETL Flows", q: "Explain the architecture of the available ETL flows." },
 ];
 
 
-const BotMessage = ({ text, isNew, onType }) => {
-  const processedText = React.useMemo(() => {
+const BotMessage = ({text, isNew, onType }) => {
+  const processedText = useMemo(() => {
     if (!text) return "";
     if (text.includes('\t') && !text.includes('|---')) {
       const lines = text.split('\n');
@@ -77,13 +77,13 @@ const BotMessage = ({ text, isNew, onType }) => {
   return (
     <div
       className="prose-light"
-      dangerouslySetInnerHTML={{ __html: marked.parse(displayedText) }}
+      dangerouslySetInnerHTML={{__html: marked.parse(displayedText) }}
     />
   );
 };
 
-export default function TeamsAgentChat({ currentSection }) {
-  const [selectedAgent] = useState({ agent_name: "Alysa", role: "AI Engine" });
+export default function TeamsAgentChat({currentSection }) {
+  const [selectedAgent] = useState({agent_name: "Alysa", role: "AI Engine" });
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -96,13 +96,13 @@ export default function TeamsAgentChat({ currentSection }) {
   const inputRef = useRef(null);
   const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => {inputRef.current?.focus(); }, []);
 
   const scrollContainerRef = useRef(null);
 
   const scrollToBottom = useCallback((immediate = false) => {
     if (scrollContainerRef.current) {
-      const { scrollHeight, scrollTop, clientHeight } = scrollContainerRef.current;
+      const {scrollHeight, scrollTop, clientHeight } = scrollContainerRef.current;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
       
       if (immediate && !isNearBottom) return;
@@ -114,7 +114,7 @@ export default function TeamsAgentChat({ currentSection }) {
     }
   }, []);
 
-  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+  useEffect(() => {scrollToBottom(); }, [messages, scrollToBottom]);
 
   const handleInputChange = (e) => {
     const val = e.target.value;
@@ -138,27 +138,27 @@ export default function TeamsAgentChat({ currentSection }) {
     const queryToSend = (overrideText || input).trim();
     if (!queryToSend || isLoading) return;
 
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages(prev => [...prev, { from: "user", text: queryToSend, time: now }]);
+    const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
+    setMessages(prev => [...prev, {from: "user", text: queryToSend, time: now }]);
     setInput("");
     setCharCount(0);
     setIsLoading(true);
 
     
     if (queryToSend.toLowerCase() === '/downloadresultxml') {
-      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const nowTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
       
       try {
-        const { data, error } = await supabase
+        const {data, error } = await supabase
           .from('ClientsSERVEX')
           .select('xml_actualizer_raw')
           .eq('company_name', 'LESRO')
           .single();
 
         if (error || !data || !data.xml_actualizer_raw) {
-          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: XML file not found in the database for LESRO.", time: nowTime }]);
+          setMessages(prev => [...prev, {from: "bot", text: "❌ Error: XML file not found in the database for LESRO.", time: nowTime }]);
         } else {
-          const blob = new Blob([data.xml_actualizer_raw], { type: 'application/xml' });
+          const blob = new Blob([data.xml_actualizer_raw], {type: 'application/xml' });
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -168,10 +168,10 @@ export default function TeamsAgentChat({ currentSection }) {
           link.parentNode.removeChild(link);
           window.URL.revokeObjectURL(url);
           
-          setMessages(prev => [...prev, { from: "bot", text: "✅ Download started. The file LESRO.xml has been saved successfully.", time: nowTime }]);
+          setMessages(prev => [...prev, {from: "bot", text: "✅ Download started. The file LESRO.xml has been saved successfully.", time: nowTime }]);
         }
       } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: "❌ An unexpected error occurred while trying to download the XML.", time: nowTime }]);
+        setMessages(prev => [...prev, {from: "bot", text: "❌ An unexpected error occurred while trying to download the XML.", time: nowTime }]);
       } finally {
         setIsLoading(false);
       }
@@ -180,20 +180,20 @@ export default function TeamsAgentChat({ currentSection }) {
 
 
     if (queryToSend === '/createAuditor') {
-      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: "📊 Generating smart audit report and publishing it to the Forum...", time: nowTime }]);
+      const nowTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
+      setMessages(prev => [...prev, {from: "bot", text: "📊 Generating smart audit report and publishing it to the Forum...", time: nowTime }]);
       
       try {
         const match = window.location.pathname.match(/^\/(WB[A-Z])/i);
         const modulePrefix = match ? match[1].toLowerCase() : 'wbs';
         
-        const { data: { user } } = await supabase.auth.getUser();
+        const {data: {user } } = await supabase.auth.getUser();
         const userEmail = user?.email || 'admin@servex-us.com';
         
         const response = await fetch(`${apiURL}/${modulePrefix}/api/v1/agent/create-audit`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: userEmail })
+          headers: {'Content-Type': 'application/json' },
+          body: JSON.stringify({email: userEmail })
         });
 
         if (!response.ok) {
@@ -201,17 +201,17 @@ export default function TeamsAgentChat({ currentSection }) {
         }
         
         await response.json();
-        setMessages(prev => [...prev, { from: "bot", text: "✅ Audit successfully generated and published to the forum!", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        setMessages(prev => [...prev, {from: "bot", text: "✅ Audit successfully generated and published to the forum!", time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
       } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: `❌ Error generating audit: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        setMessages(prev => [...prev, {from: "bot", text: `❌ Error generating audit: ${err.message}`, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
       }
       setIsLoading(false);
       return;
     }
 
     if (queryToSend === '/executeProcess') {
-      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (LESRO). Please wait...", time: nowTime }]);
+      const nowTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
+      setMessages(prev => [...prev, {from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (LESRO). Please wait...", time: nowTime }]);
       
       try {
         const formData = new FormData();
@@ -227,10 +227,10 @@ export default function TeamsAgentChat({ currentSection }) {
         }
         
         await response.json();
-        setMessages(prev => [...prev, { from: "bot", text: "✅ ETL process completed successfully! The catalog has been restructured and compared. You can now review the audit in 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-        window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'report' }));
+        setMessages(prev => [...prev, {from: "bot", text: "✅ ETL process completed successfully! The catalog has been restructured and compared. You can now review the audit in 'List Price Changes'.", time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
+        window.dispatchEvent(new CustomEvent('navigateTo', {detail: 'report' }));
       } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: `❌ Error during ETL process execution: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        setMessages(prev => [...prev, {from: "bot", text: `❌ Error during ETL process execution: ${err.message}`, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
       }
       setIsLoading(false);
       return;
@@ -243,18 +243,18 @@ export default function TeamsAgentChat({ currentSection }) {
         content: msg.text
       }));
       // Agregar el mensaje actual
-      historyPayload.push({ role: "user", content: queryToSend });
+      historyPayload.push({role: "user", content: queryToSend });
 
       const res = await fetch(`${apiURL}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: queryToSend }),
+        headers: {"Content-Type": "application/json" },
+        body: JSON.stringify({message: queryToSend }),
       });
       const data = await res.json();
-      const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: data?.reply || "No response received.", time: botTime }]);
+      const botTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
+      setMessages(prev => [...prev, {from: "bot", text: data?.reply || "No response received.", time: botTime }]);
     } catch {
-      setMessages(prev => [...prev, { from: "bot", text: "❌ Connection error.", time: "--:--" }]);
+      setMessages(prev => [...prev, {from: "bot", text: "❌ Connection error.", time: "--:--" }]);
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -262,8 +262,8 @@ export default function TeamsAgentChat({ currentSection }) {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); setShowSlashMenu(false); }
-    if (e.key === 'Escape') { setShowSlashMenu(false); }
+    if (e.key === 'Enter' && !e.shiftKey) {e.preventDefault(); sendMessage(); setShowSlashMenu(false); }
+    if (e.key === 'Escape') {setShowSlashMenu(false); }
   };
 
   return (
@@ -330,9 +330,9 @@ export default function TeamsAgentChat({ currentSection }) {
                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-96 h-64  rounded-full blur-3xl pointer-events-none" />
 
                 <motion.div
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{opacity: 0, y: 24 }}
+                  animate={{opacity: 1, y: 0 }}
+                  transition={{duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div className="flex justify-center mb-4 mt-2">
                     <img src="/alysa.png" alt="Alysa Logo" className="h-33 w-auto object-contain" />
@@ -361,14 +361,14 @@ export default function TeamsAgentChat({ currentSection }) {
 
                   <motion.div
                     className="relative z-10 flex border border-white/60 rounded-xl overflow-hidden bg-white/60 backdrop-blur-md shadow-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3, duration: 0.5 }}
+                    initial={{opacity: 0 }}
+                    animate={{opacity: 1 }}
+                    transition={{delay: 0.3, duration: 0.5 }}
                   >
                     {[
-                      { label: "Documents", value: "Servex client" },
-                      { label: "Accuracy", value: "98.4%" },
-                      { label: "Sync", value: "Real-time" },
+                      {label: "Documents", value: "Servex client" },
+                      {label: "Accuracy", value: "98.4%" },
+                      {label: "Sync", value: "Real-time" },
                     ].map((m, i) => (
                       <div key={m.label} className={`flex-1 flex flex-col gap-0.5 py-3 px-4 text-center ${i < 2 ? 'border-r border-white/50' : ''}`}>
                         <span className="text-[12px] font-semibold tracking-tight text-gray-700">{m.value}</span>
@@ -381,15 +381,15 @@ export default function TeamsAgentChat({ currentSection }) {
 
               {/* Quick prompts */}
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45, duration: 0.5 }}
+                initial={{opacity: 0, y: 16 }}
+                animate={{opacity: 1, y: 0 }}
+                transition={{delay: 0.45, duration: 0.5 }}
               >
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-3">
                   Frequent Queries
                 </p>
                 <div className="grid grid-cols-2 gap-2">
-                  {QUICK_PROMPTS.map(({ icon: Icon, label, q }) => (
+                  {QUICK_PROMPTS.map(({icon: Icon, label, q }) => (
                     <button
                       key={label}
                       onClick={() => sendMessage(q)}
@@ -417,18 +417,18 @@ export default function TeamsAgentChat({ currentSection }) {
                     <motion.div
                       layout
                       key={idx}
-                      initial={{ opacity: 0, y: 20, x: isUser ? 20 : -20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-                      transition={{ 
+                      initial={{opacity: 0, y: 20, x: isUser ? 20 : -20, scale: 0.95 }}
+                      animate={{opacity: 1, y: 0, x: 0, scale: 1 }}
+                      transition={{
                         duration: 0.5, 
                         ease: [0.23, 1, 0.32, 1],
-                        layout: { duration: 0.3, ease: "easeOut" }
+                        layout: {duration: 0.3, ease: "easeOut" }
                       }}
                       className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
                       {/* Avatar */}
                       <motion.div 
-                        whileHover={{ scale: 1.05, rotate: isUser ? 5 : -5 }}
+                        whileHover={{scale: 1.05, rotate: isUser ? 5 : -5 }}
                         className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
                         ${isUser
                           ? 'bg-slate-100 text-slate-500 border border-slate-200'
@@ -451,7 +451,7 @@ export default function TeamsAgentChat({ currentSection }) {
                         </div>
 
                         <motion.div 
-                          whileHover={{ y: -1 }}
+                          whileHover={{y: -1 }}
                           className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
                           ${isUser
                             ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
@@ -474,14 +474,14 @@ export default function TeamsAgentChat({ currentSection }) {
               {isLoading && (
                 <motion.div
                   layout
-                  initial={{ opacity: 0, y: 15, x: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                  transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                  initial={{opacity: 0, y: 15, x: -10, scale: 0.95 }}
+                  animate={{opacity: 1, y: 0, x: 0, scale: 1 }}
+                  exit={{opacity: 0, scale: 0.9, transition: {duration: 0.2 } }}
+                  transition={{duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                   className="flex gap-3 items-start"
                 >
                   <motion.div 
-                    initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5 }}
+                    initial={{scale: 0.8 }} animate={{scale: 1 }} transition={{type: "spring", bounce: 0.5 }}
                     className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#464775] text-white shadow-sm"
                   >
                     <Brain size={15} />
@@ -496,8 +496,8 @@ export default function TeamsAgentChat({ currentSection }) {
                       {[0, 1, 2].map((i) => (
                         <motion.span
                           key={i}
-                          initial={{ opacity: 0.3, y: 0 }}
-                          animate={{ opacity: 1, y: [-2, 2, -2] }}
+                          initial={{opacity: 0.3, y: 0 }}
+                          animate={{opacity: 1, y: [-2, 2, -2] }}
                           transition={{
                             duration: 0.8,
                             repeat: Infinity,
@@ -524,10 +524,10 @@ export default function TeamsAgentChat({ currentSection }) {
         <AnimatePresence>
           {showSlashMenu && (
             <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.95, filter: 'blur(4px)' }}
-              animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, y: 10, scale: 0.95, filter: 'blur(4px)' }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              initial={{opacity: 0, y: 20, scale: 0.95, filter: 'blur(4px)' }}
+              animate={{opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+              exit={{opacity: 0, y: 10, scale: 0.95, filter: 'blur(4px)' }}
+              transition={{type: "spring", stiffness: 400, damping: 25 }}
               className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white border border-slate-200 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-50 overflow-hidden"
             >
               <div className="p-2">
@@ -588,10 +588,10 @@ export default function TeamsAgentChat({ currentSection }) {
           <div className="flex items-center justify-between px-3.5 py-2">
             <div className="flex items-center gap-0.5">
               {[
-                { icon: Plus, title: "Attach" },
-                { icon: Mic, title: "Voice" },
-                { icon: HelpCircle, title: "Help" },
-              ].map(({ icon: Icon, title }) => (
+                {icon: Plus, title: "Attach" },
+                {icon: Mic, title: "Voice" },
+                {icon: HelpCircle, title: "Help" },
+              ].map(({icon: Icon, title }) => (
                 <button
                   key={title}
                   title={title}
@@ -630,30 +630,30 @@ export default function TeamsAgentChat({ currentSection }) {
 
       {/* Keyframe animations solo (no CSS de layout/color) */}
       <style jsx global>{`
-        .orb-ring-1 { animation: orb-pulse 3s ease-in-out infinite; }
-        .orb-ring-2 { animation: orb-pulse 3s ease-in-out infinite 0.6s; }
-        .avatar-pulse { animation: avatar-pulse 2.5s ease-in-out infinite; }
-        .dot-bounce   { animation: dot-bounce 1.2s ease-in-out infinite; }
+        .orb-ring-1 {animation: orb-pulse 3s ease-in-out infinite; }
+        .orb-ring-2 {animation: orb-pulse 3s ease-in-out infinite 0.6s; }
+        .avatar-pulse {animation: avatar-pulse 2.5s ease-in-out infinite; }
+        .dot-bounce   {animation: dot-bounce 1.2s ease-in-out infinite; }
 
         @keyframes orb-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50%       { opacity: 0.5; transform: scale(1.08); }
+          0%, 100% {opacity: 1; transform: scale(1); }
+          50%       {opacity: 0.5; transform: scale(1.08); }
         }
         @keyframes avatar-pulse {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50%       { opacity: 0;   transform: scale(1.25); }
+          0%, 100% {opacity: 0.4; transform: scale(1); }
+          50%       {opacity: 0;   transform: scale(1.25); }
         }
         @keyframes dot-bounce {
-          0%, 80%, 100% { transform: translateY(0);   opacity: 0.4; }
-          40%            { transform: translateY(-6px); opacity: 1; }
+          0%, 80%, 100% {transform: translateY(0);   opacity: 0.4; }
+          40%            {transform: translateY(-6px); opacity: 1; }
         }
 
         /* Prose markdown — clases de Tailwind no alcanzan innerHTML */
-        .prose-light { font-size: 13.5px; line-height: 1.7; color: #1f2937; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
-        .prose-light p  { margin: 0 0 10px; }
-        .prose-light p:last-child { margin-bottom: 0; }
-        .prose-light strong { color: #3730a3; font-weight: 600; }
-        .prose-light a  { color: #6366f1; text-decoration: underline; text-underline-offset: 2px; }
+        .prose-light {font-size: 13.5px; line-height: 1.7; color: #1f2937; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
+        .prose-light p  {margin: 0 0 10px; }
+        .prose-light p:last-child {margin-bottom: 0; }
+        .prose-light strong {color: #3730a3; font-weight: 600; }
+        .prose-light a  {color: #6366f1; text-decoration: underline; text-underline-offset: 2px; }
         .prose-light code {
           font-size: 12px; font-family: 'JetBrains Mono', monospace;
           background: #eef2ff; color: #4f46e5;
@@ -664,14 +664,14 @@ export default function TeamsAgentChat({ currentSection }) {
           background: #f8faff; border: 1px solid #e0e7ff;
           padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0;
         }
-        .prose-light pre code { background: transparent; border: none; color: #374151; padding: 0; }
-        .prose-light ul { list-style: none; padding: 0; margin: 8px 0; }
-        .prose-light ul li { padding-left: 16px; position: relative; margin-bottom: 4px; }
+        .prose-light pre code {background: transparent; border: none; color: #374151; padding: 0; }
+        .prose-light ul {list-style: none; padding: 0; margin: 8px 0; }
+        .prose-light ul li {padding-left: 16px; position: relative; margin-bottom: 4px; }
         .prose-light ul li::before {
           content: ''; position: absolute; left: 0; top: 9px;
           width: 5px; height: 5px; border-radius: 50%; background: #6366f1;
         }
-        .prose-light ol { padding-left: 20px; margin: 8px 0; }
+        .prose-light ol {padding-left: 20px; margin: 8px 0; }
         .prose-light h1, .prose-light h2, .prose-light h3 {
           color: #111827; font-weight: 600; margin: 16px 0 8px; letter-spacing: -0.02em;
         }
@@ -697,7 +697,7 @@ export default function TeamsAgentChat({ currentSection }) {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .orb-ring-1, .orb-ring-2, .avatar-pulse, .dot-bounce { animation: none; }
+          .orb-ring-1, .orb-ring-2, .avatar-pulse, .dot-bounce {animation: none; }
         }
       `}</style>
     </div>
