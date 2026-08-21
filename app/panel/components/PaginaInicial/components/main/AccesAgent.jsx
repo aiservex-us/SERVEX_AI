@@ -409,7 +409,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
             <textarea
               ref={inputRef}
               rows={3}
-              className="flex-1 bg-transparent border-none outline-none resize-none text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[56px] max-h-[180px] caret-indigo-500 font-sans"
+              className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[56px] max-h-[180px] caret-indigo-500 font-sans"
               placeholder="Ask about processes, data, or system architecture…"
               value={input}
               onChange={handleInputChange}
