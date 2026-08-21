@@ -170,7 +170,7 @@ export default function TeamsAgentChat({currentSection, renderTool }) {
     // WIDGET TOOL HANDLERS
     if (queryToSend.toLowerCase() === '/importbase') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos...', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos en el chat...', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
@@ -178,7 +178,8 @@ export default function TeamsAgentChat({currentSection, renderTool }) {
     }
     if (queryToSend.toLowerCase() === '/listpricechanges') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Desplegando el panel de List Price Changes...', isNew: true }, { from: 'tool', toolId: 'report' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Desplegando el panel de List Price Changes...', isNew: true }]);
+        if(onOpenToolPanel) onOpenToolPanel('report');
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
@@ -186,7 +187,8 @@ export default function TeamsAgentChat({currentSection, renderTool }) {
     }
     if (queryToSend.toLowerCase() === '/graphicsdashboard') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Cargando el Dashboard de Analíticas Gráficas...', isNew: true }, { from: 'tool', toolId: 'graphics' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Cargando el Dashboard de Analíticas Gráficas...', isNew: true }]);
+        if(onOpenToolPanel) onOpenToolPanel('graphics');
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
@@ -194,7 +196,8 @@ export default function TeamsAgentChat({currentSection, renderTool }) {
     }
     if (queryToSend.toLowerCase() === '/airesumen') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Generando ventana de AI Resumen...', isNew: true }, { from: 'tool', toolId: 'AI_reporter' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Generando ventana de AI Resumen...', isNew: true }]);
+        if(onOpenToolPanel) onOpenToolPanel('AI_reporter');
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);

@@ -272,6 +272,7 @@ export default function MenuInicial() {
           <div className={`hidden md:flex relative ${isToolsOpen ? 'w-[50%]' : 'w-full'} h-full bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden flex-col transition-all duration-300`}>
             <TeamsAgentChat 
               currentSection={active}
+              onOpenToolPanel={handleSetActive}
               renderTool={(toolId) => {
                 switch (toolId) {
                   case 'incert_delete': return <IncertDelete />;
