@@ -85,7 +85,7 @@ const InitPage = () => {
   };
 
   return (
-    <div className="flex h-[90vh] bg-[#FFF] font-sans overflow-hidden text-slate-700">
+    <div className="flex flex-col md:flex-row h-[90vh] bg-[#FFF] font-sans overflow-hidden text-slate-700 relative">
       {/* INYECCIÓN DE ANIMACIÓN PREMIUM AUTÓNOMA */}
       <style>{`
         @keyframes subtleFadeUp {
@@ -132,14 +132,14 @@ const InitPage = () => {
         <Header />
 
         {/* CONTENIDO SCROLLABLE */}
-        <div className="flex-1 overflow-y-auto p-8 bg-[#FFF]">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#FFF] pb-24 md:pb-8">
           <div className="grid grid-cols-12 gap-6 max-w-[1600px] mx-auto">
 
             {/* COLUMNA IZQUIERDA (DINÁMICA) */}
             {renderMainContent()}
 
             {/* COLUMNA DERECHA (FIJA) */}
-            <aside className="col-span-12 lg:col-span-4 relative">
+            <aside className="col-span-12 lg:col-span-4 relative mt-4 lg:mt-0">
               <div className="sticky top-0">
                 <DashboardRight />
               </div>
@@ -159,7 +159,7 @@ const InitPage = () => {
                 animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
                 exit={{ opacity: 0, x: -250, y: 150, scale: 0.5 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.8 }}
-                className="fixed bottom-8 right-10 z-[100] flex flex-col items-end pointer-events-none"
+                className="fixed bottom-24 md:bottom-8 right-4 md:right-10 z-[100] flex flex-col items-end pointer-events-none"
               >
                 <div className="mb-4 pointer-events-auto">
                   <Products isFloating={true} onClose={() => setIsChatOpen(false)} />
@@ -172,7 +172,7 @@ const InitPage = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 40, scale: 0.9 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
+                className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none max-[700px]:scale-90 origin-bottom"
               >
                 <div className="relative">
                   {/* Animación de fondo sutil (glow/vibración) */}
