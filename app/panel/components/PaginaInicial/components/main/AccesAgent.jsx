@@ -350,10 +350,10 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
                         <motion.div
                           whileHover={{ y: -1 }}
-                          className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
+                          className={`text-[13.5px] leading-relaxed relative
                           ${isUser
-                              ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
-                              : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-tl-sm border border-white/60'
+                              ? 'px-4 py-3 rounded-2xl shadow-sm bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
+                              : 'py-2 text-gray-800'
                             }`}
                         >
                           {msg.from === "bot" ? (
@@ -390,7 +390,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                       <span className="text-[12px] font-semibold text-gray-800">{selectedAgent.agent_name}</span>
                       <span className="text-[10px] text-gray-400 font-medium">Processing...</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-4 py-3.5 bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl rounded-tl-sm shadow-sm">
+                    <div className="flex items-center gap-1.5 py-2.5">
                       {[0, 1, 2].map((i) => (
                         <motion.span
                           key={i}
