@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Papa from 'papaparse';
 
-const WBODataMatrix = () => {
+const WBTDataMatrix = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,30 +20,15 @@ const WBODataMatrix = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
-  const baseHeaders = [
-    "SKU", "Description", "Classification", "Base Price",
-    "Weight", "Classic/ Premium", "Top", "Casebody", "Top D", "Top L", "Casebody W", "Casebody D", "OA H", 
-    "Assembly", "Deadbolt Lock(s)", "# of Optional Locks Required", 
-    "3, 6, 9, 12 Replacement Tote Trays", "Tote Tray Lid", "Power Supply Modules", 
-    "Hemisphere (only power option available for Mini Nucleus) (-HEM)", 
-    "Connecting Magnets for HangOut Stools 2 Locations (-2MA)", 
-    "Connecting Magnets for HangOut Stools 4 Locations (-4MA)", 
-    "Connecting Magnets for HangOut Stools 6 Locations (-6MA)", 
-    "Connecting Magnets for HangOut Stools 8 Locations (-8MA)", 
-    "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", 
-    "Premium Laminate Top Upcharge for Workstations", 
-    "Markerboard 48 x 48 60 x 60 48 x 84 (-__MB)", 
-    "Chemical Resistant 48 x 48, 60 x 60 48 x 84 (-09C)", "Custom Sizes"
+  const TABLES_HEADERS = [
+    "Model #", "List Price", "Weight", "Classic/ Premium", "Model Name", "Top", "Legs/Base/Casebody", "Top D", "Top L", "Casebody W", "Casebody H", "Casebody D", "OA D", "OA H w/ Glides", "OA H w/ Casters", "Assembly", "Locking Casters (Per Table) (-CA)", "Wheelbarrow (2 Casters) (-2CA)", "Heavy Duty Locking Casters (Einstein ONLY) (-HDCA)", "Heavy Duty Locking Casters (Per Table) (-HDCA)", "Wheelbarrow Heavy Duty Locking Casters (2 Casters) (-2HDCA)", "Heavy Duty Colored Locking Casters (Per Table) EPIC (-HDCC_)", "Heavy Duty Colored Locking Casters LOBO/TORO (Per Table) (-HDCC_)", "Wheelbarrow Heavy Duty Colored Locking Casters LOBO/TORO (2 Casters) (-2HDCC_)", "Gibraltar Casters (-C)", "5 Locking Casters Culinary Tables ONLY (-CAS01-R)", "Grand Hank Glides (Per Table) (-HG)", "Soft Touch Glides (Per Table) (-FG)", "Steel Glides (Per Table) (-SG)", "Plastic Book Box (-P14CH)", "Plastic Book Box (-P20CH)", "Plastic Book Box (-P23CH)", "Backpack Hook/s LOBO/TORO (Set of 2) All Other Tables (1) (-BPH)", "3 Tote Tray Kit (-GK_S)", "Under Mount Tote Runners 12mm Drop (Set of 2) (-GTR)", "Wire Basket (-LW)", "12H Laminate Modesty Panel (-LMOD_)", "9H Perforated Metal Modesty Panel (-913_)", "Metal Wire Management 36, 48, 60 or 72L (-WM)", "Plastic Cable Wire Management (-PWM)", "Grommet w/ Cover & Cutout (-GR)", "Power Supply Modules", "Connecting Magnets for HangOut Stools 2 Locations (-2MA)", "Connecting Magnets for HangOut Stools 4 Locations (-4MA)", "LOBO Gussets (-G)", "TORO Gussets (-G)", "TORO Full Metal Shelf (-SHF)", "TORO Offset Half Metal Shelf (-HSHF)", "TORO Centered Half Metal Shelf (-CSHF)", "TORO H-Frame (-H)", "TORO Custom Fixed Height", "EPIC Full Black Metal Shelf -ADJ Frame ONLY (-SHF)", "EPIC Half Black Metal Shelf -ADJ Frame ONLY (-HSHF)", "EPIC Pegboard -ADJ Frame ONLY (Set of 2) (-PB)", "42 Fixed Bar Height (GIB) (-B)", "36 Fixed Height (GIB) (-36)", "Overshelf 60 Culinary Tables ONLY (-OSE1)", "Overshelf 72 Culinary Tables ONLY (-OSE1)", "Double Overshelf 60 Culinary Tables ONLY (-OSE2)", "Double Overshelf 72 Culinary Tables ONLY (-OSE2)", "20x15 Drawer Culinary Tables ONLY (-DR2015)", "20x20 Drawer Culinary Tables ONLY (-DR2020)", "EPIC/TORO (FIXED) Premium Frame Color - Blue(B), Green(G), Orange(O), Purple(P), Red(R)", "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", "Premium Laminate Upcharge for Tops 36x36 & OVER", "Premium Laminate Upcharge for Tops UNDER 36x36", "Markerboard Tops 36x36 & OVER (-__MB)", "Markerboard Tops UNDER 36x36 (-__MB)", "Chemical Resistant (-09C)", "Custom Sizes"
   ];
-  
-  const [optionHeaders, setOptionHeaders] = useState([]);
 
   const processXML = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch from XM_CET_import
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_WBT')
         .select('XM_CET_import')
@@ -62,11 +47,10 @@ const WBODataMatrix = () => {
       const xmlDoc = parser.parseFromString(data.XM_CET_import, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBO XML structure");
+      if (parserError) throw new Error("Error parsing XML structure");
 
       const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
       const featureMap = new Map();
-      const allPossibleOptionsMap = new Map();
 
       for (const f of globalFeatures) {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
@@ -79,37 +63,11 @@ const WBODataMatrix = () => {
       const extracted = [];
 
       for (const p of productsXML) {
-        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
-                if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
-              }
-            }
-          }
-        }
-      }
-
-      const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
-      setOptionHeaders(dynamicOptionHeaders);
-
-      for (const p of productsXML) {
         const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
-        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
-          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
-          || "-";
         
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
-
-        const materials = Array.from(p.getElementsByTagName("MaterialRef")).map(m => m.textContent);
 
         const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
         let hasSuffixes = false;
@@ -123,43 +81,39 @@ const WBODataMatrix = () => {
             for (const opt of options) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
               if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
                 const optPriceElem = opt.querySelector("OptionPrice > Value");
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optDesc) productOptionPrices[optDesc] = optPrice;
+                if (optCode) productOptionPrices[optCode] = optPrice;
               }
             }
           }
         }
         
-        // CSV Static Fields
-        const staticFields = {
-          "Weight": "-", 
-          "Classic/ Premium": "-", 
-          "Top": materials[0] || "-", 
-          "Casebody": materials[1] || "-", 
-          "Top D": "-", 
-          "Top L": "-", 
-          "Casebody W": "-", 
-          "Casebody D": "-", 
-          "OA H": "-", 
-          "Assembly": "-", 
-          "Deadbolt Lock(s)": "-", 
-          "# of Optional Locks Required": "-", 
-          "3, 6, 9, 12 Replacement Tote Trays": "-", 
-          "Tote Tray Lid": "-", 
-          "Power Supply Modules": "-", 
-          "Hemisphere (only power option available for Mini Nucleus) (-HEM)": "-", 
-          "Connecting Magnets for HangOut Stools 2 Locations (-2MA)": "-", 
-          "Connecting Magnets for HangOut Stools 4 Locations (-4MA)": "-", 
-          "Connecting Magnets for HangOut Stools 6 Locations (-6MA)": "-", 
-          "Connecting Magnets for HangOut Stools 8 Locations (-8MA)": "-", 
-          "Premium Armor Edge™ Colors (-S2_)": "-", 
-          "Non-Standard Edge Band": "-", 
-          "Premium Laminate Top Upcharge for Workstations": "-", 
-          "Markerboard 48 x 48 60 x 60 48 x 84 (-__MB)": "-", 
-          "Chemical Resistant 48 x 48, 60 x 60 48 x 84 (-09C)": "-", 
-          "Custom Sizes": "-"
+        const createRow = (baseSku, optSuffixCode, optPrice) => {
+          const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
+          const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
+          const finalPrice = basePrice + (optPrice || 0);
+
+          const row = {};
+          TABLES_HEADERS.forEach(h => row[h] = ""); // Initialize empty string
+
+          // Map base fields
+          row["Model #"] = finalSku;
+          row["List Price"] = finalPrice;
+          row["Model Name"] = finalDesc;
+
+          // Map extracted options to the respective columns if their code is in the header
+          Object.keys(productOptionPrices).forEach(optCode => {
+            const matchingHeader = TABLES_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
+            if (matchingHeader) {
+              row[matchingHeader] = productOptionPrices[optCode];
+            } else if (optCode.includes('MB')) {
+               const mbHeader = TABLES_HEADERS.find(h => h.includes("(__MB)"));
+               if (mbHeader) row[mbHeader] = productOptionPrices[optCode];
+            }
+          });
+
+          return row;
         };
 
         for (const ref of featureRefs) {
@@ -174,15 +128,8 @@ const WBODataMatrix = () => {
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
                 
                 const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e.sku === suffixSku)) {
-                  extracted.push({
-                    sku: suffixSku,
-                    description: `${description} [Option ${optCode}]`,
-                    classification,
-                    basePrice: basePrice + optPrice,
-                    ...staticFields,
-                    ...productOptionPrices
-                  });
+                if (!extracted.find(e => e["Model #"] === suffixSku)) {
+                  extracted.push(createRow(sku, optCode, optPrice));
                   hasSuffixes = true;
                 }
               }
@@ -191,22 +138,15 @@ const WBODataMatrix = () => {
         }
         
         if (!hasSuffixes) {
-          extracted.push({
-            sku,
-            description,
-            classification,
-            basePrice,
-            ...staticFields,
-            ...productOptionPrices
-          });
+          extracted.push(createRow(sku, null, 0));
         }
       }
       
       setProducts(extracted);
       setCurrentPage(1); 
     } catch (err) {
-      console.error("Error processing WBO data matrix:", err);
-      setError(err.message || "Error processing catalog information WBO.");
+      console.error("Error processing WBT data matrix:", err);
+      setError(err.message || "Error processing catalog information WBT.");
     } finally {
       setLoading(false);
     }
@@ -220,8 +160,8 @@ const WBODataMatrix = () => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
     return products.filter(p => 
-      p.sku.toLowerCase().includes(cleanSearch) ||
-      p.description.toLowerCase().includes(cleanSearch)
+      String(p["Model #"] || "").toLowerCase().includes(cleanSearch) ||
+      String(p["Model Name"] || "").toLowerCase().includes(cleanSearch)
     );
   }, [products, searchTerm]);
 
@@ -241,7 +181,7 @@ const WBODataMatrix = () => {
   const stats = useMemo(() => {
     const total = products.length;
     const avgPrice = total 
-      ? Math.round(products.reduce((acc, p) => acc + p.basePrice, 0) / total) 
+      ? Math.round(products.reduce((acc, p) => acc + (p["List Price"] || 0), 0) / total) 
       : 0;
     return { total, filtered: filtered.length, avgPrice };
   }, [products, filtered]);
@@ -249,19 +189,12 @@ const WBODataMatrix = () => {
   const exportToCSV = () => {
     if (!filtered || filtered.length === 0) return;
     
-    const allHeaders = [...baseHeaders, ...optionHeaders];
-    
-    const csvData = filtered.map(p => {
-      const row = {};
-      allHeaders.forEach(header => {
-        let value = p[header] !== undefined ? p[header] : p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
-        if (header === "Base Price") value = p.basePrice;
-        row[header] = value !== undefined ? value : "-";
-      });
-      return row;
+    // Explicitly use semicolon and our exact headers
+    const csv = Papa.unparse(filtered, {
+      columns: TABLES_HEADERS,
+      delimiter: ";"
     });
-
-    const csv = Papa.unparse(csvData);
+    
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -277,7 +210,7 @@ const WBODataMatrix = () => {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#7f1d1d] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix from WBO Engine...
+        Retrieving master data matrix from WBT Engine...
       </div>
     </div>
   );
@@ -293,15 +226,6 @@ const WBODataMatrix = () => {
       >
         <RefreshCw size={12} /> Retry Loading
       </button>
-              <button 
-                onClick={exportToCSV}
-                type="button"
-                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center"
-                title="Export current view to CSV"
-              >
-                <Download size={13} />
-              </button>
-
     </div>
   );
 
@@ -315,7 +239,7 @@ const WBODataMatrix = () => {
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">WBO Full XML Matrix</span>
+                <span className="text-xs font-bold text-slate-800">WBT Tables XML Matrix (Master Format)</span>
                 <span className="text-[10px] font-bold text-[#7f1d1d] bg-[#7f1d1d]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#7f1d1d]/10 select-none">
                   Live
                 </span>
@@ -375,28 +299,16 @@ const WBODataMatrix = () => {
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
-              <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-full">
+              <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-[4000px]">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
                     <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#7f1d1d] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
-                    {baseHeaders.map((header) => (
+                    {TABLES_HEADERS.map((header) => (
                       <th
                         key={header}
                         className="px-3 py-2 text-[11px] font-semibold text-slate-800 bg-white/80 backdrop-blur-md border-r border-b border-slate-100 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          {header}
-                          <Filter size={8} className="text-[#7f1d1d] opacity-40" />
-                        </div>
-                      </th>
-                    ))}
-                    {optionHeaders.map((header) => (
-                      <th
-                        key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-[#7f1d1d] bg-[#7f1d1d]/5 backdrop-blur-md border-r border-b border-[#7f1d1d]/10 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
-                        title={header}
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
@@ -414,7 +326,7 @@ const WBODataMatrix = () => {
                       
                       return (
                         <motion.tr 
-                          key={p.sku || realIndex}
+                          key={p["Model #"] || realIndex}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -425,26 +337,18 @@ const WBODataMatrix = () => {
                             {realIndex}
                           </td>
 
-                          {baseHeaders.map((header) => {
-                            let value = p[header] || p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
-                            if (header === "Base Price") value = `$${p.basePrice.toLocaleString()}`;
+                          {TABLES_HEADERS.map((header) => {
+                            let value = p[header];
+                            if (header === "List Price") value = `$${(p["List Price"] || 0).toLocaleString()}`;
                             
                             return (
-                              <td key={header} className="p-0 text-slate-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
-                                <div className={`px-3 py-1.5 font-sans text-[11px] whitespace-nowrap truncate ${header === 'SKU' || header === 'Base Price' ? 'font-bold font-mono' : 'font-medium'}`} title={value}>
+                              <td key={header} className={`p-0 text-slate-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]`}>
+                                <div className={`px-3 py-1.5 font-sans text-[11px] whitespace-nowrap truncate ${header === 'Model #' || header === 'List Price' ? 'font-bold font-mono text-[#7f1d1d]' : 'font-medium'}`} title={value}>
                                   {value}
                                 </div>
                               </td>
                             );
                           })}
-
-                          {optionHeaders.map(oh => (
-                            <td key={oh} className="p-0 text-[#7f1d1d] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
-                              <div className="px-3 py-1.5 font-mono text-[11px] font-semibold whitespace-nowrap truncate">
-                                {p[oh] !== undefined ? `$${p[oh].toLocaleString()}` : "-"}
-                              </div>
-                            </td>
-                          ))}
                         </motion.tr>
                       );
                     })}
@@ -456,7 +360,7 @@ const WBODataMatrix = () => {
 
           <div className="bg-gradient-to-r from-slate-50/40 to-white px-4 py-2 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-slate-500 select-none">
             <div className="flex gap-4">
-              <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length + optionHeaders.length}</span>
+              <span className="uppercase tracking-tight">TOTAL COLUMNS: {TABLES_HEADERS.length}</span>
               <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
             </div>
             
@@ -490,4 +394,4 @@ const WBODataMatrix = () => {
   );
 };
 
-export default WBODataMatrix;
+export default WBTDataMatrix;
