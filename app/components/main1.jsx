@@ -98,7 +98,7 @@ const HeroSection = () => {
         </h1>
 
         {/* Texto Descriptivo - Ajustado a la funcionalidad de XML y Catalog Creator */}
-        <p className="text-s md:text-base lg:text-lg font-light text-gray-500 mb-12 max-w-xl md:max-w-2xl leading-relaxed">
+        <p className="hidden md:block text-s md:text-base lg:text-lg font-light text-gray-500 mb-12 max-w-xl md:max-w-2xl leading-relaxed">
           Automate the complexity of <span className="text-black font-normal">Catalog Creator XML architectures</span>. Our Servex Copilot delivers an ultra-sophisticated audit engine that synchronizes data pipelines directly into Configura’s ecosystem, replacing manual legacy workflows with <span className="text-black font-normal">intelligent PIM orchestration and automated XML schema validation.</span>
         </p> 
 
@@ -106,7 +106,7 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-end border-t border-gray-900/10 pt-10 font-sans">
           
           {/* Subtexto Izquierdo - Foco en XML/Catalog Creator */}
-          <div className="md:col-span-4 flex items-start gap-4">
+          <div className="md:col-span-4 hidden md:flex items-start gap-4">
             <p className="text-[10px] md:text-[11px] text-gray-500 leading-relaxed uppercase tracking-wider font-medium">
               Eliminate manual XML editing. Deploy specialized <br className="hidden md:block" />
               pipelines for Catalog Creator data integrity.
