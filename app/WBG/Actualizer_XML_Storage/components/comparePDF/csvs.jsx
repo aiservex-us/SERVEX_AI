@@ -49,7 +49,7 @@ export default function DataViewer() {
       // Consulta corregida alineada estrictamente al DDL provisto para la entidad WBG
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBG')
-        .select('company_name, csv_raw, csvpdf_raw, informa_agent_raw, created_at')
+        .select('*')
         .eq('company_name', 'WBG')
         .order('created_at', { ascending: false })
         .limit(1)
