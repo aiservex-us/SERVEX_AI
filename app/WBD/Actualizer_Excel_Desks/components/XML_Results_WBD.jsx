@@ -21,20 +21,19 @@ const WBDDataMatrix = () => {
   const itemsPerPage = 30;
 
   const DESKS_HEADERS = [
-    "Model #", "List Price", "Weight", "Classic/\r\nPremium", "Model Name", "Top", "Legs/Base/Casebody", 
-    "\r\nTop\r\nD\"", "Top\r\nL\"", "Casebody\r\nW\"", "Casebody\r\nH\"", "Casebody\r\nD\"", "OA D\"", 
-    "OA H\" \r\nw/ Glides", "OA H\" \r\nw/ Casters", "Assembly", "Locking Casters\r\n (Per Desk)\r\n (-CA)", 
-    "Wheelbarrow\r\n(2 Casters)\r\n(-2CA)", "GIB Casters\r\n (-C)", "Grand Hank Glides \r\n (Per Desk)\r\n(-HG)", 
-    "Soft Touch Glides \r\n (Per Desk)\r\n(-FG)", "Steel Glides \r\n (Per Desk)\r\n(-SG)", "Plastic Book Box \r\n(-P14CH)", 
-    "Plastic Book Box \r\n(-P16CH)", "Plastic Book Box \r\n(-P20CH)", "Plastic Book Box \r\n(-P23CH)", "Backpack Hook (1) \r\n(-BPH)", 
-    "3\" Tote\r\nTray Kit\r\n (-GK_S)", "Under Mount Tote Runners 12mm Drop (Set of 2)\r\n(-GTR)", "3\", 6\", 9\", 12\" Replacement Tote Trays", 
-    "Tote Tray Lid", "Wire Basket \r\n(-LW)", "Swivel Cup Holder \r\n(-SCH)", "Connector Bar\r\n(-CB)", "Power Supply \r\nModules", 
-    "Large Pencil Drawer \r\n(-LPD)", "9\"H Perforated Metal \r\nModesty Panel \r\n(-913_)", "12\"H Perforated Metal Modesty Panel \r\n(-S)", 
-    "12\"H Laminate \r\nModesty Panel\r\n(-LMOD_)", "12\"H Laminate Modesty Panel\r\nCLASSIC\r\n (TDLAMMOD)", 
-    "12\"H Laminate Modesty Panel\r\nPREMIUM\r\n (TDLAMMOD)", "Metal Wire Management\r\n36\", 48\", 60\" or 72\"L\r\n(-WM)", 
-    "Grommet w/Cover \r\n(-GR)", "Deadbolt Lock(s)", "# of Optional Locks Required", "Premium \r\nArmor Edge™ Colors \r\n(-S2_)", 
-    "Non-Standard\r\n Edge Band", "Premium Laminate\r\nUpcharge for \r\nTops UNDER 36\"x36\" ", "Premium Laminate\r\nUpcharge for\r\n Tops 36\"x36\" & OVER", 
-    "Markerboard\r\nDesks\r\n(-__MB)", "Markerboard\r\nTables\r\n(-__MB)", "Chemical \r\nResistant\r\n(-09C)", "Custom Sizes"
+    "Model #", "List Price", "Weight", "Classic/ Premium", "Model Name", "Top", "Legs/Base/Casebody", 
+    "Top D", "Top L", "Casebody W", "Casebody H", "Casebody D", "OA D", "OA H w/ Glides", "OA H w/ Casters", 
+    "Assembly", "Locking Casters (Per Desk) (-CA)", "Wheelbarrow (2 Casters) (-2CA)", "GIB Casters (-C)", 
+    "Grand Hank Glides (Per Desk) (-HG)", "Soft Touch Glides (Per Desk) (-FG)", "Steel Glides (Per Desk) (-SG)", 
+    "Plastic Book Box (-P14CH)", "Plastic Book Box (-P16CH)", "Plastic Book Box (-P20CH)", "Plastic Book Box (-P23CH)", 
+    "Backpack Hook (1) (-BPH)", "3 Tote Tray Kit (-GK_S)", "Under Mount Tote Runners 12mm Drop (Set of 2) (-GTR)", 
+    "3, 6, 9, 12 Replacement Tote Trays", "Tote Tray Lid", "Wire Basket (-LW)", "Swivel Cup Holder (-SCH)", 
+    "Connector Bar (-CB)", "Power Supply Modules", "Large Pencil Drawer (-LPD)", "9H Perforated Metal Modesty Panel (-913_)", 
+    "12H Perforated Metal Modesty Panel (-S)", "12H Laminate Modesty Panel (-LMOD_)", "12H Laminate Modesty Panel CLASSIC (TDLAMMOD)", 
+    "12H Laminate Modesty Panel PREMIUM (TDLAMMOD)", "Metal Wire Management 36, 48, 60 or 72L (-WM)", "Grommet w/Cover (-GR)", 
+    "Deadbolt Lock(s)", "# of Optional Locks Required", "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", 
+    "Premium Laminate Upcharge for Tops UNDER 36x36", "Premium Laminate Upcharge for Tops 36x36 & OVER", 
+    "Markerboard Desks (-__MB)", "Markerboard Tables (-__MB)", "Chemical Resistant (-09C)", "Custom Sizes"
   ];
 
   const processXML = async () => {

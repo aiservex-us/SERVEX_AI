@@ -10,8 +10,7 @@ export default function CETComparator() {
   const [activeRecord, setActiveRecord] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isApplyingChanges, setIsApplyingChanges] = useState(false);
-
+  
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', title: '', message: '', onConfirm: null, isError: false });
 
   const showAlert = (message, title="Notification", isError=false) => {
@@ -226,197 +225,6 @@ export default function CETComparator() {
     }
   };
 
-  const applyDeltasToCSV = () => {
-    if (!reportData || !activeRecord) return;
-    showConfirm(
-      "Are you sure you want to apply these detected changes to the original CSV Database? This will overwrite the database directly.",
-      () => executeApplyDeltas()
-    );
-  };
-
-  const executeApplyDeltas = async () => {
-    setIsApplyingChanges(true);
-
-    try {
-      const { data: dbData, error: dbError } = await supabase
-        .from('ClientsSERVEX_WBS')
-        .select('CSV_final')
-        .eq('id', activeRecord.id)
-        .single();
-        
-      if (dbError) throw dbError;
-      if (!dbData.CSV_final) throw new Error("CSV_final is empty in the database. Nothing to edit.");
-
-      let csvArray = dbData.CSV_final;
-      if (typeof csvArray === 'string') {
-        csvArray = JSON.parse(csvArray);
-      }
-      
-      // Dynamically detect keys based on the first row of the CSV
-      const firstRow = csvArray.length > 0 ? csvArray[0] : {};
-      const allKeys = Object.keys(firstRow);
-      
-      const skuKey = allKeys.find(k => k.toLowerCase().includes('model #') || k.toLowerCase().includes('sku')) || 'sku';
-      const priceKey = allKeys.find(k => k.toLowerCase().includes('list price') || k.toLowerCase().includes('base price')) || 'Base Price';
-      const descKey = allKeys.find(k => k.toLowerCase().includes('model name') || k.toLowerCase().includes('description')) || 'description';
-      const classKey = allKeys.find(k => k.toLowerCase().includes('classic/ premium') || k.toLowerCase().includes('classification')) || 'classification';
-
-      const newModels = reportData.summary.new_models_list || [];
-      const deletedModels = reportData.summary.deleted_models_list || [];
-      const listPriceChanges = reportData.detected_changes.filter(c => c.column_name === 'List Price') || [];
-      const optionPriceChanges = reportData.detected_changes.filter(c => c.column_name !== 'List Price') || [];
-
-      // 1. Deletions
-      let updatedCSV = csvArray.filter(row => {
-        if (!row[skuKey]) return true;
-        return !deletedModels.some(delSku => row[skuKey] === delSku || row[skuKey].startsWith(delSku + '/'));
-      });
-
-      // 2. Modifications
-      const lpMap = new Map();
-      listPriceChanges.forEach(c => lpMap.set(c.model_id, c.new_value.replace(/[^0-9.-]+/g,"")));
-
-      const opMap = new Map();
-      optionPriceChanges.forEach(c => {
-        if (!opMap.has(c.model_id)) opMap.set(c.model_id, {});
-        opMap.get(c.model_id)[c.column_name] = c.new_value.replace(/[^0-9.-]+/g,"");
-      });
-
-      updatedCSV = updatedCSV.map(row => {
-        let modifiedRow = { ...row };
-        const sku = String(modifiedRow[skuKey] || "").trim();
-        
-        let parentSku = sku;
-        if (sku.includes('/')) {
-            parentSku = sku.split('/')[0];
-        }
-
-        if (lpMap.has(parentSku)) {
-           const newParentPrice = lpMap.get(parentSku);
-           if (newParentPrice !== undefined) {
-               modifiedRow[priceKey] = newParentPrice;
-           }
-        }
-
-        if (opMap.has(parentSku)) {
-          const ops = opMap.get(parentSku);
-          for (const optCode in ops) {
-            modifiedRow[optCode] = ops[optCode];
-          }
-        }
-        return modifiedRow;
-      });
-
-      // 3. Additions
-      if (newModels.length > 0 && activeRecord.XM_CET_import) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(activeRecord.XM_CET_import, 'text/xml');
-        
-        const globalFeatures = Array.from(doc.getElementsByTagName("Feature"));
-        const featureMap = new Map();
-        for (const f of globalFeatures) {
-          const fCode = f.getElementsByTagName("Code")[0]?.textContent;
-          if (fCode) featureMap.set(fCode, f);
-        }
-
-        const productsXML = Array.from(doc.getElementsByTagName("Product"));
-        const staticFields = {
-          "Weight": "-", "Assembly": "-", "Dimension": "-", "Maple (-M)": "-", "Custom Sizes": "-",
-          "Casters (-CA)": "-", "OA H w/ Glides": "-", "Hard Maple (-H)": "-", "OA H w/ Casters": "-",
-          "Classic/ Premium": "-", "Steel Glides (-SG)": "-", "Steel Glides (-SG)_1": "-",
-          "Steel Glides (-SG)_2": "-", "Non-Standard Edge Band": "-", "Bell Glides (Set of 5) (-BG)": "-",
-          "Felt Glides (Set of 4) (-FG)": "-", "Felt Glides (Set of 4) (-FG)_1": "-",
-          "Premium Armor Edge™ Colors (-S2_)": "-"
-        };
-
-        for (const p of productsXML) {
-          const sku = p.getElementsByTagName("Code")[0]?.textContent;
-          if (sku && newModels.includes(sku)) {
-            const description = p.getElementsByTagName("Description")[0]?.textContent || "";
-            const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
-              || p.getElementsByTagName("ClassificationRef")[0]?.textContent || "-";
-            const priceElement = p.getElementsByTagName("Price")[0];
-            const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
-            
-            const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-            const productOptionPrices = {};
-            let hasSuffixes = false;
-
-            for (const ref of featureRefs) {
-              const refCode = ref.textContent;
-              const featureNode = featureMap.get(refCode);
-              if (featureNode) {
-                const options = Array.from(featureNode.getElementsByTagName("Option"));
-                for (const opt of options) {
-                  const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-                  if (optCode !== "C" && optCode !== "P") {
-                    const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
-                    const optPriceElem = opt.querySelector("OptionPrice > Value");
-                    const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                    if (optDesc) productOptionPrices[optDesc] = optPrice.toString();
-                  }
-                }
-              }
-            }
-
-            for (const ref of featureRefs) {
-              const refCode = ref.textContent;
-              const featureNode = featureMap.get(refCode);
-              if (featureNode) {
-                const options = Array.from(featureNode.getElementsByTagName("Option"));
-                for (const opt of options) {
-                  const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-                  if (optCode === "C" || optCode === "P") {
-                    const optPriceElem = opt.querySelector("OptionPrice > Value");
-                    const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                    const suffixSku = `${sku}/${optCode}`;
-                    
-                    updatedCSV.push({
-                      [skuKey]: suffixSku,
-                      [descKey]: `${description} [Option ${optCode}]`,
-                      [classKey]: classification,
-                      [priceKey]: (basePrice + optPrice).toString(),
-                      ...staticFields,
-                      ...productOptionPrices
-                    });
-                    hasSuffixes = true;
-                  }
-                }
-              }
-            }
-            if (!hasSuffixes) {
-              updatedCSV.push({
-                [skuKey]: sku, 
-                [descKey]: description, 
-                [classKey]: classification, 
-                [priceKey]: basePrice.toString(), 
-                ...staticFields, 
-                ...productOptionPrices
-              });
-            }
-          }
-        }
-      }
-
-      const { error: saveError } = await supabase
-        .from('ClientsSERVEX_WBS')
-        .update({ 
-           CSV_final: updatedCSV,
-           csv_new_raw: updatedCSV
-        })
-        .eq('id', activeRecord.id);
-
-      if (saveError) throw saveError;
-      
-      showAlert("Changes successfully applied to CSV Database!", "Success", false);
-    } catch (err) {
-      console.error(err);
-      showAlert(`Error applying changes: ${err.message}`, "Error", true);
-    } finally {
-      setIsApplyingChanges(false);
-    }
-  };
-
   const listPriceChanges = reportData?.detected_changes?.filter(c => c.column_name === 'List Price') || [];
   const optionPriceChanges = reportData?.detected_changes?.filter(c => c.column_name !== 'List Price') || [];
   const summaryRaw = reportData?.summary;
@@ -461,16 +269,7 @@ export default function CETComparator() {
                {isComputing ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
                {isComputing ? "Computing Deltas..." : "Execute CET Comparison"}
              </button>
-             {reportData && (
-               <button
-                 onClick={applyDeltasToCSV}
-                 disabled={isApplyingChanges}
-                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700 transition-all disabled:opacity-50 shadow-sm"
-               >
-                 {isApplyingChanges ? <RefreshCw size={14} className="animate-spin" /> : <Database size={14} />}
-                 {isApplyingChanges ? "Applying..." : "Apply Deltas to CSV"}
-               </button>
-             )}
+             
            </div>
 
            <h1 className="text-2xl font-light text-[#242424] tracking-wide relative z-10">
