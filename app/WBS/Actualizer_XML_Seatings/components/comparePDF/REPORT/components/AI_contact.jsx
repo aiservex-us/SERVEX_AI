@@ -38,8 +38,8 @@ marked.use({
   renderer: {
     table(token) {
       const orig = origRenderer.table.call(this, token);
-      return `<div class="my-5 w-full overflow-x-auto rounded-xl border border-indigo-100 shadow-sm bg-white/50 backdrop-blur-sm">
-        ${orig.replace('<table>', '<table class="w-full text-left text-[13px] text-gray-700">')
+      return `<div class="my-5 overflow-x-auto rounded-xl border border-indigo-100 shadow-sm bg-white/50 backdrop-blur-sm inline-block max-w-full">
+        ${orig.replace('<table>', '<table class="text-left text-[13px] text-gray-700">')
              .replace('<thead>', '<thead class="bg-indigo-50/80 border-b border-indigo-100 text-indigo-900 font-bold uppercase tracking-wider text-[11px]">')
              .replace('<tbody>', '<tbody class="divide-y divide-indigo-50/50">')}
       </div>`;
@@ -95,7 +95,7 @@ marked.use({
               <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">${token.lang || 'text'}</span>
             </div>
             <div class="p-4 overflow-x-auto custom-scrollbar">
-              ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[13px] text-gray-300 font-mono leading-relaxed inline-block min-w-full"><code class="block">')}
+              ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[13px] text-gray-300 font-mono leading-relaxed inline-block"><code class="block">')}
             </div>
           </div>`;
     },
@@ -158,7 +158,7 @@ const BotMessage =
 
   return (
     <div
-      className="w-full text-sm font-sans flex flex-col gap-1"
+      className="text-sm font-sans flex flex-col gap-1 w-full max-w-full"
       dangerouslySetInnerHTML={{__html: marked.parse(displayedText) }}
     />
   );
@@ -623,7 +623,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
                           </motion.div>
 
                           {/* Bubble col */}
-                          <div className={`flex flex-col min-w-0 gap-1 ${isUser ? 'items-end max-w-[85%] md:max-w-[75%]' : 'items-start max-w-[85%] md:max-w-[60%] flex-1'}`}>
+                          <div className={`flex flex-col min-w-0 gap-1 ${isUser ? 'items-end max-w-[85%] md:max-w-[75%]' : 'items-start max-w-[95%] md:max-w-[85%]'}`}>
                             <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                               <span className="text-[12px] font-semibold text-gray-800">
                                 {isUser ? 'You' : selectedAgent.agent_name}
