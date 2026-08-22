@@ -623,7 +623,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
                       </motion.div>
 
                       {/* Bubble col */}
-                      <div className={`flex flex-col min-w-0 gap-1 ${isUser ? 'items-end max-w-[85%] md:max-w-[75%]' : 'items-start max-w-[95%] md:max-w-[85%]'}`}>
+                      <div className={`flex flex-col min-w-0 gap-1 max-w-[85%] md:max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
                         <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                           <span className="text-[12px] font-semibold text-gray-800">
                             {isUser ? 'You' : selectedAgent.agent_name}
