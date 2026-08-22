@@ -122,7 +122,6 @@ export default function MenuInicial() {
     switch (active) {
       case 'dashboard': return <Dashboard />;
       case 'incert_delete': return <IncertDelete />;
-                    case 'delete_data': return <div className="w-full max-w-sm"><DeleteData /></div>;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
@@ -281,6 +280,7 @@ export default function MenuInicial() {
                 renderTool={(toolId) => {
                   switch (toolId) {
                     case 'incert_delete': return <IncertDelete />;
+                    case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
                     case 'AI_reporter': return <Responce_ai />;
