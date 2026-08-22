@@ -426,7 +426,7 @@ const ViewportGraphics = () => {
                       <span className="text-[10px] font-semibold text-[#242424] text-center leading-tight">XML Master Base</span>
                     </motion.div>
                     <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="flex flex-col items-center justify-center p-3 bg-white/60 backdrop-blur-md rounded-xl border border-white/80 shadow-[0_4px_12px_rgb(0,0,0,0.05)] w-28 h-24">
-                      <FileText size={24} className="text-[#107C10] mb-2" />
+                      <FileText size={24} className="text-[#0078D4] mb-2" />
                       <span className="text-[10px] font-semibold text-[#242424] text-center leading-tight">CSV Update File</span>
                     </motion.div>
                   </div>
@@ -458,8 +458,8 @@ const ViewportGraphics = () => {
 
                   {/* Step 3: Output */}
                   <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="flex flex-col items-center justify-center p-4 bg-white/60 backdrop-blur-md rounded-xl border border-white/80 shadow-[0_4px_12px_rgb(0,0,0,0.05)] w-36 h-28 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#107C10] to-[#0078D4]"></div>
-                    <Activity size={28} className="text-[#107C10] mb-2" />
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0078D4] to-[#0078D4]"></div>
+                    <Activity size={28} className="text-[#0078D4] mb-2" />
                     <span className="text-[12px] font-bold text-[#242424] text-center leading-tight">Matrix Output</span>
                     <span className="text-[10px] text-[#605E5C] text-center mt-1">Audit & Final XML</span>
                   </motion.div>
