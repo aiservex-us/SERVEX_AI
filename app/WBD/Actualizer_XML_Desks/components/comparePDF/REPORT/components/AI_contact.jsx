@@ -488,8 +488,16 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                       }}
                       className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
-                      {/* Avatar */}
-                      <motion.div 
+                      {msg.from === 'tool' ? (
+                        <div className="w-full my-3 p-1 bg-transparent rounded-2xl overflow-hidden relative">
+                          <div className="w-full h-full overflow-y-auto max-h-[85vh] relative">
+                             {renderTool && renderTool(msg.toolId)}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Avatar */}
+                          <motion.div 
                         whileHover={{scale: 1.05, rotate: isUser ? 5 : -5 }}
                         className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
                         ${isUser
@@ -529,6 +537,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           </div>
                         </motion.div>
                       </div>
+                    </>
+                  )}
                     </motion.div>
                   );
                 })}
