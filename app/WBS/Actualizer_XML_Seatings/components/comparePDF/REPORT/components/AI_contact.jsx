@@ -99,7 +99,7 @@ renderer.blockquote = (quote) => `<blockquote class="border-l-4 border-indigo-40
 
 marked.setOptions({ renderer });
 
-const BotMessage = `;
+const BotMessage = 
 ({text, isNew, onType }) => {
   const processedText = useMemo(() => {
     if (!text) return "";
