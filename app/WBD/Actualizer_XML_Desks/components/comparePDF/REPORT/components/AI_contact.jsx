@@ -21,6 +21,13 @@ const SLASH_COMMANDS = [
   {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)' },
   {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
   {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
+,
+  { 
+    name: '/saveCatalog', 
+    desc: 'Save uploaded XML/CSV Data', 
+    action: () => console.log('saveCatalog'),
+    icon: <Database size={13} />
+  }
 ];
 
 const QUICK_PROMPTS = [
@@ -174,6 +181,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         scrollToBottom(true);
       }, 500);
       return;
+
+    if (queryToSend.toLowerCase() === '/savecatalog') {
+      window.dispatchEvent(new CustomEvent('saveCatalogData'));
+      setMessages(prev => [...prev, { from: 'bot', text: '✅ Ejecutando el proceso de guardado y saneamiento de datos en la nube...', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
+      setIsLoading(false);
+      setTimeout(() => scrollToBottom(true), 100);
+      return;
+    }
     }
     if (queryToSend.toLowerCase() === '/listpricechanges') {
       setTimeout(() => {
