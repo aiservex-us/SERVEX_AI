@@ -281,47 +281,42 @@ export default function UploadClientXML() {
 
       console.log('[+] Starting structural sanitation on CSV contents...');
       
+      const payload: any = {
+        company_name: 'WBT',
+        user_id: user.id,
+      };
+
       if (xmlContent.trim()) {
-        const { error: errXml } = await supabase
-          .from('ClientsSERVEX_WBT')
-          .update({ xml_raw: xmlContent })
-          .eq('user_id', user.id);
-        if (errXml) throw errXml;
+        payload.xml_raw = xmlContent;
       }
-
       if (csvContent.trim()) {
-        const sanitizedOld = sanitizeCSV(csvContent);
-        const { error: errCsvOld } = await supabase
-          .from('ClientsSERVEX_WBT')
-          .update({ csv_raw: sanitizedOld })
-          .eq('user_id', user.id);
-        if (errCsvOld) throw errCsvOld;
+        payload.csv_raw = sanitizeCSV(csvContent);
       }
-
       if (csvNewContent.trim()) {
-        const sanitizedNew = sanitizeCSV(csvNewContent);
-        const { error: errCsvNew1 } = await supabase
-          .from('ClientsSERVEX_WBT')
-          .update({ csv_new_raw: sanitizedNew })
-          .eq('user_id', user.id);
-        if (errCsvNew1) throw errCsvNew1;
-
-        const { error: errCsvNew2 } = await supabase
-          .from('ClientsSERVEX_WBT')
-          .update({ CSV_final: sanitizedNew })
-          .eq('user_id', user.id);
-        if (errCsvNew2) throw errCsvNew2;
+        payload.csv_new_raw = sanitizeCSV(csvNewContent);
+        payload.CSV_final = sanitizeCSV(csvNewContent);
       }
 
-      setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
-      setXmlContent('');
-      setCsvContent('');
-      setCsvNewContent('');
-      // Refrescar el estado de columnas existentes tras guardar
-      await checkExistingFiles();
-    } catch (err: any) {
+      const { error } = await supabase
+        .from('ClientsSERVEX_WBT')
+        .update(payload)
+        .eq('user_id', user.id)
+        .select('');
+
+      if (error) {
+        console.error('Supabase Full Error:', error);
+        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
+      } else {
+        setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
+        setXmlContent('');
+        setCsvContent('');
+        setCsvNewContent('');
+        // Refrescar el estado de columnas existentes tras guardar
+        await checkExistingFiles();
+      }
+    } catch (err: unknown) {
       console.error(err);
-      setMessage({ text: err?.message ? `DB Error: ${err.message}` : 'Unexpected client-side error', type: 'error' });
+      setMessage({ text: 'Unexpected client-side error', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -343,8 +338,8 @@ export default function UploadClientXML() {
   }, []);
 
   return (
-    <div className="w-full flex font-sans text-[#242424] relative">
-      <div className="flex-1 flex flex-col">
+    <div className="w-full flex font-sans text-[#242424] relative bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+      <div className="flex-1 flex flex-col gap-6">
 
         {/* --- POPUP PROCESANDO DATOS BASE --- */}
         {loading && (
@@ -354,7 +349,7 @@ export default function UploadClientXML() {
                 <div className="relative">
                   <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
                   <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
-                    <DatabaseZap className="text-[#5b5fc7] animate-pulse" size={20} />
+                    <DatabaseZap className="text-[#5b5fc7] animate-pulse" size={28} />
                   </div>
                 </div>
               </div>
@@ -380,7 +375,7 @@ export default function UploadClientXML() {
         )}
 
         {/* Drop Zones Grid (3 Columns now) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Drop Zone 1: XML */}
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
@@ -391,15 +386,15 @@ export default function UploadClientXML() {
                       ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingXml ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={28} />
                     ) : checkingExisting ? (
-                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={28} />
                     ) : showXmlExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={20} />
+                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={28} />
                     ) : (
-                      <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
+                      <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#464775]' : 'text-gray-400'}`} size={28} />
                     )}
-                    <p className={`text-[10px] font-bold ${showXmlExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
+                    <p className={`text-xs sm:text-sm font-bold mt-3 ${showXmlExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
                       {readingXml
                         ? 'Reading...'
                         : checkingExisting
@@ -408,9 +403,9 @@ export default function UploadClientXML() {
                             ? 'File already exists in DB'
                             : 'Upload XML'}
                     </p>
-                    <p className="text-[8px] text-[#9CA3AF] mt-0.5">Catalog Creator Catalog</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-1 font-medium">Catalog Creator Catalog</p>
                     {showXmlExistingNotice && (
-                      <p className="text-[9px] text-[#464775]/80 mt-1 font-medium">Click or drop to replace</p>
+                      <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-2 py-1 rounded-full">Click or drop to replace</p>
                     )}
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
@@ -425,15 +420,15 @@ export default function UploadClientXML() {
                       ${dragActiveCSV ? 'border-[#464775] bg-[#464775]/5' : showCsvExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingCsv ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={28} />
                     ) : checkingExisting ? (
-                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={28} />
                     ) : showCsvExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={20} />
+                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={28} />
                     ) : (
-                      <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
+                      <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={28} />
                     )}
-                    <p className={`text-[10px] font-bold ${showCsvExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
+                    <p className={`text-xs sm:text-sm font-bold mt-3 ${showCsvExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
                       {readingCsv
                         ? 'Reading...'
                         : checkingExisting
@@ -442,9 +437,9 @@ export default function UploadClientXML() {
                             ? 'File already exists in DB'
                             : 'Upload CSV Base'}
                     </p>
-                    <p className="text-[8px] text-[#9CA3AF] mt-0.5">Catálogo base — inicio del proceso</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-1 font-medium">Catálogo base — inicio del proceso</p>
                     {showCsvExistingNotice && (
-                      <p className="text-[9px] text-[#464775]/80 mt-1 font-medium">Click or drop to replace</p>
+                      <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-2 py-1 rounded-full">Click or drop to replace</p>
                     )}
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
@@ -459,15 +454,15 @@ export default function UploadClientXML() {
                       ${dragActiveNewCSV ? 'border-[#464775] bg-[#464775]/5' : showNewCsvExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingNewCsv ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={28} />
                     ) : checkingExisting ? (
-                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={28} />
                     ) : showNewCsvExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={20} />
+                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={28} />
                     ) : (
-                      <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveNewCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
+                      <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveNewCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={28} />
                     )}
-                    <p className={`text-[10px] font-bold ${showNewCsvExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
+                    <p className={`text-xs sm:text-sm font-bold mt-3 ${showNewCsvExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
                       {readingNewCsv
                         ? 'Reading...'
                         : checkingExisting
@@ -476,9 +471,9 @@ export default function UploadClientXML() {
                             ? 'File already exists in DB'
                             : 'Upload CSV Nuevo'}
                     </p>
-                    <p className="text-[8px] text-[#9CA3AF] mt-0.5">New catalog to compare</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-1 font-medium">New catalog to compare</p>
                     {showNewCsvExistingNotice && (
-                      <p className="text-[9px] text-[#464775]/80 mt-1 font-medium">Click or drop to replace</p>
+                      <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-2 py-1 rounded-full">Click or drop to replace</p>
                     )}
                     <input ref={csvNewInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readNewCSVFile(file); }} />
                   </div>
@@ -486,7 +481,7 @@ export default function UploadClientXML() {
                 </div>
 
                 {/* Previews (3 Columns now) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
