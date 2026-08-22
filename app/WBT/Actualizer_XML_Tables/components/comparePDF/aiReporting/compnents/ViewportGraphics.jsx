@@ -20,7 +20,17 @@ const BRAND_COLORS = ['#464775', '#0078D4', '#605E5C', '#A80000', '#107C10', '#D
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
-    return (
+    
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.15 } }
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 40 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 60, damping: 15 } }
+  };
+
+  return (
       <div className="bg-white border border-[#EDEBE9] p-3 shadow-md text-[#242424] text-xs" style={{ borderRadius: '4px' }}>
         <p className="font-semibold mb-2 pb-1 border-b border-[#EDEBE9] text-[#464775]">
           {label || payload[0]?.payload?.name || 'Data'}
@@ -323,13 +333,13 @@ const ViewportGraphics = () => {
 
 
   const CardContainer = ({ title, children, explanation, colSpan = 1, summaryNode }) => (
-    <div className={`bg-white rounded-md border border-[#EDEBE9] p-5 flex flex-col lg:col-span-${colSpan} hover:shadow-sm transition-shadow h-[480px]`}>
+    <motion.div variants={itemVariants} className={`bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl p-6 flex flex-col lg:col-span-${colSpan} hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 h-[480px]`}>
       <h3 className="text-[14px] font-semibold text-[#242424] mb-3 flex items-center gap-2">
         <div className="w-1 h-4 bg-[#464775] rounded-sm"></div>
         {title}
       </h3>
       {summaryNode && (
-        <div className="mb-4 p-3 bg-[#FAFAFA] border border-[#EDEBE9] rounded-md text-[11px] text-[#605E5C] max-h-[80px] overflow-y-auto">
+        <div className="mb-4 p-3 bg-white/50 backdrop-blur-sm border border-white/50 rounded-xl text-[11px] text-[#605E5C] max-h-[80px] overflow-y-auto shadow-inner">
           {summaryNode}
         </div>
       )}
@@ -344,11 +354,11 @@ const ViewportGraphics = () => {
           </p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 
   return (
-    <main className="flex-1 flex flex-col relative bg-[#FAFAFA] h-[100%] font-sans overflow-hidden">
+    <main className="flex-1 flex flex-col relative bg-gradient-to-br from-[#F8F9FA] via-[#E2E8F0] to-[#CBD5E1] h-[100%] font-sans overflow-hidden">
       
       {/* Input oculto para CSV */}
       <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".csv" className="hidden" />
@@ -376,7 +386,7 @@ const ViewportGraphics = () => {
       </AnimatePresence>
 
       {/* Header Analíticas */}
-      <header className="h-16 flex flex-shrink-0 items-center justify-between px-6 bg-white border-b border-[#EDEBE9] z-20">
+      <header className="h-16 flex flex-shrink-0 items-center justify-between px-6 bg-white/60 backdrop-blur-md border-b border-white/50 shadow-sm z-20">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-md bg-[#464775]/10 flex items-center justify-center text-[#464775]">
             <PH.ChartBar size={24} weight="duotone" />
@@ -399,30 +409,8 @@ const ViewportGraphics = () => {
       <div className="flex-1 overflow-y-auto pb-[180px] p-6 relative">
         
         <div className="w-full max-w-6xl mx-auto">
-          {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            {[
-              { label: 'Total Models', val: data.metrics.total, icon: Database, color: 'text-[#464775]' },
-              { label: 'Modified', val: data.metrics.modified, icon: Activity, color: 'text-[#0078D4]' },
-              { label: 'New', val: data.metrics.new, icon: TrendingUp, color: 'text-[#107C10]' },
-              { label: 'Deleted', val: data.metrics.deleted, icon: TrendingDown, color: 'text-[#D83B01]' },
-              { label: 'Cell Changes', val: data.metrics.totalCells || 0, icon: FileText, color: 'text-[#5C2D91]' }
-            ].map((kpi, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-md border border-[#EDEBE9] hover:shadow-sm transition-shadow flex items-center gap-4">
-                <div className={`p-2.5 rounded bg-[#FAFAFA] ${kpi.color}`}>
-                  <kpi.icon size={20} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <p className="text-[12px] text-[#605E5C] font-medium">{kpi.label}</p>
-                  <p className="text-[20px] font-semibold text-[#242424] leading-tight">{kpi.val.toLocaleString()}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-6 mb-6">
-            
-            {/* 1. Catalog Stability Index */}
+          <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* 1. Catalog Stability Index */}
             <CardContainer 
               colSpan={1} 
               title="Catalog Stability Index" 
@@ -470,10 +458,7 @@ const ViewportGraphics = () => {
                 </ComposedChart>
               </ResponsiveContainer>
             </CardContainer>
-          </div>
 
-          <div className="flex flex-col gap-6 mb-6">
-            
             {/* 3. Diverging Volatility */}
             <CardContainer 
               colSpan={1} 
@@ -524,9 +509,7 @@ const ViewportGraphics = () => {
               </ResponsiveContainer>
             </CardContainer>
 
-          </div>
-
-          <div className="flex flex-col gap-6 mb-6">
+          
             
             {/* 5. Price Deviation Quadrant */}
             <CardContainer 
@@ -548,8 +531,7 @@ const ViewportGraphics = () => {
                 </ScatterChart>
               </ResponsiveContainer>
             </CardContainer>
-
-          </div>
+          </motion.div>
         </div>
 
       </div>
