@@ -39,20 +39,20 @@ renderer.table = (header, body) => {
   return \`<div class="my-5 w-full overflow-x-auto rounded-xl border border-indigo-100 shadow-sm bg-white/50 backdrop-blur-sm">
             <table class="w-full text-left text-[13px] text-gray-700">
               <thead class="bg-indigo-50/80 border-b border-indigo-100 text-indigo-900 font-bold uppercase tracking-wider text-[11px]">
-                \${header}
+                ${header}
               </thead>
               <tbody class="divide-y divide-indigo-50/50">
-                \${body}
+                ${body}
               </tbody>
             </table>
           </div>\`;
 };
 
-renderer.tablerow = (content) => \`<tr class="hover:bg-white transition-colors duration-200">\${content}</tr>\`;
+renderer.tablerow = (content) => \`<tr class="hover:bg-white transition-colors duration-200">${content}</tr>\`;
 renderer.tablecell = (content, flags) => {
   const type = flags.header ? 'th' : 'td';
   const padding = flags.header ? 'px-4 py-3.5' : 'px-4 py-3';
-  return \`<\${type} class="\${padding} whitespace-nowrap">\${content}</\${type}>\`;
+  return \`<${type} class="${padding} whitespace-nowrap">${content}</${type}>\`;
 };
 
 renderer.list = (body, ordered) => {
@@ -60,12 +60,12 @@ renderer.list = (body, ordered) => {
   const classes = ordered 
     ? 'list-decimal list-outside ml-5 space-y-2.5 my-4 text-gray-700' 
     : 'list-disc list-outside ml-5 space-y-2.5 my-4 text-gray-700 marker:text-indigo-400';
-  return \`<\${tag} class="\${classes}">\${body}</\${tag}>\`;
+  return \`<${tag} class="${classes}">${body}</${tag}>\`;
 };
 
-renderer.listitem = (text) => \`<li class="leading-relaxed pl-1">\${text}</li>\`;
+renderer.listitem = (text) => \`<li class="leading-relaxed pl-1">${text}</li>\`;
 
-renderer.paragraph = (text) => \`<p class="leading-relaxed mb-4 text-gray-700">\${text}</p>\`;
+renderer.paragraph = (text) => \`<p class="leading-relaxed mb-4 text-gray-700">${text}</p>\`;
 
 renderer.heading = (text, level) => {
   const sizes = {
@@ -74,10 +74,10 @@ renderer.heading = (text, level) => {
     3: 'text-lg font-semibold mt-5 mb-3 text-indigo-800 tracking-tight',
     4: 'text-base font-semibold mt-4 mb-2 text-indigo-700',
   };
-  return \`<h\${level} class="\${sizes[level] || sizes[4]}">\${text}</h\${level}>\`;
+  return \`<h${level} class="${sizes[level] || sizes[4]}">${text}</h${level}>\`;
 };
 
-renderer.codespan = (code) => \`<code class="px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-600 font-mono text-[12px] font-semibold border border-indigo-100 shadow-sm">\${code}</code>\`;
+renderer.codespan = (code) => \`<code class="px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-600 font-mono text-[12px] font-semibold border border-indigo-100 shadow-sm">${code}</code>\`;
 
 renderer.code = (code, language) => {
   return \`<div class="my-5 rounded-xl overflow-hidden bg-[#1e1e2e] shadow-lg border border-gray-800">
@@ -87,15 +87,15 @@ renderer.code = (code, language) => {
                 <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
                 <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
               </div>
-              <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">\${language || 'text'}</span>
+              <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">${language || 'text'}</span>
             </div>
             <div class="p-4 overflow-x-auto custom-scrollbar">
-              <pre class="text-[13px] text-gray-300 font-mono leading-relaxed inline-block min-w-full"><code class="block">\${code}</code></pre>
+              <pre class="text-[13px] text-gray-300 font-mono leading-relaxed inline-block min-w-full"><code class="block">${code}</code></pre>
             </div>
           </div>\`;
 };
 
-renderer.blockquote = (quote) => \`<blockquote class="border-l-4 border-indigo-400 bg-gradient-to-r from-indigo-50/80 to-transparent italic py-3 px-5 rounded-r-xl my-5 text-gray-600 shadow-sm">\${quote}</blockquote>\`;
+renderer.blockquote = (quote) => \`<blockquote class="border-l-4 border-indigo-400 bg-gradient-to-r from-indigo-50/80 to-transparent italic py-3 px-5 rounded-r-xl my-5 text-gray-600 shadow-sm">${quote}</blockquote>\`;
 
 marked.setOptions({ renderer });
 
