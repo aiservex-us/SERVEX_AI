@@ -232,10 +232,10 @@ const WBDDataMatrix = () => {
   );
 
   return (
-    <div className="min-h-[90vh] bg-gradient-to-br from-[#F8F9FE] to-white p-6 md:p-8 text-slate-800 font-sans antialiased">
+    <div className="min-h-[90vh] bg-slate-50/50 p-6 md:p-8 text-slate-800 font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
         
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#464775]/10 overflow-hidden flex flex-col w-full">
+        <div className="bg-transparent rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col w-full">
           
           {/* Operations / Filters Header */}
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -295,13 +295,13 @@ const WBDDataMatrix = () => {
               <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
+                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-slate-50/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
                     {baseHeaders.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-slate-800 bg-white/80 backdrop-blur-md border-r border-b border-slate-100 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
+                        className="px-3 py-2 text-[11px] font-semibold text-slate-800 bg-slate-50/80 backdrop-blur-md border-r border-b border-slate-100 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
                       >
                         <div className="flex items-center gap-1.5">
                           {header}

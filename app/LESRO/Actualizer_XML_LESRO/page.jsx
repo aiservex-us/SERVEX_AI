@@ -265,7 +265,7 @@ export default function MenuInicial() {
 
             {/* Lado Derecho: Contenido Principal */}
             <div 
-               className={`relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-white
+               className={`relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-slate-50/50
                ${isToolsOpen ? 'w-[50%] opacity-100' : 'w-0 opacity-0'}`}
             >
                 {/* Contenedor interno absoluto para evitar squish en animación */}
