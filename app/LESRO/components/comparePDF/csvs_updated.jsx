@@ -193,7 +193,7 @@ export default function DataViewer() {
                   </tr>
                 </thead>
 
-                <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                <tbody className="bg-transparent divide-y divide-[#F0F0F0]">
                   {filteredData.map((row, idx) => {
                     return (
                       <tr key={idx} className="hover:bg-[#F7F5FA] transition-colors duration-75">

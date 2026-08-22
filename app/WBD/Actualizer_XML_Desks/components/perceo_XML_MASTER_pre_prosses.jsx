@@ -326,7 +326,7 @@ const WBDDataMatrix = () => {
                   </tr>
                 </thead>
 
-                <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                <tbody className="bg-transparent divide-y divide-[#F0F0F0]">
                   <AnimatePresence initial={false}>
                     {paginatedProducts.map((p, idx) => {
                       const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;

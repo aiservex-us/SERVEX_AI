@@ -289,7 +289,7 @@ export default function DataViewer() {
                   </tr>
                 </thead>
 
-                <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                <tbody className="bg-transparent divide-y divide-[#F0F0F0]">
                   {paginatedData.map((row, relativeIdx) => {
                     const absoluteIdx = startIndex + relativeIdx;
                     return (

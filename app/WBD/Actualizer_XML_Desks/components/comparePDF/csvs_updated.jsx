@@ -285,7 +285,7 @@ export default function DataViewer() {
                   </tr>
                 </thead>
 
-                <tbody className="bg-white divide-y divide-[#F0F0F0]">
+                <tbody className="bg-transparent divide-y divide-[#F0F0F0]">
                   {paginatedData.map((row, relativeIdx) => {
                     // Cálculo del índice global real de la fila para que no se reinicie en cada page
                     const absoluteIdx = startIndex + relativeIdx;
