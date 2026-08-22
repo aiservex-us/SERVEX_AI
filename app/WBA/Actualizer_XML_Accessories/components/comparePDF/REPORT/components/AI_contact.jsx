@@ -582,7 +582,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
           ) : (
 
             /* ── MESSAGES ── */
-            <div className="flex flex-col gap-6 py-7">
+            <div className="flex flex-col gap-6 py-7 max-w-4xl mx-auto w-full">
               <AnimatePresence initial={false}>
                 {messages.map((msg, idx) => {
                   const isUser = msg.from === 'user';
