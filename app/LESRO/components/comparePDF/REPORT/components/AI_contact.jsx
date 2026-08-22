@@ -371,7 +371,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       {/* ── MAIN ── */}
       <main ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">
-        <div className="w-full md:w-[90%] xl:w-[85%] max-w-none mx-auto flex flex-col px-5 min-h-full">
+        <div className="w-full max-w-[820px] mx-auto flex flex-col px-5 min-h-full">
 
           {messages.length === 0 ? (
 
@@ -623,7 +623,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         <motion.div 
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="w-full md:w-[90%] xl:w-[85%] max-w-none mx-auto bg-white/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-gray-200/80 rounded-full relative focus-within:border-indigo-400 focus-within:shadow-[0_4px_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex items-center pr-2 pl-4 py-2"
+          className="w-full max-w-[820px] mx-auto bg-white/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-gray-200/80 rounded-full relative focus-within:border-indigo-400 focus-within:shadow-[0_4px_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex items-center pr-2 pl-4 py-2"
         >
           {/* Main Action Icon */}
           <button
