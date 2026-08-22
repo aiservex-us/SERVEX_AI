@@ -20,17 +20,7 @@ const BRAND_COLORS = ['#464775', '#0078D4', '#605E5C', '#A80000', '#107C10', '#D
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
-    
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.15 } }
-  };
-  const itemVariants = {
-    hidden: { opacity: 0, y: 40 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 60, damping: 15 } }
-  };
-
-  return (
+    return (
       <div className="bg-white border border-[#EDEBE9] p-3 shadow-md text-[#242424] text-xs" style={{ borderRadius: '4px' }}>
         <p className="font-semibold mb-2 pb-1 border-b border-[#EDEBE9] text-[#464775]">
           {label || payload[0]?.payload?.name || 'Data'}
@@ -53,6 +43,15 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 const ViewportGraphics = () => {
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.15 } }
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 40 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 60, damping: 15 } }
+  };
   const pathname = usePathname();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
