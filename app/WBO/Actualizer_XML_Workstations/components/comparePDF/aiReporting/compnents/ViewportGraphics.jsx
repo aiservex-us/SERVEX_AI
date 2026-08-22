@@ -469,7 +469,7 @@ const ViewportGraphics = () => {
             </CardContainer>
           {/* 1. Catalog Stability Index */}
             <CardContainer 
-              colSpan={1} 
+              colSpan={2} 
               title="Catalog Stability Index" 
               explanation="Gauge showing the proportion of the catalog that remained untouched vs modified. A higher 'Untouched' arc indicates operational stability."
               summaryNode={
@@ -570,7 +570,7 @@ const ViewportGraphics = () => {
             
             {/* 5. Price Deviation Quadrant */}
             <CardContainer 
-              colSpan={1} 
+              colSpan={2} 
               title="Price Deviation Quadrant" 
               explanation="A matrix plotting original price vs percentage variation. Helps answer: Are huge percentage jumps happening on cheap items (low risk) or expensive ones (high risk)?"
               summaryNode={
