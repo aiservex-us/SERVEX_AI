@@ -494,18 +494,28 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                         </div>
 
                         <motion.div 
-                          whileHover={{y: -1 }}
-                          className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
+                          whileHover={{ y: -1 }}
+                          className={`px-5 py-4 rounded-2xl text-[14px] leading-relaxed relative overflow-hidden transition-all
                           ${isUser
-                            ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
-                            : 'bg-white/40 backdrop-blur-2xl text-gray-800 rounded-tl-sm border border-white/50 shadow-md'
+                            ? 'bg-[#464775] text-white rounded-tr-sm shadow-md'
+                            : 'bg-white/50 backdrop-blur-3xl text-slate-800 rounded-tl-sm border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.06)]'
                           }`}
                         >
-                          {msg.from === "bot" ? (
-                            <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
-                          ) : (
-                            <p className="whitespace-pre-wrap m-0">{msg.text}</p>
+                          {!isUser && (
+                            <>
+                              <div className="absolute top-0 left-0 w-[4px] h-full bg-gradient-to-b from-[#464775] to-indigo-400" />
+                              <div className="absolute inset-0 bg-gradient-to-br from-[#464775]/[0.03] to-transparent pointer-events-none" />
+                              <div className="absolute -top-10 -right-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+                            </>
                           )}
+                          
+                          <div className="relative z-10">
+                            {msg.from === "bot" ? (
+                              <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
+                            ) : (
+                              <p className="whitespace-pre-wrap m-0">{msg.text}</p>
+                            )}
+                          </div>
                         </motion.div>
                       </div>
                     </motion.div>
