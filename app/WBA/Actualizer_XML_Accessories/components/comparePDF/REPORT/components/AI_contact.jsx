@@ -157,7 +157,7 @@ const BotMessage =
 
   return (
     <div
-      className="text-sm font-sans flex flex-col gap-1 w-full max-w-full"
+      className="text-sm font-sans flex flex-col gap-1 w-full max-w-full overflow-x-auto overflow-y-hidden prose-light"
       dangerouslySetInnerHTML={{__html: marked.parse(displayedText) }}
     />
   );
@@ -684,13 +684,13 @@ if (queryToSend.toLowerCase() === '/importbase') {
 
                         <motion.div 
                           whileHover={{ y: -1 }}
-                          className={`py-2 text-[14.5px] leading-relaxed relative transition-all
+                          className={`py-2 text-[14.5px] leading-relaxed relative transition-all max-w-full overflow-hidden
                           ${isUser
                             ? 'bg-[#464775] text-white rounded-2xl rounded-tr-sm shadow-md px-5 py-3'
                             : 'bg-transparent text-slate-800 px-1'
                           }`}
                         >
-                          <div className="relative z-10">
+                          <div className="relative z-10 max-w-full overflow-hidden">
                             {msg.from === "bot" ? (
                               <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
                             ) : (
@@ -893,7 +893,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
         }
 
                 .prose-light table {
-          width: 100%; border-collapse: collapse; margin: 16px 0;
+          width: 100%; max-width: 100%; border-collapse: collapse; margin: 16px 0;
           font-size: 12.5px; border-radius: 8px; overflow: hidden;
           box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;
           display: block; overflow-x: auto; white-space: nowrap;
