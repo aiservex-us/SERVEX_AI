@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import DeleteData from './components/delete_data';
 import InsertXML from './components/incertXML';
 
 const IncertData = () => {
@@ -19,10 +18,7 @@ const IncertData = () => {
           </div>
         </section>
 
-        {/* Sección de Eliminación */}
-        <section className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-          <DeleteData />
-        </section>
+        
         
       </div>
     </div>

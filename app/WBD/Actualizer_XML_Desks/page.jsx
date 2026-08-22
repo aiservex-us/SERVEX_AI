@@ -20,6 +20,7 @@ import Compare from './components/comparePDF/UploadFileCmpare.jsx'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
 import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
+import DeleteData from './components/comparePDF/IncertData/components/delete_data';
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
@@ -121,6 +122,7 @@ export default function MenuInicial() {
     switch (active) {
       case 'dashboard': return <Dashboard />;
       case 'incert_delete': return <IncertDelete />;
+                    case 'delete_data': return <div className="w-full max-w-sm"><DeleteData /></div>;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;

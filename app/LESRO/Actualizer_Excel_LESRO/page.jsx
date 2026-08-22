@@ -11,6 +11,7 @@ import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
 import XMLResultsLESRO from './components/XML_Results_LESRO.jsx';
 import CETComparator from './components/CET_Comparator.jsx';
+import DeleteData from '../components/comparePDF/IncertData/components/delete_data';
 
 
 export default function ExcelActualizer() {

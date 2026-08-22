@@ -22,7 +22,8 @@ const SLASH_COMMANDS = [
   {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
   {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
 ,
-  { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data' }
+  { { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data' },
+  id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data' }
 ];
 
 const QUICK_PROMPTS = [
@@ -176,7 +177,15 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       setTimeout(() => scrollToBottom(true), 100);
       return;
     }
-    if (queryToSend.toLowerCase() === '/importbase') {
+        if (queryToSend.toLowerCase() === '/deletedata') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo panel de eliminación de datos...', isNew: true }, { from: 'tool', toolId: 'delete_data' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+if (queryToSend.toLowerCase() === '/importbase') {
       setTimeout(() => {
         setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos en el chat...', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
         setIsLoading(false);
