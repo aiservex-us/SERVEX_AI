@@ -433,7 +433,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
         
         await response.json();
         setMessages(prev => [...prev, {from: "bot", text: "✅ ETL process completed successfully! The catalog has been restructured and compared. You can now review the audit in 'List Price Changes'.", time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
-        window.dispatchEvent(new CustomEvent('navigateTo', {detail: 'report' }));
+        setTimeout(() => { sendMessage('/listPriceChanges'); }, 1500);
       } catch (err) {
         setMessages(prev => [...prev, {from: "bot", text: `❌ Error during ETL process execution: ${err.message}`, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
       }
