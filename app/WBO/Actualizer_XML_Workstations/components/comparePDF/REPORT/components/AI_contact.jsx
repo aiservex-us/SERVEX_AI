@@ -504,7 +504,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                       </motion.div>
 
                       {/* Bubble col */}
-                      <div className={`flex flex-col min-w-0 max-w-[88%] md:max-w-[85%] gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
+                      <div className={`flex flex-col min-w-0 gap-1 ${isUser ? 'items-end max-w-[85%] md:max-w-[75%]' : 'items-start max-w-[85%] md:max-w-[60%] flex-1'}`}>
                         <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                           <span className="text-[12px] font-semibold text-gray-800">
                             {isUser ? 'You' : selectedAgent.agent_name}
@@ -517,7 +517,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           className={`px-4 py-3 rounded-2xl text-[13.5px] leading-relaxed shadow-sm relative
                           ${isUser
                             ? 'bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
-                            : 'bg-white/80 backdrop-blur-md text-gray-800 rounded-tl-sm border border-white/60'
+                            : 'bg-white/40 backdrop-blur-2xl text-gray-800 rounded-tl-sm border border-white/50 shadow-md'
                           }`}
                         >
                           {msg.from === "bot" ? (
