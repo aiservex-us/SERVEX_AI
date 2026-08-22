@@ -181,6 +181,36 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
   };
 
+  useEffect(() => {
+    const checkDbPhase = async () => {
+      try {
+        const moduleMatch = window.location.pathname.match(/^\/(WB[A-Z]|LESRO)/i);
+        const modName = moduleMatch ? moduleMatch[1].toUpperCase() : 'WBS';
+        const tableName = modName === 'LESRO' ? 'ClientsSERVEX_LESRO' : `ClientsSERVEX_${modName}`;
+        
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('xml_raw, xml_actualizer_raw')
+          .eq('company_name', modName)
+          .maybeSingle();
+
+        if (data) {
+          if (data.xml_actualizer_raw) {
+             setUnlockedPhase(4);
+             localStorage.setItem('alysa_phase_' + modName, 4);
+          }
+          else if (data.xml_raw) {
+             setUnlockedPhase(3);
+             localStorage.setItem('alysa_phase_' + modName, 3);
+          }
+        }
+      } catch (err) {
+        console.error("Error validando la fase en DB:", err);
+      }
+    };
+    checkDbPhase();
+  }, []);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
