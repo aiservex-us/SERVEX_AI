@@ -100,6 +100,22 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const [showSlashMenu, setShowSlashMenu] = useState(false);
 
   const messagesEndRef = useRef(null);
+
+  // Global chat message listener
+  useEffect(() => {
+    const handleGlobalMessage = (e) => {
+      const { from, text, toolId } = e.detail;
+      setMessages(prev => [...prev, { from, text, toolId, isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }]);
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    };
+    window.addEventListener('globalChatMessage', handleGlobalMessage);
+    return () => window.removeEventListener('globalChatMessage', handleGlobalMessage);
+  }, []);
+
   const inputRef = useRef(null);
   const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
 

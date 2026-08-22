@@ -308,6 +308,7 @@ export default function UploadClientXML() {
         setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
       } else {
         setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
+      window.dispatchEvent(new CustomEvent('globalChatMessage', { detail: { from: 'bot', text: `💾 ¡Éxito! Los datos del catálogo para ${companyName} han sido saneados y almacenados en la nube correctamente.` } }));
         setXmlContent('');
         setCsvContent('');
         setCsvNewContent('');
