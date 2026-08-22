@@ -216,10 +216,10 @@ const WBDDataMatrix = () => {
   );
 
   return (
-    <div className="min-h-[90vh] bg-slate-50/50 p-6 md:p-8 text-slate-800 font-sans antialiased">
+    <div className="min-h-[90vh] bg-transparent relative z-10 p-6 md:p-8 text-slate-800 font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
         
-        <div className="bg-transparent rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col w-full">
+        <div className="bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm overflow-hidden flex flex-col w-full">
           
           {/* Operations / Filters Header */}
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">

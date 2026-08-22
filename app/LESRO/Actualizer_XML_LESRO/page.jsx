@@ -270,6 +270,13 @@ export default function MenuInicial() {
             >
                 {/* Contenedor interno absoluto para evitar squish en animación */}
                 <div className="absolute top-0 left-0 w-full h-full flex flex-col overflow-hidden min-w-[500px]">
+                {/* ── BACKGROUND ORBS (Matching Chat) ── */}
+                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-slate-50/50">
+                  <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-200/20 blur-[80px] orb-ring-1" />
+                  <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-200/20 blur-[100px] orb-ring-2" />
+                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.015] mix-blend-overlay" />
+                </div>
+
                   
                   {/* Toolbar Superior */}
                   <div className="hidden md:block absolute top-3 right-4 z-[90]">
