@@ -191,7 +191,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const { data, error } = await supabase
           .from(tableName)
           .select('xml_raw, xml_actualizer_raw')
-          .eq('company_name', modName)
+          .eq('company_name', 'Servex US')
           .maybeSingle();
 
         if (data) {
