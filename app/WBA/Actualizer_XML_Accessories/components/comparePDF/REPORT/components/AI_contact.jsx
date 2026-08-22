@@ -317,7 +317,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
 
     try {
       // Mapear el historial de messages al formato esperado por el backend
-      const historyPayload = messages.map(msg => ({
+      const historyPayload = messages.filter(msg => msg.text).map(msg => ({
         role: msg.from === "user" ? "user" : "assistant",
         content: msg.text
       }));
@@ -327,7 +327,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
       const res = await fetch(`${apiURL}/wba/api/v1/agent/chat`, {
         method: "POST",
         headers: {"Content-Type": "application/json" },
-        body: JSON.stringify({messages: historyPayload, raw_messages: [...messages, {from: "user", text: queryToSend, time: now }], company_name: context, current_section: currentSection }),
+        body: JSON.stringify({messages: historyPayload, raw_messages: [...messages.filter(msg => msg.text), {from: "user", text: queryToSend, time: now }], company_name: context, current_section: currentSection }),
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });

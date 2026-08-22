@@ -301,7 +301,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
 
     try {
       // Mapear el historial de messages al formato esperado por el backend
-      const historyPayload = messages.map(msg => ({
+      const historyPayload = messages.filter(msg => msg.text).map(msg => ({
         role: msg.from === "user" ? "user" : "assistant",
         content: msg.text
       }));
