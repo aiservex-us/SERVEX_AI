@@ -6,19 +6,21 @@ import InsertXML from './components/incertXML';
 
 const IncertData = () => {
   return (
-    <div className="p-8 max-w-8xl mx-auto space-y-8 font-sans">
-      <div className="flex flex-col gap-8">
+    <div className="w-full max-w-2xl mx-auto p-3 sm:p-4 space-y-3 font-sans bg-transparent">
+      <div className="flex items-center gap-2 mb-1 pb-2 border-b border-slate-200/60">
+         <h3 className="text-[13px] font-bold text-slate-700 tracking-wide uppercase">Injestión de Datos (ImportBase)</h3>
+      </div>
+      <div className="flex flex-col gap-3">
         
-        {/* Sección de Inserción XML y CSVs (Unified) */}
-        <section className="relative bg-white p-6 rounded-xl border border-gray-100 shadow-sm overflow-hidden min-h-[600px]">
-          
+        {/* Sección de Inserción XML y CSVs */}
+        <section className="relative bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div className="w-full">
             <InsertXML />
           </div>
         </section>
 
         {/* Sección de Eliminación */}
-        <section className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+        <section className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-sm">
           <DeleteData />
         </section>
         
