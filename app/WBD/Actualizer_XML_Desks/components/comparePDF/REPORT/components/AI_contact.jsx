@@ -22,8 +22,8 @@ const SLASH_COMMANDS = [
   {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
   {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
 ,
-  { { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data' },
-  id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data' }
+  { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data' },
+  { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data' }
 ];
 
 const QUICK_PROMPTS = [
