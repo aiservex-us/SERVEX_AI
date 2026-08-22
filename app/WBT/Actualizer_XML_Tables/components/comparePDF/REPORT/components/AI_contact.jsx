@@ -22,12 +22,7 @@ const SLASH_COMMANDS = [
   {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
   {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
 ,
-  { 
-    name: '/saveCatalog', 
-    desc: 'Save uploaded XML/CSV Data', 
-    action: () => console.log('saveCatalog'),
-    icon: <Database size={13} />
-  }
+  { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data' }
 ];
 
 const QUICK_PROMPTS = [
@@ -174,6 +169,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     setCharCount(0);
     setIsLoading(true);
     // WIDGET TOOL HANDLERS
+        if (queryToSend.toLowerCase() === '/savecatalog') {
+      window.dispatchEvent(new CustomEvent('saveCatalogData'));
+      setMessages(prev => [...prev, { from: 'bot', text: '✅ Ejecutando el proceso de guardado y saneamiento de datos en la nube...', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
+      setIsLoading(false);
+      setTimeout(() => scrollToBottom(true), 100);
+      return;
+    }
     if (queryToSend.toLowerCase() === '/importbase') {
       setTimeout(() => {
         setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos en el chat...', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
@@ -182,13 +184,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }, 500);
       return;
 
-    if (queryToSend.toLowerCase() === '/savecatalog') {
-      window.dispatchEvent(new CustomEvent('saveCatalogData'));
-      setMessages(prev => [...prev, { from: 'bot', text: '✅ Ejecutando el proceso de guardado y saneamiento de datos en la nube...', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
-      setIsLoading(false);
-      setTimeout(() => scrollToBottom(true), 100);
-      return;
-    }
+
     }
     if (queryToSend.toLowerCase() === '/listpricechanges') {
       setTimeout(() => {
