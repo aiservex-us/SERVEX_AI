@@ -14,16 +14,15 @@ import {
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
-  {id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML' },
-  {id: 'prices', icon: BrainCircuit, label: '/listPriceChanges', desc: 'List Price Changes' },
-  {id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard' },
-  {id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Resumen' },
-  {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)' },
-  {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result' },
-  {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum' },
-,
-  { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data' },
-  { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data' }
+  {id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML', phase: 1 },
+  { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data', phase: 2 },
+  { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2 },
+  {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3 },
+  {id: 'prices', icon: BrainCircuit, label: '/listPriceChanges', desc: 'List Price Changes', phase: 4 },
+  {id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard', phase: 4 },
+  {id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Resumen', phase: 4 },
+  {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result', phase: 4 },
+  {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum', phase: 4 }
 ];
 
 const QUICK_PROMPTS = [
@@ -166,6 +165,22 @@ const BotMessage =
 
 export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolPanel }) {
   const [selectedAgent] = useState({agent_name: "Alysa", role: "AI Engine" });
+  const getInitialPhase = () => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('alysa_phase_' + window.location.pathname.split('/')[1]);
+      if (stored) return parseInt(stored, 10);
+    }
+    return 1;
+  };
+  const [unlockedPhase, setUnlockedPhase] = useState(getInitialPhase);
+
+  const updatePhase = (newPhase) => {
+    setUnlockedPhase(newPhase);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('alysa_phase_' + window.location.pathname.split('/')[1], newPhase);
+    }
+  };
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -261,7 +276,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     setCharCount(0);
     setIsLoading(true);
     // WIDGET TOOL HANDLERS
-        if (queryToSend.toLowerCase() === '/savecatalog') {
+        const qLower = queryToSend.toLowerCase();
+    if (qLower === '/importbase' && unlockedPhase < 2) updatePhase(2);
+    if (qLower === '/savecatalog' && unlockedPhase < 3) updatePhase(3);
+    if (qLower === '/executeprocess' && unlockedPhase < 4) updatePhase(4);
+    if (qLower === '/deletedata') updatePhase(1);
+
+    if (queryToSend.toLowerCase() === '/savecatalog') {
       window.dispatchEvent(new CustomEvent('saveCatalogData'));
       setMessages(prev => [...prev, { from: 'bot', text: '✅ Ejecutando el proceso de guardado y saneamiento de datos en la nube...', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
       setIsLoading(false);
@@ -719,7 +740,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
                 <div className="px-2 py-1 text-[8px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-0.5">
                   Audit Commands
                 </div>
-                {SLASH_COMMANDS.map((cmd) => (
+                {SLASH_COMMANDS.filter(cmd => cmd.phase <= unlockedPhase).map((cmd) => (
                   <button
                     key={cmd.id}
                     onClick={() => handleCommandSelect(cmd.label)}
