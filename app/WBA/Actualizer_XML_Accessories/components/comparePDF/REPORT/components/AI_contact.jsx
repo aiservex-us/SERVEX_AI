@@ -26,8 +26,8 @@ const SLASH_COMMANDS = [
 ];
 
 const QUICK_PROMPTS = [
-  {icon: Shield, label: "RBAC Permissions", q: "How do I configure RBAC permissions on the platform?" },
-  {icon: Activity, label: "ETL Flows", q: "Explain the architecture of the available ETL flows." },
+  {icon: BarChart2, label: "Accessories Analysis", q: "Generate a summary of the most critical price variations in the Accessories catalog." },
+  {icon: Database, label: "WBA Integrity", q: "Verify the structure and alignment of the WBA master XML." },
 ];
 
 
