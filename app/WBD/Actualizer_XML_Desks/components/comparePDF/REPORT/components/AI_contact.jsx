@@ -224,6 +224,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const [context, setContext] = useState('Servex US');
   const [charCount, setCharCount] = useState(0);
   const [showSlashMenu, setShowSlashMenu] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState(null);
 
   const messagesEndRef = useRef(null);
 
