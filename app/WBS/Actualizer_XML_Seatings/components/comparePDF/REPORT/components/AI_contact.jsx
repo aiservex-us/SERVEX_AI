@@ -23,7 +23,9 @@ const SLASH_COMMANDS = [
   {id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard', phase: 4 },
   {id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Resumen', phase: 4 },
   {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result', phase: 4 },
-  {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum', phase: 4 }
+  {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum', phase: 4 },
+  {id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4 },
+  {id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4 }
 ];
 
 const QUICK_PROMPTS = [
@@ -347,6 +349,22 @@ if (queryToSend.toLowerCase() === '/importbase') {
       return;
 
 
+    }
+    if (queryToSend.toLowerCase() === '/exportcetcsv') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo panel de Resultados y Exportación CSV de CET...', isNew: true }, { from: 'tool', toolId: 'exportCETcsv' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+    if (queryToSend.toLowerCase() === '/comparecet') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo el Comparador CET...', isNew: true }, { from: 'tool', toolId: 'compareCET' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
     }
     if (queryToSend.toLowerCase() === '/listpricechanges') {
       setTimeout(() => {

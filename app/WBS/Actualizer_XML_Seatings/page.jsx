@@ -24,6 +24,7 @@ import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
 import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
 import DeleteData from './components/comparePDF/IncertData/components/delete_data';
+import CETComparator from '../Actualizer_Excel_Seatings/components/CET_Comparator.jsx';
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
@@ -294,6 +295,8 @@ export default function MenuInicial() {
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
                     case 'AI_reporter': return <Responce_ai />;
+                    case 'exportCETcsv': return <XMLResultsWBS />;
+                    case 'compareCET': return <CETComparator />;
                     default: return null;
                   }
                 }}
