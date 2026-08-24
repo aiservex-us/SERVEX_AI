@@ -250,13 +250,13 @@ export default function UploadClientXML() {
                     onDragLeave={() => setDragActive(false)}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
+                    className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
                       ${dragActive ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingXml ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-1.5 text-[#5B5FC7] animate-spin" size={20} />
                     ) : (
-                      <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
+                      <UploadCloud className={`mx-auto mb-1.5 ${dragActive ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
                     )}
                     <p className="text-[10px] font-bold text-[#242424]">{readingXml ? 'Reading...' : 'Upload XML'}</p>
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => {
@@ -270,13 +270,13 @@ export default function UploadClientXML() {
                     onDragLeave={() => setDragActiveCSV(false)}
                     onDrop={handleDropCSV}
                     onClick={() => csvInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
+                    className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
                       ${dragActiveCSV ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingCsv ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-1.5 text-[#5B5FC7] animate-spin" size={20} />
                     ) : (
-                      <FileSpreadsheet className={`mx-auto mb-2 ${dragActiveCSV ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
+                      <FileSpreadsheet className={`mx-auto mb-1.5 ${dragActiveCSV ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
                     )}
                     <p className="text-[10px] font-bold text-[#242424]">{readingCsv ? 'Reading...' : 'Upload CSV'}</p>
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
@@ -290,13 +290,13 @@ export default function UploadClientXML() {
                     onDragLeave={() => setDragActiveCsvPdf(false)}
                     onDrop={handleDropCsvPdf}
                     onClick={() => csvPdfInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer
+                    className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
                       ${dragActiveCsvPdf ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingCsvPdf ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#5B5FC7] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-1.5 text-[#5B5FC7] animate-spin" size={20} />
                     ) : (
-                      <FileType className={`mx-auto mb-2 ${dragActiveCsvPdf ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
+                      <FileType className={`mx-auto mb-1.5 ${dragActiveCsvPdf ? 'text-[#5B5FC7]' : 'text-gray-400'}`} size={20} />
                     )}
                     <p className="text-[10px] font-bold text-[#242424]">{readingCsvPdf ? 'Reading...' : 'Upload CSV (PDF)'}</p>
                     <input ref={csvPdfInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => {
