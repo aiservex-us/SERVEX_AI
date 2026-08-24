@@ -176,18 +176,19 @@ export default function MenuInicial() {
       <div
         className={`fixed inset-0 z-[9999] pointer-events-none transition-all duration-500 ease-out flex items-center justify-center bg-white/40 backdrop-blur-md ${!isIntroDismissed ? 'opacity-100' : 'opacity-0'}`}
       >
-        <div className="flex items-center justify-center h-full w-full p-6">
+        <div className="flex items-center justify-center h-full w-full p-4 sm:p-6">
           <div className={`
             bg-white border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] 
-            rounded-3xl w-full max-w-4xl p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-16
-            transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden relative
+            rounded-3xl w-full max-w-4xl p-6 md:p-8 lg:p-12 flex flex-col lg:flex-row items-center gap-6 md:gap-10 lg:gap-16
+            transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] relative
+            max-h-[90vh] overflow-y-auto custom-scrollbar
             ${!isIntroDismissed ? 'translate-y-0 scale-100 opacity-100 pointer-events-auto' : 'translate-y-12 scale-95 opacity-0 pointer-events-none'}
           `}>
 
             {/* Close Button */}
             <button
               onClick={() => setIsIntroDismissed(true)}
-              className="absolute top-6 right-6 p-2 rounded-full text-slate-300 hover:text-slate-600 hover:bg-slate-50 transition-colors z-20"
+              className="absolute top-4 right-4 md:top-6 md:right-6 p-2 rounded-full text-slate-300 hover:text-slate-600 hover:bg-slate-50 transition-colors z-20"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -203,7 +204,7 @@ export default function MenuInicial() {
               <img
                 src="/alysa_lg.png"
                 alt="Logo"
-                className="w-72 lg:w-80 h-auto object-contain drop-shadow-2xl mb-8 transition-transform duration-700 hover:scale-105"
+                className="w-48 md:w-64 lg:w-80 h-auto object-contain drop-shadow-2xl mb-4 md:mb-8 transition-transform duration-700 hover:scale-105"
               />
               <div className="text-center">
                 <h3 className="text-[#464775] text-lg lg:text-xl font-extralight tracking-[0.25em]">
@@ -225,12 +226,12 @@ export default function MenuInicial() {
                 <span className="text-[9px] font-bold tracking-widest text-[#464775] uppercase">Powered by SVX</span>
               </div>
 
-              <h2 className="text-2xl lg:text-3xl font-light text-slate-800 tracking-tight mb-5 leading-tight">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-light text-slate-800 tracking-tight mb-4 md:mb-5 leading-tight">
                 Weeks of work.<br />
                 <strong className="font-semibold text-[#464775]">Done in seconds.</strong>
               </h2>
 
-              <p className="text-sm text-slate-500 leading-relaxed font-light mb-8">
+              <p className="text-xs md:text-sm text-slate-500 leading-relaxed font-light mb-6 md:mb-8 text-justify md:text-left">
                 Through a few simple actions, our system fully automates <strong className="font-medium text-slate-700">3 weeks of manual analysis, data comparison, updating, and strict verification</strong>.
                 The entire operational lifecycle that previously took weeks is now flawlessly executed in mere seconds by <strong className="font-semibold text-slate-700">Alysa Servex Copilot</strong>.
               </p>
