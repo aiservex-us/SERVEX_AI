@@ -1,6 +1,7 @@
 'use client';
 import XMLResultsLESRO from '../Actualizer_Excel_LESRO/components/XML_Results_LESRO.jsx';
 import ImportCETXml from '../Actualizer_Excel_LESRO/components/IncertDataExcel/incertXML_excel';
+import CETComparator from '../Actualizer_Excel_LESRO/components/CET_Comparator.jsx';
 
 
 import { useState, useEffect } from 'react';
@@ -97,13 +98,10 @@ export default function MenuInicial() {
 
     switch (active) {
       case 'dashboard': return <Dashboard />;
-      case 'incert_delete': return <IncertDelete />;
-      
-        case 'import_cet_xml': return (
-          <div className="w-full h-full p-2 overflow-y-auto">
-            <ImportCETXml moduleName="LESRO" />
-          </div>
-        );
+                          case 'incert_delete': return <IncertDelete />;
+                    case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="LESRO" /></div>;
+                    case 'exportCETcsv': return <XMLResultsLESRO />;
+                    case 'compareCET': return <CETComparator />;
                     case 'xml_results': return <XMLResultsLESRO />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
@@ -263,7 +261,10 @@ export default function MenuInicial() {
                 onOpenToolPanel={handleSetActive}
                 renderTool={(toolId) => {
                   switch (toolId) {
-                    case 'incert_delete': return <IncertDelete />;
+                                        case 'incert_delete': return <IncertDelete />;
+                    case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="LESRO" /></div>;
+                    case 'exportCETcsv': return <XMLResultsLESRO />;
+                    case 'compareCET': return <CETComparator />;
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
                     case 'AI_reporter': return <Responce_ai />;

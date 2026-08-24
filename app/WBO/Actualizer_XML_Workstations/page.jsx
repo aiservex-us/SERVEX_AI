@@ -1,6 +1,7 @@
 'use client';
 import XMLResultsWBO from '../Actualizer_Excel_Workstations/components/XML_Results_WBO.jsx';
 import ImportCETXml from '../Actualizer_Excel_Workstations/components/IncertDataExcel/incertXML_excel';
+import CETComparator from '../Actualizer_Excel_Workstations/components/CET_Comparator.jsx';
 
 
 import { useState, useEffect } from 'react';
@@ -123,13 +124,10 @@ export default function MenuInicial() {
 
     switch (active) {
       case 'dashboard': return <Dashboard />;
-      case 'incert_delete': return <IncertDelete />;
-      
-        case 'import_cet_xml': return (
-          <div className="w-full h-full p-2 overflow-y-auto">
-            <ImportCETXml moduleName="WBO" />
-          </div>
-        );
+                          case 'incert_delete': return <IncertDelete />;
+                    case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="WBO" /></div>;
+                    case 'exportCETcsv': return <XMLResultsWBO />;
+                    case 'compareCET': return <CETComparator />;
                     case 'xml_results': return <XMLResultsWBO />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
@@ -288,7 +286,10 @@ export default function MenuInicial() {
                 onOpenToolPanel={handleSetActive}
                 renderTool={(toolId) => {
                   switch (toolId) {
-                    case 'incert_delete': return <IncertDelete />;
+                                        case 'incert_delete': return <IncertDelete />;
+                    case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="WBO" /></div>;
+                    case 'exportCETcsv': return <XMLResultsWBO />;
+                    case 'compareCET': return <CETComparator />;
                     case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
