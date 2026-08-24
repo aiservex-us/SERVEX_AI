@@ -1,11 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FaArrowRight, FaStar, FaRobot } from 'react-icons/fa';
-import { FileCode, FileSpreadsheet, ArrowRight, Sparkles } from 'lucide-react';
+import { FileCode, FileSpreadsheet, ArrowRight, Sparkles , X, AlertCircle} from 'lucide-react';
 
 const HeroSection = () => {
+  const router = useRouter();
+  const [showExitModal, setShowExitModal] = useState(false);
+
   return (
     /* Responsiveness Adjustments on Parent:
       - Changed `min-h-[60vh]` to `min-h-fit` to prevent content overflow on mobile.
