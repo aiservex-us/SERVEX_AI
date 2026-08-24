@@ -126,13 +126,7 @@ export default function MenuInicial() {
     switch (active) {
       case 'dashboard': return <Dashboard />;
       case 'incert_delete': return <IncertDelete />;
-      
-        case 'import_cet_xml': return (
-          <div className="w-full h-full p-2 overflow-y-auto">
-            <ImportCETXml moduleName="WBS" />
-          </div>
-        );
-                    case 'xml_results': return <XMLResultsWBS />;
+      case 'xml_results': return <XMLResultsWBS />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
@@ -291,6 +285,7 @@ export default function MenuInicial() {
                 renderTool={(toolId) => {
                   switch (toolId) {
                     case 'incert_delete': return <IncertDelete />;
+                    case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="WBS" /></div>;
                     case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
