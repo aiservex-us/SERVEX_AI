@@ -140,9 +140,7 @@ const BotMessage =
       finalStr = newText.join('\n');
     }
     
-    // Inject interactive command buttons BEFORE parsing markdown
-    const COMMANDS_REGEX = /(\/(?:importCETxml|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
-    finalStr = finalStr.replace(COMMANDS_REGEX, '<button class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md hover:bg-indigo-100 font-medium transition-colors cursor-pointer inline-flex items-center gap-1 mx-0.5 alysa-cmd-btn shadow-sm border border-indigo-100/50" data-cmd="$1">$1</button>');
+
 
     return finalStr;
   }, [text]);
@@ -167,6 +165,21 @@ const BotMessage =
     return () => clearInterval(intervalId);
   }, [processedText, isNew, onType]);
 
+
+  const htmlContent = useMemo(() => {
+    let html = "";
+    if (typeof displayedText === 'string') {
+        html = marked.parse(displayedText);
+    } else {
+        html = marked.parse(String(displayedText || ""));
+    }
+    
+    // Inject interactive command buttons AFTER parsing markdown
+    const COMMANDS_REGEX = /(\/(?:importCETxml|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
+    html = html.replace(COMMANDS_REGEX, '<button class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md hover:bg-indigo-100 font-medium transition-colors cursor-pointer inline-flex items-center gap-1 mx-0.5 alysa-cmd-btn shadow-sm border border-indigo-100/50" data-cmd="$1">$1</button>');
+    return html;
+  }, [displayedText]);
+
   const handleClick = (e) => {
     const btn = e.target.closest('.alysa-cmd-btn');
     if (btn && onCommandSelect) {
@@ -179,7 +192,7 @@ const BotMessage =
     <div
       onClick={handleClick}
       className="text-sm font-sans flex flex-col gap-1 w-full max-w-full overflow-x-auto overflow-y-hidden prose-light"
-      dangerouslySetInnerHTML={{__html: marked.parse(displayedText) }}
+      dangerouslySetInnerHTML={{__html: htmlContent }}
     />
   );
 };
