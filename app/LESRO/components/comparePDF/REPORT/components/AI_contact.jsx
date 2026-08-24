@@ -789,37 +789,46 @@ if (queryToSend.toLowerCase() === '/importbase') {
                     return acc;
                   }, {})
                 ).map(([category, commands]) => (
-                  <div key={category} className="mb-2 last:mb-0 border border-slate-100 rounded-lg overflow-hidden">
+                  <div key={category} className="mb-1 last:mb-0 overflow-hidden">
                     <button
                       onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
-                      className="w-full flex items-center justify-between px-2 py-1.5 bg-slate-50 hover:bg-indigo-50 transition-colors"
+                      className="w-full flex items-center justify-between px-2 py-2 hover:bg-gray-50 transition-colors rounded-md"
                     >
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-indigo-500">
+                      <span className="text-[10px] font-semibold text-gray-500 tracking-wide">
                         {category}
                       </span>
-                      <ChevronDown size={14} className={`text-indigo-400 transition-transform duration-300 ${expandedCategory === category ? 'rotate-180' : ''}`} />
+                      <ChevronDown size={14} className={`text-gray-400 transition-transform duration-300 ${expandedCategory === category ? 'rotate-180' : ''}`} />
                     </button>
                     
-                    {/* AnimatePresence for smooth accordion (optional, using simple conditional here to ensure it works) */}
-                    {expandedCategory === category && (
-                      <div className="p-1 bg-white border-t border-slate-100">
-                        {commands.map((cmd) => (
-                          <button
-                            key={cmd.id}
-                            onClick={() => handleCommandSelect(cmd.label)}
-                            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-left group mb-0.5 last:mb-0"
-                          >
-                            <div className="w-6 h-6 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500 flex-shrink-0 transition-colors">
-                              <cmd.icon size={13} />
-                            </div>
-                            <div className="flex flex-col overflow-hidden">
-                              <span className="text-[11px] font-medium text-gray-600 group-hover:text-indigo-700 truncate">{cmd.label}</span>
-                              <span className="text-[8px] text-gray-400 group-hover:text-indigo-400 truncate">{cmd.desc}</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    <AnimatePresence>
+                      {expandedCategory === category && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: "easeInOut" }}
+                          className="overflow-hidden"
+                        >
+                          <div className="p-1 pl-3 bg-white">
+                            {commands.map((cmd) => (
+                              <button
+                                key={cmd.id}
+                                onClick={() => handleCommandSelect(cmd.label)}
+                                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-gray-50 transition-colors text-left group mb-0.5 last:mb-0"
+                              >
+                                <div className="text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0">
+                                  <cmd.icon size={13} strokeWidth={2} />
+                                </div>
+                                <div className="flex flex-col overflow-hidden">
+                                  <span className="text-[11px] font-medium text-gray-600 group-hover:text-gray-900 truncate transition-colors">{cmd.label}</span>
+                                  <span className="text-[9px] text-gray-400 group-hover:text-gray-500 truncate transition-colors">{cmd.desc}</span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 ))}
               </div>
