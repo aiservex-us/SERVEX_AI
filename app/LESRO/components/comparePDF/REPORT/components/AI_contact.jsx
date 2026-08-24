@@ -780,24 +780,47 @@ if (queryToSend.toLowerCase() === '/importbase') {
               transition={{type: "spring", stiffness: 400, damping: 25 }}
               className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-[820px] bg-white border border-slate-200 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-50 overflow-hidden"
             >
-              <div className="p-1.5">
-                <div className="px-2 py-1 text-[8px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 mb-0.5">
-                  Audit Commands
-                </div>
-                {SLASH_COMMANDS.filter(cmd => cmd.phase <= unlockedPhase).map((cmd) => (
-                  <button
-                    key={cmd.id}
-                    onClick={() => handleCommandSelect(cmd.label)}
-                    className="w-full flex items-center gap-2 px-2 py-1 rounded-md hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-left group"
-                  >
-                    <div className="w-5 h-5 rounded bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500 flex-shrink-0">
-                      <cmd.icon size={11} />
-                    </div>
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="text-[10px] font-medium text-gray-600 group-hover:text-indigo-700 truncate">{cmd.label}</span>
-                      <span className="text-[8px] text-gray-400 group-hover:text-indigo-400 truncate">{cmd.desc}</span>
-                    </div>
-                  </button>
+              <div className="max-h-[300px] overflow-y-auto custom-scrollbar pr-1 pb-1">
+                {Object.entries(
+                  SLASH_COMMANDS.filter(cmd => cmd.phase <= unlockedPhase).reduce((acc, cmd) => {
+                    const cat = cmd.category || 'Other Commands';
+                    if (!acc[cat]) acc[cat] = [];
+                    acc[cat].push(cmd);
+                    return acc;
+                  }, {})
+                ).map(([category, commands]) => (
+                  <div key={category} className="mb-2 last:mb-0 border border-slate-100 rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
+                      className="w-full flex items-center justify-between px-2 py-1.5 bg-slate-50 hover:bg-indigo-50 transition-colors"
+                    >
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-indigo-500">
+                        {category}
+                      </span>
+                      <ChevronDown size={14} className={`text-indigo-400 transition-transform duration-300 ${expandedCategory === category ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {/* AnimatePresence for smooth accordion (optional, using simple conditional here to ensure it works) */}
+                    {expandedCategory === category && (
+                      <div className="p-1 bg-white border-t border-slate-100">
+                        {commands.map((cmd) => (
+                          <button
+                            key={cmd.id}
+                            onClick={() => handleCommandSelect(cmd.label)}
+                            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-left group mb-0.5 last:mb-0"
+                          >
+                            <div className="w-6 h-6 rounded-md bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-500 flex-shrink-0 transition-colors">
+                              <cmd.icon size={13} />
+                            </div>
+                            <div className="flex flex-col overflow-hidden">
+                              <span className="text-[11px] font-medium text-gray-600 group-hover:text-indigo-700 truncate">{cmd.label}</span>
+                              <span className="text-[8px] text-gray-400 group-hover:text-indigo-400 truncate">{cmd.desc}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </motion.div>
