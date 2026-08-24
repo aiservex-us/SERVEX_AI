@@ -14,18 +14,21 @@ import {
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
-  {id: 'import_cet', icon: Database, label: '/importCETxml', desc: 'Import CET XML', phase: 1 },
-  {id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML', phase: 1 },
-  { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data', phase: 2 },
-  { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2 },
-  {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3 },
-  {id: 'prices', icon: BrainCircuit, label: '/listPriceChanges', desc: 'List Price Changes', phase: 4 },
-  {id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard', phase: 4 },
-  {id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Resumen', phase: 4 },
-  {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result', phase: 4 },
-  {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum', phase: 4 },
-  {id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4 },
-  {id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4 }
+  {id: 'import_cet', icon: Database, label: '/importCETxml', desc: 'Import CET XML', phase: 1, category: 'Export Data From CET or Client' },
+  {id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4, category: 'Export Data From CET or Client' },
+  {id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4, category: 'Export Data From CET or Client' },
+  
+  {id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML', phase: 1, category: 'Step 1: Data Ingestion' },
+  { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data', phase: 2, category: 'Step 1: Data Ingestion' },
+  { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2, category: 'Step 1: Data Ingestion' },
+  
+  {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3, category: 'Step 2: XML ETL Engine' },
+  
+  {id: 'prices', icon: BrainCircuit, label: '/listPriceChanges', desc: 'List Price Changes', phase: 4, category: 'Step 3: Audit & Reporting' },
+  {id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard', phase: 4, category: 'Step 3: Audit & Reporting' },
+  {id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Resumen', phase: 4, category: 'Step 3: Audit & Reporting' },
+  {id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result', phase: 4, category: 'Step 3: Audit & Reporting' },
+  {id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum', phase: 4, category: 'Step 3: Audit & Reporting' }
 ];
 
 const QUICK_PROMPTS = [
