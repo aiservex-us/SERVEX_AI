@@ -223,17 +223,17 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                     onDragLeave={() => setDragActive(false)}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer h-32 flex flex-col items-center justify-center
+                    className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer h-32 flex flex-col items-center justify-center
                       ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
                   >
                     {readingXml ? (
-                      <RefreshCw className="mx-auto mb-2 text-[#464775] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-1.5 text-[#464775] animate-spin" size={20} />
                     ) : checkingExisting ? (
-                      <RefreshCw className="mx-auto mb-2 text-gray-400 animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-1.5 text-gray-400 animate-spin" size={20} />
                     ) : showXmlExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-2 text-[#464775]" size={20} />
+                      <DatabaseZap className="mx-auto mb-1.5 text-[#464775]" size={20} />
                     ) : (
-                      <UploadCloud className={`mx-auto mb-2 ${dragActive ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
+                      <UploadCloud className={`mx-auto mb-1.5 ${dragActive ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
                     )}
                     <p className={`text-[10px] font-bold ${showXmlExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
                       {readingXml

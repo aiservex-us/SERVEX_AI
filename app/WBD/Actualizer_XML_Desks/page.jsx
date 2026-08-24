@@ -1,4 +1,7 @@
 'use client';
+import XMLResultsWBD from '../Actualizer_Excel_Desks/components/XML_Results_WBD.jsx';
+import ImportCETXml from '../Actualizer_Excel_Desks/components/IncertDataExcel/incertXML_excel';
+
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -122,6 +125,13 @@ export default function MenuInicial() {
     switch (active) {
       case 'dashboard': return <Dashboard />;
       case 'incert_delete': return <IncertDelete />;
+      
+        case 'import_cet_xml': return (
+          <div className="w-full h-full p-2 overflow-y-auto">
+            <ImportCETXml moduleName="WBD" />
+          </div>
+        );
+                    case 'xml_results': return <XMLResultsWBD />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;

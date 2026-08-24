@@ -89,7 +89,7 @@ const HeroSection = () => {
         </p>
 
                         {/* 4. INTEGRATED MODULE CARDS - Ultra Premium Minimalist Layout (Scaled Down) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-5 w-[90%] mx-auto mb-10 md:mb-12 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-1 max-w-xl gap-3 lg:gap-5 w-[90%] mx-auto mb-10 md:mb-12 text-left">
           
           {/* Card XML */}
           <Link 
@@ -109,25 +109,7 @@ const HeroSection = () => {
             </div>
           </Link>
 
-          {/* Card XML to Catalog */}
-          <Link 
-            href="/LESRO/Actualizer_Excel_LESRO"
-            className="group flex flex-col bg-white/40 backdrop-blur-2xl border border-white/60 rounded-3xl p-5 lg:p-7 hover:bg-white/80 hover:border-white hover:shadow-[0_20px_40px_rgba(70,71,117,0.08)] hover:-translate-y-1 transition-all duration-500 ease-out"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center text-[#464775] shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-50 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
-              <FileSpreadsheet size={18} strokeWidth={1.5} />
-            </div>
-            <h2 className="text-[15px] font-semibold mb-1.5 text-slate-800 tracking-tight">XML to Catalog Converter</h2>
-            <p className="text-[11px] text-slate-500 leading-relaxed mb-6 flex-grow pr-4">
-              Convert updated XML catalog files to standard format Excel files to send directly to your clients.
-            </p>
-            <div className="flex items-center text-[#464775] text-[9px] font-extrabold tracking-[0.15em] uppercase mt-auto opacity-60 group-hover:opacity-100 transition-opacity duration-500">
-              Access Module 
-              <ArrowRight size={12} strokeWidth={2.5} className="ml-2 opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 ease-out" />
-            </div>
-          </Link>
-
-        </div>
+          </div>
 
         {/* 5. HERO FOOTER / METADATA - Restructured to be Full Responsive */}
         {/* Spacing updated to compact previous design */}

@@ -1,4 +1,7 @@
 'use client';
+import XMLResultsLESRO from '../Actualizer_Excel_LESRO/components/XML_Results_LESRO.jsx';
+import ImportCETXml from '../Actualizer_Excel_LESRO/components/IncertDataExcel/incertXML_excel';
+
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -95,6 +98,13 @@ export default function MenuInicial() {
     switch (active) {
       case 'dashboard': return <Dashboard />;
       case 'incert_delete': return <IncertDelete />;
+      
+        case 'import_cet_xml': return (
+          <div className="w-full h-full p-2 overflow-y-auto">
+            <ImportCETXml moduleName="LESRO" />
+          </div>
+        );
+                    case 'xml_results': return <XMLResultsLESRO />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;

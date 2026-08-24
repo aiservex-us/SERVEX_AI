@@ -14,6 +14,7 @@ import {
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
+  {id: 'import_cet', icon: Database, label: '/importCETxml', desc: 'Import CET XML', phase: 1 },
   {id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML', phase: 1 },
   { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data', phase: 2 },
   { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2 },
@@ -323,6 +324,15 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (queryToSend.toLowerCase() === '/deletedata') {
       setTimeout(() => {
         setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo panel de eliminación de datos...', isNew: true }, { from: 'tool', toolId: 'delete_data' }]);
+        setIsLoading(false);
+        scrollToBottom(true);
+      }, 500);
+      return;
+    }
+
+    if (queryToSend.toLowerCase() === '/importcetxml') {
+      setTimeout(() => {
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos CET en el chat...', isNew: true }, { from: 'tool', toolId: 'import_cet_xml' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
