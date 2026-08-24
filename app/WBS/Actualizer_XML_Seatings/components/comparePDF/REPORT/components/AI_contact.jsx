@@ -112,9 +112,10 @@ marked.use({
 });
 
 const BotMessage = 
-({text, isNew, onType }) => {
+({text, isNew, onType, onCommandSelect }) => {
   const processedText = useMemo(() => {
     if (!text) return "";
+    let finalStr = text;
     if (text.includes('\t') && !text.includes('|---')) {
       const lines = text.split('\n');
       let inTable = false;
@@ -136,9 +137,14 @@ const BotMessage =
           newText.push(line);
         }
       }
-      return newText.join('\n');
+      finalStr = newText.join('\n');
     }
-    return text;
+    
+    // Inject interactive command buttons BEFORE parsing markdown
+    const COMMANDS_REGEX = /(\/(?:importCETxml|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
+    finalStr = finalStr.replace(COMMANDS_REGEX, '<button class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md hover:bg-indigo-100 font-medium transition-colors cursor-pointer inline-flex items-center gap-1 mx-0.5 alysa-cmd-btn shadow-sm border border-indigo-100/50" data-cmd="$1">$1</button>');
+
+    return finalStr;
   }, [text]);
 
   const [displayedText, setDisplayedText] = useState(isNew ? "" : processedText);
@@ -161,8 +167,17 @@ const BotMessage =
     return () => clearInterval(intervalId);
   }, [processedText, isNew, onType]);
 
+  const handleClick = (e) => {
+    const btn = e.target.closest('.alysa-cmd-btn');
+    if (btn && onCommandSelect) {
+      const cmd = btn.getAttribute('data-cmd');
+      onCommandSelect(cmd);
+    }
+  };
+
   return (
     <div
+      onClick={handleClick}
       className="text-sm font-sans flex flex-col gap-1 w-full max-w-full overflow-x-auto overflow-y-hidden prose-light"
       dangerouslySetInnerHTML={{__html: marked.parse(displayedText) }}
     />
@@ -724,7 +739,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
                         >
                           <div className="relative z-10 max-w-full overflow-hidden">
                             {msg.from === "bot" ? (
-                              <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
+                              <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} onCommandSelect={handleCommandSelect} />
                             ) : (
                               <p className="whitespace-pre-wrap m-0">{msg.text}</p>
                             )}
