@@ -376,7 +376,8 @@ if (queryToSend.toLowerCase() === '/importbase') {
     
     if (queryToSend.toLowerCase() === '/exportcetcsv') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo panel de Resultados y Exportación CSV de CET...', isNew: true }, { from: 'tool', toolId: 'exportCETcsv' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo panel principal de Resultados y Exportación CSV de CET...', isNew: true }]);
+        if (typeof onOpenToolPanel === 'function') onOpenToolPanel('xml_results');
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
