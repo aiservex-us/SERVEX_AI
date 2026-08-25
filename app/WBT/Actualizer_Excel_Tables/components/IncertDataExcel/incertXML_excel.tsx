@@ -127,6 +127,17 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
     }
   };
 
+  // --- Global Event Listener for /saveCETxml ---
+  const handleSaveRef = useRef(handleSave);
+  useEffect(() => {
+    handleSaveRef.current = handleSave;
+  });
+  useEffect(() => {
+    const listener = () => handleSaveRef.current();
+    window.addEventListener('saveCETCatalogData', listener);
+    return () => window.removeEventListener('saveCETCatalogData', listener);
+  }, []);
+
   const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
 
   return (
@@ -228,15 +239,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                 )}
               </div>
 
-              <div className="bg-[#FAF9F8] px-6 py-4 flex justify-end border-t border-gray-200">
-                <button
-                  onClick={handleSave}
-                  disabled={loading}
-                  className="bg-[#464775] text-white px-8 py-2 rounded text-xs font-bold hover:bg-[#36375a] transition-all shadow-sm active:scale-95 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {loading ? 'Saving...' : 'Save Catalog Data'}
-                </button>
-              </div>
+              
             </div>
           </div>
         </div>
