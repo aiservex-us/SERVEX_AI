@@ -16,13 +16,13 @@ import {
   UploadCloud,
   BrainCircuit,
   CheckCircle2, BarChart2
-, ArrowRightLeft
+  , ArrowRightLeft
 } from 'lucide-react';
 
 const menuItems = [
   { id: 'reporting', label: 'WBS Home', icon: LayoutDashboard, sub: 'Dashboard' },
+  { id: 'xml_results', label: 'Export Data client', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox', label: 'cataloge base', icon: FileCode, sub: 'Intelligence' },
-  { id: 'xml_results', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
