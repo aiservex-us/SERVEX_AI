@@ -15,6 +15,7 @@ const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
   {id: 'import_cet', icon: Database, label: '/importCETxml', desc: 'Import CET XML', phase: 1, category: 'Export Data From CET or Client' },
+  {id: 'save_cet', icon: Database, label: '/SaveXMLcet', desc: 'Save uploaded CET XML Data', phase: 1, category: 'Export Data From CET or Client' },
   {id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4, category: 'Export Data From CET or Client' },
   {id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4, category: 'Export Data From CET or Client' },
   
@@ -175,7 +176,7 @@ const BotMessage =
     }
     
     // Inject interactive command buttons AFTER parsing markdown
-    const COMMANDS_REGEX = /(\/(?:importCETxml|saveCETxml|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
+    const COMMANDS_REGEX = /(\/(?:importCETxml|SaveXMLcet|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
     html = html.replace(COMMANDS_REGEX, '<button class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md hover:bg-indigo-100 font-medium transition-colors cursor-pointer inline-flex items-center gap-1 mx-0.5 alysa-cmd-btn shadow-sm border border-indigo-100/50" data-cmd="$1">$1</button>');
     return html;
   }, [displayedText]);
@@ -347,7 +348,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     if (qLower === '/executeprocess' && unlockedPhase < 4) updatePhase(4);
     if (qLower === '/deletedata') updatePhase(1);
 
-        if (queryToSend.toLowerCase() === '/savecetxml') {
+        if (queryToSend.toLowerCase() === '/savexmlcet') {
       window.dispatchEvent(new CustomEvent('saveCETCatalogData'));
       setMessages(prev => [...prev, { from: 'bot', text: '✅ Ejecutando el proceso de guardado para la data CET XML...', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
       setIsLoading(false);
