@@ -7,6 +7,7 @@ import { X, RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search,
 export default function CETComparator() {
   const [loading, setLoading] = useState(true);
   const [isComputing, setIsComputing] = useState(false);
+  const [hasAttempted, setHasAttempted] = useState(false);
     const [activeRecord, setActiveRecord] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,6 +62,16 @@ export default function CETComparator() {
   useEffect(() => {
     fetchRecord();
   }, []);
+
+  useEffect(() => {
+    if (activeRecord && !reportData && !isComputing && !hasAttempted) {
+      if (activeRecord.xml_actualizer_raw && activeRecord.XM_CET_import) {
+         setHasAttempted(true);
+         computeComparison();
+      }
+    }
+  }, [activeRecord, reportData, isComputing, hasAttempted]);
+
 
   const parseXMLToMap = (xmlString) => {
     const parser = new DOMParser();
@@ -262,17 +273,7 @@ export default function CETComparator() {
         <div className="mb-6 rounded-lg p-10 border border-[#7f1d1d]/20 bg-gradient-to-tr from-white/90 via-white/80 to-[#7f1d1d]/5 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_2px_15px_rgba(70,71,117,0.05)] relative overflow-hidden">
            <div className="absolute top-[-50%] right-[-10%] w-[40%] h-[200%] rotate-[15deg] bg-gradient-to-b from-[#7f1d1d]/5 to-transparent pointer-events-none" />
            
-           <div className="absolute top-4 right-4 flex gap-2 z-20">
-             <button 
-               onClick={computeComparison} 
-               disabled={isComputing}
-               className="flex items-center gap-2 px-4 py-2 bg-[#7f1d1d] text-white rounded-md text-xs font-semibold hover:bg-[#34355a] transition-all disabled:opacity-50 shadow-sm"
-             >
-               {isComputing ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
-               {isComputing ? "Computing Deltas..." : "Execute CET Comparison"}
-             </button>
-             
-           </div>
+           
 
            <h1 className="text-2xl font-light text-[#242424] tracking-wide relative z-10">
             CET Matrix Comparator: <span className="font-normal text-[#7f1d1d]">WBO</span>

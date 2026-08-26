@@ -7,6 +7,7 @@ import { RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search, Al
 export default function CETComparator() {
   const [loading, setLoading] = useState(true);
   const [isComputing, setIsComputing] = useState(false);
+  const [hasAttempted, setHasAttempted] = useState(false);
   const [activeRecord, setActiveRecord] = useState(null);
   const [reportData, setReportData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +49,16 @@ export default function CETComparator() {
   useEffect(() => {
     fetchRecord();
   }, []);
+
+  useEffect(() => {
+    if (activeRecord && !reportData && !isComputing && !hasAttempted) {
+      if (activeRecord.xml_actualizer_raw && activeRecord.XM_CET_import) {
+         setHasAttempted(true);
+         computeComparison();
+      }
+    }
+  }, [activeRecord, reportData, isComputing, hasAttempted]);
+
 
   const parseXMLToMap = (xmlString) => {
     const parser = new DOMParser();
@@ -203,7 +214,7 @@ export default function CETComparator() {
       if (updateError) throw updateError;
 
       setReportData(reportPayload);
-      alert("Comparison completed and saved successfully!");
+      
 
     } catch (err) {
       console.error(err);
@@ -267,9 +278,19 @@ export default function CETComparator() {
 
         {!reportData ? (
           <div className="flex flex-col items-center justify-center min-h-[40vh] bg-slate-50/50 border border-slate-100 rounded-xl">
-             <AlertCircle size={32} className="text-slate-300 mb-3" />
-             <p className="text-sm font-medium text-slate-500">No comparison results found in Anormals_raw.</p>
-             <p className="text-xs text-slate-400 mt-1">Click "Execute CET Comparison" to analyze the XML DOMs.</p>
+            {isComputing ? (
+              <>
+                <RefreshCw size={32} className="text-[#7f1d1d] mb-3 animate-spin" />
+                <p className="text-sm font-medium text-slate-500">Computing Deltas...</p>
+                <p className="text-xs text-slate-400 mt-1">Analyzing the XML DOMs, please wait...</p>
+              </>
+            ) : (
+              <>
+                <AlertCircle size={32} className="text-slate-300 mb-3" />
+                <p className="text-sm font-medium text-slate-500">No data found for comparison.</p>
+                <p className="text-xs text-slate-400 mt-1">Make sure both XML baseline and CET export are uploaded.</p>
+              </>
+            )}
           </div>
         ) : (
           <>
