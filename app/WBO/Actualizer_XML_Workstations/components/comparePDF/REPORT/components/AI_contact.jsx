@@ -91,17 +91,17 @@ marked.use({
     },
     code(token) {
       const orig = origRenderer.code.call(this, token);
-      return `<div class="my-5 rounded-xl overflow-hidden bg-[#1e1e2e] shadow-lg border border-gray-800">
-            <div class="px-4 py-2 bg-[#181825] border-b border-gray-800 flex items-center justify-between">
+      return `<div class="my-5 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-200">
+            <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
               <div class="flex gap-1.5">
-                <div class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></div>
-                <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
-                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-rose-400"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
               </div>
-              <span class="text-[11px] font-medium text-gray-500 uppercase tracking-wider">${token.lang || 'text'}</span>
+              <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">${token.lang || 'text'}</span>
             </div>
             <div class="p-4 overflow-x-auto custom-scrollbar">
-              ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[13px] text-gray-300 font-mono leading-relaxed inline-block"><code class="block">')}
+              ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[13px] text-slate-700 font-mono leading-relaxed inline-block"><code class="block">')}
             </div>
           </div>`;
     },
