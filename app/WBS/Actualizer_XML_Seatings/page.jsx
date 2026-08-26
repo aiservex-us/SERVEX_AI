@@ -137,6 +137,7 @@ export default function MenuInicial() {
       case 'reporting': return <AIReporting />;
       case 'graphics': return <ViewportGraphics />;
       case 'compare': return <Compare />;
+      case 'compare_cet': return <CETComparator />;
       case 'AI_reporter': return <Responce_ai />;
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;

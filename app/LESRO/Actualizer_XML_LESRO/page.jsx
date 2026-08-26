@@ -113,6 +113,7 @@ export default function MenuInicial() {
       case 'reporting': return <AIReporting />;
       case 'graphics': return <ViewportGraphics />;
       case 'compare': return <Compare />;
+      case 'compare_cet': return <CETComparator />;
       case 'AI_reporter': return <Responce_ai />;
       default:
         return <Csvs_updated />;

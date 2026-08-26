@@ -401,7 +401,8 @@ if (queryToSend.toLowerCase() === '/importbase') {
     }
     if (queryToSend.toLowerCase() === '/comparecet') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo el Comparador CET...', isNew: true }, { from: 'tool', toolId: 'compareCET' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Desplegando el Comparador CET en el panel principal...', isNew: true }]);
+        if (typeof onOpenToolPanel === 'function') onOpenToolPanel('compare_cet');
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
