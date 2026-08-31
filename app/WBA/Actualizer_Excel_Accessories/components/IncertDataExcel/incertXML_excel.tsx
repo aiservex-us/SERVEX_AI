@@ -68,9 +68,11 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
     const reader = new FileReader();
     reader.onload = (e) => {
       startTransition(() => {
-        setXmlContent(e.target?.result as string);
+        const content = e.target?.result as string;
+        setXmlContent(content);
         setMessage({ text: 'XML file loaded successfully', type: 'success' });
         setReadingXml(false);
+        handleSave(content);
       });
     };
     reader.readAsText(file);
@@ -83,10 +85,10 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
     if (file) readXMLFile(file);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (rawContent: string) => {
     setMessage({ text: '', type: null });
     
-    if (!xmlContent.trim()) {
+    if (!rawContent.trim()) {
       setMessage({ text: 'Please upload an XML file to save', type: 'error' });
       return;
     }
@@ -103,7 +105,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
       const payload: any = {
         company_name: moduleName,
         user_id: user.id,
-        XM_CET_import: xmlContent
+        XM_CET_import: rawContent
       };
 
       const { error } = await supabase
@@ -128,16 +130,6 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
     }
   };
 
-  // --- Global Event Listener for /saveCETxml ---
-  const handleSaveRef = useRef(handleSave);
-  useEffect(() => {
-    handleSaveRef.current = handleSave;
-  });
-  useEffect(() => {
-    const listener = () => handleSaveRef.current();
-    window.addEventListener('saveCETCatalogData', listener);
-    return () => window.removeEventListener('saveCETCatalogData', listener);
-  }, []);
 
   const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
 
