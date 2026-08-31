@@ -327,8 +327,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
   const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
   const showCsvExistingNotice = existingCsv && !csvContent && !readingCsv;
   const showNewCsvExistingNotice = existingNewCsv && !csvNewContent && !readingNewCsv;
-    return () => window.removeEventListener('saveCatalogData', listener);
-  }, []);
+
 
   return (
     <div className="w-full flex font-sans text-[#242424] relative bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
