@@ -20,7 +20,6 @@ const SLASH_COMMANDS = [
   {id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4, category: 'Export Data From CET or Client' },
   
   {id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML', phase: 1, category: 'Step 1: Data Ingestion' },
-  { id: 'save', icon: Database, label: '/saveCatalog', desc: 'Save uploaded XML/CSV Data', phase: 2, category: 'Step 1: Data Ingestion' },
   { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2, category: 'Step 1: Data Ingestion' },
   
   {id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3, category: 'Step 2: XML ETL Engine' },
@@ -176,7 +175,7 @@ const BotMessage =
     }
     
     // Inject interactive command buttons AFTER parsing markdown
-    const COMMANDS_REGEX = /(\/(?:importCETxml|SaveXMLcet|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
+    const COMMANDS_REGEX = /(\/(?:importCETxml|SaveXMLcet|exportCETcsv|compareCET|importBase|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
     html = html.replace(COMMANDS_REGEX, '<button class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md hover:bg-indigo-100 font-medium transition-colors cursor-pointer inline-flex items-center gap-1 mx-0.5 alysa-cmd-btn shadow-sm border border-indigo-100/50" data-cmd="$1">$1</button>');
     return html;
   }, [displayedText]);
@@ -278,6 +277,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             setMessages(prev => [...prev, { from: 'bot', text: 'CSV Base guardado exitosamente. Finalmente, sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbg_csv_new' }]);
         } else if (step === 'done') {
             setMessages(prev => [...prev, { from: 'bot', text: 'Todos los archivos han sido guardados exitosamente. El proceso de Ingestión ha concluido.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }]);
+            updatePhase(3);
         }
         setTimeout(() => scrollToBottom(true), 100);
     };
@@ -361,20 +361,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     // WIDGET TOOL HANDLERS
         const qLower = queryToSend.toLowerCase();
     if (qLower === '/importbase' && unlockedPhase < 2) updatePhase(2);
-    if (qLower === '/savecatalog' && unlockedPhase < 3) updatePhase(3);
     if (qLower === '/executeprocess' && unlockedPhase < 4) updatePhase(4);
     if (qLower === '/deletedata') updatePhase(1);
 
         if (queryToSend.toLowerCase() === '/savexmlcet') {
       window.dispatchEvent(new CustomEvent('saveCETCatalogData'));
       setMessages(prev => [...prev, { from: 'bot', text: '✅ Ejecutando el proceso de guardado para la data CET XML...', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
-      setIsLoading(false);
-      setTimeout(() => scrollToBottom(true), 100);
-      return;
-    }
-    if (queryToSend.toLowerCase() === '/savecatalog') {
-      window.dispatchEvent(new CustomEvent('saveCatalogData'));
-      setMessages(prev => [...prev, { from: 'bot', text: '✅ Ejecutando el proceso de guardado y saneamiento de datos en la nube...', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' }) }]);
       setIsLoading(false);
       setTimeout(() => scrollToBottom(true), 100);
       return;

@@ -323,85 +323,9 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
     }
   };
 
-  // --- Lógica de Saneamiento y Guardado ---
-  const handleSave = async () => {
-    setMessage({ text: '', type: null });
-    
-    // Al menos un archivo debe estar presente (ya sea cargado o existente)
-    if (!xmlContent.trim() && !csvContent.trim() && !csvNewContent.trim()) {
-      setMessage({ text: 'Please upload at least one file to save', type: 'error' });
-      return;
-    }
-    
-    setLoading(true);
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setMessage({ text: 'User not authorized', type: 'error' });
-        return;
-      }
-
-      console.log('[+] Starting structural sanitation on CSV contents...');
-      
-      const payload: any = {
-        company_name: 'WBT',
-        user_id: user.id,
-      };
-
-      if (xmlContent.trim()) {
-        payload.xml_raw = xmlContent;
-      }
-      if (csvContent.trim()) {
-        payload.csv_raw = sanitizeCSV(csvContent);
-      }
-      if (csvNewContent.trim()) {
-        payload.csv_new_raw = sanitizeCSV(csvNewContent);
-        payload.CSV_final = sanitizeCSV(csvNewContent);
-      }
-
-      const { error } = await supabase
-        .from('ClientsSERVEX_WBT')
-        .update(payload)
-        .eq('user_id', user.id)
-        .select('');
-
-      if (error) {
-        console.error('Supabase Full Error:', error);
-        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
-      } else {
-        setMessage({ text: 'WB Catalog Data successfully sanitized and stored', type: 'success' });
-      window.dispatchEvent(new CustomEvent('globalChatMessage', { detail: { from: 'bot', text: `💾 ¡Éxito! Los datos del catálogo para ${companyName} han sido saneados y almacenados en la nube correctamente.` } }));
-        setXmlContent('');
-        setCsvContent('');
-        setCsvNewContent('');
-        // Refrescar el estado de columnas existentes tras guardar
-        await checkExistingFiles();
-      }
-    } catch (err: unknown) {
-      console.error(err);
-      setMessage({ text: 'Unexpected client-side error', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
   const showCsvExistingNotice = existingCsv && !csvContent && !readingCsv;
   const showNewCsvExistingNotice = existingNewCsv && !csvNewContent && !readingNewCsv;
-
-  // --- Lógica de Evento Global para /saveCatalogData ---
-  const handleSaveRef = useRef(handleSave);
-  useEffect(() => {
-    handleSaveRef.current = handleSave;
-  });
-  useEffect(() => {
-    const listener = () => handleSaveRef.current();
-    window.addEventListener('saveCatalogData', listener);
-    return () => window.removeEventListener('saveCatalogData', listener);
-  }, []);
 
   return (
     <div className="w-full flex font-sans text-[#242424] relative bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
