@@ -269,7 +269,23 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }, 100);
     };
     window.addEventListener('globalChatMessage', handleGlobalMessage);
-    return () => window.removeEventListener('globalChatMessage', handleGlobalMessage);
+    const handleWbtImportStep = (e) => {
+        const { step } = e.detail;
+        if (step === 'csv_base') {
+            setMessages(prev => [...prev, { from: 'bot', text: 'XML guardado exitosamente. Ahora, por favor sube el archivo CSV Base.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbt_csv_base' }]);
+        } else if (step === 'csv_new') {
+            setMessages(prev => [...prev, { from: 'bot', text: 'CSV Base guardado exitosamente. Finalmente, sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbt_csv_new' }]);
+        } else if (step === 'done') {
+            setMessages(prev => [...prev, { from: 'bot', text: 'Todos los archivos han sido guardados exitosamente. El proceso de Ingestión ha concluido.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }]);
+        }
+        setTimeout(() => scrollToBottom(true), 100);
+    };
+    window.addEventListener('wbtImportStep', handleWbtImportStep);
+
+    return () => {
+      window.removeEventListener('globalChatMessage', handleGlobalMessage);
+      window.removeEventListener('wbtImportStep', handleWbtImportStep);
+    };
   }, []);
 
   const inputRef = useRef(null);
@@ -381,7 +397,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
 if (queryToSend.toLowerCase() === '/importbase') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos en el chat...', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Por favor, sube el archivo XML maestro de WBT.', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);

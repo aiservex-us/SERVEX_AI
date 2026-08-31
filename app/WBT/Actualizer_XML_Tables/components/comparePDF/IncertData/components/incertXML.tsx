@@ -15,7 +15,7 @@ import {
   Loader2
 } from 'lucide-react';
 
-export default function UploadClientXML() {
+export default function UploadClientXML({ step = 'all' }: { step?: string }) {
   const [companyName] = useState('WBT');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState('');
@@ -195,9 +195,13 @@ export default function UploadClientXML() {
     const reader = new FileReader();
     reader.onload = (e) => {
       startTransition(() => {
-        setXmlContent(e.target?.result as string);
+        const content = e.target?.result as string;
+        setXmlContent(content);
         setMessage({ text: 'XML file loaded successfully', type: 'success' });
         setReadingXml(false);
+        if (step === 'xml') {
+          saveSingleStep('xml', content);
+        }
       });
     };
     reader.readAsText(file);
@@ -212,9 +216,13 @@ export default function UploadClientXML() {
     const reader = new FileReader();
     reader.onload = (e) => {
       startTransition(() => {
-        setCsvContent(e.target?.result as string);
+        const content = e.target?.result as string;
+        setCsvContent(content);
         setMessage({ text: 'CSV Base file loaded successfully', type: 'success' });
         setReadingCsv(false);
+        if (step === 'csv_base') {
+          saveSingleStep('csv_base', content);
+        }
       });
     };
     reader.readAsText(file);
@@ -229,9 +237,13 @@ export default function UploadClientXML() {
     const reader = new FileReader();
     reader.onload = (e) => {
       startTransition(() => {
-        setCsvNewContent(e.target?.result as string);
+        const content = e.target?.result as string;
+        setCsvNewContent(content);
         setMessage({ text: 'CSV Nuevo file loaded successfully', type: 'success' });
         setReadingNewCsv(false);
+        if (step === 'csv_new') {
+          saveSingleStep('csv_new', content);
+        }
       });
     };
     reader.readAsText(file);
@@ -256,6 +268,59 @@ export default function UploadClientXML() {
     setDragActiveNewCSV(false);
     const file = e.dataTransfer.files?.[0];
     if (file) readNewCSVFile(file);
+  };
+
+  const saveSingleStep = async (type: 'xml' | 'csv_base' | 'csv_new', rawContent: string) => {
+    setLoading(true);
+    setMessage({ text: 'Saving to Supabase...', type: null });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setMessage({ text: 'User not authorized', type: 'error' });
+        setLoading(false);
+        return;
+      }
+
+      const payload: any = {
+        company_name: 'WBT',
+        user_id: user.id,
+      };
+
+      if (type === 'xml') {
+        payload.xml_raw = rawContent;
+      } else if (type === 'csv_base') {
+        payload.csv_raw = sanitizeCSV(rawContent);
+      } else if (type === 'csv_new') {
+        payload.csv_new_raw = sanitizeCSV(rawContent);
+        payload.CSV_final = sanitizeCSV(rawContent);
+      }
+
+      const { error } = await supabase
+        .from('ClientsSERVEX_WBT')
+        .update(payload)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Supabase Error:', error);
+        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
+      } else {
+        setMessage({ text: 'Saved successfully', type: 'success' });
+        // Emit event for next step
+        if (type === 'xml') {
+            window.dispatchEvent(new CustomEvent('wbtImportStep', { detail: { step: 'csv_base' } }));
+        } else if (type === 'csv_base') {
+            window.dispatchEvent(new CustomEvent('wbtImportStep', { detail: { step: 'csv_new' } }));
+        } else if (type === 'csv_new') {
+            window.dispatchEvent(new CustomEvent('wbtImportStep', { detail: { step: 'done' } }));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: 'Unexpected error', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- Lógica de Saneamiento y Guardado ---
@@ -375,9 +440,10 @@ export default function UploadClientXML() {
           </div>
         )}
 
-        {/* Drop Zones Grid (3 Columns now) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Drop Zones Grid */}
+                <div className={`grid grid-cols-1 ${step === 'all' ? 'md:grid-cols-3' : 'md:grid-cols-1'} gap-3`}>
                   {/* Drop Zone 1: XML */}
+                  {(step === 'all' || step === 'xml') && (
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                     onDragLeave={() => setDragActive(false)}
@@ -410,8 +476,10 @@ export default function UploadClientXML() {
                     )}
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
+                  )}
 
                   {/* Drop Zone 2: Base CSV */}
+                  {(step === 'all' || step === 'csv_base') && (
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActiveCSV(true); }}
                     onDragLeave={() => setDragActiveCSV(false)}
@@ -444,8 +512,10 @@ export default function UploadClientXML() {
                     )}
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
+                  )}
 
                   {/* Drop Zone 3: New CSV */}
+                  {(step === 'all' || step === 'csv_new') && (
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActiveNewCSV(true); }}
                     onDragLeave={() => setDragActiveNewCSV(false)}
@@ -478,23 +548,30 @@ export default function UploadClientXML() {
                     )}
                     <input ref={csvNewInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readNewCSVFile(file); }} />
                   </div>
+                  )}
 
                 </div>
 
-                {/* Previews (3 Columns now) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Previews */}
+                <div className={`grid grid-cols-1 ${step === 'all' ? 'md:grid-cols-3' : 'md:grid-cols-1'} gap-3`}>
+                  {(step === 'all' || step === 'xml') && (
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
                   </div>
+                  )}
+                  {(step === 'all' || step === 'csv_base') && (
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">CSV Base Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvContent} readOnly />
                   </div>
+                  )}
+                  {(step === 'all' || step === 'csv_new') && (
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">New CSV Preview</label>
                     <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={csvNewContent} readOnly />
                   </div>
+                  )}
                 </div>
 
                 {message.type && (
