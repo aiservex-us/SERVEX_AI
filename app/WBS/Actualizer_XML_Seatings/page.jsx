@@ -125,7 +125,9 @@ export default function MenuInicial() {
 
     switch (active) {
       case 'dashboard': return <Dashboard />;
-      case 'incert_delete': return <IncertDelete />;
+      case 'incert_delete': return <IncertDelete step="xml" />;
+                    case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
+                    case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
       case 'xml_results': return <XMLResultsWBS />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
@@ -286,7 +288,9 @@ export default function MenuInicial() {
                 onOpenToolPanel={handleSetActive}
                 renderTool={(toolId) => {
                   switch (toolId) {
-                    case 'incert_delete': return <IncertDelete />;
+                    case 'incert_delete': return <IncertDelete step="xml" />;
+                    case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
+                    case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
                     case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="WBS" /></div>;
                     case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
                     case 'report': return <Report />;

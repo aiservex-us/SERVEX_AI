@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import InsertXML from './components/incertXML';
 
-const IncertData = () => {
+const IncertData = ({ step }) => {
   return (
     <div className="w-full mx-auto space-y-4 font-sans bg-transparent">
       {/* Redesigned to have NO white background, just a sleek transparent layout */}
@@ -12,7 +12,7 @@ const IncertData = () => {
         {/* Sección de Inserción XML y CSVs */}
         <section className="relative w-full">
           <div className="w-full">
-            <InsertXML />
+            <InsertXML step={step} />
           </div>
         </section>
 
