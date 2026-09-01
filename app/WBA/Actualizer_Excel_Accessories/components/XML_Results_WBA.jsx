@@ -541,7 +541,7 @@ const WBODataMatrix = () => {
           />
           <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <span className="text-[14px] font-bold text-[#242424]">Advertencia de Escalabilidad</span>
+              <span className="text-[14px] font-bold text-[#242424]">Scalability Warning</span>
               <button onClick={() => setShowWarningModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <X size={18} />
               </button>
@@ -552,16 +552,16 @@ const WBODataMatrix = () => {
               </div>
               <div className="flex-1 mt-1">
                 <p className="text-[13px] text-[#616161] leading-relaxed mb-3">
-                  Este proceso de actualización y descarga de archivos de forma manual es <strong>ineficiente y propenso a errores</strong>. 
+                  The process of manually updating and downloading files is <strong>inefficient and prone to errors</strong>. 
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  Tener muchos archivos circulando y compartirlos manualmente no es eficiente. Es crítico <strong>modularizar el sistema</strong> para lograr una mejor escalabilidad.
+                  Having multiple files circulating and sharing them manually is not efficient. It is critical to <strong>modularize the system</strong> to achieve better scalability.
                 </p>
               </div>
             </div>
             <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
               <button onClick={() => setShowWarningModal(false)} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
-                Cancelar
+                Cancel
               </button>
               <button 
                 onClick={() => {
@@ -570,7 +570,7 @@ const WBODataMatrix = () => {
                 }} 
                 className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#7f1d1d] rounded hover:bg-[#5a1515] transition-all shadow-md"
               >
-                Entendido, descargar
+                I understand, download
               </button>
             </div>
           </div>
