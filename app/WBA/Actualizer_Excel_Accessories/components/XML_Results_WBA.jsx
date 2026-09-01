@@ -7,9 +7,11 @@ import {
   RefreshCw, 
   Filter, 
   AlertCircle,
-  Download
+  Download,
+  X
 } from 'lucide-react';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 const WBODataMatrix = () => {
   const [products, setProducts] = useState([]);
@@ -17,6 +19,7 @@ const WBODataMatrix = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   
+  const [showWarningModal, setShowWarningModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
@@ -272,6 +275,17 @@ const WBODataMatrix = () => {
     document.body.removeChild(link);
   };
 
+  const exportToExcel = () => {
+    if (!filtered || filtered.length === 0) return;
+    
+    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: TABLES_HEADERS });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
+    
+    XLSX.writeFile(workbook, `WBA_XML_Results_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
@@ -293,14 +307,24 @@ const WBODataMatrix = () => {
       >
         <RefreshCw size={12} /> Retry Loading
       </button>
-              <button 
-                onClick={exportToCSV}
-                type="button"
-                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center"
-                title="Export current view to CSV"
-              >
-                <Download size={13} />
-              </button>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={exportToCSV}
+                  type="button"
+                  className="px-2 py-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold"
+                  title="Export current view to CSV"
+                >
+                  <Download size={13} /> CSV
+                </button>
+                <button 
+                  onClick={() => setShowWarningModal(true)}
+                  type="button"
+                  className="px-2 py-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold"
+                  title="Export current view to Excel"
+                >
+                  <Download size={13} /> Excel
+                </button>
+              </div>
 
     </div>
   );
@@ -350,14 +374,24 @@ const WBODataMatrix = () => {
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
-              <button 
-                onClick={exportToCSV}
-                type="button"
-                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center"
-                title="Export current view to CSV"
-              >
-                <Download size={13} />
-              </button>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={exportToCSV}
+                  type="button"
+                  className="px-2 py-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold"
+                  title="Export current view to CSV"
+                >
+                  <Download size={13} /> CSV
+                </button>
+                <button 
+                  onClick={() => setShowWarningModal(true)}
+                  type="button"
+                  className="px-2 py-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold"
+                  title="Export current view to Excel"
+                >
+                  <Download size={13} /> Excel
+                </button>
+              </div>
 
             </div>
           </div>
@@ -486,6 +520,50 @@ const WBODataMatrix = () => {
           </div>
         </div>
       </div>
+      {/* ── EXCEL SCALABILITY WARNING MODAL ── */}
+      {showWarningModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            onClick={() => setShowWarningModal(false)}
+          />
+          <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <span className="text-[14px] font-bold text-[#242424]">Advertencia de Escalabilidad</span>
+              <button onClick={() => setShowWarningModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-8 py-6 flex gap-4">
+              <div className="p-2 h-fit rounded-full shrink-0 bg-[#C4314B]/10 text-[#C4314B]">
+                <AlertCircle size={22} className="currentColor" />
+              </div>
+              <div className="flex-1 mt-1">
+                <p className="text-[13px] text-[#616161] leading-relaxed mb-3">
+                  Este proceso de actualización y descarga de archivos de forma manual es <strong>ineficiente y propenso a errores</strong>. 
+                </p>
+                <p className="text-[13px] text-[#616161] leading-relaxed">
+                  Tener muchos archivos circulando y compartirlos manualmente no es eficiente. Es crítico <strong>modularizar el sistema</strong> para lograr una mejor escalabilidad.
+                </p>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
+              <button onClick={() => setShowWarningModal(false)} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
+                Cancelar
+              </button>
+              <button 
+                onClick={() => {
+                  setShowWarningModal(false);
+                  exportToExcel();
+                }} 
+                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#7f1d1d] rounded hover:bg-[#5a1515] transition-all shadow-md"
+              >
+                Entendido, descargar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
