@@ -278,7 +278,19 @@ const WBODataMatrix = () => {
   const exportToExcel = () => {
     if (!filtered || filtered.length === 0) return;
     
-    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: TABLES_HEADERS });
+    const allHeaders = [...baseHeaders, ...optionHeaders];
+    
+    const csvData = filtered.map(p => {
+      const row = {};
+      allHeaders.forEach(header => {
+        let value = p[header] !== undefined ? p[header] : p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
+        if (header === "Base Price") value = p.basePrice;
+        row[header] = value !== undefined ? value : "-";
+      });
+      return row;
+    });
+    
+    const worksheet = XLSX.utils.json_to_sheet(csvData, { header: allHeaders });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
     

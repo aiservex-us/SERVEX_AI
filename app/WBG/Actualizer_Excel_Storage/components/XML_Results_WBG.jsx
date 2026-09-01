@@ -211,7 +211,7 @@ const WBGDataMatrix = () => {
   const exportToExcel = () => {
     if (!filtered || filtered.length === 0) return;
     
-    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: TABLES_HEADERS });
+    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: WBG_HEADERS });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
     
