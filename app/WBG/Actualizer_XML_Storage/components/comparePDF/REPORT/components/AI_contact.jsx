@@ -31,8 +31,8 @@ const SLASH_COMMANDS = [
 ];
 
 const QUICK_PROMPTS = [
-  {icon: BarChart2, label: "Storage Analysis", q: "Generate a summary of the most critical price variations in the Storage catalog." },
-  {icon: Database, label: "WBG Integrity", q: "Verify the structure and alignment of the WBG master XML." },
+  {icon: Database, label: "Flujo CET", q: "Solo tengo un archivo XML, el cual es el catálogo exportado de CET." },
+  {icon: BarChart2, label: "Flujo Maestro", q: "Ya cuento con todos los archivos, quiero actualizar el catálogo para importarlo a CET." },
 ];
 
 
