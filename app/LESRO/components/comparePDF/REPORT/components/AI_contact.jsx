@@ -33,8 +33,8 @@ const SLASH_COMMANDS = [
 ];
 
 const QUICK_PROMPTS = [
-  {icon: Database, label: "Flujo CET", q: "Solo tengo un archivo XML, el cual es el catálogo exportado de CET." },
-  {icon: BarChart2, label: "Flujo Maestro", q: "Ya cuento con todos los archivos, quiero actualizar el catálogo para importarlo a CET." },
+  {icon: Database, label: "CET Flow", q: "I only have one XML file, which is the catalog exported from CET." },
+  {icon: BarChart2, label: "Master Flow", q: "I already have all the files, I want to update the catalog to import it into CET." },
 ];
 
 
