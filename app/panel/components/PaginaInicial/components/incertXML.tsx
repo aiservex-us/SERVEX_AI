@@ -215,7 +215,7 @@ export default function UploadClientXML() {
           {/* Right Panel: Form */}
           <div className="col-span-12 lg:col-span-8 space-y-4">
             
-            <div className="bg-[#F3F2F1] rounded-lg border border-[#E1DFDD] p-6 mb-4 shadow-sm flex flex-col items-center text-center">
+            <div className="bg-white/20 backdrop-blur-md rounded-lg border border-[#E1DFDD] p-6 mb-4 shadow-sm flex flex-col items-center text-center">
               <h2 className="text-sm font-black text-[#242424] uppercase tracking-wider mb-1">SYNC YOUR CATALOG</h2>
               <p className="text-[11px] text-[#616161] max-w-md mb-4 leading-normal">
                 If the data to be entered comes from a PDF, synchronize the data with the platform format to link them.
@@ -251,7 +251,7 @@ export default function UploadClientXML() {
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
-                      ${dragActive ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                      ${dragActive ? 'border-[#5B5FC7] bg-white/20 backdrop-blur-md' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
                   >
                     {readingXml ? (
                       <RefreshCw className="mx-auto mb-1.5 text-[#5B5FC7] animate-spin" size={20} />
@@ -271,7 +271,7 @@ export default function UploadClientXML() {
                     onDrop={handleDropCSV}
                     onClick={() => csvInputRef.current?.click()}
                     className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
-                      ${dragActiveCSV ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                      ${dragActiveCSV ? 'border-[#5B5FC7] bg-white/20 backdrop-blur-md' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
                   >
                     {readingCsv ? (
                       <RefreshCw className="mx-auto mb-1.5 text-[#5B5FC7] animate-spin" size={20} />
@@ -291,7 +291,7 @@ export default function UploadClientXML() {
                     onDrop={handleDropCsvPdf}
                     onClick={() => csvPdfInputRef.current?.click()}
                     className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
-                      ${dragActiveCsvPdf ? 'border-[#5B5FC7] bg-[#F3F2F1]' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                      ${dragActiveCsvPdf ? 'border-[#5B5FC7] bg-white/20 backdrop-blur-md' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
                   >
                     {readingCsvPdf ? (
                       <RefreshCw className="mx-auto mb-1.5 text-[#5B5FC7] animate-spin" size={20} />
@@ -311,12 +311,12 @@ export default function UploadClientXML() {
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
                     <div className="relative">
                       {readingXml && (
-                        <div className="absolute inset-0 bg-[#F3F2F1]/80 flex items-center justify-center z-10 rounded">
+                        <div className="absolute inset-0 bg-white/20 backdrop-blur-md/80 flex items-center justify-center z-10 rounded">
                           <RefreshCw className="animate-spin text-[#5B5FC7]" size={20} />
                         </div>
                       )}
                       <textarea
-                        className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
+                        className="w-full text-[10px] font-mono rounded border border-white/40 bg-white/20 backdrop-blur-md text-gray-700 px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
                         placeholder="XML Content..."
                         value={xmlContent}
                         onChange={(e) => setXmlContent(e.target.value)}
@@ -327,12 +327,12 @@ export default function UploadClientXML() {
                     <label className="text-xs font-bold text-[#242424]">CSV Preview</label>
                     <div className="relative">
                       {readingCsv && (
-                        <div className="absolute inset-0 bg-[#F3F2F1]/80 flex items-center justify-center z-10 rounded">
+                        <div className="absolute inset-0 bg-white/20 backdrop-blur-md/80 flex items-center justify-center z-10 rounded">
                           <RefreshCw className="animate-spin text-[#5B5FC7]" size={20} />
                         </div>
                       )}
                       <textarea
-                        className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
+                        className="w-full text-[10px] font-mono rounded border border-white/40 bg-white/20 backdrop-blur-md text-gray-700 px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
                         placeholder="CSV Content..."
                         value={csvContent}
                         onChange={(e) => setCsvContent(e.target.value)}
@@ -343,12 +343,12 @@ export default function UploadClientXML() {
                     <label className="text-xs font-bold text-[#242424]">PDF CSV Preview</label>
                     <div className="relative">
                       {readingCsvPdf && (
-                        <div className="absolute inset-0 bg-[#F3F2F1]/80 flex items-center justify-center z-10 rounded">
+                        <div className="absolute inset-0 bg-white/20 backdrop-blur-md/80 flex items-center justify-center z-10 rounded">
                           <RefreshCw className="animate-spin text-[#5B5FC7]" size={20} />
                         </div>
                       )}
                       <textarea
-                        className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
+                        className="w-full text-[10px] font-mono rounded border border-white/40 bg-white/20 backdrop-blur-md text-gray-700 px-3 py-2 h-32 resize-none outline-none focus:border-[#5B5FC7]"
                         placeholder="CSV from PDF Content..."
                         value={csvPdfContent}
                         onChange={(e) => setCsvPdfContent(e.target.value)}

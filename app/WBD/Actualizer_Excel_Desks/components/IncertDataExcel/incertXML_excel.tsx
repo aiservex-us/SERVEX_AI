@@ -188,7 +188,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer h-32 flex flex-col items-center justify-center
-                      ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-gray-200 bg-[#FAF9F8] hover:bg-[#F3F2F1]'}`}
+                      ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
                   >
                     {readingXml ? (
                       <RefreshCw className="mx-auto mb-1.5 text-[#464775] animate-spin" size={20} />
@@ -219,7 +219,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-bold text-[#242424]">XML Preview</label>
-                    <textarea className="w-full text-[10px] font-mono rounded border border-gray-300 bg-[#F3F2F1] px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
+                    <textarea className="w-full text-[10px] font-mono rounded border border-white/40 bg-white/20 backdrop-blur-md text-gray-700 px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
                   </div>
                 </div>
 
