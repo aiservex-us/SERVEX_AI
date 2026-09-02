@@ -133,8 +133,9 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
   const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
 
   return (
-    <div className="min-h-[60vh] bg-[#FFF] flex font-sans text-[#242424] relative">
-      <div className="flex-1 flex flex-col">
+    <div className="w-full max-w-sm mx-auto flex font-sans text-[#242424] relative bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
+      <div className="flex-1 flex flex-col gap-3">
+
         {loading && (
           <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
             <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
@@ -164,10 +165,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
           </div>
         )}
 
-        <div className="p-4 sm:p-8 flex flex-col max-w-sm mx-auto w-full h-full justify-center">
-          <div className="w-full">
-            <div className="bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
-              <div className="px-6 py-6 space-y-6">
+        
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-[#242424]">Target Entity</label>
                   <div className="relative group w-full max-w-xs">
@@ -180,7 +178,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-3">
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
                     onDragLeave={() => setDragActive(false)}
@@ -229,13 +227,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                     {message.text}
                   </div>
                 )}
-              </div>
-
-              
-            </div>
-          </div>
-        </div>
-      </div>
+                </div>
     </div>
   );
 }
