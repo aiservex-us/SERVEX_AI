@@ -1,5 +1,6 @@
 'use client';
 
+import Papa from 'papaparse';
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import {
@@ -94,77 +95,40 @@ export default function UploadClientXML() {
     _orphaned_fields?: string[];
   }
 
-  const sanitizeCSV = (rawCsvText: string): CsvRow[] => {
+    const sanitizeCSV = (rawCsvText: string): CsvRow[] => {
     if (!rawCsvText || !rawCsvText.trim()) return [];
 
-    const lines: string[] = [];
-    let currentLine = '';
-    let insideQuotes = false;
+    // PapaParse detecta automáticamente si se usa ';' o ',' y respeta las comillas anidadas
+    const parsed = Papa.parse(rawCsvText.trim(), {
+      header: false,
+      skipEmptyLines: true,
+    });
 
-    const len = rawCsvText.length;
-    for (let i = 0; i < len; i++) {
-      const char = rawCsvText[i];
-      if (char === '"') {
-        insideQuotes = !insideQuotes;
-        currentLine += char;
-      } else if ((char === '\n' || char === '\r') && !insideQuotes) {
-        if (char === '\r' && rawCsvText[i + 1] === '\n') {
-          i++; 
-        }
-        lines.push(currentLine);
-        currentLine = '';
-      } else {
-        currentLine += char;
-      }
-    }
-    if (currentLine || rawCsvText.endsWith('\n') || rawCsvText.endsWith('\r')) {
-      lines.push(currentLine);
+    if (parsed.errors.length > 0) {
+      console.warn("PapaParse warnings:", parsed.errors);
     }
 
-    if (lines.length === 0 || (lines.length === 1 && lines[0] === '')) return [];
+    const data = parsed.data as string[][];
+    if (data.length === 0) return [];
 
-    const rawHeaderAccum: string[] = [];
-    let dataStartIndex = 0;
-    let openQuotes = false;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      rawHeaderAccum.push(line);
-
-      const quoteCount = (line.match(/"/g) || []).length;
-      if (quoteCount % 2 !== 0) {
-        openQuotes = !openQuotes;
-      }
-
-      if (!openQuotes) {
-        dataStartIndex = i + 1;
-        break;
-      }
-    }
-
-    const fullRawHeader = rawHeaderAccum.join('\n');
-
-    const tokens = fullRawHeader.split(';');
-    const cleanedTokens = tokens.map(token => {
+    // Headers en la primera fila
+    const rawHeaders = data[0];
+    const cleanedHeaders = rawHeaders.map(token => {
       let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
       tClean = tClean.split(/\s+/).join(' ').trim();
       return tClean;
     });
 
-    const perfectHeaders = cleanedTokens;
-    const dataLines = lines.slice(dataStartIndex);
+    const headersLen = cleanedHeaders.length;
     const sanitizedJson: CsvRow[] = [];
-    const headersLen = perfectHeaders.length;
 
-    for (let i = 0; i < dataLines.length; i++) {
-      const line = dataLines[i];
-      if (!line.trim()) continue; 
-      const currentCells = line.split(';');
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
       const rowObject: CsvRow = {};
 
       for (let j = 0; j < headersLen; j++) {
-        const header = perfectHeaders[j];
-        let cellValue = currentCells[j] !== undefined ? currentCells[j] : '';
+        const header = cleanedHeaders[j];
+        let cellValue = row[j] !== undefined ? row[j] : '';
 
         if (cellValue === '') {
           rowObject[header] = null;
@@ -174,8 +138,8 @@ export default function UploadClientXML() {
         }
       }
 
-      if (currentCells.length > headersLen) {
-        const orphaned = currentCells.slice(headersLen).map(c => c.replace(/^["']|["']$/g, '').trim());
+      if (row.length > headersLen) {
+        const orphaned = row.slice(headersLen).map(c => c.replace(/^["']|["']$/g, '').trim());
         rowObject['_orphaned_fields'] = orphaned;
       }
 
