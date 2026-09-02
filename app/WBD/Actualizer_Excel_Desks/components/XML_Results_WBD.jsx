@@ -301,14 +301,7 @@ const WBDDataMatrix = () => {
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
               <div className="flex items-center gap-1">
-                <button 
-                  onClick={exportToCSV}
-                  type="button"
-                  className="px-2 py-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold"
-                  title="Export current view to CSV"
-                >
-                  <Download size={13} /> CSV
-                </button>
+                
                 <button 
                   onClick={() => setShowWarningModal(true)}
                   type="button"
@@ -458,8 +451,25 @@ const WBDDataMatrix = () => {
                 Cancel
               </button>
               <button 
-                onClick={() => {
+                onClick={async () => {
                   setShowWarningModal(false);
+                  
+                  if (filtered && filtered.length > 0) {
+                    const csvString = Papa.unparse(filtered, {
+                      columns: DESKS_HEADERS,
+                      delimiter: ";"
+                    });
+                    
+                    try {
+                      await supabase
+                        .from('ClientsSERVEX_WBD')
+                        .update({ csv_raw: csvString })
+                        .eq('company_name', 'WBD');
+                    } catch (err) {
+                      console.error('Error saving raw CSV:', err);
+                    }
+                  }
+                  
                   exportToExcel();
                 }} 
                 className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#464775] rounded hover:bg-[#5a1515] transition-all shadow-md"
