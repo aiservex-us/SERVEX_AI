@@ -3,7 +3,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Download, FileUp, Database, Sparkles, FileText, X } from 'lucide-react';
-import { supabase } from '@/app/lib/supabaseClient';
 import Papa from 'papaparse';
 
 export default function XmlToCsvConverter() {
@@ -155,49 +154,7 @@ export default function XmlToCsvConverter() {
     }
   };
 
-  
-  const sanitizeCSV = (rawCsvText) => {
-    if (!rawCsvText || !rawCsvText.trim()) return [];
-    const parsed = Papa.parse(rawCsvText.trim(), {
-      header: false,
-      skipEmptyLines: true,
-    });
-    if (parsed.errors.length > 0) {
-      console.warn("PapaParse warnings:", parsed.errors);
-    }
-    const data = parsed.data;
-    if (data.length === 0) return [];
-    const rawHeaders = data[0];
-    const cleanedHeaders = rawHeaders.map(token => {
-      let tClean = token.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/"/g, '').replace(/'/g, '');
-      tClean = tClean.split(/\s+/).join(' ').trim();
-      return tClean;
-    });
-    const headersLen = cleanedHeaders.length;
-    const sanitizedJson = [];
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      const rowObject = {};
-      for (let j = 0; j < headersLen; j++) {
-        const header = cleanedHeaders[j];
-        let cellValue = row[j] !== undefined ? row[j] : '';
-        if (cellValue === '') {
-          rowObject[header] = null;
-        } else {
-          cellValue = cellValue.replace(/^["']|["']$/g, '').trim();
-          rowObject[header] = cellValue;
-        }
-      }
-      if (row.length > headersLen) {
-        const orphaned = row.slice(headersLen).map(c => c.replace(/^["']|["']$/g, '').trim());
-        rowObject['_orphaned_fields'] = orphaned;
-      }
-      sanitizedJson.push(rowObject);
-    }
-    return sanitizedJson;
-  };
-
-  const exportToCSV = async () => {
+  const exportToCSV = () => {
     if (products.length === 0) return;
     
     const allHeaders = [...baseHeaders, ...optionHeaders];
@@ -216,28 +173,6 @@ export default function XmlToCsvConverter() {
     });
 
     const csv = Papa.unparse(dataForCsv);
-    
-    // AUTO-SAVE to Supabase usando exactamente la misma lógica que incertXML.tsx
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const payload = {
-          company_name: 'LESRO',
-          user_id: user.id,
-        };
-        payload.csv_raw = sanitizeCSV(csv); // Pasamos el string crudo por el mismo filtro
-        
-        const { error } = await supabase
-          .from('ClientsSERVEX_LESRO')
-          .update(payload)
-          .eq('user_id', user.id);
-          
-        if (error) console.error("Error auto-saving CSV Base:", error);
-      }
-    } catch(e) {
-      console.error("Error auto-saving CSV Base:", e);
-    }
-
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
