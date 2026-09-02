@@ -166,7 +166,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
 
         <div className="p-4 sm:p-8 flex flex-col max-w-sm mx-auto w-full h-full justify-center">
           <div className="w-full">
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
               <div className="px-6 py-6 space-y-6">
                 <div className="flex flex-col gap-2">
                   <label className="text-xs font-bold text-[#242424]">Target Entity</label>

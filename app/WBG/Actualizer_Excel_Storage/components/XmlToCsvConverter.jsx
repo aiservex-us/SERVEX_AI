@@ -191,15 +191,15 @@ export default function XmlToCsvConverter() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-[#242424] antialiased">
+    <div className="min-h-screen bg-transparent font-sans text-[#242424] antialiased">
       <div className="max-w-[1400px] mx-auto p-8">
         
         {/* HEADER */}
         <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#EDEBE9] pb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="bg-white border border-[#EDEBE9] shadow-sm p-1.5 rounded">
-                <Database size={14} className="text-[#7f1d1d]" />
+              <div className="bg-white/40 backdrop-blur-md border border-[#EDEBE9] shadow-sm p-1.5 rounded">
+                <Database size={14} className="text-[#464775]" />
               </div>
               <span className="text-[#616161] font-semibold uppercase tracking-wider text-[10px]">Excel Actualizer</span>
             </div>
@@ -220,7 +220,7 @@ export default function XmlToCsvConverter() {
             {products.length === 0 ? (
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 bg-[#7f1d1d] text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-[#450a0a] transition-all shadow-md hover:shadow-lg"
+                className="flex items-center gap-2 bg-[#464775] text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-[#32335b] transition-all shadow-md hover:shadow-lg"
               >
                 <FileUp size={16} />
                 Upload XML
@@ -229,7 +229,7 @@ export default function XmlToCsvConverter() {
               <div className="flex items-center gap-3">
                 <button 
                   onClick={clearData}
-                  className="flex items-center gap-2 bg-white text-red-600 border border-red-200 px-4 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-red-50 transition-all shadow-sm"
+                  className="flex items-center gap-2 bg-white/40 backdrop-blur-md text-slate-600 border border-slate-200 px-4 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-transparent transition-all shadow-sm"
                 >
                   <X size={16} />
                   Clear
@@ -248,7 +248,7 @@ export default function XmlToCsvConverter() {
 
         {/* ERROR STATE */}
         {error && (
-          <div className="mb-6 bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 flex items-center gap-3">
+          <div className="mb-6 bg-amber-50 text-amber-700 p-4 rounded-lg border border-amber-200 flex items-center gap-3">
             <X size={18} />
             <span className="text-sm font-medium">{error}</span>
           </div>
@@ -256,9 +256,9 @@ export default function XmlToCsvConverter() {
 
         {/* LOADING STATE */}
         {loading && (
-          <div className="flex items-center justify-center p-20 bg-white border border-[#EDEBE9] rounded-xl shadow-sm">
+          <div className="flex items-center justify-center p-20 bg-white/40 backdrop-blur-md border border-[#EDEBE9] rounded-xl shadow-sm">
             <div className="flex flex-col items-center gap-4">
-              <Sparkles className="animate-spin text-[#7f1d1d]" size={32} />
+              <Sparkles className="animate-spin text-[#464775]" size={32} />
               <p className="text-sm text-[#616161]">Parsing XML file...</p>
             </div>
           </div>
@@ -268,9 +268,9 @@ export default function XmlToCsvConverter() {
         {!loading && products.length === 0 && !error && (
           <div 
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center p-24 bg-white border-2 border-dashed border-[#EDEBE9] rounded-xl cursor-pointer hover:bg-slate-50 transition-colors group"
+            className="flex flex-col items-center justify-center p-24 bg-white/40 backdrop-blur-md border-2 border-dashed border-[#EDEBE9] rounded-xl cursor-pointer hover:bg-transparent transition-colors group"
           >
-            <div className="w-16 h-16 bg-[#F5F5F5] rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <div className="w-16 h-16 bg-white/40 backdrop-blur-md/30 backdrop-blur-md rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <FileUp size={28} className="text-[#616161]" />
             </div>
             <h3 className="text-[15px] font-semibold text-[#242424] mb-2">Drag and drop or click to upload</h3>
@@ -283,21 +283,21 @@ export default function XmlToCsvConverter() {
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col h-[600px]"
+            className="bg-white/40 backdrop-blur-md rounded-xl shadow-sm border border-[#EDEBE9] overflow-hidden flex flex-col h-[600px]"
           >
-            <div className="p-4 border-b border-[#EDEBE9] bg-[#F5F5F5] flex justify-between items-center">
+            <div className="p-4 border-b border-[#EDEBE9] bg-white/40 backdrop-blur-md/30 backdrop-blur-md flex justify-between items-center">
               <div className="flex items-center gap-3 text-[#242424]">
-                <FileText size={16} className="text-[#7f1d1d]" />
+                <FileText size={16} className="text-[#464775]" />
                 <span className="font-semibold text-sm">Preview: {fileName}</span>
               </div>
-              <div className="text-xs text-[#616161] bg-white px-3 py-1 rounded-full border border-[#EDEBE9]">
+              <div className="text-xs text-[#616161] bg-white/40 backdrop-blur-md px-3 py-1 rounded-full border border-[#EDEBE9]">
                 Showing first 50 of {products.length} rows
               </div>
             </div>
             
             <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
               <table className="w-full text-left border-collapse min-w-[1200px]">
-                <thead className="sticky top-0 bg-white z-10 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <thead className="sticky top-0 bg-white/40 backdrop-blur-md z-10 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                   <tr>
                     <th className="py-3 px-4 text-[10px] uppercase font-bold text-[#616161] border-b border-[#EDEBE9] border-r bg-[#F8F8F8] whitespace-nowrap min-w-[50px] text-center">#</th>
                     {baseHeaders.map(h => (
@@ -306,7 +306,7 @@ export default function XmlToCsvConverter() {
                       </th>
                     ))}
                     {optionHeaders.map(h => (
-                      <th key={h} className="py-3 px-4 text-[10px] uppercase font-bold text-[#7f1d1d] border-b border-[#EDEBE9] border-r bg-[#F5F6FA] whitespace-nowrap">
+                      <th key={h} className="py-3 px-4 text-[10px] uppercase font-bold text-[#464775] border-b border-[#EDEBE9] border-r bg-[#F5F6FA] whitespace-nowrap">
                         {h}
                       </th>
                     ))}
@@ -314,7 +314,7 @@ export default function XmlToCsvConverter() {
                 </thead>
                 <tbody className="text-[11.5px] text-[#242424]">
                   {products.slice(0, 50).map((p, idx) => (
-                    <tr key={idx} className="border-b border-[#EDEBE9] hover:bg-slate-50 transition-colors">
+                    <tr key={idx} className="border-b border-[#EDEBE9] hover:bg-transparent transition-colors">
                       <td className="py-2.5 px-4 border-r border-[#EDEBE9] text-center text-[#616161] font-mono">{idx + 1}</td>
                       <td className="py-2.5 px-4 border-r border-[#EDEBE9] font-medium">{p.sku}</td>
                       <td className="py-2.5 px-4 border-r border-[#EDEBE9] truncate max-w-[200px]" title={p.description}>{p.description}</td>

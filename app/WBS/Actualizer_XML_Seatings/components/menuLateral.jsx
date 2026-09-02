@@ -176,7 +176,7 @@ export default function MenuLateral({
                         {item.sub}
                       </span>
                       {item.id === 'incert_delete' && (
-                        <span className={`min-[400px]:hidden text-[8px] text-red-500/80 font-bold uppercase tracking-tighter bg-red-50 px-1.5 py-0.5 rounded-full border border-red-100 whitespace-nowrap transition-opacity duration-500 delay-200 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
+                        <span className={`min-[400px]:hidden text-[8px] text-[#464775]/80 font-bold uppercase tracking-tighter bg-[#464775]/10 px-1.5 py-0.5 rounded-full border border-[#464775]/20 whitespace-nowrap transition-opacity duration-500 delay-200 ${collapsed ? 'opacity-0' : 'opacity-100'}`}>
                           Desktop Only
                         </span>
                       )}

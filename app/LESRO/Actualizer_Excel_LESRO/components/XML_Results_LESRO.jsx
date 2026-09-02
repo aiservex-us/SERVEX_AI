@@ -568,7 +568,7 @@ const WBODataMatrix = () => {
                   setShowWarningModal(false);
                   exportToExcel();
                 }} 
-                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#7f1d1d] rounded hover:bg-[#5a1515] transition-all shadow-md"
+                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#464775] rounded hover:bg-[#5a1515] transition-all shadow-md"
               >
                 I understand, download
               </button>
