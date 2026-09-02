@@ -375,40 +375,6 @@ export default function UploadClientXML() {
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
 
-                  {/* Drop Zone 2: Base CSV */}
-                  <div
-                    onDragOver={(e) => { e.preventDefault(); setDragActiveCSV(true); }}
-                    onDragLeave={() => setDragActiveCSV(false)}
-                    onDrop={handleDropCSV}
-                    onClick={() => csvInputRef.current?.click()}
-                    className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
-                      ${dragActiveCSV ? 'border-[#464775] bg-[#464775]/5' : showCsvExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
-                  >
-                    {readingCsv ? (
-                      <RefreshCw className="mx-auto mb-1.5 text-[#464775] animate-spin" size={20} />
-                    ) : checkingExisting ? (
-                      <RefreshCw className="mx-auto mb-1.5 text-gray-400 animate-spin" size={20} />
-                    ) : showCsvExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-1.5 text-[#464775]" size={20} />
-                    ) : (
-                      <FileSpreadsheet className={`mx-auto mb-1.5 ${dragActiveCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
-                    )}
-                    <p className={`text-xs sm:text-sm font-bold mt-1.5 ${showCsvExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
-                      {readingCsv
-                        ? 'Reading...'
-                        : checkingExisting
-                          ? 'Checking...'
-                          : showCsvExistingNotice
-                            ? 'File already exists in DB'
-                            : 'Upload CSV Base'}
-                    </p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">Catálogo base — inicio del proceso</p>
-                    {showCsvExistingNotice && (
-                      <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
-                    )}
-                    <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
-                  </div>
-
                   {/* Drop Zone 3: New CSV */}
                   <div
                     onDragOver={(e) => { e.preventDefault(); setDragActiveNewCSV(true); }}
