@@ -86,7 +86,8 @@ export default function CETComparator() {
       if (!code) continue;
 
       const priceNode = p.getElementsByTagName('Price')[0];
-      const basePrice = priceNode ? parseFloat(priceNode.getElementsByTagName('Value')[0]?.textContent || "0") : 0;
+      const rawBase = priceNode?.getElementsByTagName('Value')[0]?.textContent || "0";
+      const basePrice = parseFloat(rawBase.replace(/,/g, '.')) || 0;
       
       const optionPrices = {};
       const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
@@ -101,7 +102,8 @@ export default function CETComparator() {
             if (optCode !== "G" && optCode !== "P") {
               const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
               const optPriceElem = opt.querySelector("OptionPrice > Value");
-              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+              const rawOpt = optPriceElem?.textContent || "0";
+              const optPrice = parseFloat(rawOpt.replace(/,/g, '.')) || 0;
               if (optDesc && optPrice > 0) {
                 optionPrices[optDesc] = optPrice;
               }
