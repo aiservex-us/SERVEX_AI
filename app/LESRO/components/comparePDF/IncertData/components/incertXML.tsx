@@ -365,7 +365,7 @@ export default function UploadClientXML() {
                         : checkingExisting
                           ? 'Checking...'
                           : showXmlExistingNotice
-                            ? 'File already exists in DB'
+                            ? 'File already auto-saved from XML export'
                             : 'Upload XML'}
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">Catalog Creator Catalog</p>
@@ -399,13 +399,15 @@ export default function UploadClientXML() {
                         : checkingExisting
                           ? 'Checking...'
                           : showCsvExistingNotice
-                            ? 'File already exists in DB'
+                            ? 'File already auto-saved from XML export'
                             : 'Upload CSV Base'}
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">Catálogo base — inicio del proceso</p>
                     {showCsvExistingNotice && (
                       <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
                     )}
+                    
+                    
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
 
@@ -433,7 +435,7 @@ export default function UploadClientXML() {
                         : checkingExisting
                           ? 'Checking...'
                           : showNewCsvExistingNotice
-                            ? 'File already exists in DB'
+                            ? 'File already auto-saved from XML export'
                             : 'Upload CSV Nuevo'}
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">New catalog to compare</p>

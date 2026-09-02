@@ -357,7 +357,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                         : checkingExisting
                           ? 'Checking...'
                           : showXmlExistingNotice
-                            ? 'File already exists in DB'
+                            ? 'File already auto-saved from XML export'
                             : 'Upload XML'}
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">Catalog Creator Catalog</p>
@@ -393,12 +393,26 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                         : checkingExisting
                           ? 'Checking...'
                           : showCsvExistingNotice
-                            ? 'File already exists in DB'
+                            ? 'File already auto-saved from XML export'
                             : 'Upload CSV Base'}
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">Catálogo base — inicio del proceso</p>
                     {showCsvExistingNotice && (
                       <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
+                    )}
+                    
+                    {/* AUTO-CONTINUE BUTTON FOR CSV_BASE */}
+                    {step === 'csv_base' && showCsvExistingNotice && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.dispatchEvent(new CustomEvent('wbaImportStep', { detail: { step: 'csv_new' } }));
+                        }}
+                        className="w-[80%] mt-3 bg-[#464775] text-white text-[11px] font-bold py-2 rounded shadow-md hover:bg-[#3b3c63] hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle2 size={14} />
+                        Continue (Use Auto-Saved CSV)
+                      </button>
                     )}
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readCSVFile(file); }} />
                   </div>
@@ -429,7 +443,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                         : checkingExisting
                           ? 'Checking...'
                           : showNewCsvExistingNotice
-                            ? 'File already exists in DB'
+                            ? 'File already auto-saved from XML export'
                             : 'Upload CSV Nuevo'}
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">New catalog to compare</p>

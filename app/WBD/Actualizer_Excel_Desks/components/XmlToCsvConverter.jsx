@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Download, FileUp, Database, Sparkles, FileText, X } from 'lucide-react';
+import { supabase } from '@/app/lib/supabaseClient';
 import Papa from 'papaparse';
 
 export default function XmlToCsvConverter() {
@@ -168,13 +169,40 @@ export default function XmlToCsvConverter() {
     }
   };
 
-  const exportToCSV = () => {
+  const exportToCSV = async () => {
     if (products.length === 0) return;
     
-    const csv = Papa.unparse(products, {
-      columns: DESKS_HEADERS,
-      delimiter: ";"
+    const allHeaders = [...baseHeaders, ...optionHeaders];
+    
+    const dataForCsv = products.map(prod => {
+      const row = {
+        "SKU": prod.sku,
+        "Description": prod.description,
+        "Classification": prod.classification,
+        "Base Price": prod.basePrice
+      };
+      optionHeaders.forEach(opt => {
+        row[opt] = prod[opt] !== undefined ? prod[opt] : "0";
+      });
+      return row;
     });
+
+    const csv = Papa.unparse(dataForCsv);
+    
+    // AUTO-SAVE to Supabase
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from('ClientsSERVEX_WBD')
+          .update({ csv_raw: dataForCsv })
+          .eq('user_id', user.id);
+        if (error) console.error("Error auto-saving CSV Base:", error);
+      }
+    } catch(e) {
+      console.error("Error auto-saving CSV Base:", e);
+    }
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");

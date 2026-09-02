@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Download, FileUp, Database, Sparkles, FileText, X } from 'lucide-react';
+import { supabase } from '@/app/lib/supabaseClient';
 import Papa from 'papaparse';
 
 export default function XmlToCsvConverter() {
@@ -154,7 +155,7 @@ export default function XmlToCsvConverter() {
     }
   };
 
-  const exportToCSV = () => {
+  const exportToCSV = async () => {
     if (products.length === 0) return;
     
     const allHeaders = [...baseHeaders, ...optionHeaders];
@@ -173,6 +174,21 @@ export default function XmlToCsvConverter() {
     });
 
     const csv = Papa.unparse(dataForCsv);
+    
+    // AUTO-SAVE to Supabase
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from('ClientsSERVEX_WBA')
+          .update({ csv_raw: dataForCsv })
+          .eq('user_id', user.id);
+        if (error) console.error("Error auto-saving CSV Base:", error);
+      }
+    } catch(e) {
+      console.error("Error auto-saving CSV Base:", e);
+    }
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
