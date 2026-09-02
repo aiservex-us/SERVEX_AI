@@ -724,7 +724,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
                       className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
                       {msg.from === 'tool' ? (
-                        <div className="w-full my-3 p-1 bg-transparent rounded-2xl overflow-hidden relative">
+                        <div className="w-full my-3 p-1 bg-transparent overflow-hidden relative flex justify-center">
                           <div className="w-full h-full overflow-y-auto max-h-[85vh] relative">
                              {renderTool && renderTool(msg.toolId)}
                           </div>
