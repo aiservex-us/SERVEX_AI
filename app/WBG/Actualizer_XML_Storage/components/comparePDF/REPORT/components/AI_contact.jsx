@@ -271,7 +271,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     const handleWbgImportStep = (e) => {
         const { step } = e.detail;
         if (step === 'csv_base') {
-            setMessages(prev => [...prev, { from: 'bot', text: 'XML guardado exitosamente. Ahora, por favor sube el archivo CSV Base.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbg_csv_base' }]);
+            setMessages(prev => [...prev, { from: 'bot', text: 'XML guardado exitosamente. El CSV Base ya está en el sistema. Ahora, por favor sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbg_csv_new' }]);
         } else if (step === 'csv_new') {
             setMessages(prev => [...prev, { from: 'bot', text: 'CSV Base guardado exitosamente. Finalmente, sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbg_csv_new' }]);
         } else if (step === 'done') {
