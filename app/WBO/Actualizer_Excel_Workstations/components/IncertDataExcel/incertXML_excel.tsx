@@ -165,7 +165,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
           </div>
         )}
 
-        <div className="p-4 sm:p-8 flex flex-col max-w-4xl mx-auto w-full h-full justify-center">
+        <div className="p-4 sm:p-8 flex flex-col max-w-sm mx-auto w-full h-full justify-center">
           <div className="w-full">
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
               <div className="px-6 py-6 space-y-6">

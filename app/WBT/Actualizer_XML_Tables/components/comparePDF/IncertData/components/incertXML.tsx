@@ -292,7 +292,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
   const showNewCsvExistingNotice = existingNewCsv && !csvNewContent && !readingNewCsv;
 
   return (
-    <div className="w-full flex font-sans text-[#242424] relative bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
+    <div className="w-full max-w-sm mx-auto flex font-sans text-[#242424] relative bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
       <div className="flex-1 flex flex-col gap-3">
 
         {/* --- POPUP PROCESANDO DATOS BASE --- */}
