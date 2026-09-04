@@ -270,11 +270,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     const handleWBAImportStep = (e) => {
         const { step } = e.detail;
         if (step === 'csv_base') {
-            setMessages(prev => [...prev, { from: 'bot', text: 'XML successfully saved. The Base CSV is already in the system. Now, please upload the Updated CSV file.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wba_csv_new' }]);
+            setMessages(prev => [...prev, { from: 'bot', text: 'XML guardado exitosamente. El CSV Base ya está en el sistema. Ahora, por favor sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wba_csv_new' }]);
         } else if (step === 'csv_new') {
-            setMessages(prev => [...prev, { from: 'bot', text: 'Base CSV successfully saved. Finally, upload the Updated CSV file.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wba_csv_new' }]);
+            setMessages(prev => [...prev, { from: 'bot', text: 'CSV Base guardado exitosamente. Finalmente, sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wba_csv_new' }]);
         } else if (step === 'done') {
-            setMessages(prev => [...prev, { from: 'bot', text: 'All files have been successfully saved. The Ingestion process has concluded.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }]);
+            setMessages(prev => [...prev, { from: 'bot', text: 'Todos los archivos han sido guardados exitosamente. El proceso de Ingestión ha concluido.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }]);
             updatePhase(3);
         }
         setTimeout(() => scrollToBottom(true), 100);
@@ -366,7 +366,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
         if (queryToSend.toLowerCase() === '/deletedata') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Opening data deletion panel...', isNew: true }, { from: 'tool', toolId: 'delete_data' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo panel de eliminación de datos...', isNew: true }, { from: 'tool', toolId: 'delete_data' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
@@ -375,7 +375,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
     if (queryToSend.toLowerCase() === '/importcetxml') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Opening CET Data Ingestion environment in chat...', isNew: true }, { from: 'tool', toolId: 'import_cet_xml' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos CET en el chat...', isNew: true }, { from: 'tool', toolId: 'import_cet_xml' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
@@ -383,7 +383,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
 if (queryToSend.toLowerCase() === '/importbase') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Please upload the master XML file for WBA.', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Por favor, sube el archivo XML maestro de WBA.', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
@@ -394,7 +394,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
     
     if (queryToSend.toLowerCase() === '/exportcetcsv') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Opening main panel for CET Results and CSV Export...', isNew: true }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo panel principal de Resultados y Exportación CSV de CET...', isNew: true }]);
         if (typeof onOpenToolPanel === 'function') onOpenToolPanel('xml_results');
         setIsLoading(false);
         scrollToBottom(true);
@@ -403,7 +403,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
     }
     if (queryToSend.toLowerCase() === '/comparecet') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Deploying CET Comparator in the main panel...', isNew: true }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Desplegando el Comparador CET en el panel principal...', isNew: true }]);
         if (typeof onOpenToolPanel === 'function') onOpenToolPanel('compare_cet');
         setIsLoading(false);
         scrollToBottom(true);
@@ -412,7 +412,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
     }
     if (queryToSend.toLowerCase() === '/listpricechanges') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Deploying List Price Changes panel...', isNew: true }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Desplegando el panel de List Price Changes...', isNew: true }]);
         if(onOpenToolPanel) onOpenToolPanel('report');
         setIsLoading(false);
         scrollToBottom(true);
@@ -421,7 +421,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
     }
     if (queryToSend.toLowerCase() === '/graphicsdashboard') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Loading Graphic Analytics Dashboard...', isNew: true }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Cargando el Dashboard de Analíticas Gráficas...', isNew: true }]);
         if(onOpenToolPanel) onOpenToolPanel('graphics');
         setIsLoading(false);
         scrollToBottom(true);
@@ -430,7 +430,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
     }
     if (queryToSend.toLowerCase() === '/airesumen') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Generating AI Summary window...', isNew: true }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Generando ventana de AI Resumen...', isNew: true }]);
         if(onOpenToolPanel) onOpenToolPanel('AI_reporter');
         setIsLoading(false);
         scrollToBottom(true);
