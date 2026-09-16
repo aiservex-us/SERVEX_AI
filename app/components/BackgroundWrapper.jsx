@@ -149,7 +149,7 @@ export default function BackgroundWrapper({ children, theme = 'light', disableAu
                   y={(step.cy + n.dy) * 96}
                   width="96"
                   height="96"
-                  fill={theme === 'dark' ? \`rgba(255,255,255,\${isCurrent ? n.opacity : 0})\` : \`rgba(0,0,0,\${isCurrent ? n.opacity : 0})\`}
+                  fill={theme === 'dark' ? `rgba(255,255,255,${isCurrent ? n.opacity : 0})` : `rgba(0,0,0,${isCurrent ? n.opacity : 0})`}
                   style={{ transition: 'fill 1s ease' }}
                 />
               ))}
@@ -158,7 +158,7 @@ export default function BackgroundWrapper({ children, theme = 'light', disableAu
                 y={step.cy * 96}
                 width="96"
                 height="96"
-                fill={theme === 'dark' ? \`rgba(255,255,255,\${isCurrent ? 0.08 : 0})\` : \`rgba(0,0,0,\${isCurrent ? 0.12 : 0})\`}
+                fill={theme === 'dark' ? `rgba(255,255,255,${isCurrent ? 0.08 : 0})` : `rgba(0,0,0,${isCurrent ? 0.12 : 0})`}
                 style={{ transition: 'fill 1s ease' }}
               />
             </g>
