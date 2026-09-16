@@ -77,12 +77,13 @@ export async function getCurrentUser() {
   const provider = user.app_metadata?.provider;
 
   const isAzure = provider === 'azure';
-  const isGoogle = provider === 'google';
+  
+  // Si el email es null (común en Azure si no se configura el scope de email), 
+  // asumimos que es del tenant corporativo validado por Azure.
   const isAuthorizedDomain =
-    email && email.toLowerCase().endsWith('@servex-us.com');
+    email ? email.toLowerCase().endsWith('@servex-us.com') : true;
 
-  // Permitimos Azure con dominio servex-us.com, O Google para pruebas.
-  if (!(isAzure && isAuthorizedDomain) && !isGoogle) {
+  if (!isAzure || !isAuthorizedDomain) {
     console.warn('🚫 Acceso denegado:', { email, provider });
     await supabase.auth.signOut();
     return null;
