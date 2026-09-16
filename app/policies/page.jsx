@@ -13,28 +13,48 @@ import {
 } from 'react-icons/fi';
 
 const SECTIONS = [
-  { id: 'intro', title: 'Términos y Condiciones', icon: <FiFileText /> },
-  { id: 'sec-1', title: '1. Naturaleza de la Plataforma', icon: <FiCpu /> },
-  { id: 'sec-2', title: '2. Precisión y Responsabilidad', icon: <FiCheckSquare /> },
-  { id: 'sec-3', title: '3. Autenticación y Seguridad', icon: <FiShield /> },
-  { id: 'sec-4', title: '4. Propiedad Intelectual', icon: <FiLock /> },
-  { id: 'sec-5', title: '5. Disponibilidad Cloud', icon: <FiCloud /> },
-  { id: 'sec-6', title: '6. Exención de Responsabilidad', icon: <FiAlertCircle /> },
-  { id: 'sec-7', title: '7. Resolución de Disputas', icon: <FiGlobe /> },
-  { id: 'sec-8', title: '8. Aceptación de Modificaciones', icon: <FiEdit3 /> },
-  { id: 'sec-9', title: '9. Titularidad y Data', icon: <FiDatabase /> },
-  { id: 'sec-10', title: '10. Mantenimiento de Software', icon: <FiTool /> },
-  { id: 'sec-11', title: '11. Incidencias con Proveedores', icon: <FiServer /> },
-  { id: 'sec-12', title: '12. Soporte Exclusivo', icon: <FiBriefcase /> },
-  { id: 'sec-13', title: '13. Retención de IP', icon: <FiLayers /> },
-  { id: 'sec-14', title: '14. Restricciones de Acceso', icon: <FiXOctagon /> },
-  { id: 'sec-15', title: '15. Colaboradores Externos', icon: <FiUsers /> },
-  { id: 'sec-16', title: '16. Integridad Estructural', icon: <FiShield /> },
-  { id: 'sec-17', title: '17. Transparencia Oficial', icon: <FiInfo /> }
+  { id: 'intro', title: 'Terms and Conditions', icon: <FiFileText /> },
+  { id: 'sec-1', title: '1. Nature of the Platform', icon: <FiCpu /> },
+  { id: 'sec-2', title: '2. Accuracy and Responsibility', icon: <FiCheckSquare /> },
+  { id: 'sec-3', title: '3. Authentication & Security', icon: <FiShield /> },
+  { id: 'sec-4', title: '4. Intellectual Property', icon: <FiLock /> },
+  { id: 'sec-5', title: '5. Cloud Availability', icon: <FiCloud /> },
+  { id: 'sec-6', title: '6. Liability Exemption', icon: <FiAlertCircle /> },
+  { id: 'sec-7', title: '7. Dispute Resolution', icon: <FiGlobe /> },
+  { id: 'sec-8', title: '8. Modifications Acceptance', icon: <FiEdit3 /> },
+  { id: 'sec-9', title: '9. Ownership and Data', icon: <FiDatabase /> },
+  { id: 'sec-10', title: '10. Software Maintenance', icon: <FiTool /> },
+  { id: 'sec-11', title: '11. External Providers', icon: <FiServer /> },
+  { id: 'sec-12', title: '12. Exclusive Support', icon: <FiBriefcase /> },
+  { id: 'sec-13', title: '13. IP Retention', icon: <FiLayers /> },
+  { id: 'sec-14', title: '14. Code Access Restrictions', icon: <FiXOctagon /> },
+  { id: 'sec-15', title: '15. External Collaborators', icon: <FiUsers /> },
+  { id: 'sec-16', title: '16. Structural Integrity', icon: <FiShield /> },
+  { id: 'sec-17', title: '17. Official Transparency', icon: <FiInfo /> },
+  { id: 'sec-18', title: '18. Data Confidentiality', icon: <FiLock /> },
+  { id: 'sec-19', title: '19. Prohibition of PII', icon: <FiEyeOff /> },
+  { id: 'sec-20', title: '20. Temporary Cache', icon: <FiTrash2 /> },
+  { id: 'sec-21', title: '21. API Rate Limiting', icon: <FiActivity /> },
+  { id: 'sec-22', title: '22. Third-Party Schema', icon: <FiCode /> },
+  { id: 'sec-23', title: '23. Workflow Interruptions', icon: <FiPauseCircle /> },
+  { id: 'sec-24', title: '24. AI Chat Interface', icon: <FiCpu /> },
+  { id: 'sec-25', title: '25. Device Security', icon: <FiShield /> },
+  { id: 'sec-26', title: '26. MFA Compliance', icon: <FiKey /> },
+  { id: 'sec-27', title: '27. Anomalous Behavior', icon: <FiAlertCircle /> },
+  { id: 'sec-28', title: '28. System Anomalies', icon: <FiAlertCircle /> },
+  { id: 'sec-29', title: '29. Training Prerequisites', icon: <FiUserCheck /> },
+  { id: 'sec-30', title: '30. Beta Modules', icon: <FiBox /> },
+  { id: 'sec-31', title: '31. Telemetric Data', icon: <FiActivity /> },
+  { id: 'sec-32', title: '32. Export Security', icon: <FiShield /> },
+  { id: 'sec-33', title: '33. Revocation of Access', icon: <FiXOctagon /> },
+  { id: 'sec-34', title: '34. Admin Privileges', icon: <FiUsers /> },
+  { id: 'sec-35', title: '35. Force Majeure', icon: <FiCloud /> },
+  { id: 'sec-36', title: '36. Severability', icon: <FiFileText /> },
+  { id: 'sec-37', title: '37. Entire Agreement', icon: <FiFileText /> }
 ];
 
 export default function Policies() {
-  const currentDate = '16 de septiembre de 2026';
+  const currentDate = 'June 12, 2026';
   const [activeSection, setActiveSection] = useState('intro');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -42,8 +62,8 @@ export default function Policies() {
     setActiveSection(id);
     const element = document.getElementById(id);
     if (element) {
-      const y = element.getBoundingClientRect().top + window.scrollY - 100;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+      const y = element.getBoundingClientRect().top - 100; // Simplified logic, assuming it's document relative scroll
+      window.scrollTo({ top: window.scrollY + y, behavior: 'smooth' });
     }
   };
 
@@ -79,32 +99,32 @@ export default function Policies() {
             <div className="desktop-only-sidebar" style={{ flex: '0 0 64px', position: 'relative' }}>
               <div style={{ position: 'sticky', top: '120px' }}>
                 
-                {/* Floating Island Sidebar - Expands on hover */}
+                {/* Edge Sidebar - Expands on hover */}
                 <aside 
                   onMouseEnter={() => setIsSidebarOpen(true)}
                   onMouseLeave={() => setIsSidebarOpen(false)}
                   style={{
-                    position: 'absolute',
+                    position: 'fixed',
                     top: 0,
                     left: 0,
                     width: isSidebarOpen ? '280px' : '64px',
-                    height: 'fit-content',
-                    maxHeight: 'calc(100vh - 160px)',
+                    height: '100vh',
+                    maxHeight: '100vh',
                     overflowY: 'auto',
                     overflowX: 'hidden',
-                    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(30px)',
                     WebkitBackdropFilter: 'blur(30px)',
-                    borderRadius: '24px',
-                    padding: isSidebarOpen ? '24px 16px' : '24px 0',
-                    border: '1px solid rgba(0,0,0,0.06)',
-                    boxShadow: isSidebarOpen ? '0 24px 80px rgba(0,0,0,0.1)' : '0 12px 40px rgba(0,0,0,0.04)',
+                    borderRadius: '0',
+                    padding: isSidebarOpen ? '80px 16px 24px 16px' : '80px 0 24px 0',
+                    borderRight: '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: isSidebarOpen ? '24px 0 80px rgba(0,0,0,0.1)' : '12px 0 40px rgba(0,0,0,0.04)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: isSidebarOpen ? 'flex-start' : 'center',
                     gap: '6px',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    zIndex: 100 // Ensure it overlaps the content
+                    zIndex: 1000 // Ensure it stays on top of everything
                   }}
                 >
                   
@@ -176,128 +196,257 @@ export default function Policies() {
             }}>
               
               <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 400, color: '#111', margin: '40px 0 16px 0', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                Términos y Condiciones de Uso
+                Terms and Conditions of Use
               </h1>
               <p style={{ fontSize: '12px', color: '#86868b', marginBottom: '48px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                Última actualización: {currentDate}
+                Last updated: {currentDate}
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', color: '#1d1d1f', fontSize: '15px', lineHeight: 1.7, fontWeight: 300, letterSpacing: '0.01em' }}>
                 
                 <section id="intro">
-                  <p><strong>Plataforma:</strong> Servex Copilot (servexcopilot.com)<br/>
-                  <strong>Desarrollado y operado por:</strong> GLYNNE (NIT 901.966.512-3)<br/></p>
+                  <p><strong>Platform:</strong> Servex Copilot (servexcopilot.com)<br/>
+                  <strong>Developed and operated by:</strong> GLYNNE (NIT 901.966.512-3)</p>
+                  <p style={{ marginTop: '16px', fontSize: '14px', color: '#666' }}>
+                    These Servex Copilot policies are subject to the processes established by GLYNNE.
+                  </p>
+                  <a 
+                    href="https://axglynne.com/terms-of-service" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginTop: '12px',
+                      padding: '10px 20px',
+                      backgroundColor: '#111',
+                      color: '#fff',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      textDecoration: 'none',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.1)'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.1)';
+                    }}
+                  >
+                    View GLYNNE Terms of Service
+                  </a>
                 </section>
 
                 <section id="sec-1">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>1. Naturaleza de la Plataforma y Arquitectura Central</h2>
-                  <p>Bienvenido a Servex Copilot, el ecosistema de software cerrado y de grado empresarial diseñado para centralizar, automatizar y potenciar la gestión de catálogos de productos y flujos de datos complejos para Servex US.</p>
-                  <p>Al autenticarse y utilizar servexcopilot.com, el Usuario acepta estar legalmente vinculado a estos Términos.</p>
-                  <p>Servex Copilot no es una aplicación de chat conversacional estándar. Es una infraestructura de automatización donde la Inteligencia Artificial actúa como el núcleo operativo central. Esta IA no "piensa" ni genera información libre o probabilística; opera de manera determinística como un director de orquesta sobre múltiples agentes y herramientas construidas con ingeniería de software estricta (pipelines ETL, parsers de PDF a CSV, y manipuladores de estructuras XML).</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>1. Nature of the Platform and Core Architecture</h2>
+                  <p>Welcome to Servex Copilot, the closed, enterprise-grade software ecosystem designed to centralize, automate, and enhance the management of product catalogs and complex data flows for Servex US.</p>
+                  <p>By authenticating and using servexcopilot.com, the User agrees to be legally bound by these Terms.</p>
+                  <p>Servex Copilot is not a standard conversational chat application. It is an automation infrastructure where Artificial Intelligence acts as the central operational core. This AI does not "think" or generate free or probabilistic information; it operates deterministically as a conductor over multiple agents and tools built with strict software engineering (ETL pipelines, PDF to CSV parsers, and XML structure manipulators).</p>
                 </section>
 
                 <section id="sec-2">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>2. Precisión del Sistema y Responsabilidad sobre los Datos</h2>
-                  <p>Para evitar cualquier ambigüedad técnica o legal respecto a la calidad de los datos exportados a sistemas de terceros (como CET Designer o Catalog Creator), se establecen las siguientes reglas inamovibles:</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>2. System Accuracy and Data Responsibility</h2>
+                  <p>To avoid any technical or legal ambiguity regarding the quality of data exported to third-party systems (such as CET Designer or Catalog Creator), the following unalterable rules are established:</p>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li><strong>2.1. Exactitud Garantizada por Ingeniería:</strong> Todo el procesamiento lógico, enrutamiento de datos y transformación de catálogos se realiza mediante algoritmos rígidos y procesos de ingeniería exactos. La Inteligencia Artificial opera estas herramientas como un operario industrial especializado. Por lo tanto, el sistema no produce errores de cálculo, discrepancias matemáticas ni alucinaciones de datos.</li>
-                    <li><strong>2.2. Responsabilidad de la Fuente (Input):</strong> Dado que la plataforma procesa la información de forma matemáticamente exacta, cualquier error, descuadre en matrices de precios o referencia incorrecta en el archivo final exportado es el resultado directo y exclusivo de errores, formatos inválidos, omisiones o anomalías presentes en los documentos originales suministrados al sistema (ej. PDFs de fabricantes con estructuras no estandarizadas).</li>
-                    <li><strong>2.3. Validación a Cargo del Usuario:</strong> El Usuario asume el rol de supervisor operativo. Es su estricta responsabilidad verificar la calidad, legibilidad y formato de la información de origen antes de autorizar a la IA a ejecutar los flujos de trabajo. Servex Copilot y GLYNNE quedan exentos de toda responsabilidad por exportaciones fallidas derivadas de datos de origen defectuoso.</li>
+                    <li><strong>2.1. Accuracy Guaranteed by Engineering:</strong> All logical processing, data routing, and catalog transformation are performed through rigid algorithms and exact engineering processes. Artificial Intelligence operates these tools like a specialized industrial operator. Therefore, the system does not produce calculation errors, mathematical discrepancies, or data hallucinations.</li>
+                    <li><strong>2.2. Source Responsibility (Input):</strong> Since the platform processes information in a mathematically exact manner, any error, mismatch in pricing matrices, or incorrect reference in the final exported file is the direct and exclusive result of errors, invalid formats, omissions, or anomalies present in the original documents provided to the system (e.g., manufacturer PDFs with non-standardized structures).</li>
+                    <li><strong>2.3. User Validation:</strong> The User assumes the role of operational supervisor. It is their strict responsibility to verify the quality, legibility, and format of the source information before authorizing the AI to execute workflows. Servex Copilot and GLYNNE are exempt from all liability for failed exports derived from defective source data.</li>
                   </ul>
                 </section>
 
                 <section id="sec-3">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>3. Autenticación, Seguridad y Trazabilidad</h2>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>3. Authentication, Security, and Traceability</h2>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li><strong>3.1. Acceso Estricto:</strong> El acceso está restringido exclusivamente a personal autorizado mediante integraciones de autenticación corporativa (ej. Microsoft Azure OAuth). El Usuario es el único responsable de mantener la seguridad de sus credenciales.</li>
-                    <li><strong>3.2. Registro de Auditoría Inmutable (Audit Logging):</strong> Todas las acciones dentro de la plataforma (cargas de catálogos, modificaciones de precios en el XML Editor, autorizaciones de ejecución y eliminaciones) quedan registradas de manera permanente en la base de datos con marcas de tiempo y vinculadas a la identidad del Usuario. Este registro sirve como prueba definitiva en caso de auditorías sobre alteraciones de datos.</li>
+                    <li><strong>3.1. Strict Access:</strong> Access is restricted exclusively to authorized personnel through corporate authentication integrations (e.g., Microsoft Azure OAuth). The User is solely responsible for maintaining the security of their credentials.</li>
+                    <li><strong>3.2. Immutable Audit Logging:</strong> All actions within the platform (catalog uploads, price modifications in the XML Editor, execution authorizations, and deletions) are permanently recorded in the database with timestamps and linked to the User's identity. This record serves as definitive proof in the event of audits regarding data alterations.</li>
                   </ul>
                 </section>
 
                 <section id="sec-4">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>4. Propiedad Intelectual y Restricciones Técnicas</h2>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>4. Intellectual Property and Technical Restrictions</h2>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li><strong>4.1. Propiedad de la Infraestructura:</strong> La arquitectura de software, los algoritmos de extracción (parsers), los agentes operativos de IA, la estructura de la base de datos, el código fuente (Next.js, Python, integraciones Supabase) y la interfaz de usuario son propiedad intelectual exclusiva de GLYNNE.</li>
-                    <li><strong>4.2. Propiedad de los Datos:</strong> Todos los catálogos, matrices de precios e información comercial alojada en el sistema multitenant pertenecen a Servex US y/o a sus respectivos fabricantes.</li>
-                    <li><strong>4.3. Prohibiciones Estrictas:</strong> Queda terminantemente prohibido realizar ingeniería inversa, intentar descompilar los pipelines de datos, extraer la lógica de negocio, o someter a la IA a inyecciones de comandos (prompt injection) para fines distintos a la gestión de catálogos para la cual fue programada.</li>
+                    <li><strong>4.1. Infrastructure Ownership:</strong> The software architecture, extraction algorithms (parsers), operational AI agents, database structure, source code (Next.js, Python, Supabase integrations), and user interface are the exclusive intellectual property of GLYNNE.</li>
+                    <li><strong>4.2. Data Ownership:</strong> All catalogs, pricing matrices, and commercial information hosted in the multitenant system belong to Servex US and/or their respective manufacturers.</li>
+                    <li><strong>4.3. Strict Prohibitions:</strong> It is strictly prohibited to reverse engineer, attempt to decompile data pipelines, extract business logic, or subject the AI to command injections (prompt injection) for purposes other than the catalog management for which it was programmed.</li>
                   </ul>
                 </section>
 
                 <section id="sec-5">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>5. Disponibilidad del Servicio e Infraestructura Cloud</h2>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>5. Service Availability and Cloud Infrastructure</h2>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li><strong>5.1. Operación en la Nube:</strong> servexcopilot.com opera sobre infraestructuras de nube de alto rendimiento. GLYNNE asegura la correcta arquitectura y orquestación del sistema, pero el uptime absoluto (tiempo de actividad) está sujeto a la disponibilidad de los proveedores de nube subyacentes.</li>
-                    <li><strong>5.2. Mantenimiento:</strong> La plataforma podrá ser sometida a ventanas de mantenimiento para la actualización de agentes operativos o mejoras de seguridad. Estas interrupciones no constituirán un incumplimiento de servicio.</li>
+                    <li><strong>5.1. Cloud Operation:</strong> servexcopilot.com operates on high-performance cloud infrastructures. GLYNNE ensures the correct architecture and orchestration of the system, but absolute uptime (activity time) is subject to the availability of the underlying cloud providers.</li>
+                    <li><strong>5.2. Maintenance:</strong> The platform may be subject to maintenance windows for the update of operational agents or security improvements. These interruptions will not constitute a breach of service.</li>
                   </ul>
                 </section>
 
                 <section id="sec-6">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>6. Exención de Responsabilidad Comercial</h2>
-                  <p>En la medida máxima permitida por la ley aplicable, ni GLYNNE ni los administradores de Servex Copilot serán responsables por daños indirectos, pérdida de ingresos, pérdida de oportunidades de negocio o problemas en la cadena de suministro que deriven de:</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>6. Commercial Liability Exemption</h2>
+                  <p>To the maximum extent permitted by applicable law, neither GLYNNE nor the administrators of Servex Copilot shall be liable for indirect damages, loss of revenue, loss of business opportunities, or supply chain issues resulting from:</p>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li>La exportación e implementación en producción de archivos XML o bases de datos generadas a partir de documentos originales defectuosos provistos por el Usuario.</li>
-                    <li>La omisión por parte del Usuario de revisar la integridad estructural de los datos antes de su uso final.</li>
+                    <li>The export and implementation in production of XML files or databases generated from defective original documents provided by the User.</li>
+                    <li>The failure by the User to review the structural integrity of the data before its final use.</li>
                   </ul>
                 </section>
 
                 <section id="sec-7">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>7. Ley Aplicable y Resolución de Disputas</h2>
-                  <p>El uso de esta plataforma, así como la interpretación y cumplimiento de estos Términos, se rigen exclusivamente por las leyes de la República de Colombia. Cualquier disputa técnica u operativa que surja del uso de Servex Copilot será resuelta inicialmente mediante mecanismos de conciliación directa avalados en el territorio colombiano.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>7. Applicable Law and Dispute Resolution</h2>
+                  <p>The use of this platform, as well as the interpretation and fulfillment of these Terms, are governed exclusively by the laws of the Republic of Colombia. Any technical or operational dispute arising from the use of Servex Copilot will be initially resolved through direct conciliation mechanisms endorsed within Colombian territory.</p>
                 </section>
 
                 <section id="sec-8">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>8. Aceptación de Modificaciones</h2>
-                  <p>La arquitectura de Servex Copilot es un entorno en constante evolución tecnológica. Nos reservamos el derecho de actualizar estos Términos para reflejar mejoras en la ingeniería del sistema. El acceso continuado a la plataforma implica la aceptación irrevocable de los Términos vigentes.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>8. Acceptance of Modifications</h2>
+                  <p>The architecture of Servex Copilot is an environment in constant technological evolution. We reserve the right to update these Terms to reflect improvements in system engineering. Continued access to the platform implies irrevocable acceptance of the current Terms.</p>
                 </section>
 
                 <section id="sec-9">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>9. Titularidad Operativa y Propiedad de la Data</h2>
-                  <p>Se establece y reconoce expresamente que el 100% de la funcionalidad de la plataforma, las bases de datos de clientes, las matrices de precios, los catálogos y el soporte operativo generado por el ecosistema de Servex Copilot son de propiedad y beneficio exclusivo de Servex US. La plataforma existe para potenciar su operación comercial de manera ininterrumpida.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>9. Operational Ownership and Data Property</h2>
+                  <p>It is expressly established and recognized that 100% of the platform's functionality, customer databases, pricing matrices, catalogs, and operational support generated by the Servex Copilot ecosystem are the exclusive property and benefit of Servex US. The platform exists to enhance its commercial operation uninterruptedly.</p>
                 </section>
 
                 <section id="sec-10">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>10. Naturaleza Evolutiva del Software y Necesidad de Mantenimiento</h2>
-                  <p>El Usuario y Servex US reconocen que Servex Copilot es un software vivo de misión crítica. Como tal, la plataforma requiere de manera permanente labores de mantenimiento, actualizaciones de seguridad y adaptabilidad frente a la evolución de nuevas tecnologías y estándares web para garantizar que su precisión matemática y operativa no se degrade con el tiempo.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>10. Evolutionary Nature of the Software and Maintenance Needs</h2>
+                  <p>The User and Servex US recognize that Servex Copilot is living, mission-critical software. As such, the platform permanently requires maintenance tasks, security updates, and adaptability to the evolution of new technologies and web standards to guarantee that its mathematical and operational precision does not degrade over time.</p>
                 </section>
 
                 <section id="sec-11">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>11. Gestión de Incidencias con Proveedores Tecnológicos Externos</h2>
-                  <p>La arquitectura del sistema depende de interacciones exactas con infraestructuras de terceros (servidores en la nube, bases de datos Supabase, APIs de modelos de lenguaje, etc.). Cualquier problema, caída, migración de infraestructura o actualización forzosa requerida por estos proveedores externos debe ser gestionada y delegada de manera obligatoria y exclusiva a GLYNNE para evitar colapsos en la cadena de orquestación de datos.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>11. Incident Management with External Technology Providers</h2>
+                  <p>The system's architecture depends on exact interactions with third-party infrastructures (cloud servers, Supabase databases, language model APIs, etc.). Any problem, outage, infrastructure migration, or forced update required by these external providers must be compulsorily and exclusively managed and delegated to GLYNNE to prevent collapses in the data orchestration chain.</p>
                 </section>
 
                 <section id="sec-12">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>12. Exclusividad de Desarrollo, Soporte y Nuevos Módulos</h2>
-                  <p>Para garantizar que la arquitectura mantenga su precisión determinística y evitar conflictos en los algoritmos de extracción, todo el soporte técnico, la resolución de bugs, la refactorización de código, la adición de nuevos desarrollos y la creación de nuevos módulos quedan delegados de forma exclusiva a GLYNNE. No se permite la manipulación del núcleo del sistema por parte de agentes no autorizados.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>12. Exclusivity of Development, Support, and New Modules</h2>
+                  <p>To guarantee that the architecture maintains its deterministic precision and to prevent conflicts in extraction algorithms, all technical support, bug resolution, code refactoring, addition of new developments, and creation of new modules are exclusively delegated to GLYNNE. Manipulation of the system core by unauthorized agents is not permitted.</p>
                 </section>
 
                 <section id="sec-13">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>13. Retención de la Propiedad Intelectual durante el Ciclo de Soporte</h2>
-                  <p>Se establece como condición inamovible que, siempre y cuando la plataforma se encuentre bajo fase de desarrollo, expansión modular, soporte técnico activo o mantenimiento por parte de GLYNNE, la Propiedad Intelectual (IP) de la arquitectura del software, el código fuente, los pipelines ETL y la lógica de los agentes de IA pertenece a GLYNNE.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>13. Retention of Intellectual Property during the Support Cycle</h2>
+                  <p>It is established as an unalterable condition that, as long as the platform is under the development phase, modular expansion, active technical support, or maintenance by GLYNNE, the Intellectual Property (IP) of the software architecture, source code, ETL pipelines, and logic of the AI agents belongs to GLYNNE.</p>
                 </section>
 
                 <section id="sec-14">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>14. Restricciones de Acceso al Código por parte de Terceros</h2>
-                  <p>Para salvaguardar la fiabilidad del trabajo y la estabilidad de la IA central, cualquier acceso a los repositorios de código, la base de datos de producción o las llaves de infraestructura tecnológica por parte de ingenieros de terceros, colaboradores externos o consultores independientes está estrictamente bloqueado por defecto.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>14. Third-Party Code Access Restrictions</h2>
+                  <p>To safeguard the reliability of the work and the stability of the central AI, any access to code repositories, the production database, or technological infrastructure keys by third-party engineers, external collaborators, or independent consultants is strictly blocked by default.</p>
                 </section>
 
                 <section id="sec-15">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>15. Protocolos de Evaluación y Entrevista para Colaboradores Externos</h2>
-                  <p>En caso de que Servex US requiera la intervención o integración de un colaborador tecnológico externo en el ecosistema, dicho colaborador no tendrá acceso inmediato. Primero deberá someterse obligatoriamente a rigurosos protocolos de análisis de código y entrevistas técnicas dirigidas por la dirección de ingeniería de GLYNNE. Este filtro es mandatorio para validar las competencias del tercero y asegurar su confiabilidad técnica.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>15. Evaluation and Interview Protocols for External Collaborators</h2>
+                  <p>In the event that Servex US requires the intervention or integration of an external technological collaborator into the ecosystem, such collaborator will not have immediate access. They must first undergo rigorous code analysis protocols and technical interviews directed by GLYNNE's engineering leadership. This filter is mandatory to validate the third party's competencies and ensure their technical reliability.</p>
                 </section>
 
                 <section id="sec-16">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>16. Garantía de Integridad Estructural del Ecosistema</h2>
-                  <p>Los protocolos descritos en los puntos 14 y 15 no tienen fines restrictivos comerciales, sino que son medidas de ingeniería estructural. Están diseñados para asegurar que ninguna intervención externa introduzca vulnerabilidades, rompa el determinismo de la IA, o desestabilice el proyecto y la plataforma en general, protegiendo así la operación de Servex US.</p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>16. Structural Integrity Guarantee of the Ecosystem</h2>
+                  <p>The protocols described in points 14 and 15 do not have commercial restrictive purposes; rather, they are structural engineering measures. They are designed to ensure that no external intervention introduces vulnerabilities, breaks the AI's determinism, or destabilizes the project and the platform in general, thus protecting Servex US's operation.</p>
                 </section>
 
                 <section id="sec-17">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>17. Transparencia y Documentación Arquitectónica Oficial</h2>
-                  <p>Toda la documentación técnica, diagramas de arquitectura, el Tech Stack utilizado, los manuales operativos y las especificaciones exactas sobre cómo está construido y orquestado el proyecto Servex Copilot son de carácter transparente para las partes autorizadas. Esta información se encuentra centralizada, actualizada y disponible para su consulta en el siguiente portal oficial de la firma de ingeniería: <a href="https://axglynne.com/Solutions" style={{ color: '#111', textDecoration: 'underline' }}>https://axglynne.com/Solutions</a></p>
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>17. Transparency and Official Architectural Documentation</h2>
+                  <p>All technical documentation, architecture diagrams, the Tech Stack used, operational manuals, and exact specifications on how the Servex Copilot project is built and orchestrated are completely transparent to authorized parties. This information is centralized, updated, and available for consultation on the engineering firm's following official portal: <a href="https://axglynne.com/Solutions" style={{ color: '#111', textDecoration: 'underline' }}>https://axglynne.com/Solutions</a></p>
                 </section>
 
-                <p style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-                  Con estos 9 puntos adicionales (sumados a los 8 iniciales), el ecosistema completo de Servex Copilot queda blindado: se protege la autoría, se garantiza la exclusividad del flujo de ingresos por mantenimiento/soporte, y se crea una barrera de seguridad infranqueable contra intervenciones externas no deseadas.
-                </p>
+                <section id="sec-18">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>18. Data Confidentiality and Multi-Tenant Isolation</h2>
+                  <p>The platform utilizes advanced database architectures (e.g., Row-Level Security) to maintain strict isolation between different manufacturers' catalogs and pricing matrices. Users must not attempt to bypass these security protocols to view, extract, or manipulate data belonging to unauthorized workspaces or manufacturers.</p>
+                </section>
+
+                <section id="sec-19">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>19. Prohibition of Personally Identifiable Information (PII)</h2>
+                  <p>Servex Copilot is an enterprise ecosystem strictly designed for commercial product data, catalogs, and operational matrices. Users are strictly prohibited from uploading Personally Identifiable Information (PII), sensitive financial data, or private corporate communications into the platform or the AI chat interface.</p>
+                </section>
+
+                <section id="sec-20">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>20. Temporary Cache and Automated Data Purging</h2>
+                  <p>To maintain optimal cloud efficiency and system speed, intermediate processing files (such as raw PDFs or temporary CSVs used during transformations) are subject to automated purging protocols. The platform is an active processing engine, not a long-term storage or backup solution for raw manufacturer files.</p>
+                </section>
+
+                <section id="sec-21">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>21. API Rate Limiting and Fair Use</h2>
+                  <p>To guarantee the stability and optimal performance of the AI core and ETL pipelines for all active users, interactions are subject to automated rate limits and token quotas. Automated scraping, reverse-engineering API calls, or bot-driven interactions with the platform's endpoints are strictly forbidden.</p>
+                </section>
+
+                <section id="sec-22">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>22. Third-Party Schema Dependencies</h2>
+                  <p>Data exported from the platform is structured for specific third-party ecosystems (such as CET Designer). The platform is not liable for export incompatibilities if those third-party systems unilaterally alter, update, or deprecate their data ingestion schemas or XML requirements without prior official notice.</p>
+                </section>
+
+                <section id="sec-23">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>23. Workflow Interruptions and Data Rollbacks</h2>
+                  <p>If a User forcefully aborts a data transformation pipeline, closes the browser during a mass update, or interrupts an active ETL process, the platform is not responsible for resulting partial data fragmentation. Users must utilize the designated system rollback, audit logs, or deletion functions to correct interrupted states.</p>
+                </section>
+
+                <section id="sec-24">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>24. Acceptable Use of the AI Chat Interface</h2>
+                  <p>The Servex Copilot conversational interface is strictly restricted to operational commands, XML parsing queries, data mapping assistance, and system navigation. It must not be used for general inquiries, non-business matters, or attempts to test, bypass, or "jailbreak" the underlying language model's security guardrails.</p>
+                </section>
+
+                <section id="sec-25">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>25. Endpoint and Corporate Device Security</h2>
+                  <p>Users are required to access the platform exclusively from secure, malware-free corporate devices connected to trusted networks. The platform operators are not liable for any data breaches, unauthorized pricing alterations, or catalog deletions resulting from compromised user hardware or stolen session tokens.</p>
+                </section>
+
+                <section id="sec-26">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>26. Multi-Factor Authentication (MFA) Compliance</h2>
+                  <p>Where enforced by Servex US through corporate Active Directory policies, Users must strictly comply with Multi-Factor Authentication (MFA) to access the platform. Bypassing MFA or sharing authentication tokens with unauthorized personnel is grounds for immediate account suspension.</p>
+                </section>
+
+                <section id="sec-27">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>27. Automated Suspension for Anomalous Behavior</h2>
+                  <p>The platform's security monitoring algorithms reserve the right to automatically lock or suspend any User account that exhibits anomalous behavior—such as mass unauthorized deletions, irregular API calls, or logins from blacklisted IP addresses—pending an administrative security review.</p>
+                </section>
+
+                <section id="sec-28">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>28. User Duty to Report System Anomalies</h2>
+                  <p>Users act as the first line of operational quality control. Users must immediately report any suspected security breach, UI malfunction, unexpected AI behavior, or output discrepancy to the system administrators to trigger the corresponding engineering analysis.</p>
+                </section>
+
+                <section id="sec-29">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>29. User Competence and Training Prerequisites</h2>
+                  <p>The platform is an advanced technical engineering tool. Users are expected to possess a baseline operational understanding of catalog structures, XML hierarchies, and commercial pricing matrices to effectively validate the data processed by the platform.</p>
+                </section>
+
+                <section id="sec-30">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>30. No Implied Warranties for Beta Modules</h2>
+                  <p>The platform may occasionally deploy new features, AI agents, or interface modules labeled as "Beta" or "Experimental." These specific modules are provided "as is" for testing purposes and may not initially reflect the absolute deterministic accuracy of the core production pipelines.</p>
+                </section>
+
+                <section id="sec-31">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>31. Telemetric Data and Performance Analytics</h2>
+                  <p>The platform collects anonymized operational telemetry (such as execution times, error rates, click paths, and LLM token usage) to continuously optimize the underlying algorithms, improve user experience, and monitor cloud resource consumption.</p>
+                </section>
+
+                <section id="sec-32">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>32. Data Export Security Responsibilities</h2>
+                  <p>Once an XML file, CSV, or dataset is downloaded or exported from the platform's secure cloud environment into local servers, email attachments, or local hard drives, the platform's security and integrity guarantees no longer apply to that exported file.</p>
+                </section>
+
+                <section id="sec-33">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>33. Discretionary Revocation of Access Rights</h2>
+                  <p>Servex US administration and the platform operators reserve the right to request or execute the immediate revocation of any User's access to the ecosystem at their sole discretion, without prior notice, to protect the integrity of the system or enforce corporate policies.</p>
+                </section>
+
+                <section id="sec-34">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>34. Delegation of Administrative Privileges</h2>
+                  <p>Users who are granted "Admin" or "Manager" roles are strictly responsible for the actions of the sub-users they authorize or manage, including any permissions granted for pricing alterations, XML editing, or catalog deletions within the workspace.</p>
+                </section>
+
+                <section id="sec-35">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>35. Force Majeure and External Dependencies</h2>
+                  <p>The platform shall not be held liable for system downtime, data processing delays, or unavailability caused by uncontrollable external events. This includes, but is not limited to, global cloud outages, internet backbone failures, or unilateral service restrictions imposed by third-party AI or database API providers.</p>
+                </section>
+
+                <section id="sec-36">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>36. Severability of Clauses</h2>
+                  <p>If any individual provision, clause, or term within this agreement is deemed invalid, illegal, or unenforceable by a court of competent jurisdiction, the validity, legality, and enforceability of the remaining provisions shall remain in full force and effect and shall not be impaired.</p>
+                </section>
+
+                <section id="sec-37">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>37. Entire Platform Agreement</h2>
+                  <p>These Terms, alongside the immutable Audit Logs generated by the system, constitute the complete and exclusive understanding between the User and the platform regarding its technical use, superseding any prior verbal, informal, or written communications regarding the system's capabilities.</p>
+                </section>
 
               </div>
             </div>

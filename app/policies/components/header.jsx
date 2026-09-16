@@ -8,8 +8,8 @@ import {
   FiBriefcase,
   FiBookOpen,
   FiMail,
-  FiMenu,
   FiX,
+  FiCpu
 } from 'react-icons/fi';
 
 export default function Header() {
@@ -67,8 +67,14 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-8">
             <NavItem
               icon={FiInfo}
-              label="About"
+              label="Policies"
               onClick={() => router.push('/policies')}
+            />
+
+            <NavItem
+              icon={FiCpu}
+              label="Operation"
+              onClick={() => window.open('https://axglynne.com/servex_espesification', '_blank')}
             />
 
             <NavItem
@@ -85,7 +91,7 @@ export default function Header() {
             <NavItem
               icon={FiBookOpen}
               label="Blog"
-              onClick={() => router.push('/firstai')}
+              onClick={() => window.open('https://www.linkedin.com/company/servex-us/posts/', '_blank')}
             />
 
             <NavItem
@@ -155,9 +161,18 @@ export default function Header() {
           <nav className="px-6 py-8 flex flex-col gap-6">
             <NavItem
               icon={FiInfo}
-              label="About"
+              label="Policies"
               onClick={() => {
                 router.push('/policies');
+                setOpen(false);
+              }}
+            />
+
+            <NavItem
+              icon={FiCpu}
+              label="Operation"
+              onClick={() => {
+                window.open('https://axglynne.com/servex_espesification', '_blank');
                 setOpen(false);
               }}
             />
@@ -178,7 +193,7 @@ export default function Header() {
               icon={FiBookOpen}
               label="Blog"
               onClick={() => {
-                router.push('/firstai');
+                window.open('https://www.linkedin.com/company/servex-us/posts/', '_blank');
                 setOpen(false);
               }}
             />

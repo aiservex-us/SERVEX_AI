@@ -18,66 +18,36 @@ export default function TutorialBanner() {
             />
           </div>
 
-          {/* Slider label (estético) */}
-          <div className="absolute bottom-6 left-10 right-10 flex items-center gap-3 text-xs text-gray-500">
-            <span>Data</span>
-            <div className="flex-1 h-px bg-gray-300" />
-            <span>Models</span>
-          </div>
+          {/* Slider label removed as per request */}
         </div>
 
         {/* ================= RIGHT / CONTENT ================= */}
-        <div className="p-10 flex flex-col justify-between">
+        <div className="p-10 flex flex-col justify-center">
 
           {/* Header */}
           <div>
             <span className="text-xs uppercase tracking-widest text-gray-400">
-              AI CORE
+              DOCUMENTATION
             </span>
 
             <h2 className="mt-2 text-3xl font-semibold leading-tight text-gray-900">
-              Servex Copilot
+              Project Specifications
             </h2>
 
-            <p className="mt-4 text-sm text-gray-500 max-w-sm">
-              Servex Copilot is the unified artificial intelligence that acts as the
-              brain of the SERVEX ecosystem, coordinating data, processes, and
-              automation from a single core.
+            <p className="mt-4 text-sm text-gray-500 max-w-sm leading-relaxed">
+              Discover the full operational scope and architecture of Servex Copilot. 
+              Our documentation details how deterministic AI agents interact with 
+              enterprise systems, the ETL pipelines, and our security protocols.
             </p>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-6 mt-10 text-sm">
-            <div>
-              <p className="text-gray-400 text-xs uppercase">Data Sync</p>
-              <p className="mt-1 font-medium">Real-time</p>
-            </div>
-
-            <div>
-              <p className="text-gray-400 text-xs uppercase">Scope</p>
-              <p className="mt-1 font-medium">End-to-End  Ops</p>
-            </div>
-
-            <div>
-              <p className="text-gray-400 text-xs uppercase">Learning</p>
-              <p className="mt-1 font-medium">Continuous</p>
-            </div>
-
-            <div>
-              <p className="text-gray-400 text-xs uppercase">Architecture</p>
-              <p className="mt-1 font-medium">Centralized AI</p>
-            </div>
-          </div>
-
           {/* Footer */}
-          <div className="mt-10 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-400 uppercase">Status</p>
-              <p className="font-medium text-gray-900">Building</p>
-            </div>
-
-            <button className="px-6 py-3 rounded-full bg-black text-white text-sm font-medium hover:opacity-90 transition">
-              Access SVX
+          <div className="mt-10 flex items-center justify-start">
+            <button 
+              onClick={() => window.open('https://axglynne.com/Solutions', '_blank')}
+              className="px-6 py-3 rounded-full bg-black text-white text-sm font-medium hover:scale-[1.03] hover:opacity-90 transition"
+            >
+              Explore Solutions
             </button>
           </div>
 
