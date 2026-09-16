@@ -74,7 +74,7 @@ export default function Header() {
             <NavItem
               icon={FiInfo}
               label="About"
-              onClick={() => router.push('/politicas')}
+              onClick={() => router.push('/policies')}
             />
 
             <NavItem
@@ -186,7 +186,7 @@ export default function Header() {
               icon={FiInfo}
               label="About"
               onClick={() => {
-                router.push('/politicas');
+                router.push('/policies');
                 setOpen(false);
               }}
             />

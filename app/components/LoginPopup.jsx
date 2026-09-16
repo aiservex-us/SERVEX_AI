@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, supabaseGoogle, signInWithAzure } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { FaGoogle, FaMicrosoft } from 'react-icons/fa';
 
@@ -13,10 +13,10 @@ export function LoginPopup({ visible, onClose }) {
   // 🔐 Google
   const handleGoogleLogin = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabaseGoogle.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/Panel_Client`,
         },
       });
 
@@ -27,26 +27,27 @@ export function LoginPopup({ visible, onClose }) {
   // 🔐 Microsoft (Azure)
   const handleMicrosoftLogin = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'azure',
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
-        },
-      });
-
-      if (error) alert('Error al iniciar sesión con Microsoft');
-    } catch (_) {}
+      await signInWithAzure();
+    } catch (error) {
+      alert('Error al iniciar sesión con Microsoft');
+    }
   };
 
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        // Primero verificamos si hay sesión de Google (clientes)
+        const { data: dataGoogle } = await supabaseGoogle.auth.getUser();
+        if (dataGoogle?.user) {
+          setEmail(dataGoogle.user.email);
+          router.push('/Panel_Client');
+          return;
+        }
 
-        if (user?.email) {
-          setEmail(user.email);
+        // Si no hay de Google, verificamos si hay sesión de Microsoft (trabajadores)
+        const { data: dataAzure } = await supabase.auth.getUser();
+        if (dataAzure?.user) {
+          setEmail(dataAzure.user.email);
           router.push('/panel');
         }
       } catch (_) {}

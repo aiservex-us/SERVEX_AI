@@ -59,7 +59,7 @@ export async function getCurrentUser() {
 
   if (error) {
     if (error.message.includes('Auth session missing')) {
-        return null; 
+      return null;
     }
     console.error('❌ Error fetching user:', error);
     return null;

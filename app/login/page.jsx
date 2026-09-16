@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 // Importamos la instancia estándar (Azure)
-import { supabase } from '../lib/supabaseClient'; 
+import { signInWithAzure, supabase } from '../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
 import { FaMicrosoft } from 'react-icons/fa';
 import Image from 'next/image';
@@ -12,12 +12,11 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleMicrosoftLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'azure',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/panel`,
-      },
-    });
+    try {
+      await signInWithAzure();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {

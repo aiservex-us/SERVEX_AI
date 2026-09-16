@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'; // Importante añadir useEffect
 import { useRouter } from 'next/navigation';
-import { supabase } from '../lib/supabaseClient'; // Usamos el cliente estándar (Azure)
+import { getCurrentUser } from '../lib/supabaseClient'; // Usamos el helper de auth
 import PanelMenur from './components/PaginaInicial/initPage';
 import GlobalOnboarding from './components/GlobalOnboarding';
 
@@ -13,11 +13,11 @@ export default function PanelPage() {
  // 🔒 PROTECCIÓN DE RUTA PARA TRABAJADORES
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getCurrentUser();
 
-      // Si no hay user, o el proveedor no es 'azure', redirigir al login de Microsoft
-      if (!user || user.app_metadata?.provider !== 'azure') {
-        router.replace('/login'); // O la ruta de tu login de Microsoft
+      // Si no hay user válido (o no es azure, o no es @servex-us.com), getCurrentUser() devuelve null y cierra sesión
+      if (!user) {
+        router.replace('/login'); 
       }
     };
 
