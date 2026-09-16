@@ -155,7 +155,7 @@ const ServexModernFooter = () => {
       {/* BOTTOM BAR */}
       <div className="bg-white px-6 md:px-16 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
         <a
-          href="https://glynneai.com"
+          href="https://axglynne.com"
           target="_blank"
           rel="noopener noreferrer"
           className="text-[10px] font-bold text-slate-300 hover:text-[#6264A7] transition-colors"

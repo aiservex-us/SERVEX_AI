@@ -65,7 +65,7 @@ export default function Sidebar({ activeView, setActiveView }) {
       ">
         <div className="flex flex-row md:flex-col gap-2 md:gap-6 items-center w-full flex-1 md:flex-none">
           
-          <a href="https://glynneai.com" target="_blank" rel="noopener noreferrer" className="hidden md:flex w-10 h-10 rounded-lg items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+          <a href="https://axglynne.com" target="_blank" rel="noopener noreferrer" className="hidden md:flex w-10 h-10 rounded-lg items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/GLYNNE.png" alt="GLYNNE" className="w-full h-full object-contain" />
           </a>
 

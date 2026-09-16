@@ -225,7 +225,7 @@ export default function MenuLateral({
           ${isEffectivelyCollapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
         `}>
           <a
-            href="https://glynneai.com/"
+            href="https://axglynne.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="group block px-1"
