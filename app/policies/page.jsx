@@ -9,41 +9,32 @@ import {
   FiDatabase, FiAlertCircle, FiCloud, FiActivity, FiShield, FiKey, 
   FiLock, FiCode, FiBox, FiCheckSquare, FiRefreshCw, FiTool, 
   FiXOctagon, FiEyeOff, FiPauseCircle, FiTrash2, 
-  FiUserCheck, FiEdit3, FiGlobe, FiMail 
+  FiUserCheck, FiEdit3, FiGlobe, FiMail, FiUsers, FiServer
 } from 'react-icons/fi';
 
 const SECTIONS = [
-  { id: 'intro', title: 'Introduction', icon: <FiFileText /> },
-  { id: 'identificacion', title: '1. Identification of GLYNNE', icon: <FiInfo /> },
-  { id: 'naturaleza', title: '2. Nature of Services', icon: <FiBriefcase /> },
-  { id: 'personalizados', title: '3. Customized Services', icon: <FiSettings /> },
-  { id: 'ia', title: '4. Artificial Intelligence', icon: <FiCpu /> },
-  { id: 'arquitectura-ia', title: '5. Controlled AI Architecture', icon: <FiLayers /> },
-  { id: 'datos-cliente', title: '6. Client-Provided Data', icon: <FiDatabase /> },
-  { id: 'responsabilidad-info', title: '7. Responsibility for Information', icon: <FiAlertCircle /> },
-  { id: 'proveedores', title: '8. Third-Party Technology Providers', icon: <FiCloud /> },
-  { id: 'disponibilidad', title: '9. Availability of External Services', icon: <FiActivity /> },
-  { id: 'seguridad', title: '10. Security', icon: <FiShield /> },
-  { id: 'credenciales', title: '11. Credentials and Access', icon: <FiKey /> },
-  { id: 'propiedad-intelectual', title: '12. Intellectual Property', icon: <FiLock /> },
-  { id: 'desarrollos', title: '13. Specific Developments', icon: <FiCode /> },
-  { id: 'codigo-abierto', title: '14. Open Source Technologies', icon: <FiBox /> },
-  { id: 'uso-permitido', title: '15. Permitted Use', icon: <FiCheckSquare /> },
-  { id: 'cambios', title: '16. Changes to Services', icon: <FiRefreshCw /> },
-  { id: 'mantenimiento', title: '17. Maintenance', icon: <FiTool /> },
-  { id: 'limitacion', title: '18. Limitation of Liability', icon: <FiXOctagon /> },
-  { id: 'resultados', title: '19. Automated Results', icon: <FiCpu /> },
-  { id: 'confidencialidad', title: '20. Confidentiality', icon: <FiEyeOff /> },
-  { id: 'suspension', title: '21. Suspension of Service', icon: <FiPauseCircle /> },
-  { id: 'terminacion', title: '22. Termination', icon: <FiTrash2 /> },
-  { id: 'proteccion-datos', title: '23. Personal Data Protection', icon: <FiUserCheck /> },
-  { id: 'modificaciones', title: '24. Modifications to these Terms', icon: <FiEdit3 /> },
-  { id: 'legislacion', title: '25. Applicable Law', icon: <FiGlobe /> },
-  { id: 'contacto', title: '26. Contact', icon: <FiMail /> }
+  { id: 'intro', title: 'Términos y Condiciones', icon: <FiFileText /> },
+  { id: 'sec-1', title: '1. Naturaleza de la Plataforma', icon: <FiCpu /> },
+  { id: 'sec-2', title: '2. Precisión y Responsabilidad', icon: <FiCheckSquare /> },
+  { id: 'sec-3', title: '3. Autenticación y Seguridad', icon: <FiShield /> },
+  { id: 'sec-4', title: '4. Propiedad Intelectual', icon: <FiLock /> },
+  { id: 'sec-5', title: '5. Disponibilidad Cloud', icon: <FiCloud /> },
+  { id: 'sec-6', title: '6. Exención de Responsabilidad', icon: <FiAlertCircle /> },
+  { id: 'sec-7', title: '7. Resolución de Disputas', icon: <FiGlobe /> },
+  { id: 'sec-8', title: '8. Aceptación de Modificaciones', icon: <FiEdit3 /> },
+  { id: 'sec-9', title: '9. Titularidad y Data', icon: <FiDatabase /> },
+  { id: 'sec-10', title: '10. Mantenimiento de Software', icon: <FiTool /> },
+  { id: 'sec-11', title: '11. Incidencias con Proveedores', icon: <FiServer /> },
+  { id: 'sec-12', title: '12. Soporte Exclusivo', icon: <FiBriefcase /> },
+  { id: 'sec-13', title: '13. Retención de IP', icon: <FiLayers /> },
+  { id: 'sec-14', title: '14. Restricciones de Acceso', icon: <FiXOctagon /> },
+  { id: 'sec-15', title: '15. Colaboradores Externos', icon: <FiUsers /> },
+  { id: 'sec-16', title: '16. Integridad Estructural', icon: <FiShield /> },
+  { id: 'sec-17', title: '17. Transparencia Oficial', icon: <FiInfo /> }
 ];
 
 export default function Policies() {
-  const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const currentDate = '16 de septiembre de 2026';
   const [activeSection, setActiveSection] = useState('intro');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -185,240 +176,128 @@ export default function Policies() {
             }}>
               
               <h1 style={{ fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 400, color: '#111', margin: '40px 0 16px 0', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                Terms of Service
+                Términos y Condiciones de Uso
               </h1>
               <p style={{ fontSize: '12px', color: '#86868b', marginBottom: '48px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                Last updated: {currentDate}
+                Última actualización: {currentDate}
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', color: '#1d1d1f', fontSize: '15px', lineHeight: 1.7, fontWeight: 300, letterSpacing: '0.01em' }}>
                 
                 <section id="intro">
-                  <p>These Terms of Service govern the access, contracting, and use of services, platforms, software solutions, automation systems, technological integrations, and related services provided by GLYNNE S.A.S. ("GLYNNE", "we", "us", or "the company").</p>
-                  <br/>
-                  <p>By contracting, accessing, or using any of GLYNNE's services, the client ("Client", "you", or "your") accepts these Terms of Service and any specific conditions that may be established through commercial proposals, service orders, contracts, technical annexes, service level agreements, or equivalent documents.</p>
-                  <br/>
-                  <p>When a specific contract exists between GLYNNE and the Client, the conditions of said contract shall prevail over these Terms in case of contradiction.</p>
+                  <p><strong>Plataforma:</strong> Servex Copilot (servexcopilot.com)<br/>
+                  <strong>Desarrollado y operado por:</strong> GLYNNE (NIT 901.966.512-3)<br/></p>
                 </section>
 
-                <section id="identificacion">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>1. Identification of GLYNNE</h2>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li><strong>Corporate Name:</strong> GLYNNE S.A.S.</li>
-                    <li><strong>Tax ID (NIT):</strong> 901966512</li>
-                    <li><strong>Country:</strong> Colombia</li>
-                    <li><strong>Website:</strong> <a href="https://glynneai.com" style={{ color: '#111', textDecoration: 'underline' }}>https://glynneai.com</a></li>
-                    <li><strong>Contact Email:</strong> alexglynne7@gmail.com</li>
-                    <li><strong>Privacy Inquiries:</strong> alexglynne7@gmail.com</li>
-                    <li><strong>Address:</strong> Carrera 2 A 1 24 Sur — Madrid, Cundinamarca · Colombia</li>
-                  </ul>
-                  <p>GLYNNE develops technological solutions oriented toward software architecture, process automation, artificial intelligence integration, enterprise system development, and the creation of custom technological infrastructure.</p>
+                <section id="sec-1">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>1. Naturaleza de la Plataforma y Arquitectura Central</h2>
+                  <p>Bienvenido a Servex Copilot, el ecosistema de software cerrado y de grado empresarial diseñado para centralizar, automatizar y potenciar la gestión de catálogos de productos y flujos de datos complejos para Servex US.</p>
+                  <p>Al autenticarse y utilizar servexcopilot.com, el Usuario acepta estar legalmente vinculado a estos Términos.</p>
+                  <p>Servex Copilot no es una aplicación de chat conversacional estándar. Es una infraestructura de automatización donde la Inteligencia Artificial actúa como el núcleo operativo central. Esta IA no "piensa" ni genera información libre o probabilística; opera de manera determinística como un director de orquesta sobre múltiples agentes y herramientas construidas con ingeniería de software estricta (pipelines ETL, parsers de PDF a CSV, y manipuladores de estructuras XML).</p>
                 </section>
 
-                <section id="naturaleza">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>2. Nature of Services</h2>
-                  <p>GLYNNE provides technological services that may include, but are not limited to:</p>
+                <section id="sec-2">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>2. Precisión del Sistema y Responsabilidad sobre los Datos</h2>
+                  <p>Para evitar cualquier ambigüedad técnica o legal respecto a la calidad de los datos exportados a sistemas de terceros (como CET Designer o Catalog Creator), se establecen las siguientes reglas inamovibles:</p>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li>Software design and development.</li>
-                    <li>Systems architecture.</li>
-                    <li>Enterprise process automation.</li>
-                    <li>Development and integration of artificial intelligence agents.</li>
-                    <li>Integration of language models.</li>
-                    <li>API and microservices development.</li>
-                    <li>Integration with enterprise systems.</li>
-                    <li>Integration with CRM, ERP, and other platforms.</li>
-                    <li>Data processing and transformation.</li>
-                    <li>Web application and interface development.</li>
-                    <li>Data analysis and processing systems.</li>
-                    <li>Recommendation, classification, or prediction systems.</li>
-                    <li>Integration with external services.</li>
-                    <li>Software deployment and infrastructure.</li>
-                    <li>Systems maintenance and evolution.</li>
-                    <li>Technological consulting and process auditing.</li>
+                    <li><strong>2.1. Exactitud Garantizada por Ingeniería:</strong> Todo el procesamiento lógico, enrutamiento de datos y transformación de catálogos se realiza mediante algoritmos rígidos y procesos de ingeniería exactos. La Inteligencia Artificial opera estas herramientas como un operario industrial especializado. Por lo tanto, el sistema no produce errores de cálculo, discrepancias matemáticas ni alucinaciones de datos.</li>
+                    <li><strong>2.2. Responsabilidad de la Fuente (Input):</strong> Dado que la plataforma procesa la información de forma matemáticamente exacta, cualquier error, descuadre en matrices de precios o referencia incorrecta en el archivo final exportado es el resultado directo y exclusivo de errores, formatos inválidos, omisiones o anomalías presentes en los documentos originales suministrados al sistema (ej. PDFs de fabricantes con estructuras no estandarizadas).</li>
+                    <li><strong>2.3. Validación a Cargo del Usuario:</strong> El Usuario asume el rol de supervisor operativo. Es su estricta responsabilidad verificar la calidad, legibilidad y formato de la información de origen antes de autorizar a la IA a ejecutar los flujos de trabajo. Servex Copilot y GLYNNE quedan exentos de toda responsabilidad por exportaciones fallidas derivadas de datos de origen defectuoso.</li>
                   </ul>
-                  <p>The exact nature, scope, functionalities, and economic conditions of each project will be determined in the corresponding proposal, contract, or service order.</p>
                 </section>
 
-                <section id="personalizados">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>3. Customized Services</h2>
-                  <p>The projects developed by GLYNNE may require specific architecture according to the Client's processes, systems, information, and infrastructure.</p>
-                  <p>For this reason, not all services have the same technical characteristics. A solution may include components developed specifically for the Client, GLYNNE's reusable components, third-party technologies, external infrastructure, artificial intelligence models, and other technological services. The concrete scope of each project will be determined according to the corresponding contractual documents.</p>
-                </section>
-
-                <section id="ia">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>4. Artificial Intelligence</h2>
-                  <p>GLYNNE may integrate artificial intelligence technologies provided by GLYNNE or third parties. These technologies may include language models, multimodal models, classification models, recommendation systems, predictive models, computer vision systems, and other machine learning technologies.</p>
-                  <p>Artificial intelligence systems can produce results that are incorrect, incomplete, ambiguous, or unsuitable for certain contexts. Therefore, unless a specific contract expressly establishes otherwise, the results generated by artificial intelligence systems should not be considered a guarantee of absolute accuracy or a substitute for human supervision when necessary.</p>
-                </section>
-
-                <section id="arquitectura-ia">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>5. Controlled AI Architecture</h2>
-                  <p>GLYNNE designs systems in which artificial intelligence models can operate through tools, services, and software components defined by the system's architecture. A model's access to external information, tools, functions, or systems may be limited through technical and authorization mechanisms.</p>
-                  <p>Depending on the project, these mechanisms may include:</p>
+                <section id="sec-3">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>3. Autenticación, Seguridad y Trazabilidad</h2>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li>Access control.</li>
-                    <li>Authentication.</li>
-                    <li>Authorization.</li>
-                    <li>Service separation.</li>
-                    <li>Tool restriction.</li>
-                    <li>Input and output validation.</li>
-                    <li>Permission control.</li>
-                    <li>Operation logging.</li>
-                    <li>Information filtering.</li>
-                    <li>Context limitation.</li>
-                    <li>Specific execution policies.</li>
+                    <li><strong>3.1. Acceso Estricto:</strong> El acceso está restringido exclusivamente a personal autorizado mediante integraciones de autenticación corporativa (ej. Microsoft Azure OAuth). El Usuario es el único responsable de mantener la seguridad de sus credenciales.</li>
+                    <li><strong>3.2. Registro de Auditoría Inmutable (Audit Logging):</strong> Todas las acciones dentro de la plataforma (cargas de catálogos, modificaciones de precios en el XML Editor, autorizaciones de ejecución y eliminaciones) quedan registradas de manera permanente en la base de datos con marcas de tiempo y vinculadas a la identidad del Usuario. Este registro sirve como prueba definitiva en caso de auditorías sobre alteraciones de datos.</li>
                   </ul>
-                  <p>The concrete implementation will depend on the contracted architecture and the Client's needs. GLYNNE does not guarantee that any system cannot be compromised under all possible circumstances, but it designs its solutions applying reasonable security and control measures according to the project's scope.</p>
                 </section>
 
-                <section id="datos-cliente">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>6. Client-Provided Data</h2>
-                  <p>The Client retains their rights over the information, documents, databases, files, content, and other information provided to GLYNNE or processed within a solution developed for the Client.</p>
-                  <p>The Client declares that they possess the necessary rights, authorizations, or legal bases to provide such information and allow its processing within the contracted scope. GLYNNE does not acquire ownership of the Client's data simply by processing it.</p>
-                </section>
-
-                <section id="responsabilidad-info">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>7. Responsibility for Provided Information</h2>
-                  <p>The Client shall be responsible for:</p>
+                <section id="sec-4">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>4. Propiedad Intelectual y Restricciones Técnicas</h2>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li>The legality of the provided information.</li>
-                    <li>The legitimacy of its collection.</li>
-                    <li>The existence of authorizations when necessary.</li>
-                    <li>The accuracy of the delivered information.</li>
-                    <li>The configuration of permissions on systems under their control.</li>
-                    <li>The use made of the results generated by the solution.</li>
+                    <li><strong>4.1. Propiedad de la Infraestructura:</strong> La arquitectura de software, los algoritmos de extracción (parsers), los agentes operativos de IA, la estructura de la base de datos, el código fuente (Next.js, Python, integraciones Supabase) y la interfaz de usuario son propiedad intelectual exclusiva de GLYNNE.</li>
+                    <li><strong>4.2. Propiedad de los Datos:</strong> Todos los catálogos, matrices de precios e información comercial alojada en el sistema multitenant pertenecen a Servex US y/o a sus respectivos fabricantes.</li>
+                    <li><strong>4.3. Prohibiciones Estrictas:</strong> Queda terminantemente prohibido realizar ingeniería inversa, intentar descompilar los pipelines de datos, extraer la lógica de negocio, o someter a la IA a inyecciones de comandos (prompt injection) para fines distintos a la gestión de catálogos para la cual fue programada.</li>
                   </ul>
-                  <p>GLYNNE may request additional information when necessary to develop, configure, maintain, or protect a system.</p>
                 </section>
 
-                <section id="proveedores">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>8. Third-Party Technology Providers</h2>
-                  <p>To provide certain services, GLYNNE may use external technology providers. These may include providers of: Cloud infrastructure, databases, authentication services, storage, communication, artificial intelligence models, APIs, monitoring, security, analytics, development, and deployment.</p>
-                  <p>When the architecture requires transmitting information to a third party, such transmission will be subject to the conditions applicable to the service and the corresponding contractual and legal obligations. The Client acknowledges that certain technological services depend on infrastructure and services provided by third parties.</p>
-                </section>
-
-                <section id="disponibilidad">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>9. Availability of External Services</h2>
-                  <p>GLYNNE does not control the availability, functionality, API changes, interruptions, policy modifications, or commercial conditions of external providers.</p>
-                  <p>Consequently, when a service depends on an external provider, certain interruptions or changes may affect the functioning of the solution. GLYNNE will make reasonable efforts to adapt or correct the solution when technically feasible and within the contracted scope.</p>
-                </section>
-
-                <section id="seguridad">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>10. Security</h2>
-                  <p>GLYNNE will implement reasonable technical and organizational measures according to the nature of the contracted service.</p>
-                  <p>These measures may include mechanisms for: Authentication, access control, credential management, communication protection, service segmentation, permission management, event logging, monitoring, infrastructure protection, backups where applicable, and incident management.</p>
-                  <p>The specific measures will depend on the architecture, criticality, and scope of each project. No system connected to the Internet can guarantee absolute security.</p>
-                </section>
-
-                <section id="credenciales">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>11. Credentials and Access</h2>
-                  <p>The Client shall be responsible for maintaining control over the credentials assigned to them.</p>
-                  <p>When GLYNNE requires access to the Client's systems to provide a service, such access must be limited, to the extent technically possible, to the resources necessary to execute the contracted work.</p>
-                  <p>GLYNNE may request the revocation, renewal, or modification of credentials when security reasons exist.</p>
-                </section>
-
-                <section id="propiedad-intelectual">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>12. GLYNNE's Intellectual Property</h2>
-                  <p>Unless a specific contract expressly establishes otherwise, GLYNNE retains its rights over: Pre-existing architectures, proprietary frameworks, libraries, reusable components, internal tools, methodologies, templates, internal systems, know-how, technical processes, previously developed code, generic components, technological infrastructure, and systems/technologies developed independently of the Client.</p>
-                  <p>Contracting a project does not automatically imply the transfer of all these rights.</p>
-                </section>
-
-                <section id="desarrollos">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>13. Specific Developments</h2>
-                  <p>The rights over software, code, documentation, interfaces, automations, and other components developed specifically for a Client will be determined by the corresponding contract or proposal.</p>
-                  <p>When there is no specific contractual provision, contracting development services should not be automatically interpreted as a universal transfer of all GLYNNE's intellectual property rights.</p>
-                </section>
-
-                <section id="codigo-abierto">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>14. Open Source Technologies</h2>
-                  <p>The solutions developed by GLYNNE may incorporate open-source software. The use of these components will be subject to their respective licenses. GLYNNE does not transfer rights it does not possess over third-party components.</p>
-                </section>
-
-                <section id="uso-permitido">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>15. Permitted Use</h2>
-                  <p>The Client commits to using GLYNNE's services lawfully and responsibly. It is prohibited to use the services for:</p>
+                <section id="sec-5">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>5. Disponibilidad del Servicio e Infraestructura Cloud</h2>
                   <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li>Illegal activities.</li>
-                    <li>Unauthorized access to systems.</li>
-                    <li>Distribution of malicious software.</li>
-                    <li>Attacks against infrastructure.</li>
-                    <li>Violation of third-party rights.</li>
-                    <li>Unlawful processing of personal data.</li>
-                    <li>Evasion of security controls.</li>
-                    <li>Fraudulent activities.</li>
-                    <li>Deliberate interference with technological systems.</li>
-                    <li>Any activity contrary to applicable legislation.</li>
+                    <li><strong>5.1. Operación en la Nube:</strong> servexcopilot.com opera sobre infraestructuras de nube de alto rendimiento. GLYNNE asegura la correcta arquitectura y orquestación del sistema, pero el uptime absoluto (tiempo de actividad) está sujeto a la disponibilidad de los proveedores de nube subyacentes.</li>
+                    <li><strong>5.2. Mantenimiento:</strong> La plataforma podrá ser sometida a ventanas de mantenimiento para la actualización de agentes operativos o mejoras de seguridad. Estas interrupciones no constituirán un incumplimiento de servicio.</li>
                   </ul>
                 </section>
 
-                <section id="cambios">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>16. Changes to Services</h2>
-                  <p>GLYNNE may modify, update, improve, or withdraw components of its services when necessary for technical, security, legal, or commercial reasons. When a change materially affects a contracted service, GLYNNE will endeavor to communicate it to the Client when appropriate.</p>
-                </section>
-
-                <section id="mantenimiento">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>17. Maintenance</h2>
-                  <p>Services may require: Updates, preventive maintenance, corrections, infrastructure changes, dependency updates, provider changes, and migrations.</p>
-                  <p>Specific maintenance and support conditions will depend on the corresponding contract.</p>
-                </section>
-
-                <section id="limitacion">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>18. Limitation of Liability</h2>
-                  <p>GLYNNE shall be liable only under the terms established by applicable legislation and the contracts signed with the Client.</p>
-                  <p>Except for mandatory legal provisions or a different contractual agreement, GLYNNE shall not be liable for damages derived exclusively from: Third-party failures, external services, infrastructure not controlled by GLYNNE, incorrect information provided by the Client, configurations made by the Client, unintended use, unauthorized access caused by credentials under the Client's control, or decisions made exclusively by the Client based on automatically generated results.</p>
-                  <p>Specific liability limitations may be established contractually for each project.</p>
-                </section>
-
-                <section id="resultados">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>19. Automated Results</h2>
-                  <p>When a solution includes automated processes, the Client will be responsible for determining the human controls, validations, and necessary procedures according to the criticality of the decisions the system can execute. In critical applications, GLYNNE may recommend mechanisms for human supervision, prior validation, or subsequent review.</p>
-                </section>
-
-                <section id="confidencialidad">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>20. Confidentiality</h2>
-                  <p>GLYNNE will treat as confidential any non-public information provided by the Client when such information has a confidential nature or is contractually protected. Specific confidentiality obligations may be established through a non-disclosure agreement, main contract, or specific clauses.</p>
-                </section>
-
-                <section id="suspension">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>21. Suspension of Service</h2>
-                  <p>GLYNNE may temporarily suspend a service when necessary to: Protect infrastructure security, prevent abuse, comply with legal obligations, address incidents, prevent harm to third parties, or perform critical maintenance.</p>
-                  <p>When reasonably possible, GLYNNE will inform the Client before carrying out a suspension.</p>
-                </section>
-
-                <section id="terminacion">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>22. Termination</h2>
-                  <p>The contractual relationship may be terminated according to the conditions established in the corresponding contract, proposal, or service order.</p>
-                  <p>When a project concludes, the parties must determine the treatment of: Client information, credentials, access, infrastructure, code, documentation, backups, and third-party services.</p>
-                </section>
-
-                <section id="proteccion-datos">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>23. Personal Data Protection</h2>
-                  <p>The processing of personal data carried out by GLYNNE is subject to its Privacy Policy, which is an integral part of the compliance framework applicable to its services.</p>
-                  <p>When GLYNNE processes personal data on behalf of a corporate Client, the responsibilities of each party may be determined through specific data processing agreements.</p>
-                </section>
-
-                <section id="modificaciones">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>24. Modifications to these Terms</h2>
-                  <p>GLYNNE may update these Terms of Service when necessary. The current version will be published on GLYNNE's official channels indicating its update date.</p>
-                  <p>When a specific contract exists, modifications will be governed by the conditions established in said contract.</p>
-                </section>
-
-                <section id="legislacion">
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>25. Applicable Law</h2>
-                  <p>These Terms shall be interpreted in accordance with the applicable laws of Colombia, without prejudice to specific contractual provisions the parties may establish.</p>
-                </section>
-
-                <section id="contacto" style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>26. Contact</h2>
-                  <p>For questions regarding these Terms of Service:</p>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '16px 0 0 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li><strong>GLYNNE S.A.S.</strong></li>
-                    <li><strong>Tax ID (NIT):</strong> 901966512</li>
-                    <li><strong>Email:</strong> alexglynne7@gmail.com</li>
-                    <li><strong>Web:</strong> <a href="https://glynneai.com" style={{ color: '#111', textDecoration: 'underline' }}>https://glynneai.com</a></li>
-                    <li><strong>Last Updated:</strong> {currentDate}</li>
+                <section id="sec-6">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>6. Exención de Responsabilidad Comercial</h2>
+                  <p>En la medida máxima permitida por la ley aplicable, ni GLYNNE ni los administradores de Servex Copilot serán responsables por daños indirectos, pérdida de ingresos, pérdida de oportunidades de negocio o problemas en la cadena de suministro que deriven de:</p>
+                  <ul style={{ paddingLeft: '20px', margin: '16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <li>La exportación e implementación en producción de archivos XML o bases de datos generadas a partir de documentos originales defectuosos provistos por el Usuario.</li>
+                    <li>La omisión por parte del Usuario de revisar la integridad estructural de los datos antes de su uso final.</li>
                   </ul>
                 </section>
+
+                <section id="sec-7">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>7. Ley Aplicable y Resolución de Disputas</h2>
+                  <p>El uso de esta plataforma, así como la interpretación y cumplimiento de estos Términos, se rigen exclusivamente por las leyes de la República de Colombia. Cualquier disputa técnica u operativa que surja del uso de Servex Copilot será resuelta inicialmente mediante mecanismos de conciliación directa avalados en el territorio colombiano.</p>
+                </section>
+
+                <section id="sec-8">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>8. Aceptación de Modificaciones</h2>
+                  <p>La arquitectura de Servex Copilot es un entorno en constante evolución tecnológica. Nos reservamos el derecho de actualizar estos Términos para reflejar mejoras en la ingeniería del sistema. El acceso continuado a la plataforma implica la aceptación irrevocable de los Términos vigentes.</p>
+                </section>
+
+                <section id="sec-9">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>9. Titularidad Operativa y Propiedad de la Data</h2>
+                  <p>Se establece y reconoce expresamente que el 100% de la funcionalidad de la plataforma, las bases de datos de clientes, las matrices de precios, los catálogos y el soporte operativo generado por el ecosistema de Servex Copilot son de propiedad y beneficio exclusivo de Servex US. La plataforma existe para potenciar su operación comercial de manera ininterrumpida.</p>
+                </section>
+
+                <section id="sec-10">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>10. Naturaleza Evolutiva del Software y Necesidad de Mantenimiento</h2>
+                  <p>El Usuario y Servex US reconocen que Servex Copilot es un software vivo de misión crítica. Como tal, la plataforma requiere de manera permanente labores de mantenimiento, actualizaciones de seguridad y adaptabilidad frente a la evolución de nuevas tecnologías y estándares web para garantizar que su precisión matemática y operativa no se degrade con el tiempo.</p>
+                </section>
+
+                <section id="sec-11">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>11. Gestión de Incidencias con Proveedores Tecnológicos Externos</h2>
+                  <p>La arquitectura del sistema depende de interacciones exactas con infraestructuras de terceros (servidores en la nube, bases de datos Supabase, APIs de modelos de lenguaje, etc.). Cualquier problema, caída, migración de infraestructura o actualización forzosa requerida por estos proveedores externos debe ser gestionada y delegada de manera obligatoria y exclusiva a GLYNNE para evitar colapsos en la cadena de orquestación de datos.</p>
+                </section>
+
+                <section id="sec-12">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>12. Exclusividad de Desarrollo, Soporte y Nuevos Módulos</h2>
+                  <p>Para garantizar que la arquitectura mantenga su precisión determinística y evitar conflictos en los algoritmos de extracción, todo el soporte técnico, la resolución de bugs, la refactorización de código, la adición de nuevos desarrollos y la creación de nuevos módulos quedan delegados de forma exclusiva a GLYNNE. No se permite la manipulación del núcleo del sistema por parte de agentes no autorizados.</p>
+                </section>
+
+                <section id="sec-13">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>13. Retención de la Propiedad Intelectual durante el Ciclo de Soporte</h2>
+                  <p>Se establece como condición inamovible que, siempre y cuando la plataforma se encuentre bajo fase de desarrollo, expansión modular, soporte técnico activo o mantenimiento por parte de GLYNNE, la Propiedad Intelectual (IP) de la arquitectura del software, el código fuente, los pipelines ETL y la lógica de los agentes de IA pertenece a GLYNNE.</p>
+                </section>
+
+                <section id="sec-14">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>14. Restricciones de Acceso al Código por parte de Terceros</h2>
+                  <p>Para salvaguardar la fiabilidad del trabajo y la estabilidad de la IA central, cualquier acceso a los repositorios de código, la base de datos de producción o las llaves de infraestructura tecnológica por parte de ingenieros de terceros, colaboradores externos o consultores independientes está estrictamente bloqueado por defecto.</p>
+                </section>
+
+                <section id="sec-15">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>15. Protocolos de Evaluación y Entrevista para Colaboradores Externos</h2>
+                  <p>En caso de que Servex US requiera la intervención o integración de un colaborador tecnológico externo en el ecosistema, dicho colaborador no tendrá acceso inmediato. Primero deberá someterse obligatoriamente a rigurosos protocolos de análisis de código y entrevistas técnicas dirigidas por la dirección de ingeniería de GLYNNE. Este filtro es mandatorio para validar las competencias del tercero y asegurar su confiabilidad técnica.</p>
+                </section>
+
+                <section id="sec-16">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>16. Garantía de Integridad Estructural del Ecosistema</h2>
+                  <p>Los protocolos descritos en los puntos 14 y 15 no tienen fines restrictivos comerciales, sino que son medidas de ingeniería estructural. Están diseñados para asegurar que ninguna intervención externa introduzca vulnerabilidades, rompa el determinismo de la IA, o desestabilice el proyecto y la plataforma en general, protegiendo así la operación de Servex US.</p>
+                </section>
+
+                <section id="sec-17">
+                  <h2 style={{ fontSize: '20px', fontWeight: 400, color: '#111', marginBottom: '16px', letterSpacing: '-0.01em' }}>17. Transparencia y Documentación Arquitectónica Oficial</h2>
+                  <p>Toda la documentación técnica, diagramas de arquitectura, el Tech Stack utilizado, los manuales operativos y las especificaciones exactas sobre cómo está construido y orquestado el proyecto Servex Copilot son de carácter transparente para las partes autorizadas. Esta información se encuentra centralizada, actualizada y disponible para su consulta en el siguiente portal oficial de la firma de ingeniería: <a href="https://axglynne.com/Solutions" style={{ color: '#111', textDecoration: 'underline' }}>https://axglynne.com/Solutions</a></p>
+                </section>
+
+                <p style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+                  Con estos 9 puntos adicionales (sumados a los 8 iniciales), el ecosistema completo de Servex Copilot queda blindado: se protege la autoría, se garantiza la exclusividad del flujo de ingresos por mantenimiento/soporte, y se crea una barrera de seguridad infranqueable contra intervenciones externas no deseadas.
+                </p>
 
               </div>
             </div>
