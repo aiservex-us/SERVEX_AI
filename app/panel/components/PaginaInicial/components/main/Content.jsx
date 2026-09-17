@@ -16,10 +16,10 @@ const BlogCard = ({ title, description, val, isActive, onClick, icon: Icon }) =>
   >
     <div className="relative z-10">
       <div className="flex justify-between items-start mb-2">
-        <h3 style={{ fontSize: '16px', fontWeight: 500, color: '#111111', margin: 0 }}>{title}</h3>
+        <h3 style={{ fontSize: '13px', fontWeight: 500, color: '#111111', margin: 0 }}>{title}</h3>
         <Icon size={16} className={isActive ? 'text-[#464775]' : 'text-[#464775]'} />
       </div>
-      <p style={{ fontSize: 'clamp(14px, 1.5vw, 16px)', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: 0 }} className="line-clamp-3">
+      <p style={{ fontSize: '11px', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: 0 }} className="line-clamp-3">
         {description}
       </p>
     </div>
@@ -134,15 +134,15 @@ export default function Content({ setActiveView }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 border border-[#464775]/20 mb-5 backdrop-blur-md shadow-sm" style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 border border-[#464775]/20 mb-5 backdrop-blur-md shadow-sm" style={{ fontSize: '10px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
               <Zap size={14} className="text-amber-500" />
               <span>Next-Gen Intelligence</span>
             </div>
-            <h1 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 400, color: '#111111', letterSpacing: '-0.02em', margin: '0 0 1.5rem 0', lineHeight: 1.1 }}>
+            <h1 style={{ fontSize: 'clamp(20px, 2.5vw, 26px)', fontWeight: 400, color: '#111111', letterSpacing: '-0.02em', margin: '0 0 1rem 0', lineHeight: 1.1 }}>
               Welcome to <br />
               <span style={{ fontWeight: 400 }}>SERVEX Client Copilot</span>
             </h1>
-            <p className="hidden md:block max-w-xl" style={{ fontSize: 'clamp(14px, 1.5vw, 16px)', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, marginBottom: '2rem' }}>
+            <p className="hidden md:block max-w-xl" style={{ fontSize: '13px', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, marginBottom: '2rem' }}>
               Your centralized AI hub designed to manage and streamline all your operations. 
               Harness autonomous agents to simplify complex workflows and boost productivity 
               across your entire organization.
@@ -183,10 +183,10 @@ export default function Content({ setActiveView }) {
       {/* TRENDING INSIGHTS */}
       <section>
         <div className="flex justify-between items-center mb-4">
-          <h2 style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          <h2 style={{ fontSize: '10px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             Servex Copilot · Trending Insights
           </h2>
-          <button style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button style={{ fontSize: '10px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer' }}>
             View All
           </button>
         </div>

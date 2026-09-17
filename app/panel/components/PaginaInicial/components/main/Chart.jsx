@@ -80,10 +80,10 @@ export default function Chart() {
       {/* HEADER */}
       <div className="flex flex-col gap-4 mb-6">
         <div className="max-w-2xl">
-          <h2 style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
+          <h2 style={{ fontSize: '10px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
             Servex Copilot · Backend Optimization Analytics
           </h2>
-          <p style={{ fontSize: 'clamp(14px, 1.5vw, 16px)', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontSize: '12px', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: 0 }}>
             Real-time performance metrics of XML catalog synchronization workflows. 
             Measuring the exponential time reduction powered by the SERVEX AI Python backend.
           </p>
@@ -117,10 +117,10 @@ export default function Chart() {
         >
           {/* INFO DE LA FASE */}
           <div className="mb-2">
-            <p style={{ fontSize: '16px', fontWeight: 500, color: '#111111', margin: '0 0 8px 0' }}>
+            <p style={{ fontSize: '13px', fontWeight: 500, color: '#111111', margin: '0 0 8px 0' }}>
               {current.label}
             </p>
-            <p style={{ fontSize: 'clamp(14px, 1.5vw, 16px)', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: 0, maxWidth: '42rem' }}>
+            <p style={{ fontSize: '11px', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: 0, maxWidth: '42rem' }}>
               {current.description}
             </p>
           </div>

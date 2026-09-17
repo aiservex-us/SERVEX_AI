@@ -17,10 +17,10 @@ const StatItem = ({ icon, label, value, description, isOpen, onClick }) => (
         </div>
 
         <div className="leading-tight">
-          <p style={{ fontSize: '11px', fontWeight: 500, color: '#86868b', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '4px' }}>
+          <p style={{ fontSize: '9px', fontWeight: 500, color: '#86868b', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '4px' }}>
             {label}
           </p>
-          <p style={{ fontSize: '16px', fontWeight: 500, color: '#111111', margin: 0 }}>
+          <p style={{ fontSize: '13px', fontWeight: 500, color: '#111111', margin: 0 }}>
             {value}
           </p>
         </div>
@@ -40,7 +40,7 @@ const StatItem = ({ icon, label, value, description, isOpen, onClick }) => (
         ${isOpen ? 'max-h-40 mt-3 opacity-100' : 'max-h-0 opacity-0'}
       `}
     >
-      <p style={{ fontSize: '14px', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: 0 }}>
+      <p style={{ fontSize: '11px', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: 0 }}>
         {description}
       </p>
     </div>
@@ -118,7 +118,7 @@ export default function DashboardRight() {
       {/* CAROUSEL */}
       <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200/60">
         <div className="flex items-center justify-between mb-5">
-          <h2 style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          <h2 style={{ fontSize: '10px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             Trusted by Companies
           </h2>
 
@@ -162,11 +162,11 @@ export default function DashboardRight() {
           <div className="h-32 min-[800px]:h-24 w-full"></div>
 
           <div className="relative z-10 mt-2">
-            <h2 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 400, color: '#111111', letterSpacing: '-0.02em', margin: '0 0 1rem 0' }}>
+            <h2 style={{ fontSize: 'clamp(18px, 2vw, 22px)', fontWeight: 400, color: '#111111', letterSpacing: '-0.02em', margin: '0 0 1rem 0' }}>
               Ready to optimize your profile?
             </h2>
             
-            <p style={{ fontSize: 'clamp(14px, 1.5vw, 16px)', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, marginBottom: '24px', padding: '0 8px' }}>
+            <p style={{ fontSize: '12px', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, marginBottom: '24px', padding: '0 8px' }}>
               Get personalized technical assistance to ensure your digital practice looks impeccable and professional.
             </p>
 
@@ -181,10 +181,10 @@ export default function DashboardRight() {
       {/* MAIN CTA */}
       <section className="bg-[#fff]/5 border border-[#6264A7]/20 rounded-xl p-6 text-center">
  
-        <h3 style={{ fontSize: '11px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
+        <h3 style={{ fontSize: '10px', fontWeight: 500, color: '#1d1d1f', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
           Servex Copilot Pro
         </h3>
-        <p style={{ fontSize: 'clamp(14px, 1.5vw, 16px)', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: '0 0 20px 0', padding: '0 8px' }}>
+        <p style={{ fontSize: '11px', color: '#86868b', fontWeight: 300, letterSpacing: '0.01em', lineHeight: 1.6, margin: '0 0 20px 0', padding: '0 8px' }}>
           AI copilot designed to automate and scale the creation, 
           maintenance, and conversion of electronic catalogs 
           within the Servex ecosystem.
