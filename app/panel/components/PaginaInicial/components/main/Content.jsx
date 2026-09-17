@@ -169,7 +169,7 @@ export default function Content({ setActiveView }) {
               <Target size={16} className="group-hover:rotate-12 transition-transform" />
             </button>
             <a 
-              href="https://servex-ai-iota.vercel.app/policies" 
+              href="https://axglynne.com/servex_espesification" 
               target="_blank" 
               rel="noopener noreferrer"
               className="bg-white/80 backdrop-blur-md text-[#464775] border border-[#464775]/20 px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-white transition-all hover:shadow-md text-center w-full sm:w-auto flex items-center justify-center"
