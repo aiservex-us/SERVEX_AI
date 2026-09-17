@@ -9,9 +9,9 @@ import CriticalExcelModal from '../../components/CriticalExcelModal.jsx';
 import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
-import XMLResultsMetalumen from './components/XML_Results_Metalumen.jsx';
+import XMLResults_Metalumen from './components/XML_Results_Metalumen.jsx';
 import CETComparator from './components/CET_Comparator.jsx';
-import CSVFinalResultsMetalumen from './components/CSV_Final_Results_Metalumen.jsx';
+import CSVFinalResults_Metalumen from './components/CSV_Final_Results_Metalumen.jsx';
 
 
 export default function ExcelActualizer() {
@@ -85,9 +85,9 @@ export default function ExcelActualizer() {
     switch (active) {
       case 'reporting': return <AIReporting />;
       case 'incert_delete': return <IncertData moduleName="Metalumen" />;
-      case 'xml_results': return <XMLResultsMetalumen />;
+      case 'xml_results': return <XMLResults_Metalumen />;
       case 'cet_comparator': return <CETComparator />;
-      case 'csv_final': return <CSVFinalResultsMetalumen />;
+      case 'csv_final': return <CSVFinalResults_Metalumen />;
 
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;

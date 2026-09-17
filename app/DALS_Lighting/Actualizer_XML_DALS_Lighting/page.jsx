@@ -1,5 +1,5 @@
 'use client';
-import XMLResultsDALS Lighting from '../Actualizer_Excel_DALS_Lighting/components/XML_Results_DALS_Lighting.jsx';
+import XMLResults_DALS_Lighting from '../Actualizer_Excel_DALS_Lighting/components/XML_Results_DALS_Lighting.jsx';
 import ImportCETXml from '../Actualizer_Excel_DALS_Lighting/components/IncertDataExcel/incertXML_excel';
 
 
@@ -128,7 +128,7 @@ export default function MenuInicial() {
       case 'incert_delete': return <IncertDelete step="xml" />;
                     case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
                     case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-      case 'xml_results': return <XMLResultsDALS Lighting />;
+      case 'xml_results': return <XMLResults_DALS_Lighting />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
@@ -296,7 +296,7 @@ export default function MenuInicial() {
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
                     case 'AI_reporter': return <Responce_ai />;
-                    case 'exportCETcsv': return <XMLResultsDALS Lighting />;
+                    case 'exportCETcsv': return <XMLResults_DALS_Lighting />;
                     case 'compareCET': return <CETComparator />;
                     default: return null;
                   }

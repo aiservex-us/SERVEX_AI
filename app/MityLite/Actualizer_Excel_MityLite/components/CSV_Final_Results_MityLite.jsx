@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Papa from 'papaparse';
 
-const CSVFinalResultsMityLite = () => {
+const CSVFinalResults_MityLite = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -307,4 +307,4 @@ const CSVFinalResultsMityLite = () => {
   );
 };
 
-export default CSVFinalResultsMityLite;
+export default CSVFinalResults_MityLite;

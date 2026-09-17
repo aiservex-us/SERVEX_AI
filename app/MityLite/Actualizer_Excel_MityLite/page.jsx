@@ -9,9 +9,9 @@ import CriticalExcelModal from '../../components/CriticalExcelModal.jsx';
 import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
-import XMLResultsMityLite from './components/XML_Results_MityLite.jsx';
+import XMLResults_MityLite from './components/XML_Results_MityLite.jsx';
 import CETComparator from './components/CET_Comparator.jsx';
-import CSVFinalResultsMityLite from './components/CSV_Final_Results_MityLite.jsx';
+import CSVFinalResults_MityLite from './components/CSV_Final_Results_MityLite.jsx';
 
 
 export default function ExcelActualizer() {
@@ -85,9 +85,9 @@ export default function ExcelActualizer() {
     switch (active) {
       case 'reporting': return <AIReporting />;
       case 'incert_delete': return <IncertData moduleName="MityLite" />;
-      case 'xml_results': return <XMLResultsMityLite />;
+      case 'xml_results': return <XMLResults_MityLite />;
       case 'cet_comparator': return <CETComparator />;
-      case 'csv_final': return <CSVFinalResultsMityLite />;
+      case 'csv_final': return <CSVFinalResults_MityLite />;
 
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;

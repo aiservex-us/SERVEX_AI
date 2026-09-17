@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Papa from 'papaparse';
 
-const CSVFinalResultsShaw Floors = () => {
+const CSVFinalResults_Shaw_Floors = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -307,4 +307,4 @@ const CSVFinalResultsShaw Floors = () => {
   );
 };
 
-export default CSVFinalResultsShaw Floors;
+export default CSVFinalResults_Shaw_Floors;

@@ -1,5 +1,5 @@
 'use client';
-import XMLResultsH&M from '../Actualizer_Excel_HM/components/XML_Results_HM.jsx';
+import XMLResults_HM from '../Actualizer_Excel_HM/components/XML_Results_HM.jsx';
 import ImportCETXml from '../Actualizer_Excel_HM/components/IncertDataExcel/incertXML_excel';
 
 
@@ -128,7 +128,7 @@ export default function MenuInicial() {
       case 'incert_delete': return <IncertDelete step="xml" />;
                     case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
                     case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-      case 'xml_results': return <XMLResultsH&M />;
+      case 'xml_results': return <XMLResults_HM />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
@@ -296,7 +296,7 @@ export default function MenuInicial() {
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
                     case 'AI_reporter': return <Responce_ai />;
-                    case 'exportCETcsv': return <XMLResultsH&M />;
+                    case 'exportCETcsv': return <XMLResults_HM />;
                     case 'compareCET': return <CETComparator />;
                     default: return null;
                   }

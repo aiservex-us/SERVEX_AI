@@ -9,9 +9,9 @@ import CriticalExcelModal from '../../components/CriticalExcelModal.jsx';
 import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
-import XMLResultsVia Seating from './components/XML_Results_Via_Seating.jsx';
+import XMLResults_Via_Seating from './components/XML_Results_Via_Seating.jsx';
 import CETComparator from './components/CET_Comparator.jsx';
-import CSVFinalResultsVia Seating from './components/CSV_Final_Results_Via_Seating.jsx';
+import CSVFinalResults_Via_Seating from './components/CSV_Final_Results_Via_Seating.jsx';
 
 
 export default function ExcelActualizer() {
@@ -85,9 +85,9 @@ export default function ExcelActualizer() {
     switch (active) {
       case 'reporting': return <AIReporting />;
       case 'incert_delete': return <IncertData moduleName="Via Seating" />;
-      case 'xml_results': return <XMLResultsVia Seating />;
+      case 'xml_results': return <XMLResults_Via_Seating />;
       case 'cet_comparator': return <CETComparator />;
-      case 'csv_final': return <CSVFinalResultsVia Seating />;
+      case 'csv_final': return <CSVFinalResults_Via_Seating />;
 
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
