@@ -10,7 +10,7 @@ export default function Home() {
 
       {/* Contenedor Sección Hero / Principal */}
       <section className="w-full">
-        <ModuleDelegationGatekeeper moduleName="WBS" redirectUrl="/WBS/Actualizer_XML_Seatings">
+        <ModuleDelegationGatekeeper moduleName="Teknion" redirectUrl="/Teknion/Actualizer_XML_Seatings">
           <div className="flex justify-center items-center h-64"><div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-indigo-600 animate-spin"></div></div>
         </ModuleDelegationGatekeeper>
       </section>

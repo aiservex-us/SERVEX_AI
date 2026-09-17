@@ -56,14 +56,14 @@ const WBmfgAdminHero = () => {
           <div className="flex flex-col items-center gap-4 mb-12 lg:mb-16">
             <div className="w-16 h-16 flex items-center justify-center p-2 bg-slate-50 rounded-xl border border-slate-100">
               <img 
-                src="/logosEmpresas/WB.webp" 
-                alt="WB mfg Logo" 
+                src="/logosEmpresas/Teknion_logo_RGB.svg" 
+                alt="Teknion Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
             <div className="flex flex-col items-center">
               <span className="font-bold text-lg tracking-widest uppercase text-black">
-                WB Seating
+                Teknion Seating
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
                 Catalog Manager
@@ -79,13 +79,13 @@ const WBmfgAdminHero = () => {
             </div>
 
             <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-black leading-[1] mb-8">
-              WB mfg Catalog <br />
+              Teknion Catalog <br />
               <span className="text-black/25">Administration</span>
             </h2>
             
             <p className="max-w-xl text-base sm:text-lg text-black/50 leading-relaxed mb-12 font-light">
               Centralized management for data integrity, ETL workflows, 
-              and real-time updates for WB mfg product catalogs within the <span className="text-black/80 font-medium">SERVEX ecosystem</span>.
+              and real-time updates for Teknion product catalogs within the <span className="text-black/80 font-medium">SERVEX ecosystem</span>.
             </p>
 
             {/* Botón que dispara el modal */}
@@ -166,7 +166,7 @@ const WBmfgAdminHero = () => {
         
         <div className="relative z-20 rotate-90 pointer-events-none opacity-30 mix-blend-multiply">
           <span className="text-[#2B2C4B] font-black text-[120px] tracking-tighter select-none leading-none">
-            WB Seating
+            Teknion Seating
           </span>
         </div>
       </div>

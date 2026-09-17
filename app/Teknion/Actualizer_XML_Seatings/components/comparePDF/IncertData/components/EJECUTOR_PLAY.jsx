@@ -58,16 +58,16 @@ const EJECUTOR_PLAY = ({
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      // FORZADO A WBS: Eliminación de lógica condicional para asegurar persistencia única
-      const targetCompany = 'WBS';
+      // FORZADO A Teknion: Eliminación de lógica condicional para asegurar persistencia única
+      const targetCompany = 'Teknion';
       
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
       const baseUrl = 'https://servex-ai-back.onrender.com'; 
       
-      // RUTA ÚNICA: Gateway exclusivo para el segmento WBS
-      const endpointUrl = `${baseUrl}/wbs/api/v1/pipeline/compare-only-WBS`;
+      // RUTA ÚNICA: Gateway exclusivo para el segmento Teknion
+      const endpointUrl = `${baseUrl}/wbs/api/v1/pipeline/compare-only-Teknion`;
   
       console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
   
@@ -78,11 +78,11 @@ const EJECUTOR_PLAY = ({
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación WBS');
+        throw new Error(errorData.detail || 'Falla en la respuesta del motor de comparación Teknion');
       }
   
       const result = await response.json();
-      console.log('[✓] SERVEX_AI Engine Response (WBS):', result);
+      console.log('[✓] SERVEX_AI Engine Response (Teknion):', result);
   
     } catch (err) {
       console.error(`Secondary Process halted: ${err.message}`);
@@ -118,7 +118,7 @@ const EJECUTOR_PLAY = ({
             
             <div className="space-y-1">
               <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Update Process Initiated</h3>
-              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Catalog (WBS): {currentDate}</p>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Catalog (Teknion): {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
@@ -130,7 +130,7 @@ const EJECUTOR_PLAY = ({
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
               <Loader2 size={12} className="animate-spin" />
-              <span className="uppercase tracking-widest">Synchronizing with WBS...</span>
+              <span className="uppercase tracking-widest">Synchronizing with Teknion...</span>
             </div>
           </div>
         </div>
@@ -151,13 +151,13 @@ const EJECUTOR_PLAY = ({
             
             <div className="space-y-1">
               <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Secondary Process Initiated</h3>
-              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module (WBS): {currentDate}</p>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module (Teknion): {currentDate}</p>
             </div>
 
             <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
               <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
               <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
-                <strong>WARNING:</strong> Storing new WBS catalog data. Please wait for the data upload to complete.
+                <strong>WARNING:</strong> Storing new Teknion catalog data. Please wait for the data upload to complete.
               </p>
             </div>
 
@@ -176,7 +176,7 @@ const EJECUTOR_PLAY = ({
             <Zap size={12} className="sm:hidden" fill="currentColor" />
             <Zap size={14} className="hidden sm:inline" fill="currentColor" />
           </div>
-          <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#616161]">System Actions (WBS)</h4>
+          <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#616161]">System Actions (Teknion)</h4>
         </div>
         
         <div className="flex flex-col gap-3 sm:gap-4 flex-1">
@@ -192,7 +192,7 @@ const EJECUTOR_PLAY = ({
             <div className="px-1 py-1 sm:py-2">
               <p className="text-[8px] sm:text-[9px] font-bold text-[#5b5fc7] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
               <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed">
-                Uploads your WBS catalog data to the cloud database. Sanitizes, validates, and stores pricing information.
+                Uploads your Teknion catalog data to the cloud database. Sanitizes, validates, and stores pricing information.
               </p>
             </div>
           </div>

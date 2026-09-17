@@ -32,18 +32,18 @@ export default function WBAIPanel() {
         animate="animate"
         className="max-w-7xl mx-auto flex flex-col gap-6"
       >
-        {/* HEADER - Ajustado para WB */}
+        {/* HEADER - Ajustado para Teknion */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[6px] border border-slate-100 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 bg-[#FFF] rounded-[4px] flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden p-1">
               <img 
-                src="/logosEmpresas/WB.webp" 
-                alt="WB MFG Logo" 
+                src="/logosEmpresas/Teknion_logo_RGB.svg" 
+                alt="Teknion Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#242424] tracking-tight">Intelligence Data Hub: WB Manufacturing</h1>
+              <h1 className="text-xl font-bold text-[#242424] tracking-tight">Intelligence Data Hub: Teknion Manufacturing</h1>
               <p className="text-[13px] text-[#616161] max-w-2xl mt-1 font-normal leading-relaxed">
                 PIM synchronization and industrial catalog orchestration. Automated transformation of manufacturing assets to <strong className="font-semibold">OFDA/XML compliant structures</strong> for CET Designer integration.
               </p>
@@ -103,7 +103,7 @@ export default function WBAIPanel() {
                 <AlertCircle className="text-[#8A662E] w-5 h-5" />
               </div>
             </div>
-            <h3 className="text-[14px] font-bold text-[#242424] tracking-tight">WB Data Integrity</h3>
+            <h3 className="text-[14px] font-bold text-[#242424] tracking-tight">Teknion Data Integrity</h3>
             <p className="text-[12px] text-[#616161] mt-1 font-normal">Consistent mapping of finishes and upcharges.</p>
             <div className="mt-3 flex items-center gap-2">
               <CheckCircle2 className="text-[#237B4B] w-4 h-4" />
@@ -115,7 +115,7 @@ export default function WBAIPanel() {
           <div className="bg-[#464775] p-5 rounded-[6px] text-white flex flex-col justify-between relative overflow-hidden shadow-md">
             <div className="relative z-10">
               <h3 className="text-[14px] font-bold mb-1 tracking-tight">OFDA Finalization</h3>
-              <p className="text-[11px] text-[#EAEBFA] mb-4 font-normal">Direct export for WB MFG digital catalogs and CET tools.</p>
+              <p className="text-[11px] text-[#EAEBFA] mb-4 font-normal">Direct export for Teknion digital catalogs and CET tools.</p>
             </div>
             <Layers className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10" />
           </div>
@@ -127,7 +127,7 @@ export default function WBAIPanel() {
             <div className="px-6 py-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
               <h3 className="text-[14px] font-bold flex items-center gap-2 uppercase tracking-widest text-[#242424]">
                 <ArrowRightLeft size={16} className="text-[#464775]" />
-                WB Smart Sync Workflow
+                Teknion Smart Sync Workflow
               </h3>
             </div>
             <div className="p-10">
@@ -137,7 +137,7 @@ export default function WBAIPanel() {
                   <div className="w-16 h-16 bg-[#F3F5F8] border border-[#EDEBE9] rounded-full flex items-center justify-center mb-3">
                     <FileUp className="text-[#616161] w-8 h-8" />
                   </div>
-                  <span className="text-[12px] font-bold tracking-tight">WB Source</span>
+                  <span className="text-[12px] font-bold tracking-tight">Teknion Source</span>
                   <span className="text-[10px] text-[#616161] font-medium">CSV / Industrial Data</span>
                 </div>
 
@@ -156,7 +156,7 @@ export default function WBAIPanel() {
                     </div>
                   </div>
                   <div className="mt-4 px-4 py-1.5 bg-[#EAEBFA] rounded-full border border-[#464775]/20">
-                    <span className="text-[10px] font-bold text-[#464775] uppercase tracking-wider">SVX AI: WB Logic Engine</span>
+                    <span className="text-[10px] font-bold text-[#464775] uppercase tracking-wider">SVX AI: Teknion Logic Engine</span>
                   </div>
                 </div>
 
@@ -207,7 +207,7 @@ export default function WBAIPanel() {
           <div className="flex flex-col gap-4">
             <div className="bg-white border border-[#EDEBE9] rounded-[6px] p-5 shadow-sm">
               <h4 className="text-[11px] font-bold text-[#616161] uppercase tracking-widest mb-4 flex items-center gap-2">
-                <Database size={14} /> WB Catalog Trends
+                <Database size={14} /> Teknion Catalog Trends
               </h4>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -217,7 +217,7 @@ export default function WBAIPanel() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-[13px] text-[#242424] font-medium">New WB SKUs</div>
+                  <div className="text-[13px] text-[#242424] font-medium">New Teknion SKUs</div>
                   <div className="font-bold text-[13px] text-[#464775]">850 SKU</div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -230,10 +230,10 @@ export default function WBAIPanel() {
             <div className="bg-slate-50 border border-slate-200 rounded-[6px] p-5">
               <div className="flex items-center gap-2 mb-2 text-[#464775]">
                 <RefreshCw size={14} className="animate-spin-slow" />
-                <h4 className="text-[10px] font-bold uppercase tracking-widest">WB REAL-TIME SYNC</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-widest">Teknion REAL-TIME SYNC</h4>
               </div>
               <p className="text-[12px] text-[#242424] leading-relaxed font-normal">
-                Auditing <strong className="font-semibold">WB 2026 Masters</strong> against <strong className="font-semibold">Current XML Schema</strong>.
+                Auditing <strong className="font-semibold">Teknion 2026 Masters</strong> against <strong className="font-semibold">Current XML Schema</strong>.
               </p>
             </div>
 
@@ -245,7 +245,7 @@ export default function WBAIPanel() {
                 <div className="p-2 bg-[#F3F5F8] rounded-[4px] group-hover:bg-[#464775] group-hover:text-white transition-colors">
                   <BarChart3 size={16} />
                 </div>
-                <span className="text-[13px] font-bold tracking-tight">WB Data Insights</span>
+                <span className="text-[13px] font-bold tracking-tight">Teknion Data Insights</span>
               </div>
               <ArrowRightLeft size={14} className="text-[#616161]" />
             </button>
@@ -256,10 +256,10 @@ export default function WBAIPanel() {
       {/* CORPORATE FOOTER */}
       <footer className="max-w-7xl mx-auto mt-8 px-2 flex justify-between items-center border-t border-[#EDEBE9] pt-4">
         <p className="text-[11px] text-[#616161] font-medium">
-          <strong className="font-bold">Servex US</strong> © 2026 | Catalog Automation for <strong className="font-bold">WB MFG</strong>
+          <strong className="font-bold">Servex US</strong> © 2026 | Catalog Automation for <strong className="font-bold">Teknion</strong>
         </p>
         <div className="flex gap-4">
-          <span className="text-[11px] font-bold text-[#464775] cursor-pointer hover:underline">WB Spec Guide</span>
+          <span className="text-[11px] font-bold text-[#464775] cursor-pointer hover:underline">Teknion Spec Guide</span>
           <span className="text-[11px] font-bold text-[#464775] cursor-pointer hover:underline">Technical Support</span>
         </div>
       </footer>

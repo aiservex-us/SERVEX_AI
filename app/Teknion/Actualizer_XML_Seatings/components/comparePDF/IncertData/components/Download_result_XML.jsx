@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { Download, Loader2 } from 'lucide-react';
 
-const DownloadResultXML = ({ moduleName = 'WBS' }) => {
+const DownloadResultXML = ({ moduleName = 'Teknion' }) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownload = async () => {

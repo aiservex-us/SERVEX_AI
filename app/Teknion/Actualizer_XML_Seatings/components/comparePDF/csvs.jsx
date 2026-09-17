@@ -46,11 +46,11 @@ export default function DataViewer() {
   const fetchLatestData = async () => {
     setLoading(true);
     try {
-      // Consulta corregida alineada estrictamente al DDL provisto para la entidad WBS
+      // Consulta corregida alineada estrictamente al DDL provisto para la entidad Teknion
       const { data: record, error } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .select('*')
-        .eq('company_name', 'WBS')
+        .eq('company_name', 'Teknion')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
@@ -58,7 +58,7 @@ export default function DataViewer() {
       if (error) throw error;
       setData(record);
     } catch (error) {
-      console.error('Error fetching WBS data:', error);
+      console.error('Error fetching Teknion data:', error);
     } finally {
       setLoading(false);
     }
@@ -160,7 +160,7 @@ export default function DataViewer() {
     
     const link = document.createElement('a');
     link.href = url;
-    const filename = `${data?.company_name || 'WBS'}_${activeTab === 'csv_raw' ? 'Sanitized_Manual' : 'Sanitized_PDF'}_${new Date().toISOString().slice(0,10)}.csv`;
+    const filename = `${data?.company_name || 'Teknion'}_${activeTab === 'csv_raw' ? 'Sanitized_Manual' : 'Sanitized_PDF'}_${new Date().toISOString().slice(0,10)}.csv`;
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
@@ -172,7 +172,7 @@ export default function DataViewer() {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix for WBS...
+        Retrieving master data matrix for Teknion...
       </div>
     </div>
   );

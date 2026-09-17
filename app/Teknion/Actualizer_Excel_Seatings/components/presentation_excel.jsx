@@ -56,14 +56,14 @@ const WBmfgAdminHero = () => {
           <div className="flex flex-col items-center gap-4 mb-12 lg:mb-16">
             <div className="w-16 h-16 flex items-center justify-center p-2 bg-slate-50 rounded-xl border border-slate-100">
               <img 
-                src="/logosEmpresas/WB.webp" 
-                alt="WB mfg Logo" 
+                src="/logosEmpresas/Teknion_logo_RGB.svg" 
+                alt="Teknion Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
             <div className="flex flex-col items-center">
               <span className="font-bold text-lg tracking-widest uppercase text-black">
-                WB Seating
+                Teknion Seating
               </span>
               <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
                 Client Export Module
@@ -173,7 +173,7 @@ const WBmfgAdminHero = () => {
         
         <div className="relative z-20 rotate-90 pointer-events-none opacity-30 mix-blend-multiply">
           <span className="text-[#464775] font-black text-[120px] tracking-tighter select-none leading-none">
-            WB Seating
+            Teknion Seating
           </span>
         </div>
       </div>

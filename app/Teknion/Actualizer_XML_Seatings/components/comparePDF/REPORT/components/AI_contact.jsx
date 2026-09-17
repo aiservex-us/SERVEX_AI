@@ -217,8 +217,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   useEffect(() => {
     const checkDbPhase = async () => {
       try {
-        const moduleMatch = window.location.pathname.match(/^\/(WB[A-Z]|LESRO)/i);
-        const modName = moduleMatch ? moduleMatch[1].toUpperCase() : 'WBS';
+        const moduleMatch = window.location.pathname.match(/^\/(Teknion[A-Z]|LESRO)/i);
+        const modName = moduleMatch ? moduleMatch[1].toUpperCase() : 'Teknion';
         const tableName = modName === 'LESRO' ? 'ClientsSERVEX_LESRO' : `ClientsSERVEX_${modName}`;
         
         const { data, error } = await supabase
@@ -267,7 +267,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }, 100);
     };
     window.addEventListener('globalChatMessage', handleGlobalMessage);
-    const handleWBSImportStep = (e) => {
+    const handleTeknionImportStep = (e) => {
         const { step } = e.detail;
         if (step === 'csv_base') {
             setMessages(prev => [...prev, { from: 'bot', text: 'XML guardado exitosamente. El CSV Base ya está en el sistema. Ahora, por favor sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbs_csv_new' }]);
@@ -279,11 +279,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         }
         setTimeout(() => scrollToBottom(true), 100);
     };
-    window.addEventListener('wbsImportStep', handleWBSImportStep);
+    window.addEventListener('wbsImportStep', handleTeknionImportStep);
 
     return () => {
       window.removeEventListener('globalChatMessage', handleGlobalMessage);
-      window.removeEventListener('wbsImportStep', handleWBSImportStep);
+      window.removeEventListener('wbsImportStep', handleTeknionImportStep);
     };
   }, []);
 
@@ -384,7 +384,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
 if (queryToSend.toLowerCase() === '/importbase') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Por favor, sube el archivo XML maestro de WBS.', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Por favor, sube el archivo XML maestro de Teknion.', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
@@ -443,25 +443,25 @@ if (queryToSend.toLowerCase() === '/importbase') {
       
       try {
         const {data, error } = await supabase
-          .from('ClientsSERVEX_WBS')
+          .from('ClientsSERVEX_Teknion')
           .select('xml_actualizer_raw')
-          .eq('company_name', 'WBS')
+          .eq('company_name', 'Teknion')
           .single();
 
         if (error || !data || !data.xml_actualizer_raw) {
-          setMessages(prev => [...prev, {from: "bot", text: "❌ Error: XML file not found in the database for WBS.", time: nowTime }]);
+          setMessages(prev => [...prev, {from: "bot", text: "❌ Error: XML file not found in the database for Teknion.", time: nowTime }]);
         } else {
           const blob = new Blob([data.xml_actualizer_raw], {type: 'application/xml' });
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'WBS.xml');
+          link.setAttribute('download', 'Teknion.xml');
           document.body.appendChild(link);
           link.click();
           link.parentNode.removeChild(link);
           window.URL.revokeObjectURL(url);
           
-          setMessages(prev => [...prev, {from: "bot", text: "✅ Download started. The file WBS.xml has been saved successfully.", time: nowTime }]);
+          setMessages(prev => [...prev, {from: "bot", text: "✅ Download started. The file Teknion.xml has been saved successfully.", time: nowTime }]);
         }
       } catch (err) {
         setMessages(prev => [...prev, {from: "bot", text: "❌ An unexpected error occurred while trying to download the XML.", time: nowTime }]);
@@ -477,7 +477,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
       setMessages(prev => [...prev, {from: "bot", text: "📊 Generating smart audit report and publishing it to the Forum...", time: nowTime }]);
       
       try {
-        const match = window.location.pathname.match(/^\/(WB[A-Z])/i);
+        const match = window.location.pathname.match(/^\/(Teknion[A-Z])/i);
         const modulePrefix = match ? match[1].toLowerCase() : 'wbs';
         
         const {data: {user } } = await supabase.auth.getUser();
@@ -504,13 +504,13 @@ if (queryToSend.toLowerCase() === '/importbase') {
 
     if (queryToSend === '/executeProcess') {
       const nowTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, {from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (WBS). Please wait...", time: nowTime }]);
+      setMessages(prev => [...prev, {from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (Teknion). Please wait...", time: nowTime }]);
       
       try {
         const formData = new FormData();
-        formData.append('company_name', 'WBS');
+        formData.append('company_name', 'Teknion');
         
-        const response = await fetch(`${apiURL}/wbs/api/v1/pipeline/compare-only-WBS`, {
+        const response = await fetch(`${apiURL}/wbs/api/v1/pipeline/compare-only-Teknion`, {
           method: 'POST',
           body: formData,
         });

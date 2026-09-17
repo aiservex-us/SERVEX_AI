@@ -45,7 +45,7 @@ export default function DataViewer() {
     setLoading(true);
     try {
       const { data: record, error } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)

@@ -21,9 +21,9 @@ export default function AuditReportViewer() {
   useEffect(() => {
     async function fetchAuditData() {
       setLoading(true);
-      // Apuntando de manera precisa a la tabla de la entidad WBS
+      // Apuntando de manera precisa a la tabla de la entidad Teknion
       const { data } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .select('id, company_name, audit_report_jsonP, audit_report_json, created_at')
         .order('created_at', { ascending: false });
       

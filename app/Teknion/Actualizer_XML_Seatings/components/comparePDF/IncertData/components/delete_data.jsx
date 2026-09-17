@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Trash2, Loader2, AlertTriangle, X } from 'lucide-react';
 import { supabase } from '../../../../../../lib/supabaseClient';
 
-const DeleteTenantButton = ({ currentTenant = 'WBS', onDeleted }) => {
+const DeleteTenantButton = ({ currentTenant = 'Teknion', onDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -12,7 +12,7 @@ const DeleteTenantButton = ({ currentTenant = 'WBS', onDeleted }) => {
     setIsDeleting(true);
     try {
       const { error } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .delete()
         .eq('company_name', currentTenant);
 

@@ -31,11 +31,11 @@ const WBDDataMatrix = () => {
       setLoading(true);
       setError(null);
 
-      // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad WBS
+      // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad Teknion
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .select('xml_raw')
-        .eq('company_name', 'WBS')
+        .eq('company_name', 'Teknion')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -50,7 +50,7 @@ const WBDDataMatrix = () => {
       const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBS XML structure");
+      if (parserError) throw new Error("Error parsing Teknion XML structure");
 
       // 1. Mapear todos los Features globales para búsqueda rápida (O(1))
       const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
@@ -149,8 +149,8 @@ const WBDDataMatrix = () => {
       setProducts(extracted);
       setCurrentPage(1); // Reiniciar a la primera page tras una recarga exitosa
     } catch (err) {
-      console.error("Error processing WBS data matrix:", err);
-      setError(err.message || "Error processing catalog information WBS.");
+      console.error("Error processing Teknion data matrix:", err);
+      setError(err.message || "Error processing catalog information Teknion.");
     } finally {
       setLoading(false);
     }
@@ -225,7 +225,7 @@ const WBDDataMatrix = () => {
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">WBS Data Matrix Master</span>
+                <span className="text-xs font-bold text-slate-800">Teknion Data Matrix Master</span>
                 <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
                   WBD Schema Engine Live
                 </span>

@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML({ step = 'all' }: { step?: string }) {
-  const [companyName] = useState('WBS');
+  const [companyName] = useState('Teknion');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState('');
   const [csvNewContent, setCsvNewContent] = useState('');
@@ -50,7 +50,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
     setCheckingExisting(true);
     try {
       const { data, error } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .select('xml_raw, csv_raw, csv_new_raw')
         .eq('company_name', companyName)
         .maybeSingle();
@@ -247,7 +247,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
       }
 
       const payload: any = {
-        company_name: 'WBS',
+        company_name: 'Teknion',
         user_id: user.id,
       };
 
@@ -261,7 +261,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
       }
 
       const { error } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .update(payload)
         .eq('user_id', user.id);
 

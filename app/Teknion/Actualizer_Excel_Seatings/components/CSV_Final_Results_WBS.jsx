@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Papa from 'papaparse';
 
-const CSVFinalResultsWBS = () => {
+const CSVFinalResultsTeknion = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,9 +30,9 @@ const CSVFinalResultsWBS = () => {
       setError(null);
 
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .select('CSV_final')
-        .eq('company_name', 'WBS')
+        .eq('company_name', 'Teknion')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -66,7 +66,7 @@ const CSVFinalResultsWBS = () => {
       setCurrentPage(1);
     } catch (err) {
       console.error("Error processing CSV Final data:", err);
-      setError(err.message || "Error processing CSV Final information WBS.");
+      setError(err.message || "Error processing CSV Final information Teknion.");
     } finally {
       setLoading(false);
     }
@@ -124,7 +124,7 @@ const CSVFinalResultsWBS = () => {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix from WBS Engine...
+        Retrieving master data matrix from Teknion Engine...
       </div>
     </div>
   );
@@ -153,7 +153,7 @@ const CSVFinalResultsWBS = () => {
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">WBS Full XML Matrix</span>
+                <span className="text-xs font-bold text-slate-800">Teknion Full XML Matrix</span>
                 <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
                   Live
                 </span>
@@ -307,4 +307,4 @@ const CSVFinalResultsWBS = () => {
   );
 };
 
-export default CSVFinalResultsWBS;
+export default CSVFinalResultsTeknion;

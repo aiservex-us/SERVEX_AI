@@ -23,8 +23,8 @@ import EJECUTOR_PLAY from './EJECUTOR_PLAY';
 
 const SVXUnifiedPlatform = () => {
   // --- CONFIGURACIÓN MULTI-TENANT DINÁMICA ---
-  const [currentTenant] = useState('WBS'); 
-  const [targetTableName] = useState('ClientsSERVEX_WBS');
+  const [currentTenant] = useState('Teknion'); 
+  const [targetTableName] = useState('ClientsSERVEX_Teknion');
 
   // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);
@@ -337,7 +337,7 @@ const SVXUnifiedPlatform = () => {
   return (
     <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
       
-      {/* --- POPUP PROCESSING DATOS BASE (WBS) --- */}
+      {/* --- POPUP PROCESSING DATOS BASE (Teknion) --- */}
       {isProcessing && (
         <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
           <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">

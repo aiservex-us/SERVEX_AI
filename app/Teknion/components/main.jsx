@@ -80,12 +80,12 @@ const HeroSection = () => {
 
         {/* Main Title - Fluid size control, matching previous compact style */}
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light text-[#1a1a1a] leading-tight tracking-tighter max-w-2xl mx-auto mb-3 px-2">
-          <span className="font-bold">WBS Catalog Engine:</span>
+          <span className="font-bold">Teknion Catalog Engine:</span>
         </h1>
         
         {/* Descriptive Text - Compact size, and restored text content */}
         <p className="text-xs md:text-sm text-[#424242] leading-relaxed max-w-2xl mx-auto mb-8 px-4">
-          Intelligently optimizes the <span className="text-black font-normal">WB Manufacturing catalog architecture</span>. Upload your legacy matrices in XML and CSV to cross-reference them against new datasets; our platform structurally analyzes variations, generates new rows or columns, and instantly executes price delta audits. Continuously powered by <span className="text-[#5B5FC7] font-normal">Alysa</span>, it compiles and deploys clean, custom-tailored XML schemas for direct integration and dynamic adjustment within <span className="text-black font-normal">Configura CET Designer</span>.
+          Intelligently optimizes the <span className="text-black font-normal">Teknion Manufacturing catalog architecture</span>. Upload your legacy matrices in XML and CSV to cross-reference them against new datasets; our platform structurally analyzes variations, generates new rows or columns, and instantly executes price delta audits. Continuously powered by <span className="text-[#5B5FC7] font-normal">Alysa</span>, it compiles and deploys clean, custom-tailored XML schemas for direct integration and dynamic adjustment within <span className="text-black font-normal">Configura CET Designer</span>.
         </p>
 
                         {/* 4. INTEGRATED MODULE CARDS - Ultra Premium Minimalist Layout (Scaled Down) */}
@@ -93,7 +93,7 @@ const HeroSection = () => {
           
           {/* Card XML */}
           <Link 
-            href="/WBS/Actualizer_XML_Seatings"
+            href="/Teknion/Actualizer_XML_Seatings"
             className="group flex flex-col bg-white/40 backdrop-blur-2xl border border-white/60 rounded-3xl p-5 lg:p-7 hover:bg-white/80 hover:border-white hover:shadow-[0_20px_40px_rgba(70,71,117,0.08)] hover:-translate-y-1 transition-all duration-500 ease-out"
           >
             <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center text-[#464775] shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-50 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
@@ -146,7 +146,7 @@ const HeroSection = () => {
               </div>
             </div>
             <p className="text-[8px] text-gray-400 uppercase tracking-widest font-bold">
-              Automated Infrastructure for <span className="text-gray-900">Servex US & WBS</span>
+              Automated Infrastructure for <span className="text-gray-900">Servex US & Teknion</span>
             </p>
           </div>
  

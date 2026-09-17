@@ -35,9 +35,9 @@ export default function CETComparator() {
   const fetchRecord = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('ClientsSERVEX_WBS')
+      .from('ClientsSERVEX_Teknion')
       .select('id, company_name, xml_actualizer_raw, XM_CET_import, Anormals_raw, created_at')
-      .eq('company_name', 'WBS')
+      .eq('company_name', 'Teknion')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -219,7 +219,7 @@ export default function CETComparator() {
       
       
       const { error: updateError } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .update({ Anormals_raw: JSON.stringify(reportPayload) })
         .eq('id', activeRecord.id);
 
@@ -274,7 +274,7 @@ export default function CETComparator() {
            
 
            <h1 className="text-2xl font-light text-[#242424] tracking-wide relative z-10">
-            CET Matrix Comparator: <span className="font-normal text-[#464775]">WBS</span>
+            CET Matrix Comparator: <span className="font-normal text-[#464775]">Teknion</span>
            </h1>
            <p className="text-xs text-[#616161] mt-3 font-light tracking-[0.15em] uppercase relative z-10">
              1-to-1 analysis between Software Baseline (xml_actualizer_raw) & CET Modified Output (XM_CET_import)

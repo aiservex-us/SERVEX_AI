@@ -13,7 +13,7 @@ import {
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
-const WBSDataMatrix = () => {
+const TeknionDataMatrix = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,7 +23,7 @@ const WBSDataMatrix = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
-  const WBS_HEADERS = [
+  const Teknion_HEADERS = [
     "Model #", "List Price", "Weight", "Classic/ Premium", "Model Name", "Description", "Dimension", "OA H w/ Glides", "OA H w/ Casters", "Assembly", "Bell Glides (Set of 5) (-BG)", "Felt Glides (Set of 4) (-FG)", "Steel Glides (-SG)", "Casters (-CA)", "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", "Custom Sizes", "Maple (-M)", "Hard Maple (-H)", "", "Non-Standard Edge Band-CUSTOM-LLB2048-LG", "Bell Glides (Set of 5) (-BG)-CUSTOM-CHR21-5", "Felt Glides (Set of 4) (-FG)-CUSTOM-CHR24-4F", "Steel Glides (-SG)-CUSTOM-STLUR186-AJ4-BZ", "Steel Glides (-SG)-CUSTOM-STL9186-AM4"
   ];
 
@@ -33,9 +33,9 @@ const WBSDataMatrix = () => {
       setError(null);
 
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX_WBS')
+        .from('ClientsSERVEX_Teknion')
         .select('XM_CET_import')
-        .eq('company_name', 'WBS')
+        .eq('company_name', 'Teknion')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -98,7 +98,7 @@ const WBSDataMatrix = () => {
           const finalPrice = basePrice + (optPrice || 0);
 
           const row = {};
-          WBS_HEADERS.forEach(h => row[h] = ""); // Initialize empty string
+          Teknion_HEADERS.forEach(h => row[h] = ""); // Initialize empty string
 
           // Map base fields
           row["Model #"] = finalSku;
@@ -107,11 +107,11 @@ const WBSDataMatrix = () => {
 
           // Map extracted options to the respective columns if their code is in the header
           Object.keys(productOptionPrices).forEach(optCode => {
-            const matchingHeader = WBS_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
+            const matchingHeader = Teknion_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
             if (matchingHeader) {
               row[matchingHeader] = productOptionPrices[optCode];
             } else if (optCode.includes('MB')) {
-               const mbHeader = WBS_HEADERS.find(h => h.includes("(__MB)"));
+               const mbHeader = Teknion_HEADERS.find(h => h.includes("(__MB)"));
                if (mbHeader) row[mbHeader] = productOptionPrices[optCode];
             }
           });
@@ -148,8 +148,8 @@ const WBSDataMatrix = () => {
       setProducts(extracted);
       setCurrentPage(1); 
     } catch (err) {
-      console.error("Error processing WBS data matrix:", err);
-      setError(err.message || "Error processing catalog information WBS.");
+      console.error("Error processing Teknion data matrix:", err);
+      setError(err.message || "Error processing catalog information Teknion.");
     } finally {
       setLoading(false);
     }
@@ -194,7 +194,7 @@ const WBSDataMatrix = () => {
     
     // Explicitly use semicolon and our exact headers
     const csv = Papa.unparse(filtered, {
-      columns: WBS_HEADERS,
+      columns: Teknion_HEADERS,
       delimiter: ";"
     });
     
@@ -202,7 +202,7 @@ const WBSDataMatrix = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `WBS_XML_Results_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `Teknion_XML_Results_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -211,11 +211,11 @@ const WBSDataMatrix = () => {
   const exportToExcel = () => {
     if (!filtered || filtered.length === 0) return;
     
-    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: WBS_HEADERS });
+    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: Teknion_HEADERS });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
     
-    XLSX.writeFile(workbook, `WBS_XML_Results_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(workbook, `Teknion_XML_Results_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
 
 
@@ -224,7 +224,7 @@ const WBSDataMatrix = () => {
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix from WBS Engine...
+        Retrieving master data matrix from Teknion Engine...
       </div>
     </div>
   );
@@ -253,7 +253,7 @@ const WBSDataMatrix = () => {
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">WBS Seatings XML Matrix (Master Format)</span>
+                <span className="text-xs font-bold text-slate-800">Teknion Seatings XML Matrix (Master Format)</span>
                 <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
                   Live
                 </span>
@@ -322,7 +322,7 @@ const WBSDataMatrix = () => {
                     <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
-                    {WBS_HEADERS.map((header, i) => (
+                    {Teknion_HEADERS.map((header, i) => (
                       <th
                         key={header + i}
                         className="px-3 py-2 text-[11px] font-semibold text-slate-800 bg-white/80 backdrop-blur-md border-r border-b border-slate-100 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
@@ -354,7 +354,7 @@ const WBSDataMatrix = () => {
                             {realIndex}
                           </td>
 
-                          {WBS_HEADERS.map((header, i) => {
+                          {Teknion_HEADERS.map((header, i) => {
                             let value = p[header];
                             if (header === "List Price") value = `$${(p["List Price"] || 0).toLocaleString()}`;
                             
@@ -377,7 +377,7 @@ const WBSDataMatrix = () => {
 
           <div className="bg-gradient-to-r from-slate-50/40 to-white px-4 py-2 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-slate-500 select-none">
             <div className="flex gap-4">
-              <span className="uppercase tracking-tight">TOTAL COLUMNS: {WBS_HEADERS.length}</span>
+              <span className="uppercase tracking-tight">TOTAL COLUMNS: {Teknion_HEADERS.length}</span>
               <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
             </div>
             
@@ -444,15 +444,15 @@ const WBSDataMatrix = () => {
                   
                   if (filtered && filtered.length > 0) {
                     const csvString = Papa.unparse(filtered, {
-                      columns: WBS_HEADERS,
+                      columns: Teknion_HEADERS,
                       delimiter: ";"
                     });
                     
                     try {
                       await supabase
-                        .from('ClientsSERVEX_WBS')
+                        .from('ClientsSERVEX_Teknion')
                         .update({ csv_raw: csvString })
-                        .eq('company_name', 'WBS');
+                        .eq('company_name', 'Teknion');
                     } catch (err) {
                       console.error('Error saving raw CSV:', err);
                     }
@@ -472,4 +472,4 @@ const WBSDataMatrix = () => {
   );
 };
 
-export default WBSDataMatrix;
+export default TeknionDataMatrix;

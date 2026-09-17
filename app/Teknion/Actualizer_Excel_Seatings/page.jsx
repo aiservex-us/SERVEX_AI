@@ -9,9 +9,9 @@ import CriticalExcelModal from '../../components/CriticalExcelModal.jsx';
 import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
-import XMLResultsWBS from './components/XML_Results_WBS.jsx';
+import XMLResultsTeknion from './components/XML_Results_Teknion.jsx';
 import CETComparator from './components/CET_Comparator.jsx';
-import CSVFinalResultsWBS from './components/CSV_Final_Results_WBS.jsx';
+import CSVFinalResultsTeknion from './components/CSV_Final_Results_Teknion.jsx';
 
 
 export default function ExcelActualizer() {
@@ -28,12 +28,12 @@ export default function ExcelActualizer() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          window.location.href = '/WBS';
+          window.location.href = '/Teknion';
           return;
         }
         
         const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-        const res = await fetch(`${apiURL}/api/v1/module_delegation/WBS`);
+        const res = await fetch(`${apiURL}/api/v1/module_delegation/Teknion`);
         const responseData = await res.json();
         
         if (responseData.status === 'error' || !res.ok) {
@@ -42,7 +42,7 @@ export default function ExcelActualizer() {
         }
 
         if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
-          window.location.href = '/WBS';
+          window.location.href = '/Teknion';
         }
       } catch (err) {
         console.error('Delegation check failed', err);
@@ -84,10 +84,10 @@ export default function ExcelActualizer() {
   const renderContent = () => {
     switch (active) {
       case 'reporting': return <AIReporting />;
-      case 'incert_delete': return <IncertData moduleName="WBS" />;
-      case 'xml_results': return <XMLResultsWBS />;
+      case 'incert_delete': return <IncertData moduleName="Teknion" />;
+      case 'xml_results': return <XMLResultsTeknion />;
       case 'cet_comparator': return <CETComparator />;
-      case 'csv_final': return <CSVFinalResultsWBS />;
+      case 'csv_final': return <CSVFinalResultsTeknion />;
 
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
@@ -96,7 +96,7 @@ export default function ExcelActualizer() {
 
   return (
     <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
-      <CriticalExcelModal xmlRoute="/WBS/Actualizer_XML_Seatings" />
+      <CriticalExcelModal xmlRoute="/Teknion/Actualizer_XML_Seatings" />
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
@@ -122,7 +122,7 @@ export default function ExcelActualizer() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the WBS management area. Any temporary changes in this view will be closed.
+                  You are about to leave the Teknion management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>

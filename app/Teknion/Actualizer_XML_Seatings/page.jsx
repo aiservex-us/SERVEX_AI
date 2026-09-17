@@ -1,5 +1,5 @@
 'use client';
-import XMLResultsWBS from '../Actualizer_Excel_Seatings/components/XML_Results_WBS.jsx';
+import XMLResultsTeknion from '../Actualizer_Excel_Seatings/components/XML_Results_Teknion.jsx';
 import ImportCETXml from '../Actualizer_Excel_Seatings/components/IncertDataExcel/incertXML_excel';
 
 
@@ -18,7 +18,7 @@ import Csvs from './components/comparePDF/csvs.jsx';
 import Csvs_updated from './components/comparePDF/csvs_updated.jsx';
 import PrecentMain from './components/PrecentMain.jsx';
 import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx';
-import AIReporting from './components/comparePDF/presentation_WBS.jsx'
+import AIReporting from './components/comparePDF/presentation_Teknion.jsx'
 import Compare from './components/comparePDF/UploadFileCmpare.jsx'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
@@ -40,12 +40,12 @@ export default function MenuInicial() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          window.location.href = '/WBS';
+          window.location.href = '/Teknion';
           return;
         }
         
         const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-        const res = await fetch(`${apiURL}/api/v1/module_delegation/WBS`);
+        const res = await fetch(`${apiURL}/api/v1/module_delegation/Teknion`);
         const responseData = await res.json();
         
         if (responseData.status === 'error' || !res.ok) {
@@ -54,7 +54,7 @@ export default function MenuInicial() {
         }
 
         if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
-          window.location.href = '/WBS';
+          window.location.href = '/Teknion';
         }
       } catch (err) {
         console.error('Delegation check failed', err);
@@ -128,7 +128,7 @@ export default function MenuInicial() {
       case 'incert_delete': return <IncertDelete step="xml" />;
                     case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
                     case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-      case 'xml_results': return <XMLResultsWBS />;
+      case 'xml_results': return <XMLResultsTeknion />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
@@ -291,12 +291,12 @@ export default function MenuInicial() {
                     case 'incert_delete': return <IncertDelete step="xml" />;
                     case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
                     case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-                    case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="WBS" /></div>;
+                    case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="Teknion" /></div>;
                     case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
                     case 'AI_reporter': return <Responce_ai />;
-                    case 'exportCETcsv': return <XMLResultsWBS />;
+                    case 'exportCETcsv': return <XMLResultsTeknion />;
                     case 'compareCET': return <CETComparator />;
                     default: return null;
                   }
