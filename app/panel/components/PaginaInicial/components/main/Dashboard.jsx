@@ -170,7 +170,7 @@ export default function DashboardRight() {
               Get personalized technical assistance to ensure your digital practice looks impeccable and professional.
             </p>
 
-            <button className="bg-[#6264A7] text-white px-7 py-3 rounded-xl font-bold text-[13px] hover:bg-[#4b4d8a] transition-all flex items-center justify-center gap-2 group mx-auto">
+            <button onClick={() => window.location.href = 'https://axglynne.com/Support'} className="bg-[#6264A7] text-white px-7 py-3 rounded-xl font-bold text-[13px] hover:bg-[#4b4d8a] transition-all flex items-center justify-center gap-2 group mx-auto">
               Contact Support
               <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>

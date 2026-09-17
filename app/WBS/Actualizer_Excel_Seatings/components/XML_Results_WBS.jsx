@@ -449,12 +449,18 @@ const WBSDataMatrix = () => {
                     });
                     
                     try {
-                      await supabase
+                      const { error: sbError } = await supabase
                         .from('ClientsSERVEX_WBS')
                         .update({ csv_raw: csvString })
                         .eq('company_name', 'WBS');
+                      
+                      if (sbError) {
+                        console.error('Supabase update error:', sbError);
+                        alert('Error al guardar el CSV base en la nube: ' + sbError.message);
+                      }
                     } catch (err) {
                       console.error('Error saving raw CSV:', err);
+                      alert('Error inesperado al guardar el CSV: ' + err.message);
                     }
                   }
                   
