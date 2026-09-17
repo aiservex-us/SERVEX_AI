@@ -11,7 +11,8 @@ import {
   FiMenu,
   FiX,
   FiExternalLink,
-  FiCpu
+  FiCpu,
+  FiTag
 } from 'react-icons/fi';
 
 export default function Header() {
@@ -82,6 +83,12 @@ export default function Header() {
               icon={FiCpu}
               label="Operation"
               onClick={() => window.open('https://axglynne.com/servex_espesification', '_blank')}
+            />
+
+            <NavItem
+              icon={FiTag}
+              label="Pricing"
+              onClick={() => router.push('/pricing')}
             />
 
             <NavItem
@@ -203,6 +210,15 @@ export default function Header() {
               label="Operation"
               onClick={() => {
                 window.open('https://axglynne.com/servex_espesification', '_blank');
+                setOpen(false);
+              }}
+            />
+
+            <NavItem
+              icon={FiTag}
+              label="Pricing"
+              onClick={() => {
+                router.push('/pricing');
                 setOpen(false);
               }}
             />

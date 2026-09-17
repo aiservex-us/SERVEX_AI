@@ -77,11 +77,8 @@ export async function getCurrentUser() {
   const provider = user.app_metadata?.provider;
 
   const isAzure = provider === 'azure';
-  
-  // Si el email es null (común en Azure si no se configura el scope de email), 
-  // asumimos que es del tenant corporativo validado por Azure.
   const isAuthorizedDomain =
-    email ? email.toLowerCase().endsWith('@servex-us.com') : true;
+    email && email.toLowerCase().endsWith('@servex-us.com');
 
   if (!isAzure || !isAuthorizedDomain) {
     console.warn('🚫 Acceso denegado:', { email, provider });

@@ -88,7 +88,7 @@ export default function Calendar() {
       tags: ['Analytics', 'ERP Sync'],
       status: "Active contract",
       location: "Global",
-      onOpen: undefined
+      onOpen: () => router.push('/Teknion')
     },
     {
       company: "Shaw Floors",
