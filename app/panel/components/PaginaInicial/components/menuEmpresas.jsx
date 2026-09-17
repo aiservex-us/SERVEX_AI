@@ -97,7 +97,7 @@ export default function Calendar() {
       tags: ['Dashboards', 'Sales'],
       status: "Active contract",
       location: "United States",
-      onOpen: undefined
+      onOpen: () => router.push('/Shaw_Floors')
     },
     {
       company: "MityLite",
@@ -106,7 +106,7 @@ export default function Calendar() {
       tags: ['Automation', 'Orders'],
       status: "Active contract",
       location: "United States",
-      onOpen: undefined
+      onOpen: () => router.push('/MityLite')
     },
     {
       company: "H&M",
@@ -115,7 +115,7 @@ export default function Calendar() {
       tags: ['BI', 'Reports'],
       status: "Active contract",
       location: "Global",
-      onOpen: undefined
+      onOpen: () => router.push('/HM')
     },
     {
       company: "Metalumen",
@@ -124,7 +124,7 @@ export default function Calendar() {
       tags: ['Analytics'],
       status: "Active contract",
       location: "United States",
-      onOpen: undefined
+      onOpen: () => router.push('/Metalumen')
     },
     {
       company: "Via Seating",
@@ -133,7 +133,7 @@ export default function Calendar() {
       tags: ['Dashboards', 'Orders'],
       status: "Active contract",
       location: "United States",
-      onOpen: undefined
+      onOpen: () => router.push('/Via_Seating')
     },
     {
       company: "DALS Lighting",
@@ -142,7 +142,7 @@ export default function Calendar() {
       tags: ['Automation', 'Reports'],
       status: "Active contract",
       location: "Canada / US",
-      onOpen: undefined
+      onOpen: () => router.push('/DALS_Lighting')
     },
     {
       company: "Header Group",
@@ -151,7 +151,7 @@ export default function Calendar() {
       tags: ['BI', 'Integrations'],
       status: "Active contract",
       location: "United States",
-      onOpen: undefined
+      onOpen: () => router.push('/Header_Group')
     },
     { company: "Pending Module 01", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
     { company: "Pending Module 02", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
@@ -172,7 +172,28 @@ export default function Calendar() {
     { company: "Pending Module 17", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
     { company: "Pending Module 18", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
     { company: "Pending Module 19", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
-    { company: "Pending Module 20", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined }
+    { company: "Pending Module 20", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 21", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 22", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 23", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 24", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 25", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 26", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 27", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 28", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 29", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 30", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 31", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 32", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 33", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 34", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 35", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 36", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 37", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 38", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 39", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 40", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined },
+    { company: "Pending Module 41", logo: "/logosEmpresas/logo2.png", role: "Integration Pending", tags: ["Building"], status: "In Development", location: "Global", onOpen: undefined }
   ];
 
   // 🔹 Filtrado por nombre de empresa o tags
