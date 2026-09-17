@@ -267,7 +267,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }, 100);
     };
     window.addEventListener('globalChatMessage', handleGlobalMessage);
-    const handleShaw FloorsImportStep = (e) => {
+    const handleShaw_FloorsImportStep = (e) => {
         const { step } = e.detail;
         if (step === 'csv_base') {
             setMessages(prev => [...prev, { from: 'bot', text: 'XML guardado exitosamente. El CSV Base ya está en el sistema. Ahora, por favor sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbs_csv_new' }]);
@@ -279,11 +279,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         }
         setTimeout(() => scrollToBottom(true), 100);
     };
-    window.addEventListener('wbsImportStep', handleShaw FloorsImportStep);
+    window.addEventListener('wbsImportStep', handleShaw_FloorsImportStep);
 
     return () => {
       window.removeEventListener('globalChatMessage', handleGlobalMessage);
-      window.removeEventListener('wbsImportStep', handleShaw FloorsImportStep);
+      window.removeEventListener('wbsImportStep', handleShaw_FloorsImportStep);
     };
   }, []);
 
