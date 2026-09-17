@@ -93,7 +93,7 @@ const HeroSection = () => {
           
           {/* Card XML */}
           <Link 
-            href="/Teknion/Actualizer_XML_Seatings"
+            href="/Teknion/Actualizer_XML_Teknion"
             className="group flex flex-col bg-white/40 backdrop-blur-2xl border border-white/60 rounded-3xl p-5 lg:p-7 hover:bg-white/80 hover:border-white hover:shadow-[0_20px_40px_rgba(70,71,117,0.08)] hover:-translate-y-1 transition-all duration-500 ease-out"
           >
             <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center text-[#464775] shadow-[0_2px_15px_rgba(0,0,0,0.04)] border border-slate-50 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import InsertXML from './incertXML_excel';
-import DeleteData from '../../../Actualizer_XML_Seatings/components/comparePDF/IncertData/components/delete_data';
+import DeleteData from '../../../Actualizer_XML_Teknion/components/comparePDF/IncertData/components/delete_data';
 
 const IncertData = ({ moduleName }) => {
   return (
