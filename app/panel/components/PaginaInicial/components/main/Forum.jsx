@@ -186,7 +186,7 @@ const Forum = () => {
     <div className="relative w-full h-full flex flex-col font-sans overflow-hidden bg-white">
       
       {/* HEADER NAVBAR */}
-      <header className="h-16 bg-[#f8f9fb] border-b border-slate-200/60 flex items-center justify-between px-8 shrink-0 z-10 sticky top-0">
+      <header className="h-16 bg-white border-b border-slate-200/60 flex items-center justify-between px-8 shrink-0 z-10 sticky top-0">
         <div>
           <h2 style={{ fontSize: '14px', fontWeight: 500, color: '#111111', letterSpacing: '-0.01em', margin: 0 }}>Audit Reports Hub</h2>
           <p style={{ fontSize: '11px', color: '#86868b', fontWeight: 300, margin: 0 }}>Centralized log of all AI autonomous inspections</p>
@@ -211,7 +211,7 @@ const Forum = () => {
       </header>
 
       {/* CENTER FEED */}
-      <main className="flex-1 overflow-y-auto bg-[#f8f9fb] p-6 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+      <main className="flex-1 overflow-y-auto bg-white p-6 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
         <div className="w-full max-w-4xl mx-auto flex flex-col gap-6">
           
           {loading ? (
