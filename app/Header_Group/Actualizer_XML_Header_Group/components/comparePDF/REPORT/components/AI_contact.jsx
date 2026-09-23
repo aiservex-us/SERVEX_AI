@@ -219,7 +219,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       try {
         const moduleMatch = window.location.pathname.match(/^\/(Header Group[A-Z]|LESRO)/i);
         const modName = moduleMatch ? moduleMatch[1].toUpperCase() : 'Header Group';
-        const tableName = modName === 'LESRO' ? 'ClientsSERVEX_LESRO' : `ClientsSERVEX_${modName}`;
+        const tableName = modName === 'LESRO' ? 'ClientsSERVEX' : `ClientsSERVEX_${modName}`;
         
         const { data, error } = await supabase
           .from(tableName)

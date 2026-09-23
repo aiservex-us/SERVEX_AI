@@ -50,7 +50,7 @@ export default function UploadClientXML() {
     setCheckingExisting(true);
     try {
       const { data, error } = await supabase
-        .from('ClientsSERVEX_LESRO')
+        .from('ClientsSERVEX')
         .select('xml_raw, csv_raw, csv_new_raw')
         .eq('company_name', companyName)
         .maybeSingle();
@@ -262,7 +262,7 @@ export default function UploadClientXML() {
       }
 
       const { error } = await supabase
-        .from('ClientsSERVEX_LESRO')
+        .from('ClientsSERVEX')
         .update(payload)
         .eq('user_id', user.id)
         .select('');

@@ -46,23 +46,24 @@ const WBODataMatrix = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch from XM_CET_import
+      // Fetch from ClientsSERVEX
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX_LESRO')
-        .select('XM_CET_import')
+        .from('ClientsSERVEX')
+        .select('xml_actualizer_raw, XM_CET_import, xml_raw, CSV_final')
         .eq('company_name', 'LESRO')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (dbError) throw dbError;
-      if (!data?.XM_CET_import) {
+      const xmlPayload = data?.XM_CET_import || data?.xml_actualizer_raw || data?.xml_raw;
+      if (!xmlPayload) {
         setProducts([]);
         return;
       }
 
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data.XM_CET_import, "text/xml");
+      const xmlDoc = parser.parseFromString(xmlPayload, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing WBO XML structure");
@@ -561,7 +562,7 @@ const WBODataMatrix = () => {
                     
                     try {
                       await supabase
-                        .from('ClientsSERVEX_LESRO')
+                        .from('ClientsSERVEX')
                         .update({ csv_raw: csvString })
                         .eq('company_name', 'LESRO');
                     } catch (err) {

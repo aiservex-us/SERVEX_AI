@@ -23,7 +23,7 @@ export default function CETComparator() {
   const fetchRecord = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('ClientsSERVEX_LESRO')
+      .from('ClientsSERVEX')
       .select('id, company_name, xml_actualizer_raw, XM_CET_import, Anormals_raw, created_at')
       .eq('company_name', 'LESRO')
       .order('created_at', { ascending: false })
@@ -207,7 +207,7 @@ export default function CETComparator() {
       
       
       const { error: updateError } = await supabase
-        .from('ClientsSERVEX_LESRO')
+        .from('ClientsSERVEX')
         .update({ Anormals_raw: JSON.stringify(reportPayload) })
         .eq('id', activeRecord.id);
 
