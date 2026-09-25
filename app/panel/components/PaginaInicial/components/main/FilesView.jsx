@@ -551,10 +551,10 @@ export default function FilesView() {
             <span>Servex Engine</span>
           </div>
           <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight mb-2">
-            Visor XML y Conversor a Matriz CSV / Excel (.xlsx)
+            Visor y Mapeador XML a Tabla Interactiva
           </h1>
           <p className="text-xs text-slate-500 font-normal leading-relaxed max-w-xl">
-            Sube tu catálogo o archivo XML para estructurarlo automáticamente en una matriz mapeada, previsualizar todos sus registros y exportarlo a formato CSV o Excel.
+            Carga cualquier archivo XML de catálogo para estructurar y mapear automáticamente sus registros en una tabla de datos interactiva en tiempo real.
           </p>
         </div>
 
@@ -620,7 +620,7 @@ export default function FilesView() {
             </div>
 
             <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-              Soporta catálogos, facturas, ERPs y listas de productos en XML
+              Transformación automática de jerarquía XML a matriz de tabla
             </span>
           </div>
         </motion.div>
@@ -672,31 +672,6 @@ export default function FilesView() {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* ACTION DOWNLOAD BUTTONS */}
-            <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
-              <button
-                onClick={handleDownloadCetXml}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
-              >
-                <Code2 size={15} />
-                <span>Exportar CET Designer (/importCETxml)</span>
-              </button>
-              <button
-                onClick={handleDownloadCsv}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
-              >
-                <Download size={15} />
-                <span>Descargar CSV (.csv)</span>
-              </button>
-              <button
-                onClick={handleDownloadExcel}
-                className="bg-[#464775] hover:bg-[#3a3b61] text-white font-semibold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-[#464775]/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
-              >
-                <Download size={15} />
-                <span>Descargar Excel (.xlsx)</span>
-              </button>
             </div>
           </div>
 
