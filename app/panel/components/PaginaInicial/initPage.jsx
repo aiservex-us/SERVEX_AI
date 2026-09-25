@@ -15,6 +15,7 @@ import Forum from './components/main/Forum';
 import Calendar from './components/menuEmpresas';
 import Products from './components/main/AccesAgent';
 import Settings from './components/Settings';
+import FilesView from './components/main/FilesView';
 import { Brain } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -65,7 +66,12 @@ const InitPage = () => {
           </div>
         );
 
-
+      case 'files':
+        return (
+          <div key="files" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
+            <FilesView />
+          </div>
+        );
 
       case 'settings':
         return (
