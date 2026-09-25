@@ -349,6 +349,56 @@ export default function FilesView() {
     XLSX.writeFile(workbook, `${baseName}_Convertido.xlsx`);
   };
 
+  // Download CSV (.csv) file
+  const handleDownloadCsv = async () => {
+    if (!parsedData || !parsedData.length) return;
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const formData = new FormData();
+      if (xmlFile) {
+        formData.append('file', xmlFile);
+      } else {
+        formData.append('xml_content', xmlText);
+      }
+
+      const response = await fetch(`${backendUrl}/api/v1/general_excel_converter/convert_csv`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const baseName = xmlFile ? xmlFile.name.replace(/\.xml$/i, '') : 'catalogo';
+        a.download = `${baseName}_Convertido.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+    } catch (e) {
+      console.log('Fallback a descarga de CSV del lado del cliente activo');
+    }
+
+    // Client-side CSV download fallback
+    const worksheet = XLSX.utils.json_to_sheet(parsedData);
+    const csvContent = XLSX.utils.sheet_to_csv(worksheet);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const baseName = xmlFile ? xmlFile.name.replace(/\.xml$/i, '') : 'catalogo';
+    a.download = `${baseName}_Convertido.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const generateAiReport = (data) => {
     setGeneratingReport(true);
     setTimeout(() => {
@@ -461,10 +511,10 @@ export default function FilesView() {
             <span>Servex Engine</span>
           </div>
           <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight mb-2">
-            Visor XML y Conversor a Excel (.xlsx)
+            Visor XML y Conversor a Matriz CSV / Excel (.xlsx)
           </h1>
           <p className="text-xs text-slate-500 font-normal leading-relaxed max-w-xl">
-            Sube tu catálogo o archivo XML para estructurarlo automáticamente en una tabla ordenada, previsualizar todos los registros y decidir su descarga en formato Excel.
+            Sube tu catálogo o archivo XML para estructurarlo automáticamente en una matriz mapeada, previsualizar todos sus registros y exportarlo a formato CSV o Excel.
           </p>
         </div>
 
@@ -571,11 +621,18 @@ export default function FilesView() {
               </div>
             </div>
 
-            {/* ACTION DOWNLOAD BUTTON */}
-            <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+            {/* ACTION DOWNLOAD BUTTONS */}
+            <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+              <button
+                onClick={handleDownloadCsv}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <Download size={15} />
+                <span>Descargar CSV (.csv)</span>
+              </button>
               <button
                 onClick={handleDownloadExcel}
-                className="bg-[#464775] hover:bg-[#3a3b61] text-white font-semibold px-5 py-2.5 rounded-xl text-xs shadow-md shadow-[#464775]/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                className="bg-[#464775] hover:bg-[#3a3b61] text-white font-semibold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-[#464775]/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
               >
                 <Download size={15} />
                 <span>Descargar Excel (.xlsx)</span>
