@@ -34,6 +34,7 @@ export default function FilesView() {
   const [parsing, setParsing] = useState(false);
   const [parsedData, setParsedData] = useState([]);
   const [processedByBackend, setProcessedByBackend] = useState(false);
+  const [catalogPatterns, setCatalogPatterns] = useState(null);
   
   // UI Tabs: 'table' | 'raw' | 'ai'
   const [activeTab, setActiveTab] = useState('table');
@@ -232,6 +233,9 @@ export default function FilesView() {
             if (jsonRes.ai_report) {
               setAiReport(jsonRes.ai_report);
             }
+            if (jsonRes.patterns) {
+              setCatalogPatterns(jsonRes.patterns);
+            }
           }
         }
       } catch (backendErr) {
@@ -397,6 +401,42 @@ export default function FilesView() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  };
+
+  // Download CET Designer XML (/importCETxml)
+  const handleDownloadCetXml = async () => {
+    if (!parsedData || !parsedData.length) return;
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const formData = new FormData();
+      if (xmlFile) {
+        formData.append('file', xmlFile);
+      } else {
+        formData.append('xml_content', xmlText);
+      }
+
+      const response = await fetch(`${backendUrl}/api/v1/general_excel_converter/importCETxml`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const baseName = xmlFile ? xmlFile.name.replace(/\.xml$/i, '') : 'catalogo';
+        a.download = `${baseName}_CET_Import.xml`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        return;
+      }
+    } catch (e) {
+      console.log('Error descargando CET XML:', e);
+    }
   };
 
   const generateAiReport = (data) => {
@@ -618,11 +658,31 @@ export default function FilesView() {
                 <p className="text-[11px] text-slate-500 mt-0.5 font-mono">
                   {(xmlFile.size / 1024).toFixed(1)} KB • {parsedData.length} registros extraídos • {columns.length} columnas
                 </p>
+                {catalogPatterns && (
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    <span className="text-[10px] bg-slate-100 border border-slate-200 text-slate-600 px-2 py-0.5 rounded font-mono">
+                      SKU: <strong>{catalogPatterns.sku_col || 'N/A'}</strong>
+                    </span>
+                    <span className="text-[10px] bg-slate-100 border border-slate-200 text-slate-600 px-2 py-0.5 rounded font-mono">
+                      Precio: <strong>{catalogPatterns.base_price_col || 'N/A'}</strong>
+                    </span>
+                    <span className="text-[10px] bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded font-mono">
+                      Opciones: <strong>{catalogPatterns.option_cols?.length || 0}</strong>
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* ACTION DOWNLOAD BUTTONS */}
             <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+              <button
+                onClick={handleDownloadCetXml}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <Code2 size={15} />
+                <span>Exportar CET Designer (/importCETxml)</span>
+              </button>
               <button
                 onClick={handleDownloadCsv}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
