@@ -34,8 +34,7 @@ export default function MenuLateral({
 }) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isHovered, setIsHovered] = useState(false);
-  const isEffectivelyCollapsed = collapsed && !isHovered;
+  const isEffectivelyCollapsed = collapsed;
 
   const filteredItems = menuItems.filter(item =>
     item.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -65,8 +64,6 @@ export default function MenuLateral({
       )}
 
       <aside
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         className={`
           shrink-0 bg-white
           border-r border-slate-100/80
@@ -84,7 +81,7 @@ export default function MenuLateral({
         `}
       >
         {/* HEADER: LOGO & TOGGLE */}
-        <div className="h-20 flex items-center px-4 shrink-0 relative">
+        <div className="h-20 flex items-center justify-between px-4 shrink-0 relative">
           <div className={`flex items-center ${isEffectivelyCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
             <Link href="/panel" className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#003873]/30 transition-colors cursor-pointer">
               <img
@@ -103,8 +100,13 @@ export default function MenuLateral({
               </span>
             </div>
           </div>
-
-
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? "Desplegar menú" : "Minimizar menú"}
+            className="hidden md:flex w-7 h-7 bg-white border border-slate-200/80 rounded-full items-center justify-center shadow-xs text-slate-500 hover:text-[#464775] hover:border-[#464775]/40 transition-all shrink-0 cursor-pointer"
+          >
+            <ChevronLeft className={`w-3.5 h-3.5 transition-transform duration-500 ${isEffectivelyCollapsed ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
         {/* SEARCH BAR SECTION */}
@@ -166,7 +168,7 @@ export default function MenuLateral({
                     <Icon size={isEffectivelyCollapsed ? 15 : 17} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
 
-                  <div className={`flex flex-col items-start overflow-hidden text-left transition-all duration-[400ms] ${isEffectivelyCollapsed ? 'max-w-0 opacity-0' : 'max-w-[160px] opacity-100 w-full'}`}>
+                  <div className={`flex flex-col items-start overflow-hidden text-left transition-all duration-[400ms] ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 hidden' : 'max-w-[160px] opacity-100 w-full'}`}>
                     <span className={`text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-opacity duration-500 delay-100 ${isActive ? 'text-[#003873] font-bold' : 'text-slate-700 font-semibold'} ${isEffectivelyCollapsed ? 'opacity-0' : 'opacity-100'}`}>
                       {item.label}
                     </span>
@@ -182,6 +184,21 @@ export default function MenuLateral({
                     </div>
                   </div>
                 </div>
+
+                {/* FLOATING ALERT / TOOLTIP WHEN COLLAPSED */}
+                {isEffectivelyCollapsed && (
+                  <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 flex items-center">
+                    <div className="w-2 h-2 bg-slate-900 rotate-45 -mr-1 z-10"></div>
+                    <div className="bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap flex items-center gap-2 border border-slate-700/50 shadow-2xl">
+                      <span className="text-white font-bold">{item.label}</span>
+                      {item.sub && (
+                        <span className="text-[8.5px] text-indigo-300 font-bold uppercase tracking-wider bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700/80">
+                          {item.sub}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </button>
             );
           })}
@@ -198,28 +215,37 @@ export default function MenuLateral({
               <button
                 key={item.label}
                 className={`
-                  w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-[#003873] transition-all duration-200
+                  group relative w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-[#003873] transition-all duration-200
                   ${isEffectivelyCollapsed ? 'justify-center h-10' : 'px-3 py-2'}
                 `}
               >
                 <Icon size={isEffectivelyCollapsed ? 14 : 16} className="shrink-0" />
                 <div className={`
                   overflow-hidden transition-all duration-[400ms]
-                  ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
+                  ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0 hidden' : 'max-w-[200px] opacity-100 ml-3'}
                 `}>
                   <span className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap">{item.label}</span>
                 </div>
+
+                {isEffectivelyCollapsed && (
+                  <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 flex items-center">
+                    <div className="w-2 h-2 bg-slate-900 rotate-45 -mr-1 z-10"></div>
+                    <div className="bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-slate-700/50 shadow-2xl">
+                      <span className="text-white font-bold uppercase">{item.label}</span>
+                    </div>
+                  </div>
+                )}
               </button>
             );
           })}
 
           {/* TARJETA Servex Copilot */}
           <div className={`
-            mt-2 flex items-center rounded-xl transition-all duration-300
+            group relative mt-2 flex items-center rounded-xl transition-all duration-300
             ${isEffectivelyCollapsed ? 'justify-center h-10' : 'p-2 bg-[#003873] text-white shadow-lg shadow-[#003873]/20'}
           `}>
             <div className="relative shrink-0">
-              <div className={`rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-sm transition-all duration-300 ${isEffectivelyCollapsed ? 'w-6 h-6 p-1' : 'w-7 h-7 p-1.5'}`}>
+              <div className={`rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-sm transition-all duration-300 ${isEffectivelyCollapsed ? 'w-6 h-6 p-1 bg-[#464775]' : 'w-7 h-7 p-1.5'}`}>
                 <img
                   src="/logo2.png"
                   alt="Svx"
@@ -230,7 +256,7 @@ export default function MenuLateral({
 
             <div className={`
               overflow-hidden transition-all duration-[400ms]
-              ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
+              ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0 hidden' : 'max-w-[200px] opacity-100 ml-3'}
             `}>
               <div className="flex flex-col leading-tight text-white">
                 <p className="text-[10px] font-black tracking-tight uppercase">
@@ -241,12 +267,22 @@ export default function MenuLateral({
                 </p>
               </div>
             </div>
+
+            {isEffectivelyCollapsed && (
+              <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 flex items-center">
+                <div className="w-2 h-2 bg-[#464775] rotate-45 -mr-1 z-10"></div>
+                <div className="bg-[#464775] text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-indigo-400/30 shadow-2xl flex flex-col">
+                  <span className="font-black text-[10px] uppercase">Servex Copilot</span>
+                  <span className="text-[8px] text-indigo-200 font-normal">Next-gen Intelligence</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* LEYENDA GLYNNE */}
           <div className={`
             transition-all duration-[400ms] overflow-hidden pt-1
-            ${isEffectivelyCollapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
+            ${isEffectivelyCollapsed ? 'max-h-0 opacity-0 hidden' : 'max-h-12 opacity-100'}
           `}>
             <p className="text-[7px] text-slate-400 leading-tight tracking-tight px-1 uppercase font-medium">
               © 2025 GLYNNE S.A.S

@@ -36,8 +36,7 @@ export default function MenuLateral({
   setCollapsed
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isHovered, setIsHovered] = useState(false);
-  const isEffectivelyCollapsed = collapsed && !isHovered;
+  const isEffectivelyCollapsed = collapsed;
 
   const filteredItems = menuItems.filter(item =>
     item.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -45,8 +44,6 @@ export default function MenuLateral({
 
   return (
     <aside
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       className={`
         h-full shrink-0 bg-white
         border-r border-slate-100/80
@@ -56,7 +53,7 @@ export default function MenuLateral({
       `}
     >
       {/* HEADER: LOGO & TOGGLE */}
-      <div className="h-20 flex items-center px-4 shrink-0 relative">
+      <div className="h-20 flex items-center justify-between px-4 shrink-0 relative">
         <div className={`flex items-center ${isEffectivelyCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
           <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#6264A7]/30 transition-colors">
             <img
@@ -74,6 +71,13 @@ export default function MenuLateral({
               DATA LESRO
             </span>
           </div>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? "Desplegar menú" : "Minimizar menú"}
+            className="hidden md:flex w-7 h-7 bg-white border border-slate-200/80 rounded-full items-center justify-center shadow-xs text-slate-500 hover:text-[#464775] hover:border-[#464775]/40 transition-all shrink-0 cursor-pointer"
+          >
+            <ChevronLeft className={`w-3.5 h-3.5 transition-transform duration-500 ${isEffectivelyCollapsed ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
         <button
@@ -151,7 +155,7 @@ export default function MenuLateral({
               
               <div className={`
                 overflow-hidden transition-all duration-[400ms] flex items-center
-                ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
+                ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0 hidden' : 'max-w-[200px] opacity-100 ml-3'}
               `}>
                 <span className={`text-[12px] whitespace-nowrap transition-all ${isActive || isMatch ? 'font-semibold' : 'font-medium'}`}>
                   {item.label}
@@ -173,14 +177,14 @@ export default function MenuLateral({
             <button
               key={item.label}
               className={`
-                w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200
+                group relative w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200
                 ${isEffectivelyCollapsed ? 'justify-center h-10' : 'px-3 py-2'}
               `}
             >
               <Icon className="w-[16px] h-[16px] shrink-0" />
               <div className={`
                 overflow-hidden transition-all duration-[400ms]
-                ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
+                ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0 hidden' : 'max-w-[200px] opacity-100 ml-3'}
               `}>
                 <span className="text-[11px] font-medium whitespace-nowrap">{item.label}</span>
               </div>
@@ -206,7 +210,7 @@ export default function MenuLateral({
           
           <div className={`
             overflow-hidden transition-all duration-[400ms]
-            ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-3'}
+            ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 ml-0 hidden' : 'max-w-[200px] opacity-100 ml-3'}
           `}>
             <div className="flex flex-col leading-tight">
               <p className="text-[11px] font-black text-slate-800 tracking-tight uppercase">
@@ -217,12 +221,19 @@ export default function MenuLateral({
               </p>
             </div>
           </div>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? "Desplegar menú" : "Minimizar menú"}
+            className="hidden md:flex w-7 h-7 bg-white border border-slate-200/80 rounded-full items-center justify-center shadow-xs text-slate-500 hover:text-[#464775] hover:border-[#464775]/40 transition-all shrink-0 cursor-pointer"
+          >
+            <ChevronLeft className={`w-3.5 h-3.5 transition-transform duration-500 ${isEffectivelyCollapsed ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
         {/* LEYENDA GLYNNE: AL FINAL DE TODO */}
         <div className={`
           transition-all duration-[400ms] overflow-hidden pt-2
-          ${isEffectivelyCollapsed ? 'max-h-0 opacity-0' : 'max-h-12 opacity-100'}
+          ${isEffectivelyCollapsed ? 'max-h-0 opacity-0 hidden' : 'max-h-12 opacity-100'}
         `}>
           <a
             href="https://axglynne.com/"
