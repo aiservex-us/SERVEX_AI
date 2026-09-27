@@ -561,14 +561,13 @@ if (queryToSend.toLowerCase() === '/importbase') {
 
       {/* ── TOP BAR ── */}
       <header className="relative z-10 h-[52px] flex-shrink-0 flex items-center justify-between px-5 bg-white/60 backdrop-blur-md border-b border-white/50">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center">
-            <img src="/logo2.png" alt="SVX" className="h-4 w-auto" />
-          </div>
-          <div className="flex flex-col gap-0">
-            <span className="text-[13px] font-semibold tracking-tight text-gray-900 leading-none">Alysa</span>
-
-          </div>
+        <div className="flex items-center gap-2.5">
+          <span className="text-[14px] font-black tracking-tight text-[#464775] uppercase">
+            Alysa
+          </span>
+          <span className="text-[9.5px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            Servex Copilot
+          </span>
         </div>
 
         <div className="flex items-center gap-2.5">
