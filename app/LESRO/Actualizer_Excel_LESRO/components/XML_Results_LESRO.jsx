@@ -13,7 +13,201 @@ import {
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
-const WBODataMatrix = () => {
+const LESRO_31_COLUMNS = [
+  "ID",
+  "Price Guide Sequence",
+  "Product Line",
+  "Product Name",
+  "Price (Non UPH Products)",
+  "Price Grade 02",
+  "Price Grade 03",
+  "Price Grade 04",
+  "Price Grade 05",
+  "Price Grade 06",
+  "Price Grade 07",
+  "Price Grade 08",
+  "Price Grade 09",
+  "Price Grade 10",
+  "Price Grade 11",
+  "Price Grade 12",
+  "Price Grade 13",
+  "Price Optional Armpad or Armcap - Polyurethane",
+  "Price Optional Armcap - Polyurethane",
+  "Price Optional ArmPAD - Polyurethane",
+  "Price Optional Armpad or Armcap - Solid Surface",
+  "Price Optional Armcap - Solid Surface",
+  "Price Optional ArmPAD - Solid Surface",
+  "Price Optional Casters",
+  "Price Optional Swivel Tablet",
+  "Price Optional Chrome Finish",
+  "Price Optional Ganging Brackets",
+  "Price Optional Power Unit",
+  "Price Optional Bevel Edge",
+  "Price Optional Shelf",
+  "Country of Origin"
+];
+
+// Parser de reserva de XML a la matriz de 31 columnas de LESRO
+const parseLesroXmlTo31Columns = (xmlString) => {
+  if (!xmlString || !xmlString.trim()) return [];
+  
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+  
+  const parserError = xmlDoc.querySelector("parsererror");
+  if (parserError) throw new Error("Error al analizar la estructura XML de LESRO");
+
+  const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+  const featureMap = new Map();
+  for (const f of globalFeatures) {
+    const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+    if (fCode) featureMap.set(fCode, f);
+  }
+
+  const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+  const rows = [];
+  const lineSeqCounter = {};
+
+  for (const p of productsXML) {
+    const pCode = (p.getElementsByTagName("Code")[0]?.textContent || "").trim();
+    if (!pCode) continue;
+
+    const pDesc = (p.getElementsByTagName("Description")[0]?.textContent || "").trim();
+    const priceElem = p.getElementsByTagName("Price")[0];
+    const basePriceStr = priceElem ? (priceElem.getElementsByTagName("Value")[0]?.textContent || "0") : "0";
+    const basePrice = parseFloat(basePriceStr) || 0;
+
+    let pLine = pDesc;
+    let pName = pDesc;
+    if (pDesc.includes(",")) {
+      const parts = pDesc.split(",");
+      pLine = parts[0].trim();
+      pName = parts.slice(1).join(",").trim();
+    }
+
+    lineSeqCounter[pLine] = (lineSeqCounter[pLine] || 0) + 1;
+    const seq = lineSeqCounter[pLine];
+
+    const featureRefs = Array.from(p.getElementsByTagName("FeatureRef")).map(f => f.textContent).filter(Boolean);
+
+    let uphFeat = null;
+    let armpadFeat = null;
+    let powerFeat = null;
+
+    for (const fCode of featureRefs) {
+      if (fCode.includes("UPH-GRADE")) uphFeat = featureMap.get(fCode);
+      else if (fCode.includes("ARMPAD")) armpadFeat = featureMap.get(fCode);
+      else if (fCode.includes("POWER")) powerFeat = featureMap.get(fCode);
+    }
+    if (!uphFeat && featureMap.has(`UPH-GRADE-${pCode}`)) uphFeat = featureMap.get(`UPH-GRADE-${pCode}`);
+    if (!armpadFeat && featureMap.has(`ARMPAD-${pCode}`)) armpadFeat = featureMap.get(`ARMPAD-${pCode}`);
+
+    // Grados
+    const grados = {};
+    if (uphFeat) {
+      const options = Array.from(uphFeat.getElementsByTagName("Option"));
+      for (const opt of options) {
+        const oCode = opt.getElementsByTagName("Code")[0]?.textContent || "";
+        const oPriceElem = opt.querySelector("OptionPrice > Value");
+        const upcharge = parseFloat(oPriceElem?.textContent || "0") || 0;
+        const total = basePrice + upcharge;
+        
+        if (oCode === "COM" || oCode.toUpperCase().includes("GRD2")) {
+          grados[2] = total;
+        } else if (oCode.toUpperCase().includes("GRD")) {
+          const num = oCode.replace(/\D/g, "");
+          if (num) grados[parseInt(num, 10)] = total;
+        }
+      }
+    }
+
+    // Armpads
+    let armPoly = null;
+    let armSolid = null;
+    if (armpadFeat) {
+      const options = Array.from(armpadFeat.getElementsByTagName("Option"));
+      for (const opt of options) {
+        const oCode = (opt.getElementsByTagName("Code")[0]?.textContent || "").toUpperCase();
+        const oPriceElem = opt.querySelector("OptionPrice > Value");
+        const opPrice = parseFloat(oPriceElem?.textContent || "0") || 0;
+        if (opPrice > 0) {
+          if (oCode.includes("APU") || oCode.includes("POLY") || oCode.includes("URETHANE")) armPoly = opPrice;
+          else if (oCode.includes("SS") || oCode.includes("SOLID")) armSolid = opPrice;
+        }
+      }
+    }
+
+    // Power
+    let powerPrice = null;
+    if (powerFeat) {
+      const options = Array.from(powerFeat.getElementsByTagName("Option"));
+      for (const opt of options) {
+        const oPriceElem = opt.querySelector("OptionPrice > Value");
+        const opPrice = parseFloat(oPriceElem?.textContent || "0") || 0;
+        if (opPrice > 0) powerPrice = opPrice;
+      }
+    }
+
+    // Ganging
+    let gangingPrice = null;
+    const gangingLines = ['AMHERST', 'ASHFORD', 'AVON', 'BELMONT', 'BROOKLYN', 'CHAT', 'FRANKLIN', 'FREMONT', 'GANSETT', 'HARTFORD', 'LENOX', 'NEWPORT', 'RHAPSODY', 'WESTON', 'WILLOW', 'WATERFALL'];
+    if (gangingLines.some(l => pLine.toUpperCase().includes(l))) {
+      if (['Armless', 'Guest', 'Sofa', 'Loveseat', 'Chair', 'Bench'].some(k => pName.includes(k))) {
+        gangingPrice = 47.0;
+      }
+    }
+
+    // Country
+    let country = 'US';
+    if (pDesc.toUpperCase().includes('CN') || (pName.toUpperCase().includes('LAMINATE') && (pName.toUpperCase().includes('END TABLE') || pName.toUpperCase().includes('COFFEE TABLE') || pName.toUpperCase().includes('CORNER TABLE')))) {
+      country = 'CN';
+    } else if (pName.toUpperCase().includes('GLASS TOP')) {
+      country = 'TW';
+    }
+
+    const isUph = (2 in grados) || Object.keys(grados).length > 0;
+
+    const row = {
+      "ID": pCode,
+      "Price Guide Sequence": seq,
+      "Product Line": pLine,
+      "Product Name": pName,
+      "Price (Non UPH Products)": isUph ? "" : (basePrice || ""),
+      "Price Grade 02": isUph ? (grados[2] !== undefined ? grados[2] : basePrice) : "",
+      "Price Grade 03": grados[3] !== undefined ? grados[3] : "",
+      "Price Grade 04": grados[4] !== undefined ? grados[4] : "",
+      "Price Grade 05": grados[5] !== undefined ? grados[5] : "",
+      "Price Grade 06": grados[6] !== undefined ? grados[6] : "",
+      "Price Grade 07": grados[7] !== undefined ? grados[7] : "",
+      "Price Grade 08": grados[8] !== undefined ? grados[8] : "",
+      "Price Grade 09": grados[9] !== undefined ? grados[9] : "",
+      "Price Grade 10": grados[10] !== undefined ? grados[10] : "",
+      "Price Grade 11": grados[11] !== undefined ? grados[11] : "",
+      "Price Grade 12": grados[12] !== undefined ? grados[12] : "",
+      "Price Grade 13": grados[13] !== undefined ? grados[13] : "",
+      "Price Optional Armpad or Armcap - Polyurethane": armPoly !== null ? armPoly : "",
+      "Price Optional Armcap - Polyurethane": "",
+      "Price Optional ArmPAD - Polyurethane": armPoly !== null ? armPoly : "",
+      "Price Optional Armpad or Armcap - Solid Surface": armSolid !== null ? armSolid : "",
+      "Price Optional Armcap - Solid Surface": "",
+      "Price Optional ArmPAD - Solid Surface": armSolid !== null ? armSolid : "",
+      "Price Optional Casters": "",
+      "Price Optional Swivel Tablet": "",
+      "Price Optional Chrome Finish": "",
+      "Price Optional Ganging Brackets": gangingPrice !== null ? gangingPrice : "",
+      "Price Optional Power Unit": powerPrice !== null ? powerPrice : "",
+      "Price Optional Bevel Edge": "",
+      "Price Optional Shelf": "",
+      "Country of Origin": country
+    };
+
+    rows.push(row);
+  }
+
+  return rows;
+};
+
+const XMLResultsLESRO = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,194 +217,61 @@ const WBODataMatrix = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
-  const baseHeaders = [
-    "SKU", "Description", "Classification", "Base Price",
-    "Weight", "Classic/ Premium", "Top", "Casebody", "Top D", "Top L", "Casebody W", "Casebody D", "OA H", 
-    "Assembly", "Deadbolt Lock(s)", "# of Optional Locks Required", 
-    "3, 6, 9, 12 Replacement Tote Trays", "Tote Tray Lid", "Power Supply Modules", 
-    "Hemisphere (only power option available for Mini Nucleus) (-HEM)", 
-    "Connecting Magnets for HangOut Stools 2 Locations (-2MA)", 
-    "Connecting Magnets for HangOut Stools 4 Locations (-4MA)", 
-    "Connecting Magnets for HangOut Stools 6 Locations (-6MA)", 
-    "Connecting Magnets for HangOut Stools 8 Locations (-8MA)", 
-    "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", 
-    "Premium Laminate Top Upcharge for Workstations", 
-    "Markerboard 48 x 48 60 x 60 48 x 84 (-__MB)", 
-    "Chemical Resistant 48 x 48, 60 x 60 48 x 84 (-09C)", "Custom Sizes"
-  ];
-  
-  const [optionHeaders, setOptionHeaders] = useState([]);
-
   const processXML = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch from ClientsSERVEX
+      // Obtener registro de ClientsSERVEX_LESRO
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_LESRO')
-        .select('xml_actualizer_raw, XM_CET_import, xml_raw, CSV_final')
+        .select('csv_raw, CSV_final, xml_actualizer_raw, XM_CET_import, xml_raw')
         .eq('company_name', 'LESRO')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (dbError) throw dbError;
+
+      const csvPayload = data?.csv_raw || data?.CSV_final;
       const xmlPayload = data?.XM_CET_import || data?.xml_actualizer_raw || data?.xml_raw;
-      if (!xmlPayload) {
-        setProducts([]);
+
+      if (csvPayload && csvPayload.trim().length > 0) {
+        // Cargar desde CSV estructurado de 31 columnas
+        const parsed = Papa.parse(csvPayload, {
+          header: true,
+          skipEmptyLines: true,
+          dynamicTyping: false
+        });
+
+        if (parsed.data && parsed.data.length > 0) {
+          const formatted = parsed.data.map(item => {
+            const row = {};
+            LESRO_31_COLUMNS.forEach(col => {
+              row[col] = item[col] !== undefined ? item[col] : "";
+            });
+            return row;
+          });
+          setProducts(formatted);
+          setCurrentPage(1);
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (xmlPayload && xmlPayload.trim().length > 0) {
+        // Parsear desde el XML a la matriz de 31 columnas
+        const rows = parseLesroXmlTo31Columns(xmlPayload);
+        setProducts(rows);
+        setCurrentPage(1);
+        setLoading(false);
         return;
       }
 
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlPayload, "text/xml");
-      
-      const parserError = xmlDoc.querySelector("parsererror");
-      if (parserError) throw new Error("Error parsing WBO XML structure");
-
-      const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
-      const featureMap = new Map();
-      const allPossibleOptionsMap = new Map();
-
-      for (const f of globalFeatures) {
-        const fCode = f.getElementsByTagName("Code")[0]?.textContent;
-        if (fCode) {
-          featureMap.set(fCode, f);
-        }
-      }
-      
-      const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
-      const extracted = [];
-
-      for (const p of productsXML) {
-        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
-                if (optDesc) allPossibleOptionsMap.set(optDesc, optDesc);
-              }
-            }
-          }
-        }
-      }
-
-      const dynamicOptionHeaders = Array.from(allPossibleOptionsMap.keys()).sort();
-      setOptionHeaders(dynamicOptionHeaders);
-
-      for (const p of productsXML) {
-        const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
-        const description = p.getElementsByTagName("Description")[0]?.textContent || "";
-        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
-          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
-          || "-";
-        
-        const priceElement = p.getElementsByTagName("Price")[0];
-        const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
-
-        const materials = Array.from(p.getElementsByTagName("MaterialRef")).map(m => m.textContent);
-
-        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        let hasSuffixes = false;
-        
-        const productOptionPrices = {};
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optDesc) productOptionPrices[optDesc] = optPrice;
-              }
-            }
-          }
-        }
-        
-        // CSV Static Fields
-        const staticFields = {
-          "Weight": "-", 
-          "Classic/ Premium": "-", 
-          "Top": materials[0] || "-", 
-          "Casebody": materials[1] || "-", 
-          "Top D": "-", 
-          "Top L": "-", 
-          "Casebody W": "-", 
-          "Casebody D": "-", 
-          "OA H": "-", 
-          "Assembly": "-", 
-          "Deadbolt Lock(s)": "-", 
-          "# of Optional Locks Required": "-", 
-          "3, 6, 9, 12 Replacement Tote Trays": "-", 
-          "Tote Tray Lid": "-", 
-          "Power Supply Modules": "-", 
-          "Hemisphere (only power option available for Mini Nucleus) (-HEM)": "-", 
-          "Connecting Magnets for HangOut Stools 2 Locations (-2MA)": "-", 
-          "Connecting Magnets for HangOut Stools 4 Locations (-4MA)": "-", 
-          "Connecting Magnets for HangOut Stools 6 Locations (-6MA)": "-", 
-          "Connecting Magnets for HangOut Stools 8 Locations (-8MA)": "-", 
-          "Premium Armor Edge™ Colors (-S2_)": "-", 
-          "Non-Standard Edge Band": "-", 
-          "Premium Laminate Top Upcharge for Workstations": "-", 
-          "Markerboard 48 x 48 60 x 60 48 x 84 (-__MB)": "-", 
-          "Chemical Resistant 48 x 48, 60 x 60 48 x 84 (-09C)": "-", 
-          "Custom Sizes": "-"
-        };
-
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e.sku === suffixSku)) {
-                  extracted.push({
-                    sku: suffixSku,
-                    description: `${description} [Option ${optCode}]`,
-                    classification,
-                    basePrice: basePrice + optPrice,
-                    ...staticFields,
-                    ...productOptionPrices
-                  });
-                  hasSuffixes = true;
-                }
-              }
-            }
-          }
-        }
-        
-        if (!hasSuffixes) {
-          extracted.push({
-            sku,
-            description,
-            classification,
-            basePrice,
-            ...staticFields,
-            ...productOptionPrices
-          });
-        }
-      }
-      
-      setProducts(extracted);
-      setCurrentPage(1); 
+      setProducts([]);
     } catch (err) {
-      console.error("Error processing WBO data matrix:", err);
-      setError(err.message || "Error processing catalog information WBO.");
+      console.error("Error cargando matriz LESRO:", err);
+      setError(err.message || "Error procesando la información del catálogo LESRO.");
     } finally {
       setLoading(false);
     }
@@ -223,10 +284,12 @@ const WBODataMatrix = () => {
   const filtered = useMemo(() => {
     const cleanSearch = searchTerm.trim().toLowerCase();
     if (!cleanSearch) return products;
-    return products.filter(p => 
-      p.sku.toLowerCase().includes(cleanSearch) ||
-      p.description.toLowerCase().includes(cleanSearch)
-    );
+    return products.filter(p => {
+      const id = (p["ID"] || "").toString().toLowerCase();
+      const line = (p["Product Line"] || "").toString().toLowerCase();
+      const name = (p["Product Name"] || "").toString().toLowerCase();
+      return id.includes(cleanSearch) || line.includes(cleanSearch) || name.includes(cleanSearch);
+    });
   }, [products, searchTerm]);
 
   useEffect(() => {
@@ -244,67 +307,32 @@ const WBODataMatrix = () => {
 
   const stats = useMemo(() => {
     const total = products.length;
-    const avgPrice = total 
-      ? Math.round(products.reduce((acc, p) => acc + p.basePrice, 0) / total) 
-      : 0;
-    return { total, filtered: filtered.length, avgPrice };
+    return { total, filtered: filtered.length };
   }, [products, filtered]);
-
-  const exportToCSV = () => {
-    if (!filtered || filtered.length === 0) return;
-    
-    const allHeaders = [...baseHeaders, ...optionHeaders];
-    
-    const csvData = filtered.map(p => {
-      const row = {};
-      allHeaders.forEach(header => {
-        let value = p[header] !== undefined ? p[header] : p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
-        if (header === "Base Price") value = p.basePrice;
-        row[header] = value !== undefined ? value : "-";
-      });
-      return row;
-    });
-
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `LESRO_XML_Results_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const exportToExcel = () => {
     if (!filtered || filtered.length === 0) return;
     
-    const allHeaders = [...baseHeaders, ...optionHeaders];
-    
     const csvData = filtered.map(p => {
       const row = {};
-      allHeaders.forEach(header => {
-        let value = p[header] !== undefined ? p[header] : p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
-        if (header === "Base Price") value = p.basePrice;
-        row[header] = value !== undefined ? value : "-";
+      LESRO_31_COLUMNS.forEach(header => {
+        row[header] = p[header] !== undefined ? p[header] : "";
       });
       return row;
     });
     
-    const worksheet = XLSX.utils.json_to_sheet(csvData, { header: allHeaders });
+    const worksheet = XLSX.utils.json_to_sheet(csvData, { header: LESRO_31_COLUMNS });
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "LESRO Master Catalog");
     
-    XLSX.writeFile(workbook, `LESRO_XML_Results_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(workbook, `LESRO_PRICING_2026_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
-
-
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-[#003873] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix from WBO Engine...
+        <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
+        Cargando matriz de 31 columnas de LESRO...
       </div>
     </div>
   );
@@ -312,26 +340,14 @@ const WBODataMatrix = () => {
   if (error) return (
     <div className="flex min-h-[90vh] h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
-      <h3 className="text-sm font-bold text-slate-800 mb-1">Engine Synchronization Error</h3>
+      <h3 className="text-sm font-bold text-slate-800 mb-1">Error de Ingestión LESRO</h3>
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
       <button 
         onClick={processXML} 
-        className="flex items-center gap-2 px-4 py-2 bg-[#003873] hover:bg-[#2B2C4B] text-white text-xs font-bold rounded shadow-sm transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-[#464775] hover:bg-[#343559] text-white text-xs font-bold rounded shadow-sm transition-colors"
       >
-        <RefreshCw size={12} /> Retry Loading
+        <RefreshCw size={12} /> Reintentar
       </button>
-              <div className="flex items-center gap-1">
-                
-                <button 
-                  onClick={() => setShowWarningModal(true)}
-                  type="button"
-                  className="px-2 py-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold"
-                  title="Export current view to Excel"
-                >
-                  <Download size={13} /> Excel
-                </button>
-              </div>
-
     </div>
   );
 
@@ -339,101 +355,84 @@ const WBODataMatrix = () => {
     <div className="min-h-[90vh] bg-gradient-to-br from-[#F8F9FE] to-white p-6 md:p-8 text-slate-800 font-sans antialiased">
       <div className="w-full mx-auto">
         
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#003873]/10 overflow-hidden flex flex-col w-full">
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#464775]/10 overflow-hidden flex flex-col w-full">
           
           {/* Operations / Filters Header */}
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">WBO Full XML Matrix</span>
-                <span className="text-[10px] font-bold text-[#003873] bg-[#003873]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#003873]/10 select-none">
+                <span className="text-xs font-bold text-slate-800">LESRO Master 31-Column Matrix</span>
+                <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
                   Live
                 </span>
               </div>
               <span className="text-[10px] text-slate-500">
-                Automated Ingestion Pipeline & Structured Data Mapping
+                Estructura de Matriz Maestra LESRO 2026 (31 Columnas)
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 bg-slate-50/80 border border-slate-200/60 rounded-sm px-2 py-0.5 text-[10px] text-slate-500 font-medium select-none">
-                <span>PRODUCTS: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
+                <span>REGISTROS: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
                 <span className="text-[#D2D2D2]">|</span>
-                <span>FILTERED: <strong className="text-slate-800 font-bold">{stats.filtered}</strong></span>
-                <span className="text-[#D2D2D2]">|</span>
-                <span>AVG BASE PRICE: <strong className="text-slate-800 font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
+                <span>FILTRADOS: <strong className="text-slate-800 font-bold">{stats.filtered}</strong></span>
               </div>
 
               <input
                 type="text"
-                placeholder="Search matrix..."
+                placeholder="Buscar por ID, Line, Name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#003873] outline-none transition-all w-[180px]"
+                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#464775] outline-none transition-all w-[200px]"
               />
 
               <button 
                 onClick={processXML}
                 type="button"
                 className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors"
-                title="Synchronize and recalculate matrices"
+                title="Sincronizar y recalcular"
               >
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
-              <div className="flex items-center gap-1">
-                
-                <button 
-                  onClick={() => setShowWarningModal(true)}
-                  type="button"
-                  className="px-2 py-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold"
-                  title="Export current view to Excel"
-                >
-                  <Download size={13} /> Excel
-                </button>
-              </div>
-
+              
+              <button 
+                onClick={() => setShowWarningModal(true)}
+                type="button"
+                className="px-2.5 py-1 bg-[#464775] text-white hover:bg-[#343559] rounded-sm transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold shadow-sm"
+                title="Exportar vista a Excel"
+              >
+                <Download size={13} /> Excel
+              </button>
             </div>
           </div>
 
           {/* Table Matrix */}
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-20 text-center bg-white/40 backdrop-blur-md">
-              <div className="w-16 h-16 rounded-2xl bg-[#003873]/5 flex items-center justify-center mb-4 border border-[#003873]/10 shadow-inner">
-                <svg className="w-8 h-8 text-[#003873]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <div className="w-16 h-16 rounded-2xl bg-[#464775]/5 flex items-center justify-center mb-4 border border-[#464775]/10 shadow-inner">
+                <svg className="w-8 h-8 text-[#464775]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
-              <h3 className="text-sm font-bold text-slate-700 mb-1">No data found</h3>
+              <h3 className="text-sm font-bold text-slate-700 mb-1">No se encontraron registros</h3>
               <p className="text-xs text-slate-500 max-w-sm font-medium">
-                We couldn't find any records matching your current filter criteria.
+                No hay productos en la matriz LESRO que coincidan con la búsqueda.
               </p>
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
-              <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-full">
+              <table className="table-fixed border-collapse overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#003873] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
+                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
-                    {baseHeaders.map((header) => (
+                    {LESRO_31_COLUMNS.map((header) => (
                       <th
                         key={header}
                         className="px-3 py-2 text-[11px] font-semibold text-slate-800 bg-white/80 backdrop-blur-md border-r border-b border-slate-100 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
-                          <Filter size={8} className="text-[#003873] opacity-40" />
-                        </div>
-                      </th>
-                    ))}
-                    {optionHeaders.map((header) => (
-                      <th
-                        key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-[#003873] bg-[#003873]/5 backdrop-blur-md border-r border-b border-[#003873]/10 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
-                        title={header}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          {header}
-                          <Filter size={8} className="text-[#003873] opacity-40" />
+                          <Filter size={8} className="text-[#464775] opacity-40" />
                         </div>
                       </th>
                     ))}
@@ -447,37 +446,27 @@ const WBODataMatrix = () => {
                       
                       return (
                         <motion.tr 
-                          key={p.sku || realIndex}
+                          key={p.ID || realIndex}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.15 }}
                           className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75 group"
                         >
-                          <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#003873] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
+                          <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#464775] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
                             {realIndex}
                           </td>
 
-                          {baseHeaders.map((header) => {
-                            let value = p[header] || p[header === "SKU" ? "sku" : header === "Description" ? "description" : header === "Classification" ? "classification" : ""];
-                            if (header === "Base Price") value = `$${p.basePrice.toLocaleString()}`;
-                            
+                          {LESRO_31_COLUMNS.map((header) => {
+                            let value = p[header] !== undefined ? p[header] : "-";
                             return (
                               <td key={header} className="p-0 text-slate-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
-                                <div className={`px-3 py-1.5 font-sans text-[11px] whitespace-nowrap truncate ${header === 'SKU' || header === 'Base Price' ? 'font-bold font-mono' : 'font-medium'}`} title={value}>
-                                  {value}
+                                <div className={`px-3 py-1.5 font-sans text-[11px] whitespace-nowrap truncate ${header === 'ID' ? 'font-bold font-mono text-[#464775]' : 'font-medium'}`} title={String(value)}>
+                                  {value !== null && value !== undefined && value !== "" ? String(value) : "-"}
                                 </div>
                               </td>
                             );
                           })}
-
-                          {optionHeaders.map(oh => (
-                            <td key={oh} className="p-0 text-[#003873] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
-                              <div className="px-3 py-1.5 font-mono text-[11px] font-semibold whitespace-nowrap truncate">
-                                {p[oh] !== undefined ? `$${p[oh].toLocaleString()}` : "-"}
-                              </div>
-                            </td>
-                          ))}
                         </motion.tr>
                       );
                     })}
@@ -489,8 +478,8 @@ const WBODataMatrix = () => {
 
           <div className="bg-gradient-to-r from-slate-50/40 to-white px-4 py-2 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-slate-500 select-none">
             <div className="flex gap-4">
-              <span className="uppercase tracking-tight">TOTAL COLUMNS: {baseHeaders.length + optionHeaders.length}</span>
-              <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
+              <span className="uppercase tracking-tight">TOTAL COLUMNAS: {LESRO_31_COLUMNS.length}</span>
+              <span className="uppercase tracking-tight">MOSTRANDO: {paginatedProducts.length} de {filtered.length}</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -500,11 +489,11 @@ const WBODataMatrix = () => {
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 className="px-2 py-1 bg-white border border-slate-200/60 rounded-sm text-slate-800 transition-colors enabled:hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-bold"
               >
-                Previous
+                Anterior
               </button>
               
               <span className="text-slate-800 font-mono px-1 text-[11px]">
-                Page {currentPage} of {totalPages}
+                Página {currentPage} de {totalPages}
               </span>
 
               <button
@@ -513,13 +502,14 @@ const WBODataMatrix = () => {
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 className="px-2 py-1 bg-white border border-slate-200/60 rounded-sm text-slate-800 transition-colors enabled:hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-bold"
               >
-                Next
+                Siguiente
               </button>
             </div>
           </div>
         </div>
       </div>
-      {/* ── EXCEL SCALABILITY WARNING MODAL ── */}
+
+      {/* ── EXCEL WARNING MODAL ── */}
       {showWarningModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
           <div
@@ -528,7 +518,7 @@ const WBODataMatrix = () => {
           />
           <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <span className="text-[14px] font-bold text-[#242424]">Scalability Warning</span>
+              <span className="text-[14px] font-bold text-[#242424]">Advertencia de Escalabilidad</span>
               <button onClick={() => setShowWarningModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <X size={18} />
               </button>
@@ -539,25 +529,24 @@ const WBODataMatrix = () => {
               </div>
               <div className="flex-1 mt-1">
                 <p className="text-[13px] text-[#616161] leading-relaxed mb-3">
-                  The process of manually updating and downloading files is <strong>inefficient and prone to errors</strong>. 
+                  El proceso de actualización y descarga manual de archivos es <strong>ineficiente y propenso a errores</strong>. 
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  Having multiple files circulating and sharing them manually is not efficient. It is critical to <strong>modularize the system</strong> to achieve better scalability.
+                  Tener múltiples archivos circulando y compartiéndolos manualmente no es eficiente. Es crítico <strong>modularizar el sistema</strong> para lograr una mejor escalabilidad.
                 </p>
               </div>
             </div>
             <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
               <button onClick={() => setShowWarningModal(false)} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
-                Cancel
+                Cancelar
               </button>
               <button 
                 onClick={async () => {
                   setShowWarningModal(false);
                   
                   if (filtered && filtered.length > 0) {
-                    const allHeaders = [...baseHeaders, ...optionHeaders];
                     const csvString = Papa.unparse(filtered, {
-                      columns: allHeaders,
+                      columns: LESRO_31_COLUMNS,
                       delimiter: ";"
                     });
                     
@@ -579,15 +568,15 @@ const WBODataMatrix = () => {
                           .insert([{ company_name: 'LESRO', csv_raw: csvString }]);
                       }
                     } catch (err) {
-                      console.error('Error saving raw CSV:', err);
+                      console.error('Error guardando CSV maestro:', err);
                     }
                   }
                   
                   exportToExcel();
                 }} 
-                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#464775] rounded hover:bg-[#5a1515] transition-all shadow-md"
+                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#464775] rounded hover:bg-[#343559] transition-all shadow-md"
               >
-                I understand, download
+                Entendido, descargar
               </button>
             </div>
           </div>
@@ -597,4 +586,4 @@ const WBODataMatrix = () => {
   );
 };
 
-export default WBODataMatrix;
+export default XMLResultsLESRO;
