@@ -226,7 +226,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const { data, error } = await supabase
           .from(tableName)
           .select('xml_raw, xml_actualizer_raw')
-          .eq('company_name', 'Servex US')
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (data) {
@@ -428,8 +429,9 @@ if (queryToSend.toLowerCase() === '/importbase') {
         const {data, error } = await supabase
           .from('ClientsSERVEX_LESRO')
           .select('xml_actualizer_raw')
-          .eq('company_name', 'LESRO')
-          .single();
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (error || !data || !data.xml_actualizer_raw) {
           setMessages(prev => [...prev, {from: "bot", text: "❌ Error: XML file not found in the database for LESRO.", time: nowTime }]);

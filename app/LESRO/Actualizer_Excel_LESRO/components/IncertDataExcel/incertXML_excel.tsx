@@ -36,6 +36,8 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
         .from(`ClientsSERVEX_${moduleName}`)
         .select('XM_CET_import')
         .eq('company_name', moduleName)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) {

@@ -53,6 +53,8 @@ export default function UploadClientXML() {
         .from('ClientsSERVEX_LESRO')
         .select('xml_raw, csv_raw, csv_new_raw')
         .eq('company_name', companyName)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) {

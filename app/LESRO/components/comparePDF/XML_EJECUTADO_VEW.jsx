@@ -17,8 +17,9 @@ const IndependentLESROVisualizer = () => {
         const { data, error } = await supabase
           .from('ClientsSERVEX_LESRO')
           .select('xml_updated_raw')
-          .eq('company_name', 'LESRO')
-          .single();
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (error) throw error;
         if (data) setXmlString(data.xml_updated_raw);
