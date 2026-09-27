@@ -28,7 +28,7 @@ export default function DataViewer() {
     setLoading(true);
     try {
       const { data: record, error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_LESRO')
         .select('company_name, csv_raw, csv_new_raw, created_at')
         .eq('company_name', 'LESRO')
         .order('created_at', { ascending: false })

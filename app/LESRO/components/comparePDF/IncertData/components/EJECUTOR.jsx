@@ -95,7 +95,7 @@ const SVXUnifiedPlatform = () => {
   const fetchCloudData = async () => {
     try {
       const { data: dbData, error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_LESRO')
         .select('audit_report_json, xml_updated_raw, csv_raw, informa_agent_raw') 
         .eq('company_name', 'LESRO')
         .single();

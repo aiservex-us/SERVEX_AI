@@ -62,7 +62,7 @@ const SidebarTeams = () => {
       setLoading(true);
       try {
         const { data, error } = await supabase
-          .from('ClientsSERVEX')
+          .from('ClientsSERVEX_LESRO')
           .select('csv_raw')
           .order('created_at', { ascending: false })
           .limit(1)

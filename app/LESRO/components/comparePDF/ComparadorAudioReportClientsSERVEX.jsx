@@ -13,7 +13,7 @@ export default function AuditoriaSimple({ companyName = "LESRO" }) {
     const fetchData = async () => {
       setLoading(true);
       const { data: res, error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_LESRO')
         .select('audit_report_json, audit_report_jsonP')
         .eq('company_name', companyName)
         .maybeSingle();

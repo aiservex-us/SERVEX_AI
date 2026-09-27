@@ -33,7 +33,7 @@ const WBDDataMatrix = () => {
 
       // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad LESRO
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_LESRO')
         .select('xml_raw')
         .eq('company_name', 'LESRO')
         .order('created_at', { ascending: false })

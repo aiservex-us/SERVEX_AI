@@ -47,7 +47,7 @@ const SVXUnifiedEnterprise = () => {
         if (!user) return setLoadingXML(false);
 
         const { data, error } = await supabase
-          .from('ClientsSERVEX')
+          .from('ClientsSERVEX_LESRO')
           .select('xml_raw')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
@@ -104,7 +104,7 @@ const SVXUnifiedEnterprise = () => {
     setIsAnalyzing(true);
     try {
       const { data: dbRows, error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_LESRO')
         .select('csv_raw').not('csv_raw', 'is', null).limit(1);
 
       if (error || !dbRows[0]) throw new Error("No master data");

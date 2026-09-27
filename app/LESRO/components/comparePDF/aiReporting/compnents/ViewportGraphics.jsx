@@ -79,7 +79,7 @@ const ViewportGraphics = () => {
 
         if (!moduleName) throw new Error("Módulo no identificado en URL.");
 
-        const tableName = moduleName === "LESRO" ? "ClientsSERVEX" : `ClientsSERVEX_${moduleName}`;
+        const tableName = moduleName === "LESRO" ? "ClientsSERVEX_LESRO" : `ClientsSERVEX_${moduleName}`;
         
         const { data: dbData, error: dbError } = await supabase
           .from(tableName)

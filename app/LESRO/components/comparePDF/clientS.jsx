@@ -38,7 +38,7 @@ const ClientsBatchManager = () => {
   const fetchData = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('ClientsSERVEX')
+      .from('ClientsSERVEX_LESRO')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -70,7 +70,7 @@ const ClientsBatchManager = () => {
     setIsDeleting(true);
     try {
       const { error } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_LESRO')
         .delete()
         .in('id', selectedIds); // Filtro "IN" para borrar múltiples
 

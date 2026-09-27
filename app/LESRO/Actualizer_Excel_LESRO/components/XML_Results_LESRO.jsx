@@ -48,7 +48,7 @@ const WBODataMatrix = () => {
 
       // Fetch from ClientsSERVEX
       const { data, error: dbError } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_LESRO')
         .select('xml_actualizer_raw, XM_CET_import, xml_raw, CSV_final')
         .eq('company_name', 'LESRO')
         .order('created_at', { ascending: false })
@@ -562,7 +562,7 @@ const WBODataMatrix = () => {
                     
                     try {
                       await supabase
-                        .from('ClientsSERVEX')
+                        .from('ClientsSERVEX_LESRO')
                         .update({ csv_raw: csvString })
                         .eq('company_name', 'LESRO');
                     } catch (err) {

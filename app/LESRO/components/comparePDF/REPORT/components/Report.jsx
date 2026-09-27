@@ -23,7 +23,7 @@ export default function AuditReportViewer() {
       setLoading(true);
       // Apuntando de manera precisa a la tabla de la entidad LESRO
       const { data } = await supabase
-        .from('ClientsSERVEX')
+        .from('ClientsSERVEX_LESRO')
         .select('id, company_name, audit_report_jsonP, audit_report_json, created_at')
         .order('created_at', { ascending: false });
       
