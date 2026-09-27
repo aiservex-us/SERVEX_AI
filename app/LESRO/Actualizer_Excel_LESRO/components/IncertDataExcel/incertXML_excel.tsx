@@ -108,11 +108,27 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
         XM_CET_import: rawContent
       };
 
-      const { error } = await supabase
+      const { data: existingRow } = await supabase
         .from(`ClientsSERVEX_${moduleName}`)
-        .update(payload)
-        .eq('user_id', user.id)
-        .select('');
+        .select('id')
+        .eq('company_name', moduleName)
+        .maybeSingle();
+
+      let error;
+      if (existingRow && existingRow.id) {
+        const res = await supabase
+          .from(`ClientsSERVEX_${moduleName}`)
+          .update(payload)
+          .eq('id', existingRow.id)
+          .select('');
+        error = res.error;
+      } else {
+        const res = await supabase
+          .from(`ClientsSERVEX_${moduleName}`)
+          .insert([payload])
+          .select('');
+        error = res.error;
+      }
 
       if (error) {
         console.error('Supabase Full Error:', error);

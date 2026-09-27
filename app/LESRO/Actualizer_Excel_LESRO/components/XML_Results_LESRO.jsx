@@ -561,10 +561,22 @@ const WBODataMatrix = () => {
                     });
                     
                     try {
-                      await supabase
+                      const { data: existing } = await supabase
                         .from('ClientsSERVEX_LESRO')
-                        .update({ csv_raw: csvString })
-                        .eq('company_name', 'LESRO');
+                        .select('id')
+                        .eq('company_name', 'LESRO')
+                        .maybeSingle();
+
+                      if (existing && existing.id) {
+                        await supabase
+                          .from('ClientsSERVEX_LESRO')
+                          .update({ csv_raw: csvString })
+                          .eq('id', existing.id);
+                      } else {
+                        await supabase
+                          .from('ClientsSERVEX_LESRO')
+                          .insert([{ company_name: 'LESRO', csv_raw: csvString }]);
+                      }
                     } catch (err) {
                       console.error('Error saving raw CSV:', err);
                     }

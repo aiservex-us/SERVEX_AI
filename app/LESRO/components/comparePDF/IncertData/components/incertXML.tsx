@@ -261,11 +261,27 @@ export default function UploadClientXML() {
         payload.CSV_final = sanitizeCSV(csvNewContent);
       }
 
-      const { error } = await supabase
+      const { data: existingRow } = await supabase
         .from('ClientsSERVEX_LESRO')
-        .update(payload)
-        .eq('user_id', user.id)
-        .select('');
+        .select('id')
+        .eq('company_name', 'LESRO')
+        .maybeSingle();
+
+      let error;
+      if (existingRow && existingRow.id) {
+        const res = await supabase
+          .from('ClientsSERVEX_LESRO')
+          .update(payload)
+          .eq('id', existingRow.id)
+          .select('');
+        error = res.error;
+      } else {
+        const res = await supabase
+          .from('ClientsSERVEX_LESRO')
+          .insert([payload])
+          .select('');
+        error = res.error;
+      }
 
       if (error) {
         console.error('Supabase Full Error:', error);
