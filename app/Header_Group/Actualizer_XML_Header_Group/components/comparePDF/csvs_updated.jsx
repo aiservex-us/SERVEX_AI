@@ -46,7 +46,7 @@ export default function DataViewer() {
     try {
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_Header_Group')
-        .select('*')
+        .select('company_name, created_at, csv_new_raw')
         .order('created_at', { ascending: false })
         .limit(1)
         .single();

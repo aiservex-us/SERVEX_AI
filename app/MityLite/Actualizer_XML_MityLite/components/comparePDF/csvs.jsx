@@ -49,7 +49,7 @@ export default function DataViewer() {
       // Consulta corregida alineada estrictamente al DDL provisto para la entidad MityLite
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_MityLite')
-        .select('*')
+        .select('company_name, created_at, csv_raw, csvpdf_raw')
         .eq('company_name', 'MityLite')
         .order('created_at', { ascending: false })
         .limit(1)

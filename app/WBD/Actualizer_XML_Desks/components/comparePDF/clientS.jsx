@@ -39,7 +39,7 @@ const ClientsBatchManager = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('ClientsSERVEX')
-      .select('*')
+      .select('id, created_at, company_name, file_name, json_data')
       .order('created_at', { ascending: false });
 
     if (!error) setRecords(data || []);

@@ -49,7 +49,7 @@ export default function DataViewer() {
       // Consulta corregida alineada estrictamente al DDL provisto para la entidad WBO
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBO')
-        .select('*')
+        .select('company_name, created_at, csv_raw, csvpdf_raw')
         .eq('company_name', 'WBO')
         .order('created_at', { ascending: false })
         .limit(1)
