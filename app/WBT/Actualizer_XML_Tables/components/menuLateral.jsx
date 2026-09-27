@@ -74,7 +74,7 @@ export default function MenuLateral({
           transition-all duration-[500ms] ease-[cubic-bezier(0.4,0,0.2,1)]
           
           /* Lógica Responsiva de Comportamiento Fijo/Oculto */
-          fixed top-0 bottom-0 left-0 z-40 h-full
+          fixed top-0 bottom-0 left-0 z-[999] h-full
           md:sticky md:h-full
           
           ${isEffectivelyCollapsed
@@ -190,7 +190,7 @@ export default function MenuLateral({
 
                 {/* FLOATING ALERT / TOOLTIP WHEN COLLAPSED */}
                 {isEffectivelyCollapsed && (
-                  <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 flex items-center">
+                  <div className="pointer-events-none fixed left-[78px] opacity-0 group-hover:opacity-100 transition-all duration-200 z-[99999] flex items-center">
                     <div className="w-2 h-2 bg-slate-900 rotate-45 -mr-1 z-10"></div>
                     <div className="bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap flex items-center gap-2 border border-slate-700/50 shadow-2xl">
                       <span className="text-white font-bold">{item.label}</span>
@@ -231,7 +231,7 @@ export default function MenuLateral({
                 </div>
 
                 {isEffectivelyCollapsed && (
-                  <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 flex items-center">
+                  <div className="pointer-events-none fixed left-[78px] opacity-0 group-hover:opacity-100 transition-all duration-200 z-[99999] flex items-center">
                     <div className="w-2 h-2 bg-slate-900 rotate-45 -mr-1 z-10"></div>
                     <div className="bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-slate-700/50 shadow-2xl">
                       <span className="text-white font-bold uppercase">{item.label}</span>
@@ -272,7 +272,7 @@ export default function MenuLateral({
             </div>
 
             {isEffectivelyCollapsed && (
-              <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 flex items-center">
+              <div className="pointer-events-none fixed left-[78px] opacity-0 group-hover:opacity-100 transition-all duration-200 z-[99999] flex items-center">
                 <div className="w-2 h-2 bg-[#464775] rotate-45 -mr-1 z-10"></div>
                 <div className="bg-[#464775] text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-indigo-400/30 shadow-2xl flex flex-col">
                   <span className="font-black text-[10px] uppercase">Servex Copilot</span>

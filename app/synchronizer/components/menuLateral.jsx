@@ -161,6 +161,15 @@ export default function MenuLateral({
                   {item.label}
                 </span>
               </div>
+
+              {isEffectivelyCollapsed && (
+                <div className="pointer-events-none fixed left-[78px] opacity-0 group-hover:opacity-100 transition-all duration-200 z-[99999] flex items-center">
+                  <div className="w-2 h-2 bg-slate-900 rotate-45 -mr-1 z-10"></div>
+                  <div className="bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-slate-700/50 shadow-2xl">
+                    <span className="text-white font-bold">{item.label}</span>
+                  </div>
+                </div>
+              )}
             </button>
           );
         })}
@@ -188,13 +197,22 @@ export default function MenuLateral({
               `}>
                 <span className="text-[11px] font-medium whitespace-nowrap">{item.label}</span>
               </div>
+
+              {isEffectivelyCollapsed && (
+                <div className="pointer-events-none fixed left-[78px] opacity-0 group-hover:opacity-100 transition-all duration-200 z-[99999] flex items-center">
+                  <div className="w-2 h-2 bg-slate-900 rotate-45 -mr-1 z-10"></div>
+                  <div className="bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-slate-700/50 shadow-2xl">
+                    <span className="text-white font-bold uppercase">{item.label}</span>
+                  </div>
+                </div>
+              )}
             </button>
           );
         })}
 
         {/* TARJETA Servex Copilot (Sin la leyenda dentro) */}
         <div className={`
-          mt-3 flex items-center rounded-xl transition-all duration-300
+          group relative mt-3 flex items-center rounded-xl transition-all duration-300
           ${isEffectivelyCollapsed ? 'justify-center h-12' : 'p-2 bg-[#6264A7]/5 border border-[#6264A7]/10'}
         `}>
           <div className="relative shrink-0">
@@ -221,13 +239,16 @@ export default function MenuLateral({
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            title={collapsed ? "Desplegar menú" : "Minimizar menú"}
-            className="hidden md:flex w-7 h-7 bg-white border border-slate-200/80 rounded-full items-center justify-center shadow-xs text-slate-500 hover:text-[#464775] hover:border-[#464775]/40 transition-all shrink-0 cursor-pointer"
-          >
-            <ChevronLeft className={`w-3.5 h-3.5 transition-transform duration-500 ${isEffectivelyCollapsed ? 'rotate-180' : ''}`} />
-          </button>
+
+          {isEffectivelyCollapsed && (
+            <div className="pointer-events-none fixed left-[78px] opacity-0 group-hover:opacity-100 transition-all duration-200 z-[99999] flex items-center">
+              <div className="w-2 h-2 bg-[#6264A7] rotate-45 -mr-1 z-10"></div>
+              <div className="bg-[#6264A7] text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-indigo-400/30 shadow-2xl flex flex-col">
+                <span className="font-black text-[10px] uppercase">Servex Copilot</span>
+                <span className="text-[8px] text-indigo-200 font-normal">Next-gen Intelligence</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* LEYENDA GLYNNE: AL FINAL DE TODO */}
