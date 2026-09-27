@@ -555,8 +555,9 @@ const WBODataMatrix = () => {
                   setShowWarningModal(false);
                   
                   if (filtered && filtered.length > 0) {
+                    const allHeaders = [...baseHeaders, ...optionHeaders];
                     const csvString = Papa.unparse(filtered, {
-                      columns: LESRO_HEADERS,
+                      columns: allHeaders,
                       delimiter: ";"
                     });
                     
