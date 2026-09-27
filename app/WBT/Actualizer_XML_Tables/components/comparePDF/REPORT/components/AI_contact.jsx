@@ -738,7 +738,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
                           : 'bg-[#464775] text-white'
                         }`}
                       >
-                        {isUser ? 'YOU' : <Brain size={15} />}
+                        {isUser ? 'YOU' : <img src="/logo2.png" alt="SVX" className="w-4 h-4 object-contain brightness-200" />}
                         {!isUser && (
                           <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
                         )}
@@ -791,7 +791,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
                     initial={{scale: 0.8 }} animate={{scale: 1 }} transition={{type: "spring", bounce: 0.5 }}
                     className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#464775] text-white shadow-sm"
                   >
-                    <Brain size={15} />
+                    <img src="/logo2.png" alt="SVX" className="w-4 h-4 object-contain brightness-200" />
                     <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
                   </motion.div>
                   <div className="flex flex-col items-start gap-1">
