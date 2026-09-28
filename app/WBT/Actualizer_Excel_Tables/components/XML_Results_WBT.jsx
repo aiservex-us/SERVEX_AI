@@ -21,7 +21,7 @@ const WBTDataMatrix = () => {
   
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 30;
+  const itemsPerPage = 15;
 
   const TABLES_HEADERS = [
     "Model #", "List Price", "Weight", "Classic/ Premium", "Model Name", "Top", "Legs/Base/Casebody", "Top D", "Top L", "Casebody W", "Casebody H", "Casebody D", "OA D", "OA H w/ Glides", "OA H w/ Casters", "Assembly", "Locking Casters (Per Table) (-CA)", "Wheelbarrow (2 Casters) (-2CA)", "Heavy Duty Locking Casters (Einstein ONLY) (-HDCA)", "Heavy Duty Locking Casters (Per Table) (-HDCA)", "Wheelbarrow Heavy Duty Locking Casters (2 Casters) (-2HDCA)", "Heavy Duty Colored Locking Casters (Per Table) EPIC (-HDCC_)", "Heavy Duty Colored Locking Casters LOBO/TORO (Per Table) (-HDCC_)", "Wheelbarrow Heavy Duty Colored Locking Casters LOBO/TORO (2 Casters) (-2HDCC_)", "Gibraltar Casters (-C)", "5 Locking Casters Culinary Tables ONLY (-CAS01-R)", "Grand Hank Glides (Per Table) (-HG)", "Soft Touch Glides (Per Table) (-FG)", "Steel Glides (Per Table) (-SG)", "Plastic Book Box (-P14CH)", "Plastic Book Box (-P20CH)", "Plastic Book Box (-P23CH)", "Backpack Hook/s LOBO/TORO (Set of 2) All Other Tables (1) (-BPH)", "3 Tote Tray Kit (-GK_S)", "Under Mount Tote Runners 12mm Drop (Set of 2) (-GTR)", "Wire Basket (-LW)", "12H Laminate Modesty Panel (-LMOD_)", "9H Perforated Metal Modesty Panel (-913_)", "Metal Wire Management 36, 48, 60 or 72L (-WM)", "Plastic Cable Wire Management (-PWM)", "Grommet w/ Cover & Cutout (-GR)", "Power Supply Modules", "Connecting Magnets for HangOut Stools 2 Locations (-2MA)", "Connecting Magnets for HangOut Stools 4 Locations (-4MA)", "LOBO Gussets (-G)", "TORO Gussets (-G)", "TORO Full Metal Shelf (-SHF)", "TORO Offset Half Metal Shelf (-HSHF)", "TORO Centered Half Metal Shelf (-CSHF)", "TORO H-Frame (-H)", "TORO Custom Fixed Height", "EPIC Full Black Metal Shelf -ADJ Frame ONLY (-SHF)", "EPIC Half Black Metal Shelf -ADJ Frame ONLY (-HSHF)", "EPIC Pegboard -ADJ Frame ONLY (Set of 2) (-PB)", "42 Fixed Bar Height (GIB) (-B)", "36 Fixed Height (GIB) (-36)", "Overshelf 60 Culinary Tables ONLY (-OSE1)", "Overshelf 72 Culinary Tables ONLY (-OSE1)", "Double Overshelf 60 Culinary Tables ONLY (-OSE2)", "Double Overshelf 72 Culinary Tables ONLY (-OSE2)", "20x15 Drawer Culinary Tables ONLY (-DR2015)", "20x20 Drawer Culinary Tables ONLY (-DR2020)", "EPIC/TORO (FIXED) Premium Frame Color - Blue(B), Green(G), Orange(O), Purple(P), Red(R)", "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", "Premium Laminate Upcharge for Tops 36x36 & OVER", "Premium Laminate Upcharge for Tops UNDER 36x36", "Markerboard Tops 36x36 & OVER (-__MB)", "Markerboard Tops UNDER 36x36 (-__MB)", "Chemical Resistant (-09C)", "Custom Sizes"
@@ -221,7 +221,7 @@ const WBTDataMatrix = () => {
 
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
+    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix from WBT Engine...
@@ -230,7 +230,7 @@ const WBTDataMatrix = () => {
   );
 
   if (error) return (
-    <div className="flex min-h-[90vh] h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
+    <div className="flex h-[80vh] min-h-[80vh] w-full flex-col items-center justify-center bg-transparent p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
       <h3 className="text-sm font-bold text-slate-800 mb-1">Engine Synchronization Error</h3>
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
@@ -244,7 +244,7 @@ const WBTDataMatrix = () => {
   );
 
   return (
-    <div className="min-h-[90vh] bg-gradient-to-br from-[#F8F9FE] to-white p-6 md:p-8 text-slate-800 font-sans antialiased">
+    <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent p-2 md:p-4 text-slate-800 font-sans antialiased">
       <div className="w-full mx-auto">
         
         <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#464775]/10 overflow-hidden flex flex-col w-full">
@@ -264,7 +264,7 @@ const WBTDataMatrix = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-slate-50/80 border border-slate-200/60 rounded-sm px-2 py-0.5 text-[10px] text-slate-500 font-medium select-none">
+              <div className="flex items-center gap-1.5 bg-transparent/80 border border-slate-200/60 rounded-sm px-2 py-0.5 text-[10px] text-slate-500 font-medium select-none">
                 <span>PRODUCTS: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
                 <span className="text-[#D2D2D2]">|</span>
                 <span>FILTERED: <strong className="text-slate-800 font-bold">{stats.filtered}</strong></span>
@@ -315,7 +315,7 @@ const WBTDataMatrix = () => {
               </p>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
+            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300 max-h-[58vh]">
               <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-[4000px]">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>

@@ -26,7 +26,7 @@ export default function DataViewer() {
   
   // --- ESTADOS PARA PAGINACIÓN LOCAL ---
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 35;
+  const ITEMS_PER_PAGE = 15;
 
   useEffect(() => {
     fetchLatestData();
@@ -49,7 +49,7 @@ export default function DataViewer() {
       // Consulta corregida alineada estrictamente al DDL provisto para la entidad WBT
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_WBT')
-        .select('company_name, created_at, csv_raw, csvpdf_raw')
+        .select('company_name, created_at, csv_raw')
         .eq('company_name', 'WBT')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -169,7 +169,7 @@ export default function DataViewer() {
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
+    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix for WBT...
@@ -184,7 +184,7 @@ export default function DataViewer() {
   );
 
   return (
-    <div className="min-h-[90vh] bg-transparent relative z-10 p-6 md:p-8 text-slate-800 font-sans antialiased">
+    <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent relative z-10 p-2 md:p-4 text-slate-800 font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
         
         <div className="bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm overflow-hidden flex flex-col w-full">
@@ -268,7 +268,7 @@ export default function DataViewer() {
               </p>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
+            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300 max-h-[58vh]">
               <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>

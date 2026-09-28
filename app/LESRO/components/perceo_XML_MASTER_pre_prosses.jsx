@@ -20,7 +20,7 @@ const WBDDataMatrix = () => {
 
   // Estado para controlar la page actual
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 30;
+  const itemsPerPage = 15;
 
   // Cabeceras estrictas requeridas para mostrar del XML
   const baseHeaders = ["SKU", "Description", "Classification", "Base Price"];
@@ -207,7 +207,7 @@ const WBDDataMatrix = () => {
   }, [products, filtered]);
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
+    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix from WBD Engine...
@@ -216,7 +216,7 @@ const WBDDataMatrix = () => {
   );
 
   if (error) return (
-    <div className="flex min-h-[90vh] h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
+    <div className="flex h-[80vh] min-h-[80vh] w-full flex-col items-center justify-center bg-transparent p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
       <h3 className="text-sm font-bold text-slate-800 mb-1">Engine Synchronization Error</h3>
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
@@ -230,7 +230,7 @@ const WBDDataMatrix = () => {
   );
 
   return (
-    <div className="min-h-[90vh] bg-transparent relative z-10 p-6 md:p-8 text-slate-800 font-sans antialiased">
+    <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent relative z-10 p-2 md:p-4 text-slate-800 font-sans antialiased">
       <div className="w-full max-w-[90vw] mx-auto">
 
         <div className="bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm overflow-hidden flex flex-col w-full">
@@ -289,7 +289,7 @@ const WBDDataMatrix = () => {
               </p>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
+            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300 max-h-[58vh]">
               <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>

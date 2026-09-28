@@ -279,7 +279,7 @@ const ViewportGraphics = () => {
 
 
   if (loading) return (
-    <div className="w-full h-full bg-transparent flex flex-col items-center justify-center p-6">
+    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <Cpu size={48} className="animate-pulse text-[#464775] mb-4" />
       <p className="text-[#605E5C] text-[13px] font-semibold">Loading catalog metrics...</p>
     </div>

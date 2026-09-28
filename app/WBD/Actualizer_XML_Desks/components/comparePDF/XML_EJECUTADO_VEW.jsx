@@ -33,7 +33,7 @@ const IndependentLESROVisualizer = () => {
   }, []);
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center p-20 bg-white border border-slate-200 rounded-xl">
+    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#464775] mb-4">
         <Database size={40} />
       </motion.div>

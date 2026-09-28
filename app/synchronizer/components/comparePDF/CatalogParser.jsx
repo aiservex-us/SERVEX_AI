@@ -17,7 +17,7 @@ const LesroPricingFix = () => {
   const [results, setResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pdfLib, setPdfLib] = useState(null); 
-  const itemsPerPage = 50;
+  const itemsPerPage = 15;
 
   useEffect(() => {
     const loadLib = async () => {

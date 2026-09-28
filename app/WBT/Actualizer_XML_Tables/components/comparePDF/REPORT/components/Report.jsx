@@ -125,7 +125,7 @@ export default function AuditReportViewer() {
           </span>
         </div>
 
-        <div className="w-full overflow-x-auto overflow-y-auto custom-scrollbar">
+        <div className="w-full overflow-x-auto overflow-y-auto custom-scrollbar max-h-[350px]">
           <table className="table-fixed border-collapse text-left text-xs w-full">
             <thead className="bg-[#f8fafc] sticky top-0 z-10 shadow-sm border-b border-slate-200">
               <tr>

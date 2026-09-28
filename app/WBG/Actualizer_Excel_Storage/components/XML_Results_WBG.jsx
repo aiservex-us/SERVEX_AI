@@ -21,7 +21,7 @@ const WBGDataMatrix = () => {
   
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 30;
+  const itemsPerPage = 15;
 
   const WBG_HEADERS = [
     "Model #", "List Price", "Weight", "Classic/ Premium", "Model Name", "Description", "W", "H", "D", "OA D", "OA H w/ Glides", "OA H w/ Casters", "Assembly", "Top Mount Handle (-TH)", "Recessed Cup Holder (-RC)", "Legrand Power (-PWR1)", "Deadbolt Lock(s)", "# of Optional Locks Required", "Wardrobe Bar Lock(s)", "# of Optional Locks Required_1", "Keyed Combination Lock (-MS)", "Zephyr Electronic Lock-ADA (-2810)", "CompX Lock (ADA Compliant) (-Regulator)", "REplay® Interlock Wall System", "Cam Padlock Hasp (-PADLCAM)", "Hidden Casters (RB &LRD models only) (available on Circulation Under Desk Cabinet & Modular InlineDesk Cabinets) (-HC)", "3, 6, 9, 12 Replacement Standard Tote Trays", "Standard Tote Tray Lid", "Magnet Docking (-M)", "Grommet w/Cover (-GR)", "PER Metal Shelf (LRS and LRD) (30, 36 and 48 W)", "Non-Standard Edge Band", "Custom 2 Colored Casebody (Premium only)", "Laminate Markerboard Panel (per side) Heights 48 and Under or Heights over 48 (-__MB)", "Recycling or Waste Decal Black or White (Qty 1)", "Double-Prong Coat Hook (-CHR_D)", "Recessed Pull (-RP)", "Wire Pull (-WPCS)", "Round Number Plate (RDNP)", "Rectangle Number Plate (NumPl)", "Garment Rod (-GR)", "Finished Base Cabinet End (per end) Premium Only", "Finished Wall Cabinet End (per end) Premium Only", "Finished Tall Cabinet End (per end) Premium Only", "Locking Casters (Per Table) (-CA)", "Grand Hank Glides (Per Table) (-HG)", "Soft Touch Glides (Per Table) (-FG)", "Steel Glides (Per Table) (-SG)", "Connecting Magnets for HangOut Stools 2 Locations (-2MA)", "Custom 2 Colored Casebody Media Center Kit 2 & Curved Workstation", "Premium Armor Edge™ Colors (-S2_)", "Premium Laminate Upcharge for TOPS 36x36 & OVER", "Markerboard TOPS 36x36 & OVER (-__MB)", "Custom Design", "unnamed_column", "unnamed_column_1", "unnamed_column_2", "unnamed_column_3"
@@ -221,7 +221,7 @@ const WBGDataMatrix = () => {
 
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-slate-500 font-sans">
+    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix from WBG Engine...
@@ -230,7 +230,7 @@ const WBGDataMatrix = () => {
   );
 
   if (error) return (
-    <div className="flex min-h-[90vh] h-full w-full flex-col items-center justify-center bg-white p-12 text-center font-sans">
+    <div className="flex h-[80vh] min-h-[80vh] w-full flex-col items-center justify-center bg-transparent p-12 text-center font-sans">
       <AlertCircle className="text-red-500 mb-3" size={36} />
       <h3 className="text-sm font-bold text-slate-800 mb-1">Engine Synchronization Error</h3>
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
@@ -244,7 +244,7 @@ const WBGDataMatrix = () => {
   );
 
   return (
-    <div className="min-h-[90vh] bg-gradient-to-br from-[#F8F9FE] to-white p-6 md:p-8 text-slate-800 font-sans antialiased">
+    <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent p-2 md:p-4 text-slate-800 font-sans antialiased">
       <div className="w-full mx-auto">
         
         <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#464775]/10 overflow-hidden flex flex-col w-full">
@@ -264,7 +264,7 @@ const WBGDataMatrix = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-slate-50/80 border border-slate-200/60 rounded-sm px-2 py-0.5 text-[10px] text-slate-500 font-medium select-none">
+              <div className="flex items-center gap-1.5 bg-transparent/80 border border-slate-200/60 rounded-sm px-2 py-0.5 text-[10px] text-slate-500 font-medium select-none">
                 <span>PRODUCTS: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
                 <span className="text-[#D2D2D2]">|</span>
                 <span>FILTERED: <strong className="text-slate-800 font-bold">{stats.filtered}</strong></span>
@@ -315,7 +315,7 @@ const WBGDataMatrix = () => {
               </p>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
+            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300 max-h-[58vh]">
               <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-[4000px]">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>

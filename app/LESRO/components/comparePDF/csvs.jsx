@@ -29,7 +29,7 @@ export default function DataViewer() {
     try {
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_LESRO')
-        .select('company_name, created_at, csv_raw, csvpdf_raw')
+        .select('company_name, created_at, csv_raw')
         .eq('company_name', 'LESRO')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -78,7 +78,7 @@ export default function DataViewer() {
   );
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[90vh] bg-white text-xs font-semibold text-[#616161] font-sans">
+    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#5B5FC7] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix...
@@ -172,7 +172,7 @@ export default function DataViewer() {
               </p>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300">
+            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300 max-h-[58vh]">
               <table className="table-fixed border-collapse text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>

@@ -242,7 +242,7 @@ export default function CETComparator() {
   );
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[85vh] bg-white text-xs font-semibold text-slate-500 font-sans">
+    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#003873] border-t-transparent rounded-full animate-spin"></div>
         Initializing CET Configurator context...

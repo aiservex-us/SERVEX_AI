@@ -279,7 +279,7 @@ const PanelMenur = () => {
                 const catProducts = filteredProducts.filter(p => p.category === cat);
                 if (catProducts.length === 0) return null;
   
-                const itemsPerPage = 10;
+                const itemsPerPage = 15;
                 const currentPage = getPage(cat);
                 const totalPages = Math.ceil(catProducts.length / itemsPerPage);
                 const paginatedItems = catProducts.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);

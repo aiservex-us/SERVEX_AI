@@ -19,11 +19,13 @@ const ClientsBatchManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState([]); // Array de IDs seleccionados
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   const colors = {
     purple: '#5b5fc7',
     danger: '#d13438',
-    bg: '#f5f5f5',
+    bg: 'transparent',
     card: '#ffffff',
     border: '#e1e1e1',
     text: '#242424',
@@ -91,8 +93,10 @@ const ClientsBatchManager = () => {
     r.file_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage) || 1;
+
   return (
-    <div style={{ background: colors.bg, minHeight: '100vh', padding: 24, fontFamily: 'Segoe UI, sans-serif' }}>
+    <div style={{ background: 'transparent', height: '80vh', minHeight: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '16px 24px', fontFamily: 'Segoe UI, sans-serif' }}>
       
       {/* HEADER DINÁMICO */}
       <div style={{ 
@@ -179,7 +183,7 @@ const ClientsBatchManager = () => {
           <tbody>
             {loading ? (
               <tr><td colSpan="6" style={{ padding: 40, textAlign: 'center' }}>Loading data...</td></tr>
-            ) : filteredRecords.map((row) => {
+            ) : (filteredRecords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)).map((row) => {
               const isSelected = selectedIds.includes(row.id);
               return (
                 <tr key={row.id} style={{ 
@@ -208,6 +212,28 @@ const ClientsBatchManager = () => {
             })}
           </tbody>
         </table>
+      </div>
+
+      
+      {/* PAGINACIÓN */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, fontSize: 13, color: colors.subtext }}>
+        <span>Página {currentPage} de {totalPages}</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid ' + colors.border, background: colors.card, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}
+          >
+            Anterior
+          </button>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+            disabled={currentPage >= totalPages}
+            style={{ padding: '6px 12px', borderRadius: 4, border: '1px solid ' + colors.border, background: colors.card, cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', opacity: currentPage >= totalPages ? 0.5 : 1 }}
+          >
+            Siguiente
+          </button>
+        </div>
       </div>
 
       {/* TIP INFORMATIVO */}
