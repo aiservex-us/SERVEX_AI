@@ -370,7 +370,7 @@ const ViewportGraphics = () => {
     })).slice(0, 7);
 
   const CardContainer = ({ title, children, explanation, colSpan = 1, summaryNode }) => (
-    <motion.div variants={itemVariants} className={`border border-[#94A3B8] rounded-xl p-6 flex flex-col lg:col-span-${colSpan} transition-all duration-300 h-[480px]`}>
+    <motion.div variants={itemVariants} className={`bg-white border border-[#94A3B8] rounded-xl p-6 flex flex-col lg:col-span-${colSpan} transition-all duration-300 h-[480px]`}>
       <h3 className="text-[14px] font-semibold text-[#1E1B4B] mb-3 flex items-center gap-2">
         <div className="w-1.5 h-4 bg-[#5B5FC7] rounded-full"></div>
         {title}

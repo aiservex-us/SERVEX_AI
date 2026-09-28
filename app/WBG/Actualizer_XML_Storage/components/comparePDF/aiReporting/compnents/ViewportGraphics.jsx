@@ -370,7 +370,7 @@ const ViewportGraphics = () => {
     })).slice(0, 7);
 
   const CardContainer = ({ title, children, explanation, colSpan = 1, summaryNode }) => (
-    <motion.div variants={itemVariants} className={`border border-[#94A3B8] rounded-xl p-6 flex flex-col lg:col-span-${colSpan} transition-all duration-300 h-[480px]`}>
+    <motion.div variants={itemVariants} className={`bg-white border border-[#94A3B8] rounded-xl p-6 flex flex-col lg:col-span-${colSpan} transition-all duration-300 h-[480px]`}>
       <h3 className="text-[14px] font-semibold text-[#1E1B4B] mb-3 flex items-center gap-2">
         <div className="w-1.5 h-4 bg-[#5B5FC7] rounded-full"></div>
         {title}
@@ -439,16 +439,18 @@ const ViewportGraphics = () => {
                 <div><span className="font-semibold">Outliers plotted:</span> {scatterData.length} models</div>
               }
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#94A3B8" />
-                  <XAxis type="number" dataKey="Original" name="Original Price" tick={{ fontSize: 10, fill: '#605E5C' }} tickFormatter={(v) => `$${v / 1000}k`} axisLine={false} tickLine={false} />
-                  <YAxis type="number" dataKey="Variation %" name="Variation %" tick={{ fontSize: 10, fill: '#605E5C' }} axisLine={false} tickLine={false} />
-                  <ZAxis type="number" dataKey="absChange" range={[40, 300]} name="Absolute Change" />
-                  <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                  <Scatter name="Deviations" data={scatterData} fill="#5B5FC7" opacity={0.7} />
-                </ScatterChart>
-              </ResponsiveContainer>
+              <div className="bg-white rounded-md p-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#94A3B8" />
+                    <XAxis type="number" dataKey="Original" name="Original Price" tick={{ fontSize: 10, fill: '#605E5C' }} tickFormatter={(v) => `$${v / 1000}k`} axisLine={false} tickLine={false} />
+                    <YAxis type="number" dataKey="Variation %" name="Variation %" tick={{ fontSize: 10, fill: '#605E5C' }} axisLine={false} tickLine={false} />
+                    <ZAxis type="number" dataKey="absChange" range={[40, 300]} name="Absolute Change" />
+                    <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+                    <Scatter name="Deviations" data={scatterData} fill="#5B5FC7" opacity={0.7} />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
             </CardContainer>
 
             {/* 3. Price Change Category Breakdown */}
