@@ -1,7 +1,7 @@
 'use client';
 import { supabase } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Zap, Database, BrainCircuit, Activity, PlusCircle, MinusCircle, FileText, ArrowRight , Search } from 'lucide-react';
+import { RefreshCw, Zap, Database, BrainCircuit, Activity, PlusCircle, MinusCircle, FileText, ArrowRight, Search, TrendingUp, TrendingDown, AlertTriangle, Layers, AlertOctagon, ShieldAlert } from 'lucide-react';
 
 export default function AuditReportViewer() {
   const [records, setRecords] = useState([]);
@@ -9,6 +9,8 @@ export default function AuditReportViewer() {
   const [selectedRecordId, setSelectedRecordId] = useState(null);
   const [activeTab, setActiveTab] = useState('changes');
   const [searchTerm, setSearchTerm] = useState(''); // 'changes' | 'inventory_flux'
+  const [listSubTab, setListSubTab] = useState('all');
+  const [optionSubTab, setOptionSubTab] = useState('all');
 
   const calculatePercentage = (oldVal, newVal) => {
     const oldNum = parseFloat(oldVal);
@@ -69,6 +71,99 @@ export default function AuditReportViewer() {
     (c.new_value || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+    const parseDiffNum = (c) => {
+    if (!c) return 0;
+    if (c.old_value === '[VACÍO]' || c.old_value === '---' || c.old_value === 'N/A') return 0;
+    if (c.financial_impact !== undefined && c.financial_impact !== null && c.financial_impact !== '---' && c.financial_impact !== 'N/A') {
+      const str = String(c.financial_impact).replace('%', '').replace('+', '').trim();
+      const num = parseFloat(str);
+      if (!isNaN(num)) return num;
+    }
+    const o = parseFloat(c.old_value);
+    const n = parseFloat(c.new_value);
+    if (!isNaN(o) && !isNaN(n) && o !== 0) {
+      return ((n - o) / Math.abs(o)) * 100;
+    }
+    return 0;
+  };
+
+  const isZeroAnomaly = (c) => {
+    const diff = parseDiffNum(c);
+    const isVacative = (c.old_value === '[VACÍO]' || c.old_value === '---' || c.old_value === 'N/A' || !c.old_value);
+    return diff === 0 || isVacative;
+  };
+
+  // List Price Categorization
+  const listIncreases = filteredListPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) > 0 && parseDiffNum(c) <= 12);
+  const listDecreases = filteredListPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) < 0);
+  const listZeroAnomalies = filteredListPriceChanges.filter(c => isZeroAnomaly(c));
+  const listRangeAnomalies = filteredListPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) > 12 && parseDiffNum(c) < 100);
+  const listExtremeAnomalies = filteredListPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) >= 100);
+
+  // Option Price Categorization
+  const optionIncreases = filteredOptionPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) > 0 && parseDiffNum(c) <= 12);
+  const optionDecreases = filteredOptionPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) < 0);
+  const optionZeroAnomalies = filteredOptionPriceChanges.filter(c => isZeroAnomaly(c));
+  const optionRangeAnomalies = filteredOptionPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) > 12 && parseDiffNum(c) < 100);
+  const optionExtremeAnomalies = filteredOptionPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) >= 100);
+
+  const renderSubTable = (title, icon, items, emptyText) => {
+    const badgeBg = 'bg-[#464775]/10 text-[#464775] border-[#464775]/20 font-semibold';
+    const headerText = 'text-[#464775]';
+    const pillStyle = 'bg-[#464775]/10 text-[#464775] border-[#464775]/20 font-semibold';
+
+    return (
+      <div className="bg-white/40 backdrop-blur-md rounded-xl border border-white/50 shadow-sm overflow-hidden flex flex-col w-full mb-2">
+        <div className="px-4 py-2 bg-white/50 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {icon}
+            <h3 className={`text-xs font-bold ${headerText}`}>{title}</h3>
+          </div>
+          <span className={`text-[10px] px-2.5 py-0.5 rounded-full border ${badgeBg}`}>
+            {items.length} {items.length === 1 ? 'record' : 'records'}
+          </span>
+        </div>
+
+        <div className="w-full overflow-x-auto max-h-[320px] overflow-y-auto custom-scrollbar">
+          <table className="table-fixed border-collapse text-left text-xs w-full">
+            <thead className="bg-[#f8fafc] sticky top-0 z-10 shadow-sm border-b border-slate-200">
+              <tr>
+                {['#', 'Model ID', 'Column', 'Original Value', 'New Value', '% Diff'].map(h => (
+                  <th key={h} className="px-4 py-2.5 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white/40">
+              {items.map((c, i) => (
+                <tr key={i} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="px-4 py-2.5 text-[10px] text-slate-400 font-mono">{i + 1}</td>
+                  <td className="px-4 py-2.5 font-mono font-bold text-slate-700">{c.model_id}</td>
+                  <td className="px-4 py-2.5 text-slate-600 text-[11px]">{c.column_name}</td>
+                  <td className="px-4 py-2.5 text-slate-400 line-through decoration-slate-300 font-mono">{c.old_value}</td>
+                  <td className="px-4 py-2.5 font-semibold text-[#464775] font-mono">{c.new_value}</td>
+                  <td className="px-4 py-2.5">
+                    <span className={`text-[10px] px-2 py-0.5 rounded border ${pillStyle}`}>
+                      {c.financial_impact || '0%'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {items.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="text-center py-6">
+                    <p className="text-xs text-slate-400 italic">{emptyText}</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) return <div className="p-10 text-sm text-[#616161]">Loading audit...</div>;
 
   return (
@@ -113,129 +208,207 @@ export default function AuditReportViewer() {
 
         {/* Contenido: Module 1 - Variaciones de List Prices */}
           <div className="bg-white/20 backdrop-blur-md rounded-xl border border-white/40 shadow-sm overflow-hidden flex flex-col w-full">
-            <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex items-center gap-2">
-              <Zap size={16} className="text-[#5B5FC7]" />
-              <h2 className="text-sm font-bold text-[#242424]">List Price Variations ({filteredListPriceChanges.length})</h2>
+            <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Zap size={16} className="text-[#5B5FC7]" />
+                <h2 className="text-sm font-bold text-[#242424]">List Price Variations ({filteredListPriceChanges.length})</h2>
+              </div>
+
+              {/* Category Sub-Tabs */}
+              <div className="flex items-center gap-1 bg-white/50 p-1 rounded-lg border border-white/60 text-[11px] font-medium flex-wrap">
+                <button 
+                  onClick={() => setListSubTab('all')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'all' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <Layers size={11} /> All ({filteredListPriceChanges.length})
+                </button>
+                <button 
+                  onClick={() => setListSubTab('increases')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'increases' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <TrendingUp size={11} /> Increases {'≤'}12% ({listIncreases.length})
+                </button>
+                <button 
+                  onClick={() => setListSubTab('decreases')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'decreases' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <TrendingDown size={11} /> Decreases ({listDecreases.length})
+                </button>
+                <button 
+                  onClick={() => setListSubTab('zero_anomalies')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'zero_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <AlertTriangle size={11} /> 0% Anomalies ({listZeroAnomalies.length})
+                </button>
+                <button 
+                  onClick={() => setListSubTab('range_anomalies')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'range_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <AlertOctagon size={11} /> Range {'>'}12% ({listRangeAnomalies.length})
+                </button>
+                <button 
+                  onClick={() => setListSubTab('extreme_anomalies')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'extreme_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <ShieldAlert size={11} /> Outliers {'≥'}100% ({listExtremeAnomalies.length})
+                </button>
+              </div>
             </div>
-            <div className="w-full flex flex-col">
-              <div className="px-4 py-3 bg-white/20 backdrop-blur-md border-b border-white/30 flex items-center gap-2">
+
+            <div className="w-full flex flex-col p-4 gap-4">
+              <div className="px-3 py-2 bg-white/30 backdrop-blur-md border border-white/40 rounded-lg flex items-center gap-2">
                  <Search size={14} className="text-slate-400" />
                  <input 
                    type="text" 
                    placeholder="Filter List Prices..." 
                    value={searchTerm}
                    onChange={(e) => setSearchTerm(e.target.value)}
-                   className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] transition-all"
+                   className="w-full md:w-1/3 text-xs bg-white/70 border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] transition-all"
                  />
               </div>
-            <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
-              <table className="table-fixed border-collapse text-left text-xs w-full">
-                <thead className="bg-[#f8fafc] sticky top-0 z-10 shadow-sm border-b border-slate-200">
-                  <tr>
-                    {['#', 'Model ID', 'Column', 'Original Value', 'New Value', '% Diff'].map(h => (
-                      <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredListPriceChanges.map((c, i) => {
-                    const diffNum = parseFloat(c.financial_impact || '0');
-                    return (
-                      <tr key={i} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{i + 1}</td>
-                        <td className="px-4 py-3 font-mono font-bold text-slate-700">{c.model_id}</td>
-                        <td className="px-4 py-3 text-slate-600 text-[11px]">{c.column_name}</td>
-                        <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.old_value}</td>
-                        <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.new_value}</td>
-                        <td className="px-4 py-3">
-                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-[#464775]/10 text-[#464775]' : diffNum < 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                             {c.financial_impact || 'N/A'}
-                           </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {filteredListPriceChanges.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="text-center py-12">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-3">
-                            <Zap size={16} className="text-slate-300" />
-                          </div>
-                          <p className="text-xs text-slate-400">No List Price variations were recorded.</p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+
+              {/* Table 1: Increases */}
+              {(listSubTab === 'all' || listSubTab === 'increases') && renderSubTable(
+                "Standard Price Increases (≤ 12%)",
+                <TrendingUp size={15} className="text-[#5B5FC7]" />,
+                listIncreases,
+                "No standard price increases recorded (≤ 12%)."
+              )}
+
+              {/* Table 2: Decreases */}
+              {(listSubTab === 'all' || listSubTab === 'decreases') && renderSubTable(
+                "Price Decreases (< 0%)",
+                <TrendingDown size={15} className="text-[#5B5FC7]" />,
+                listDecreases,
+                "No price decreases recorded."
+              )}
+
+              {/* Table 3: Zero Anomalies */}
+              {(listSubTab === 'all' || listSubTab === 'zero_anomalies') && renderSubTable(
+                "0% Anomalies & Unchanged ([EMPTY] / 0%)",
+                <AlertTriangle size={15} className="text-[#5B5FC7]" />,
+                listZeroAnomalies,
+                "No 0% anomalies or empty records found."
+              )}
+
+              {/* Table 4: Range Anomalies */}
+              {(listSubTab === 'all' || listSubTab === 'range_anomalies') && renderSubTable(
+                "High Range Anomalies (> 12% to < 100%)",
+                <AlertOctagon size={15} className="text-[#5B5FC7]" />,
+                listRangeAnomalies,
+                "No high range anomalies found (> 12%)."
+              )}
+
+              {/* Table 5: Extreme Anomalies */}
+              {(listSubTab === 'all' || listSubTab === 'extreme_anomalies') && renderSubTable(
+                "Extreme Outliers & Price Errors (≥ 100%)",
+                <ShieldAlert size={15} className="text-[#5B5FC7]" />,
+                listExtremeAnomalies,
+                "No extreme outliers or price errors detected (≥ 100%)."
+              )}
             </div>
           </div>
 
           {/* Contenido: Module 1.5 - Variaciones de Opciones */}
           <div className="bg-white/20 backdrop-blur-md rounded-xl border border-white/40 shadow-sm overflow-hidden flex flex-col w-full">
-            <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex items-center gap-2">
-              <Zap size={16} className="text-[#5B5FC7]" />
-              <h2 className="text-sm font-bold text-[#242424]">Option Price Variations ({filteredOptionPriceChanges.length})</h2>
+            <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Zap size={16} className="text-[#5B5FC7]" />
+                <h2 className="text-sm font-bold text-[#242424]">Option Price Variations ({filteredOptionPriceChanges.length})</h2>
+              </div>
+
+              {/* Option Category Sub-Tabs */}
+              <div className="flex items-center gap-1 bg-white/50 p-1 rounded-lg border border-white/60 text-[11px] font-medium flex-wrap">
+                <button 
+                  onClick={() => setOptionSubTab('all')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'all' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <Layers size={11} /> All ({filteredOptionPriceChanges.length})
+                </button>
+                <button 
+                  onClick={() => setOptionSubTab('increases')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'increases' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <TrendingUp size={11} /> Increases {'≤'}12% ({optionIncreases.length})
+                </button>
+                <button 
+                  onClick={() => setOptionSubTab('decreases')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'decreases' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <TrendingDown size={11} /> Decreases ({optionDecreases.length})
+                </button>
+                <button 
+                  onClick={() => setOptionSubTab('zero_anomalies')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'zero_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <AlertTriangle size={11} /> 0% Anomalies ({optionZeroAnomalies.length})
+                </button>
+                <button 
+                  onClick={() => setOptionSubTab('range_anomalies')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'range_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <AlertOctagon size={11} /> Range {'>'}12% ({optionRangeAnomalies.length})
+                </button>
+                <button 
+                  onClick={() => setOptionSubTab('extreme_anomalies')}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'extreme_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                >
+                  <ShieldAlert size={11} /> Outliers {'≥'}100% ({optionExtremeAnomalies.length})
+                </button>
+              </div>
             </div>
-            <div className="w-full flex flex-col">
-              <div className="px-4 py-3 bg-white/20 backdrop-blur-md border-b border-white/30 flex items-center gap-2">
+
+            <div className="w-full flex flex-col p-4 gap-4">
+              <div className="px-3 py-2 bg-white/30 backdrop-blur-md border border-white/40 rounded-lg flex items-center gap-2">
                  <Search size={14} className="text-slate-400" />
                  <input 
                    type="text" 
                    placeholder="Filter Option Prices..." 
                    value={searchTerm}
                    onChange={(e) => setSearchTerm(e.target.value)}
-                   className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#464775] focus:border-[#464775] transition-all"
+                   className="w-full md:w-1/3 text-xs bg-white/70 border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] transition-all"
                  />
               </div>
-            <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
-              <table className="table-fixed border-collapse text-left text-xs w-full">
-                <thead className="bg-[#f8fafc] sticky top-0 z-10 shadow-sm border-b border-slate-200">
-                  <tr>
-                    {['#', 'Model ID', 'Option Column', 'Original Value', 'New Value', '% Diff'].map(h => (
-                      <th key={h} className="px-4 py-3 text-[10px] font-bold text-[#464775] border-b border-[#464775]/20 uppercase tracking-wider">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredOptionPriceChanges.map((c, i) => {
-                    const diffNum = parseFloat(c.financial_impact || '0');
-                    return (
-                      <tr key={i} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{i + 1}</td>
-                        <td className="px-4 py-3 font-mono font-bold text-slate-700">{c.model_id}</td>
-                        <td className="px-4 py-3 text-[#464775] font-semibold text-[11px]">{c.column_name}</td>
-                        <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.old_value}</td>
-                        <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.new_value}</td>
-                        <td className="px-4 py-3">
-                           <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-[#464775]/10 text-[#464775]' : diffNum < 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                             {c.financial_impact || 'N/A'}
-                           </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {filteredOptionPriceChanges.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="text-center py-12">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center mb-3">
-                            <Zap size={16} className="text-slate-300" />
-                          </div>
-                          <p className="text-xs text-slate-400">No Option Price variations were recorded.</p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+
+              {/* Table 1: Increases */}
+              {(optionSubTab === 'all' || optionSubTab === 'increases') && renderSubTable(
+                "Standard Option Price Increases (≤ 12%)",
+                <TrendingUp size={15} className="text-[#5B5FC7]" />,
+                optionIncreases,
+                "No standard option price increases recorded (≤ 12%)."
+              )}
+
+              {/* Table 2: Decreases */}
+              {(optionSubTab === 'all' || optionSubTab === 'decreases') && renderSubTable(
+                "Option Price Decreases (< 0%)",
+                <TrendingDown size={15} className="text-[#5B5FC7]" />,
+                optionDecreases,
+                "No option price decreases recorded."
+              )}
+
+              {/* Table 3: Zero Anomalies */}
+              {(optionSubTab === 'all' || optionSubTab === 'zero_anomalies') && renderSubTable(
+                "0% Option Anomalies & Unchanged ([EMPTY] / 0%)",
+                <AlertTriangle size={15} className="text-[#5B5FC7]" />,
+                optionZeroAnomalies,
+                "No 0% option anomalies or empty records found."
+              )}
+
+              {/* Table 4: Range Anomalies */}
+              {(optionSubTab === 'all' || optionSubTab === 'range_anomalies') && renderSubTable(
+                "High Range Option Anomalies (> 12% to < 100%)",
+                <AlertOctagon size={15} className="text-[#5B5FC7]" />,
+                optionRangeAnomalies,
+                "No high range option anomalies found (> 12%)."
+              )}
+
+              {/* Table 5: Extreme Anomalies */}
+              {(optionSubTab === 'all' || optionSubTab === 'extreme_anomalies') && renderSubTable(
+                "Extreme Option Outliers & Errors (≥ 100%)",
+                <ShieldAlert size={15} className="text-[#5B5FC7]" />,
+                optionExtremeAnomalies,
+                "No extreme option outliers detected (≥ 100%)."
+              )}
             </div>
           </div>
 

@@ -91,16 +91,8 @@ marked.use({
     },
     code(token) {
       const orig = origRenderer.code.call(this, token);
-      return `<div class="my-5 rounded-xl overflow-hidden bg-white shadow-sm border border-slate-200">
-            <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-              <div class="flex gap-1.5">
-                <div class="w-2.5 h-2.5 rounded-full bg-rose-400"></div>
-                <div class="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
-                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
-              </div>
-              <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">${token.lang || 'text'}</span>
-            </div>
-            <div class="p-4 overflow-x-auto custom-scrollbar">
+      return `<div class="my-3 rounded-lg overflow-hidden bg-transparent border-0">
+            <div class="p-1 overflow-x-auto custom-scrollbar">
               ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[13px] text-slate-700 font-mono leading-relaxed inline-block"><code class="block">')}
             </div>
           </div>`;
@@ -179,6 +171,8 @@ const BotMessage =
     const COMMANDS_REGEX = /(\/(?:importCETxml|SaveXMLcet|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
     html = html.replace(COMMANDS_REGEX, '<button class="text-indigo-600 hover:text-indigo-800 font-medium hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none" data-cmd="$1">$1</button>');
     html = html.replace(/<code[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/code>/gi, '$1');
+    html = html.replace(/<pre[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/pre>/gi, '$1');
+    html = html.replace(/<pre[^>]*>\s*<code[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/code>\s*<\/pre>/gi, '$1');
     return html;
   }, [displayedText]);
 
@@ -546,7 +540,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
   };
 
   return (
-    <div className="w-full h-full flex flex-col font-sans text-gray-900 overflow-hidden"> shadow-none
+    <div className="w-full h-full flex flex-col font-sans text-gray-900 overflow-hidden">
       {/* Background handled by parent container */}
 
       {/* Top bar handled at 100% width by parent container */}
@@ -919,6 +913,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
           padding: 2px 6px; border-radius: 4px;
           border: 1px solid #c7d2fe;
         }
+        .prose-light pre:has(.alysa-cmd-btn) { background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; }
         .prose-light pre {
           background: #f8faff; border: 1px solid #e0e7ff;
           padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0;
