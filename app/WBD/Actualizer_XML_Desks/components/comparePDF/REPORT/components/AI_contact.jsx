@@ -174,8 +174,9 @@ const BotMessage =
     }
     
     // Inject interactive command buttons AFTER parsing markdown
-    const COMMANDS_REGEX = /(\/(?:importCETxml|exportCETcsv|compareCET|importBase|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
-    html = html.replace(COMMANDS_REGEX, '<button class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md hover:bg-indigo-100 font-medium transition-colors cursor-pointer inline-flex items-center gap-1 mx-0.5 alysa-cmd-btn shadow-sm border border-indigo-100/50" data-cmd="$1">$1</button>');
+    const COMMANDS_REGEX = /(\/(?:importCETxml|SaveXMLcet|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
+    html = html.replace(COMMANDS_REGEX, '<button class="text-indigo-600 hover:text-indigo-800 font-medium hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none" data-cmd="$1">$1</button>');
+    html = html.replace(/<code[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/code>/gi, '$1');
     return html;
   }, [displayedText]);
 
@@ -561,58 +562,13 @@ if (queryToSend.toLowerCase() === '/importbase') {
   };
 
   return (
-    <div className="relative w-full h-[88vh] flex flex-col font-sans text-gray-900 overflow-hidden">
-      {/* --- FONDO ESTILO MAIN1 (SIN ANIMACIONES) --- */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-60" />
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/15" />
-        <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[120%] rotate-[15deg]">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60 shadow-[1px_0_10px_rgba(0,0,0,0.03)]" />
-        </div>
-        <div className="absolute top-[5%] right-[15%] w-[40%] h-[100%] rotate-[15deg]">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/5 to-transparent border-l border-white/50" />
-        </div>
-      </div>
+    <div className="w-full h-full flex flex-col font-sans text-gray-900 overflow-hidden"> shadow-none
+      {/* Background handled by parent container */}
 
-      {/* ── TOP BAR ── */}
-      <header className="relative z-10 h-[52px] flex-shrink-0 flex items-center justify-between px-5 bg-white/60 backdrop-blur-md border-b border-white/50">
-        <div className="flex items-center gap-2.5">
-          <span className="text-[14px] font-black tracking-tight text-[#464775] uppercase">
-            Alysa
-          </span>
-          <span className="text-[9.5px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-            Servex Copilot
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400  animate-pulse" />
-            Engine v4.10 · Online
-          </div>
-
-          <button className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
-            <Settings size={15} />
-          </button>
-          {messages.length > 0 && (
-            <button
-              onClick={async () => {
-                setMessages([]);
-                try {
-                  await fetch(`${apiURL}/wbd/api/v1/agent/history`, {method: "DELETE" });
-                } catch (e) {}
-              }}
-              className="text-[11px] font-medium text-gray-400 border border-gray-200 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-400 hover:bg-red-50 transition-colors"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </header>
+      {/* Top bar handled at 100% width by parent container */}
 
       {/* ── MAIN ── */}
-      <main ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">
+      <main ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent pb-28">
         <div className="w-full max-w-[820px] mx-auto flex flex-col px-5 min-h-full">
 
           {messages.length === 0 ? (
@@ -736,13 +692,11 @@ if (queryToSend.toLowerCase() === '/importbase') {
                         className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
                         ${isUser
                           ? 'bg-slate-100 text-slate-500 border border-slate-200'
-                          : 'bg-[#464775] text-white'
+                          : 'bg-transparent'
                         }`}
                       >
-                        {isUser ? 'YOU' : <img src="/logo2.png" alt="SVX" className="w-4 h-4 object-contain brightness-200" />}
-                        {!isUser && (
-                          <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
-                        )}
+                        {isUser ? 'YOU' : <img src="/logo2.png" alt="SVX" className="w-6 h-6 object-contain" />}
+                        
                       </motion.div>
 
                       {/* Bubble col */}
@@ -790,10 +744,10 @@ if (queryToSend.toLowerCase() === '/importbase') {
                 >
                   <motion.div 
                     initial={{scale: 0.8 }} animate={{scale: 1 }} transition={{type: "spring", bounce: 0.5 }}
-                    className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#464775] text-white shadow-sm"
+                    className="relative w-8 h-8 flex-shrink-0 flex items-center justify-center bg-transparent"
                   >
-                    <img src="/logo2.png" alt="SVX" className="w-4 h-4 object-contain brightness-200" />
-                    <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
+                    <img src="/logo2.png" alt="SVX" className="w-6 h-6 object-contain" />
+                    
                   </motion.div>
                   <div className="flex flex-col items-start gap-1">
                     <div className="flex items-baseline gap-2">
@@ -827,7 +781,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
       </main>
 
       {/* ── INPUT ── */}
-      <footer className="relative z-10 flex-shrink-0 px-5 py-3 pb-4 bg-white/40 backdrop-blur-md border-t border-white/50">
+      <footer className="absolute bottom-0 left-0 right-0 w-full z-30 px-5 py-3 pb-4 bg-white/70 backdrop-blur-md border-t border-white/50 pointer-events-auto">
         {/* ── SLASH COMMANDS MENU ── */}
         <AnimatePresence>
           {showSlashMenu && (
@@ -974,6 +928,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
         .prose-light p:last-child {margin-bottom: 0; }
         .prose-light strong {color: #3730a3; font-weight: 600; }
         .prose-light a  {color: #6366f1; text-decoration: underline; text-underline-offset: 2px; }
+        .prose-light code:has(.alysa-cmd-btn) { background: transparent !important; border: none !important; padding: 0 !important; font-family: inherit !important; }
         .prose-light code {
           font-size: 12px; font-family: 'JetBrains Mono', monospace;
           background: #eef2ff; color: #4f46e5;

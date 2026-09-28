@@ -73,23 +73,12 @@ export default function AuditReportViewer() {
   if (loading) return <div className="p-10 text-sm text-[#616161]">Loading audit...</div>;
 
   return (
-    <div className="min-h-[85vh] bg-[#FFF] p-5 text-[#242424] font-sans antialiased">
-      <div className="w-full max-w-[90vw] mx-auto">
-        
-        {/* Header Principal */}
-        <div className="mb-6 rounded-lg p-10 border border-[#464775]/20 bg-gradient-to-tr from-white/90 via-white/80 to-[#464775]/5 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_2px_15px_rgba(70,71,117,0.05)] relative overflow-hidden">
-           <div className="absolute top-[-50%] right-[-10%] w-[40%] h-[200%] rotate-[15deg] bg-gradient-to-b from-[#464775]/5 to-transparent pointer-events-none" />
-           <h1 className="text-2xl font-light text-[#242424] tracking-wide relative z-10">
-            Development Analysis Center: <span className="font-normal text-[#464775]">{reportDataP?.pipeline_metadata?.system_engine || 'Gateway Engine'}</span>
-           </h1>
-           <p className="text-xs text-[#616161] mt-3 font-light tracking-[0.15em] uppercase relative z-10">
-             {metadataRaw?.title || 'Monitoring of catalog synchronization and positional reconciliation.'}
-           </p>
-        </div>
+    <div className="min-h-[85vh] bg-transparent p-2 md:p-4 text-[#242424] font-sans antialiased w-full">
+      <div className="w-full">
 
         {/* Data Map / Information Section */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-          <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="bg-white/20 backdrop-blur-md p-4 rounded-xl border border-white/40 shadow-sm flex flex-col gap-2 hover:bg-white/35 transition-all relative overflow-hidden group">
              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
              <div className="flex items-center gap-2 text-[#464775]">
                 <Zap size={16} />
@@ -99,7 +88,7 @@ export default function AuditReportViewer() {
                Monitors all direct changes to the base list price of each SKU. Essential for tracking baseline profitability and primary cost updates.
              </p>
           </div>
-          <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="bg-white/20 backdrop-blur-md p-4 rounded-xl border border-white/40 shadow-sm flex flex-col gap-2 hover:bg-white/35 transition-all relative overflow-hidden group">
              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
              <div className="flex items-center gap-2 text-[#464775]">
                 <Database size={16} />
@@ -109,7 +98,7 @@ export default function AuditReportViewer() {
                Tracks modifications in secondary pricing matrices, finishes, and optional upgrades that affect the complex pricing structure.
              </p>
           </div>
-          <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="bg-white/20 backdrop-blur-md p-4 rounded-xl border border-white/40 shadow-sm flex flex-col gap-2 hover:bg-white/35 transition-all relative overflow-hidden group">
              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
              <div className="flex items-center gap-2 text-[#464775]">
                 <Activity size={16} />
@@ -124,13 +113,13 @@ export default function AuditReportViewer() {
               <div className="flex flex-col gap-6 w-full">
 
         {/* Contenido: Module 1 - Variaciones de List Prices */}
-          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
-            <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
+          <div className="bg-white/20 backdrop-blur-md rounded-xl border border-white/40 shadow-sm overflow-hidden flex flex-col w-full">
+            <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex items-center gap-2">
               <Zap size={16} className="text-[#5B5FC7]" />
               <h2 className="text-sm font-bold text-[#242424]">List Price Variations ({filteredListPriceChanges.length})</h2>
             </div>
             <div className="w-full flex flex-col">
-              <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-2">
+              <div className="px-4 py-3 bg-white/20 backdrop-blur-md border-b border-white/30 flex items-center gap-2">
                  <Search size={14} className="text-slate-400" />
                  <input 
                    type="text" 
@@ -142,7 +131,7 @@ export default function AuditReportViewer() {
               </div>
             <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
               <table className="table-fixed border-collapse text-left text-xs w-full">
-                <thead className="bg-slate-50/95 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
+                <thead className="bg-[#f8fafc] sticky top-0 z-10 shadow-sm border-b border-slate-200">
                   <tr>
                     {['#', 'Model ID', 'Column', 'Original Value', 'New Value', '% Diff', 'Injection Status'].map(h => (
                       <th key={h} className="px-4 py-3 text-[10px] font-bold text-slate-500 border-b border-slate-200 uppercase tracking-wider">
@@ -197,13 +186,13 @@ export default function AuditReportViewer() {
           </div>
 
           {/* Contenido: Module 1.5 - Variaciones de Opciones */}
-          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
-            <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
+          <div className="bg-white/20 backdrop-blur-md rounded-xl border border-white/40 shadow-sm overflow-hidden flex flex-col w-full">
+            <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex items-center gap-2">
               <Zap size={16} className="text-[#5B5FC7]" />
               <h2 className="text-sm font-bold text-[#242424]">Option Price Variations ({filteredOptionPriceChanges.length})</h2>
             </div>
             <div className="w-full flex flex-col">
-              <div className="px-4 py-3 bg-white border-b border-slate-100 flex items-center gap-2">
+              <div className="px-4 py-3 bg-white/20 backdrop-blur-md border-b border-white/30 flex items-center gap-2">
                  <Search size={14} className="text-slate-400" />
                  <input 
                    type="text" 
@@ -215,7 +204,7 @@ export default function AuditReportViewer() {
               </div>
             <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
               <table className="table-fixed border-collapse text-left text-xs w-full">
-                <thead className="bg-[#464775]/5 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
+                <thead className="bg-[#f8fafc] sticky top-0 z-10 shadow-sm border-b border-slate-200">
                   <tr>
                     {['#', 'Model ID', 'Option Column', 'Original Value', 'New Value', '% Diff', 'Injection Status'].map(h => (
                       <th key={h} className="px-4 py-3 text-[10px] font-bold text-[#464775] border-b border-[#464775]/20 uppercase tracking-wider">
@@ -270,23 +259,23 @@ export default function AuditReportViewer() {
           </div>
 
           {/* Contenido: Module 2 - Flujo de Inventario (News vs Deleteds de audit_report_json) */}
-          <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
-            <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
+          <div className="bg-white/20 backdrop-blur-md rounded-xl border border-white/40 shadow-sm overflow-hidden flex flex-col w-full">
+            <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex items-center gap-2">
               <RefreshCw size={16} className="text-[#5B5FC7]" />
               <h2 className="text-sm font-bold text-[#242424]">Additions and Deletions ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })</h2>
             </div>
-            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FCFCFC]">
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-transparent">
               
               {/* Columna New Models */}
-              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+              <div className="bg-transparent border border-white/60 rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-transparent px-4 py-3 border-b border-white/30 flex items-center gap-2">
                   <PlusCircle size={16} className="text-[#464775]" />
                   <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">New Models Detected</span>
                 </div>
                 <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
                   {summaryRaw?.new_models_list && summaryRaw.new_models_list.length > 0 ? (
                     summaryRaw.new_models_list.map((model, idx) => (
-                      <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
+                      <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-transparent border border-transparent hover:border-slate-100 transition-colors">
                         <span className="text-slate-700 font-semibold">{model}</span>
                         <span className="text-[10px] text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full font-sans font-semibold">New SKU</span>
                       </div>
@@ -303,15 +292,15 @@ export default function AuditReportViewer() {
               </div>
 
               {/* Columna Deleted Models */}
-              <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+              <div className="bg-transparent border border-white/60 rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-transparent px-4 py-3 border-b border-white/30 flex items-center gap-2">
                   <MinusCircle size={16} className="text-slate-400" />
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Models Removed from Catalog</span>
                 </div>
                 <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
                   {summaryRaw?.deleted_models_list && summaryRaw.deleted_models_list.length > 0 ? (
                     summaryRaw.deleted_models_list.map((model, idx) => (
-                      <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
+                      <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-transparent border border-transparent hover:border-slate-100 transition-colors">
                         <span className="text-slate-400 font-medium line-through decoration-slate-300">{model}</span>
                         <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-sans font-medium">Discontinued</span>
                       </div>
@@ -331,7 +320,7 @@ export default function AuditReportViewer() {
           </div>
 
           {/* Footer del Panel */}
-          <div className="bg-gradient-to-r from-white via-[#FCFAFF] to-[#F7F3FF] px-4 py-2 border border-[#E0E0E0] rounded-md text-[10px] font-semibold text-[#616161] flex justify-between items-center shadow-sm mt-2">
+          <div className="bg-transparent px-4 py-2 border border-white/50 rounded-md text-[10px] font-semibold text-[#616161] flex justify-between items-center shadow-sm mt-2">
             <span>TOTAL CHANGES INJECTED IN CURRENT STEP: {changesP.length}</span>
             <span className="uppercase text-[#5B5FC7] font-bold tracking-wider">
               {reportDataP?.pipeline_metadata?.company_processed || activeRecord?.company_name || 'SERVEX US'}

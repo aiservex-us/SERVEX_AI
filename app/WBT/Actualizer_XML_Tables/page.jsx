@@ -7,7 +7,7 @@ import CETComparator from '../Actualizer_Excel_Tables/components/CET_Comparator.
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js';
-import { X, AlertCircle , Sparkles} from 'lucide-react';
+import {  X, AlertCircle , Sparkles, Settings } from 'lucide-react';
 import TeamsAgentChat from './components/comparePDF/REPORT/components/AI_contact.jsx';
 
 import MenuLateral from './components/menuLateral.jsx';
@@ -280,12 +280,59 @@ export default function MenuInicial() {
           collapsed={collapsed}
           setCollapsed={setCollapsed}
         />
-        {/* CONTENEDOR UNIFICADO */}
-        <div className="flex flex-1 h-full w-full min-w-0 p-2 lg:p-3 bg-slate-50">
-          <div className="flex w-full h-full bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden relative">
-            
-            {/* Lado Izquierdo: Asistente IA */}
-            <div className={`hidden md:flex relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 ${isToolsOpen ? 'w-[50%] border-r border-slate-100 bg-slate-50/50' : 'w-full bg-white'}`}>
+                {/* CONTENEDOR UNIFICADO */}
+        <div className="flex flex-1 h-full w-full min-w-0 p-2 lg:p-3 bg-transparent">
+          <div className="flex flex-col w-full h-full bg-transparent border border-slate-200/80 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden relative">
+            {/* Unified Chat Background (Spans full container across chat & right panel) */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+              <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-60" />
+              <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/15" />
+              <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[120%] rotate-[15deg]">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60 shadow-[1px_0_10px_rgba(0,0,0,0.03)]" />
+              </div>
+              <div className="absolute top-[5%] right-[15%] w-[40%] h-[100%] rotate-[15deg]">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/5 to-transparent border-l border-white/50" />
+              </div>
+            </div>
+
+            {/* ── TOP BAR (100% Width across entire container) ── */}
+            <header className="relative z-20 h-[52px] flex-shrink-0 flex items-center justify-between px-5 bg-white/60 backdrop-blur-md border-b border-white/50 w-full">
+              <div className="flex items-center gap-2.5">
+                <span className="text-[14px] font-black tracking-tight text-[#464775] uppercase">
+                  Alysa
+                </span>
+                <span className="text-[9.5px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  Servex Copilot
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Engine v4.10 · Online
+                </div>
+
+                <button className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+                  <Settings size={15} />
+                </button>
+
+                {isToolsOpen && (
+                  <button 
+                    onClick={() => setIsToolsOpen(false)}
+                    className="flex items-center justify-center p-1.5 rounded-full border bg-white border-slate-200 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all ml-1"
+                    title="Cerrar panel"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </header>
+
+            {/* Body Area (Split View below 100% Header) */}
+            <div className="flex flex-1 w-full min-h-0 relative z-10 overflow-hidden">
+              {/* Lado Izquierdo: Asistente IA */}
+            <div className={`hidden md:flex h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 ${isToolsOpen ? 'w-[50%] border-r border-slate-200/60 bg-transparent' : 'w-full bg-transparent'}`}>
               <TeamsAgentChat 
                 currentSection={active}
                 onOpenToolPanel={handleSetActive}
@@ -309,31 +356,13 @@ export default function MenuInicial() {
 
             {/* Lado Derecho: Contenido Principal */}
             <div 
-               className={`relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-slate-50/50
+               className={`relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
                ${isToolsOpen ? 'w-[50%] opacity-100' : 'w-0 opacity-0'}`}
             >
                 {/* Contenedor interno absoluto para evitar squish en animación */}
                 <div className="absolute top-0 left-0 w-full h-full flex flex-col overflow-hidden min-w-[500px]">
-                {/* ── BACKGROUND ORBS (Matching Chat) ── */}
-                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-slate-50/50">
-                  <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-200/20 blur-[80px] orb-ring-1" />
-                  <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-200/20 blur-[100px] orb-ring-2" />
-                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.015] mix-blend-overlay" />
-                </div>
 
-                  
-                  {/* Toolbar Superior */}
-                  <div className="hidden md:block absolute top-3 right-4 z-[90]">
-                    <button 
-                      onClick={() => setIsToolsOpen(false)}
-                      className="flex items-center justify-center p-1.5 rounded-full shadow-sm border bg-white border-slate-200 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all"
-                      title="Cerrar panel"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-
-                  <div className="flex-1 w-full relative overflow-y-auto">
+                  <div className="flex-1 w-full relative overflow-y-auto pb-24">
                     <div className="p-2 w-full h-full">
                       {renderContent()}
                     </div>
@@ -341,6 +370,7 @@ export default function MenuInicial() {
                 </div>
             </div>
           </div>
+        </div>
         </div>
       </main>
     </div>

@@ -11,7 +11,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className="min-h-[85vh] bg-[#FFF] p-4 lg:p-6"
+      className="min-h-[85vh] bg-transparent p-4 lg:p-6"
       style={{ fontFamily: '"Segoe UI", Tahoma, sans-serif' }}
     >
 
@@ -101,7 +101,7 @@ export default function Dashboard() {
             className="w-full h-full overflow-hidden transition-all duration-500 ease-out"
             
           >
-            <div className="bg-white">
+            <div className="bg-transparent">
               <AuditReportViewer />
             </div>
           </div>

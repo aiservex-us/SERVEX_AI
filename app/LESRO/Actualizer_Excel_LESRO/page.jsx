@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient.js';
-import { X, AlertCircle } from 'lucide-react';
+import {  X, AlertCircle , Settings } from 'lucide-react';
 import CriticalExcelModal from '../../components/CriticalExcelModal.jsx';
 
 import MenuLateral from './components/menuLateral.jsx';
@@ -160,7 +160,7 @@ export default function ExcelActualizer() {
               
               
 
-              <div className="flex-1 w-full relative overflow-y-auto">
+              <div className="flex-1 w-full relative overflow-y-auto pb-24">
                 <div className="p-1 w-full h-full">
                   {renderContent()}
                 </div>
