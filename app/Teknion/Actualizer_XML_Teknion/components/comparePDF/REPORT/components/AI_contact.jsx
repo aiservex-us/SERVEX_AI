@@ -288,7 +288,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch(`${apiURL}/wbs/api/v1/agent/history`);
+        const res = await fetch(`${apiURL}/teknion/api/v1/agent/history`);
         const data = await res.json();
         if (data.status === "success" && data.history) {
           setMessages(data.history);
@@ -473,7 +473,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
       
       try {
         const match = window.location.pathname.match(/^\/(Teknion[A-Z])/i);
-        const modulePrefix = match ? match[1].toLowerCase() : 'wbs';
+        const modulePrefix = match ? match[1].toLowerCase() : 'teknion';
         
         const {data: {user } } = await supabase.auth.getUser();
         const userEmail = user?.email || 'admin@servex-us.com';
@@ -505,7 +505,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
         const formData = new FormData();
         formData.append('company_name', 'Teknion');
         
-        const response = await fetch(`${apiURL}/wbs/api/v1/pipeline/compare-only-Teknion`, {
+        const response = await fetch(`${apiURL}/teknion/api/v1/pipeline/compare-only-Teknion`, {
           method: 'POST',
           body: formData,
         });
@@ -533,7 +533,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
       // Agregar el mensaje actual
       historyPayload.push({role: "user", content: queryToSend });
 
-      const res = await fetch(`${apiURL}/wbs/api/v1/agent/chat`, {
+      const res = await fetch(`${apiURL}/teknion/api/v1/agent/chat`, {
         method: "POST",
         headers: {"Content-Type": "application/json" },
         body: JSON.stringify({messages: historyPayload, raw_messages: [...messages.filter(msg => msg.text), {from: "user", text: queryToSend, time: now }], company_name: context, current_section: currentSection, unlocked_phase: unlockedPhase }),

@@ -67,7 +67,7 @@ const EJECUTOR_PLAY = ({
       const baseUrl = 'https://servex-ai-back.onrender.com'; 
       
       // RUTA ÚNICA: Gateway exclusivo para el segmento Teknion
-      const endpointUrl = `${baseUrl}/wbs/api/v1/pipeline/compare-only-Teknion`;
+      const endpointUrl = `${baseUrl}/teknion/api/v1/pipeline/compare-only-Teknion`;
   
       console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
   
