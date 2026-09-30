@@ -40,8 +40,8 @@ function generateCsvFromXml(xmlString: string): string {
     const parserError = xmlDoc.querySelector("parsererror");
     if (parserError) return '';
 
-    const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
-    const featureMap = new Map();
+    const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature")) as Element[];
+    const featureMap = new Map<string, Element>();
 
     for (const f of globalFeatures) {
       const fCode = f.getElementsByTagName("Code")[0]?.textContent;
@@ -50,7 +50,7 @@ function generateCsvFromXml(xmlString: string): string {
       }
     }
     
-    const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+    const productsXML = Array.from(xmlDoc.getElementsByTagName("Product")) as Element[];
     const extracted: any[] = [];
 
     for (const p of productsXML) {
@@ -60,15 +60,15 @@ function generateCsvFromXml(xmlString: string): string {
       const priceElement = p.getElementsByTagName("Price")[0];
       const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
-      const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+      const featureRefs = Array.from(p.getElementsByTagName("FeatureRef")) as Element[];
       let hasSuffixes = false;
       
       const productOptionPrices: Record<string, number> = {};
       for (const ref of featureRefs) {
         const refCode = ref.textContent;
-        const featureNode = featureMap.get(refCode);
+        const featureNode = refCode ? featureMap.get(refCode) : null;
         if (featureNode) {
-          const options = Array.from(featureNode.getElementsByTagName("Option"));
+          const options = Array.from(featureNode.getElementsByTagName("Option")) as Element[];
           for (const opt of options) {
             const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
             if (optCode !== "C" && optCode !== "P") {
@@ -107,9 +107,9 @@ function generateCsvFromXml(xmlString: string): string {
 
       for (const ref of featureRefs) {
         const refCode = ref.textContent;
-        const featureNode = featureMap.get(refCode);
+        const featureNode = refCode ? featureMap.get(refCode) : null;
         if (featureNode) {
-          const options = Array.from(featureNode.getElementsByTagName("Option"));
+          const options = Array.from(featureNode.getElementsByTagName("Option")) as Element[];
           for (const opt of options) {
             const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
             if (optCode === "C" || optCode === "P") {
