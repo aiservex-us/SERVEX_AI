@@ -1,5 +1,6 @@
 'use client';
 
+import Papa from 'papaparse';
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import {
@@ -13,6 +14,134 @@ import {
   DatabaseZap,
   Loader2
 } from 'lucide-react';
+
+const DESKS_HEADERS = [
+  "Model #", "List Price", "Weight", "Classic/ Premium", "Model Name", "Top", "Legs/Base/Casebody", 
+  "Top D", "Top L", "Casebody W", "Casebody H", "Casebody D", "OA D", "OA H w/ Glides", "OA H w/ Casters", 
+  "Assembly", "Locking Casters (Per Desk) (-CA)", "Wheelbarrow (2 Casters) (-2CA)", "GIB Casters (-C)", 
+  "Grand Hank Glides (Per Desk) (-HG)", "Soft Touch Glides (Per Desk) (-FG)", "Steel Glides (Per Desk) (-SG)", 
+  "Plastic Book Box (-P14CH)", "Plastic Book Box (-P16CH)", "Plastic Book Box (-P20CH)", "Plastic Book Box (-P23CH)", 
+  "Backpack Hook (1) (-BPH)", "3 Tote Tray Kit (-GK_S)", "Under Mount Tote Runners 12mm Drop (Set of 2) (-GTR)", 
+  "3, 6, 9, 12 Replacement Tote Trays", "Tote Tray Lid", "Wire Basket (-LW)", "Swivel Cup Holder (-SCH)", 
+  "Connector Bar (-CB)", "Power Supply Modules", "Large Pencil Drawer (-LPD)", "9H Perforated Metal Modesty Panel (-913_)", 
+  "12H Perforated Metal Modesty Panel (-S)", "12H Laminate Modesty Panel (-LMOD_)", "12H Laminate Modesty Panel CLASSIC (TDLAMMOD)", 
+  "12H Laminate Modesty Panel PREMIUM (TDLAMMOD)", "Metal Wire Management 36, 48, 60 or 72L (-WM)", "Grommet w/Cover (-GR)", 
+  "Deadbolt Lock(s)", "# of Optional Locks Required", "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", 
+  "Premium Laminate Upcharge for Tops UNDER 36x36", "Premium Laminate Upcharge for Tops 36x36 & OVER", 
+  "Markerboard Desks (-__MB)", "Markerboard Tables (-__MB)", "Chemical Resistant (-09C)", "Custom Sizes"
+];
+
+function generateCsvFromXml(xmlString: string): string {
+  if (!xmlString || !xmlString.trim() || typeof window === 'undefined') return '';
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    
+    const parserError = xmlDoc.querySelector("parsererror");
+    if (parserError) return '';
+
+    const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+    const featureMap = new Map();
+
+    for (const f of globalFeatures) {
+      const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+      if (fCode) {
+        featureMap.set(fCode, f);
+      }
+    }
+    
+    const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+    const extracted: any[] = [];
+
+    for (const p of productsXML) {
+      const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
+      const description = p.getElementsByTagName("Description")[0]?.textContent || "";
+      
+      const priceElement = p.getElementsByTagName("Price")[0];
+      const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
+
+      const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+      let hasSuffixes = false;
+      
+      const productOptionPrices: Record<string, number> = {};
+      for (const ref of featureRefs) {
+        const refCode = ref.textContent;
+        const featureNode = featureMap.get(refCode);
+        if (featureNode) {
+          const options = Array.from(featureNode.getElementsByTagName("Option"));
+          for (const opt of options) {
+            const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+            if (optCode !== "C" && optCode !== "P") {
+              const optPriceElem = opt.querySelector("OptionPrice > Value");
+              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+              if (optCode) productOptionPrices[optCode] = optPrice;
+            }
+          }
+        }
+      }
+      
+      const createRow = (baseSku: string, optSuffixCode: string | null, optPrice: number) => {
+        const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
+        const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
+        const finalPrice = basePrice + (optPrice || 0);
+
+        const row: Record<string, any> = {};
+        DESKS_HEADERS.forEach(h => row[h] = "");
+
+        row["Model #"] = finalSku;
+        row["List Price"] = finalPrice;
+        row["Model Name"] = finalDesc;
+
+        Object.keys(productOptionPrices).forEach(optCode => {
+          const matchingHeader = DESKS_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
+          if (matchingHeader) {
+            row[matchingHeader] = productOptionPrices[optCode];
+          } else if (optCode.includes('MB')) {
+             const mbHeader = DESKS_HEADERS.find(h => h.includes("(__MB)"));
+             if (mbHeader) row[mbHeader] = productOptionPrices[optCode];
+          }
+        });
+
+        return row;
+      };
+
+      for (const ref of featureRefs) {
+        const refCode = ref.textContent;
+        const featureNode = featureMap.get(refCode);
+        if (featureNode) {
+          const options = Array.from(featureNode.getElementsByTagName("Option"));
+          for (const opt of options) {
+            const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+            if (optCode === "C" || optCode === "P") {
+              const optPriceElem = opt.querySelector("OptionPrice > Value");
+              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+              
+              const suffixSku = `${sku}/${optCode}`;
+              if (!extracted.find(e => e["Model #"] === suffixSku)) {
+                extracted.push(createRow(sku, optCode, optPrice));
+                hasSuffixes = true;
+              }
+            }
+          }
+        }
+      }
+      
+      if (!hasSuffixes) {
+        extracted.push(createRow(sku, null, 0));
+      }
+    }
+
+    if (extracted.length === 0) return '';
+
+    return Papa.unparse(extracted, {
+      columns: DESKS_HEADERS,
+      delimiter: ";"
+    });
+  } catch (err) {
+    console.error('Error generating CSV from XML:', err);
+    return '';
+  }
+}
 
 export default function UploadClientXML({ moduleName }: { moduleName: string }) {
   const [xmlContent, setXmlContent] = useState('');
@@ -108,10 +237,14 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
         XM_CET_import: rawContent
       };
 
+      const csvContent = generateCsvFromXml(rawContent);
+      if (csvContent) {
+        payload.csv_raw = csvContent;
+      }
+
       const { error } = await supabase
         .from(`ClientsSERVEX_${moduleName}`)
-        .update(payload)
-        .eq('user_id', user.id)
+        .upsert(payload, { onConflict: 'company_name' })
         .select('');
 
       if (error) {

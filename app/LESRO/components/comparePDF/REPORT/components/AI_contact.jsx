@@ -521,11 +521,18 @@ if (queryToSend.toLowerCase() === '/importbase') {
       const res = await fetch(`${apiURL}/chat`, {
         method: "POST",
         headers: {"Content-Type": "application/json" },
-        body: JSON.stringify({message: queryToSend }),
+        body: JSON.stringify({
+          messages: historyPayload,
+          message: queryToSend,
+          raw_messages: [...messages.filter(msg => msg.text), {from: "user", text: queryToSend, time: now }],
+          company_name: context || "LESRO",
+          current_section: currentSection,
+          unlocked_phase: unlockedPhase
+        }),
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, {from: "bot", text: data?.reply || "No response received.", time: botTime }]);
+      setMessages(prev => [...prev, {from: "bot", text: data?.reply || data?.response || "No response received.", time: botTime }]);
     } catch {
       setMessages(prev => [...prev, {from: "bot", text: "❌ Connection error.", time: "--:--" }]);
     } finally {
