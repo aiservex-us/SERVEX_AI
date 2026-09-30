@@ -102,8 +102,8 @@ export default function Sidebar({ activeView, setActiveView }) {
 
             <SidebarIcon
               icon={<FileText />}
-              active={activeView === 'files'}
-              onClick={() => setActiveView('files')}
+              active={false}
+              onClick={() => router.push('/General_Procces')}
             />
 
             <SidebarIcon
