@@ -260,7 +260,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }, 100);
     };
     window.addEventListener('globalChatMessage', handleGlobalMessage);
-    const handleTeknionImportStep = (e) => {
+    const handleGeneral ProcessImportStep = (e) => {
         const { step } = e.detail;
         if (step === 'csv_base') {
             setMessages(prev => [...prev, { from: 'bot', text: 'XML guardado exitosamente. El CSV Base ya está en el sistema. Ahora, por favor sube el archivo CSV Actualizado.', isNew: true, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) }, { from: 'tool', toolId: 'incert_wbs_csv_new' }]);
@@ -272,11 +272,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         }
         setTimeout(() => scrollToBottom(true), 100);
     };
-    window.addEventListener('wbsImportStep', handleTeknionImportStep);
+    window.addEventListener('wbsImportStep', handleGeneral ProcessImportStep);
 
     return () => {
       window.removeEventListener('globalChatMessage', handleGlobalMessage);
-      window.removeEventListener('wbsImportStep', handleTeknionImportStep);
+      window.removeEventListener('wbsImportStep', handleGeneral ProcessImportStep);
     };
   }, []);
 
@@ -377,7 +377,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
 if (queryToSend.toLowerCase() === '/importbase') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Por favor, sube el archivo XML maestro de Teknion.', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Por favor, sube el archivo XML maestro de General Process.', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
@@ -442,19 +442,19 @@ if (queryToSend.toLowerCase() === '/importbase') {
           .single();
 
         if (error || !data || !data.xml_actualizer_raw) {
-          setMessages(prev => [...prev, {from: "bot", text: "❌ Error: XML file not found in the database for Teknion.", time: nowTime }]);
+          setMessages(prev => [...prev, {from: "bot", text: "❌ Error: XML file not found in the database for General Process.", time: nowTime }]);
         } else {
           const blob = new Blob([data.xml_actualizer_raw], {type: 'application/xml' });
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', 'Teknion.xml');
+          link.setAttribute('download', 'General Process.xml');
           document.body.appendChild(link);
           link.click();
           link.parentNode.removeChild(link);
           window.URL.revokeObjectURL(url);
           
-          setMessages(prev => [...prev, {from: "bot", text: "✅ Download started. The file Teknion.xml has been saved successfully.", time: nowTime }]);
+          setMessages(prev => [...prev, {from: "bot", text: "✅ Download started. The file General Process.xml has been saved successfully.", time: nowTime }]);
         }
       } catch (err) {
         setMessages(prev => [...prev, {from: "bot", text: "❌ An unexpected error occurred while trying to download the XML.", time: nowTime }]);
@@ -470,7 +470,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
       setMessages(prev => [...prev, {from: "bot", text: "📊 Generating smart audit report and publishing it to the Forum...", time: nowTime }]);
       
       try {
-        const match = window.location.pathname.match(/^\/(Teknion[A-Z])/i);
+        const match = window.location.pathname.match(/^\/(General Process[A-Z])/i);
         const modulePrefix = 'api/v1/General_Procces';
         
         const {data: {user } } = await supabase.auth.getUser();
@@ -497,7 +497,7 @@ if (queryToSend.toLowerCase() === '/importbase') {
 
     if (queryToSend === '/executeProcess') {
       const nowTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, {from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (Teknion). Please wait...", time: nowTime }]);
+      setMessages(prev => [...prev, {from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (General Process). Please wait...", time: nowTime }]);
       
       try {
         const formData = new FormData();

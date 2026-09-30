@@ -13,19 +13,18 @@ import {
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
-const TeknionDataMatrix = () => {
+const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
+
+const DynamicDataMatrix = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
+  const [matrixHeaders, setMatrixHeaders] = useState(BASE_HEADERS);
   
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
-
-  const Teknion_HEADERS = [
-    "Model #", "List Price", "Weight", "Classic/ Premium", "Model Name", "Description", "Dimension", "OA H w/ Glides", "OA H w/ Casters", "Assembly", "Bell Glides (Set of 5) (-BG)", "Felt Glides (Set of 4) (-FG)", "Steel Glides (-SG)", "Casters (-CA)", "Premium Armor Edge™ Colors (-S2_)", "Non-Standard Edge Band", "Custom Sizes", "Maple (-M)", "Hard Maple (-H)", "", "Non-Standard Edge Band-CUSTOM-LLB2048-LG", "Bell Glides (Set of 5) (-BG)-CUSTOM-CHR21-5", "Felt Glides (Set of 4) (-FG)-CUSTOM-CHR24-4F", "Steel Glides (-SG)-CUSTOM-STLUR186-AJ4-BZ", "Steel Glides (-SG)-CUSTOM-STL9186-AM4"
-  ];
 
   const processXML = async () => {
     try {
@@ -43,6 +42,7 @@ const TeknionDataMatrix = () => {
       if (dbError) throw dbError;
       if (!data?.XM_CET_import) {
         setProducts([]);
+        setMatrixHeaders(BASE_HEADERS);
         return;
       }
 
@@ -54,26 +54,67 @@ const TeknionDataMatrix = () => {
 
       const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
       const featureMap = new Map();
+      const optionDetailsMap = new Map();
 
       for (const f of globalFeatures) {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+        const fDesc = f.getElementsByTagName("Description")[0]?.textContent;
         if (fCode) {
           featureMap.set(fCode, f);
+        }
+        
+        // Mapear opciones dentro de este feature
+        const options = Array.from(f.getElementsByTagName("Option"));
+        for (const opt of options) {
+          const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+          const optDesc = opt.getElementsByTagName("Description")[0]?.textContent;
+          if (optCode && optCode !== "C" && optCode !== "P") {
+            const label = optDesc ? `${optCode} (${optDesc})` : optCode;
+            optionDetailsMap.set(optCode, label);
+          }
         }
       }
       
       const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
-      const extracted = [];
+      const discoveredOptionsSet = new Set();
+      const extractedTemp = [];
 
+      // Primera pasada: recolectar todas las opciones presentes en este XML específico
+      for (const p of productsXML) {
+        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
+        for (const ref of featureRefs) {
+          const refCode = ref.textContent;
+          const featureNode = featureMap.get(refCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
+              if (optCode && optCode !== "C" && optCode !== "P") {
+                const colLabel = optionDetailsMap.get(optCode) || optCode;
+                discoveredOptionsSet.add(colLabel);
+              }
+            }
+          }
+        }
+      }
+
+      const dynamicOptionHeaders = Array.from(discoveredOptionsSet).sort();
+      const computedHeaders = [...BASE_HEADERS, ...dynamicOptionHeaders];
+      setMatrixHeaders(computedHeaders);
+
+      // Segunda pasada: Construir las filas con sus valores mapeados dinámicamente
       for (const p of productsXML) {
         const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
         const description = p.getElementsByTagName("Description")[0]?.textContent || "";
+        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
+          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
+          || "Standard";
         
         const priceElement = p.getElementsByTagName("Price")[0];
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
+        const weight = p.getElementsByTagName("Weight")[0]?.textContent || "N/A";
 
         const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        let hasSuffixes = false;
         
         const productOptionPrices = {};
         for (const ref of featureRefs) {
@@ -83,10 +124,12 @@ const TeknionDataMatrix = () => {
             const options = Array.from(featureNode.getElementsByTagName("Option"));
             for (const opt of options) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
+              if (optCode && optCode !== "C" && optCode !== "P") {
                 const optPriceElem = opt.querySelector("OptionPrice > Value");
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optCode) productOptionPrices[optCode] = optPrice;
+                const colLabel = optionDetailsMap.get(optCode) || optCode;
+                productOptionPrices[colLabel] = optPrice;
+                productOptionPrices[optCode] = optPrice;
               }
             }
           }
@@ -98,27 +141,29 @@ const TeknionDataMatrix = () => {
           const finalPrice = basePrice + (optPrice || 0);
 
           const row = {};
-          Teknion_HEADERS.forEach(h => row[h] = ""); // Initialize empty string
+          computedHeaders.forEach(h => row[h] = ""); // Inicializar vacío
 
-          // Map base fields
+          // Campos base fijos universales
           row["Model #"] = finalSku;
           row["List Price"] = finalPrice;
+          row["Weight"] = weight;
+          row["Classic/ Premium"] = classification;
           row["Model Name"] = finalDesc;
 
-          // Map extracted options to the respective columns if their code is in the header
-          Object.keys(productOptionPrices).forEach(optCode => {
-            const matchingHeader = Teknion_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
-            if (matchingHeader) {
-              row[matchingHeader] = productOptionPrices[optCode];
-            } else if (optCode.includes('MB')) {
-               const mbHeader = Teknion_HEADERS.find(h => h.includes("(__MB)"));
-               if (mbHeader) row[mbHeader] = productOptionPrices[optCode];
+          // Asignación de opciones dinámicas del catálogo subido
+          dynamicOptionHeaders.forEach(colLabel => {
+            const rawCode = colLabel.split(" (")[0];
+            if (productOptionPrices[colLabel] !== undefined) {
+              row[colLabel] = productOptionPrices[colLabel];
+            } else if (productOptionPrices[rawCode] !== undefined) {
+              row[colLabel] = productOptionPrices[rawCode];
             }
           });
 
           return row;
         };
 
+        let hasSuffixes = false;
         for (const ref of featureRefs) {
           const refCode = ref.textContent;
           const featureNode = featureMap.get(refCode);
@@ -131,8 +176,8 @@ const TeknionDataMatrix = () => {
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
                 
                 const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e["Model #"] === suffixSku)) {
-                  extracted.push(createRow(sku, optCode, optPrice));
+                if (!extractedTemp.find(e => e["Model #"] === suffixSku)) {
+                  extractedTemp.push(createRow(sku, optCode, optPrice));
                   hasSuffixes = true;
                 }
               }
@@ -141,15 +186,15 @@ const TeknionDataMatrix = () => {
         }
         
         if (!hasSuffixes) {
-          extracted.push(createRow(sku, null, 0));
+          extractedTemp.push(createRow(sku, null, 0));
         }
       }
       
-      setProducts(extracted);
+      setProducts(extractedTemp);
       setCurrentPage(1); 
-    } catch (err) {
-      console.error("Error processing Teknion data matrix:", err);
-      setError(err.message || "Error processing catalog information Teknion.");
+    } catch (err: any) {
+      console.error("Error processing catalog XML data matrix:", err);
+      setError(err.message || "Error processing catalog information.");
     } finally {
       setLoading(false);
     }
@@ -192,17 +237,16 @@ const TeknionDataMatrix = () => {
   const exportToCSV = () => {
     if (!filtered || filtered.length === 0) return;
     
-    // Explicitly use semicolon and our exact headers
     const csv = Papa.unparse(filtered, {
-      columns: Teknion_HEADERS,
+      columns: matrixHeaders,
       delimiter: ";"
     });
     
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const url = URL.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Teknion_XML_Results_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -211,20 +255,18 @@ const TeknionDataMatrix = () => {
   const exportToExcel = () => {
     if (!filtered || filtered.length === 0) return;
     
-    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: Teknion_HEADERS });
+    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: matrixHeaders });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
     
-    XLSX.writeFile(workbook, `Teknion_XML_Results_${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(workbook, `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.xlsx`);
   };
-
-
 
   if (loading) return (
     <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
-        Retrieving master data matrix from Teknion Engine...
+        Retrieving master data matrix from Engine...
       </div>
     </div>
   );
@@ -253,13 +295,13 @@ const TeknionDataMatrix = () => {
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">Teknion Seatings XML Matrix (Master Format)</span>
+                <span className="text-xs font-bold text-slate-800">Universal Dynamic XML Catalog Matrix</span>
                 <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
-                  Live
+                  Live Engine
                 </span>
               </div>
               <span className="text-[10px] text-slate-500">
-                Automated Ingestion Pipeline & Structured Data Mapping
+                Automated Dynamic Feature Ingestion & Data Mapping
               </span>
             </div>
 
@@ -289,7 +331,6 @@ const TeknionDataMatrix = () => {
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
               </button>
               <div className="flex items-center gap-1">
-                
                 <button 
                   onClick={() => setShowWarningModal(true)}
                   type="button"
@@ -299,7 +340,6 @@ const TeknionDataMatrix = () => {
                   <Download size={13} /> Excel
                 </button>
               </div>
-
             </div>
           </div>
 
@@ -316,13 +356,13 @@ const TeknionDataMatrix = () => {
             </div>
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300 max-h-[58vh]">
-              <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-[2000px]">
+              <table className="table-fixed border-collapse overflow-hidden text-left text-xs w-max min-w-[2000px]">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
                     <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
-                    {Teknion_HEADERS.map((header, i) => (
+                    {matrixHeaders.map((header, i) => (
                       <th
                         key={header + i}
                         className="px-3 py-2 text-[11px] font-semibold text-slate-800 bg-white/80 backdrop-blur-md border-r border-b border-slate-100 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
@@ -354,14 +394,14 @@ const TeknionDataMatrix = () => {
                             {realIndex}
                           </td>
 
-                          {Teknion_HEADERS.map((header, i) => {
+                          {matrixHeaders.map((header, i) => {
                             let value = p[header];
                             if (header === "List Price") value = `$${(p["List Price"] || 0).toLocaleString()}`;
                             
                             return (
-                              <td key={header + i} className={`p-0 text-slate-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]`}>
+                              <td key={header + i} className="p-0 text-slate-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
                                 <div className={`px-3 py-1.5 font-sans text-[11px] whitespace-nowrap truncate ${header === 'Model #' || header === 'List Price' ? 'font-bold font-mono text-[#464775]' : 'font-medium'}`} title={value}>
-                                  {value}
+                                  {value !== undefined && value !== null ? String(value) : ""}
                                 </div>
                               </td>
                             );
@@ -377,7 +417,7 @@ const TeknionDataMatrix = () => {
 
           <div className="bg-gradient-to-r from-slate-50/40 to-white px-4 py-2 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-slate-500 select-none">
             <div className="flex gap-4">
-              <span className="uppercase tracking-tight">TOTAL COLUMNS: {Teknion_HEADERS.length}</span>
+              <span className="uppercase tracking-tight">TOTAL COLUMNS: {matrixHeaders.length}</span>
               <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
             </div>
             
@@ -407,6 +447,7 @@ const TeknionDataMatrix = () => {
           </div>
         </div>
       </div>
+
       {/* ── EXCEL SCALABILITY WARNING MODAL ── */}
       {showWarningModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
@@ -416,21 +457,21 @@ const TeknionDataMatrix = () => {
           />
           <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <span className="text-[14px] font-bold text-[#242424]">Scalability Warning</span>
+              <span className="text-[14px] font-bold text-[#242424]">Export Matrix Data</span>
               <button onClick={() => setShowWarningModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <X size={18} />
               </button>
             </div>
             <div className="px-8 py-6 flex gap-4">
-              <div className="p-2 h-fit rounded-full shrink-0 bg-[#C4314B]/10 text-[#C4314B]">
-                <AlertCircle size={22} className="currentColor" />
+              <div className="p-2 h-fit rounded-full shrink-0 bg-[#464775]/10 text-[#464775]">
+                <Download size={22} className="currentColor" />
               </div>
               <div className="flex-1 mt-1">
                 <p className="text-[13px] text-[#616161] leading-relaxed mb-3">
-                  The process of manually updating and downloading files is <strong>inefficient and prone to errors</strong>. 
+                  Exporting dynamic XML catalog data matrix with <strong>{matrixHeaders.length} total columns</strong>.
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  Having multiple files circulating and sharing them manually is not efficient. It is critical to <strong>modularize the system</strong> to achieve better scalability.
+                  Select your preferred download format for full multi-tenant compatibility.
                 </p>
               </div>
             </div>
@@ -439,30 +480,22 @@ const TeknionDataMatrix = () => {
                 Cancel
               </button>
               <button 
-                onClick={async () => {
+                onClick={() => {
                   setShowWarningModal(false);
-                  
-                  if (filtered && filtered.length > 0) {
-                    const csvString = Papa.unparse(filtered, {
-                      columns: Teknion_HEADERS,
-                      delimiter: ";"
-                    });
-                    
-                    try {
-                      await supabase
-                        .from('ClientsSERVEX_General_Procces')
-                        .update({ csv_raw: csvString })
-                        .eq('company_name', 'General_Procces');
-                    } catch (err) {
-                      console.error('Error saving raw CSV:', err);
-                    }
-                  }
-                  
-                  exportToExcel();
-                }} 
-                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#464775] rounded hover:bg-[#5a1515] transition-all shadow-md"
+                  exportToCSV();
+                }}
+                className="px-4 py-1.5 text-[12px] font-bold text-white bg-[#464775] hover:bg-[#2B2C4B] rounded transition-all shadow-sm"
               >
-                I understand, download
+                Download CSV
+              </button>
+              <button 
+                onClick={() => {
+                  setShowWarningModal(false);
+                  exportToExcel();
+                }}
+                className="px-4 py-1.5 text-[12px] font-bold text-white bg-[#107C41] hover:bg-[#0B5C30] rounded transition-all shadow-sm"
+              >
+                Download Excel (.xlsx)
               </button>
             </div>
           </div>
@@ -472,4 +505,4 @@ const TeknionDataMatrix = () => {
   );
 };
 
-export default TeknionDataMatrix;
+export default DynamicDataMatrix;

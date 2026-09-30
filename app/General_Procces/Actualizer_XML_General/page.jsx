@@ -1,5 +1,5 @@
 'use client';
-import XMLResultsTeknion from '../Actualizer_Excel_General/components/XML_Results_Teknion.jsx';
+import XMLResultsGeneral Process from '../Actualizer_Excel_General/components/XML_Results_General.jsx';
 import ImportCETXml from '../Actualizer_Excel_General/components/IncertDataExcel/incertXML_excel';
 
 
@@ -18,7 +18,7 @@ import Csvs from './components/comparePDF/csvs.jsx';
 import Csvs_updated from './components/comparePDF/csvs_updated.jsx';
 import PrecentMain from './components/PrecentMain.jsx';
 import UploadFileCmpare from './components/comparePDF/IncertData/components/EJECUTOR.jsx';
-import AIReporting from './components/comparePDF/presentation_Teknion.jsx'
+import AIReporting from './components/comparePDF/presentation_General.jsx'
 import Compare from './components/comparePDF/UploadFileCmpare.jsx'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
@@ -99,7 +99,7 @@ export default function MenuInicial() {
       case 'incert_delete': return <IncertDelete step="xml" />;
                     case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
                     case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-      case 'xml_results': return <XMLResultsTeknion />;
+      case 'xml_results': return <XMLResultsGeneral Process />;
       case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
       case 'inbox': return <Csvs />;
@@ -314,7 +314,7 @@ export default function MenuInicial() {
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
                     case 'AI_reporter': return <Responce_ai />;
-                    case 'exportCETcsv': return <XMLResultsTeknion />;
+                    case 'exportCETcsv': return <XMLResultsGeneral Process />;
                     case 'compareCET': return <CETComparator />;
                     default: return null;
                   }

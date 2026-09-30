@@ -274,7 +274,7 @@ export default function CETComparator() {
            
 
            <h1 className="text-2xl font-light text-[#242424] tracking-wide relative z-10">
-            CET Matrix Comparator: <span className="font-normal text-[#464775]">Teknion</span>
+            CET Matrix Comparator: <span className="font-normal text-[#464775]">General Process</span>
            </h1>
            <p className="text-xs text-[#616161] mt-3 font-light tracking-[0.15em] uppercase relative z-10">
              1-to-1 analysis between Software Baseline (xml_actualizer_raw) & CET Modified Output (XM_CET_import)

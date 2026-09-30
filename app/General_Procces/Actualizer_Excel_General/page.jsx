@@ -9,9 +9,9 @@ import CriticalExcelModal from '../../components/CriticalExcelModal.jsx';
 import MenuLateral from './components/menuLateral.jsx';
 import AIReporting from './components/presentation_excel.jsx';
 import IncertData from './components/IncertDataExcel/Incert_data_excel.jsx';
-import XMLResultsTeknion from './components/XML_Results_Teknion.jsx';
+import XMLResultsGeneral Process from './components/XML_Results_General.jsx';
 import CETComparator from './components/CET_Comparator.jsx';
-import CSVFinalResultsTeknion from './components/CSV_Final_Results_Teknion.jsx';
+import CSVFinalResultsGeneral Process from './components/CSV_Final_Results_General.jsx';
 
 
 export default function ExcelActualizer() {
@@ -85,9 +85,9 @@ export default function ExcelActualizer() {
     switch (active) {
       case 'reporting': return <AIReporting />;
       case 'incert_delete': return <IncertData moduleName="General_Procces" />;
-      case 'xml_results': return <XMLResultsTeknion />;
+      case 'xml_results': return <XMLResultsGeneral Process />;
       case 'cet_comparator': return <CETComparator />;
-      case 'csv_final': return <CSVFinalResultsTeknion />;
+      case 'csv_final': return <CSVFinalResultsGeneral Process />;
 
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
@@ -122,7 +122,7 @@ export default function ExcelActualizer() {
                   Do you want to return to the main panel?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the Teknion management area. Any temporary changes in this view will be closed.
+                  You are about to leave the General Process management area. Any temporary changes in this view will be closed.
                 </p>
               </div>
             </div>
