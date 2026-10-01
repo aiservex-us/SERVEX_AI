@@ -18,6 +18,7 @@ import {
 
 export default function UploadClientXML({ step = 'all' }: { step?: string }) {
   const [companyName] = useState('General_Procces');
+  const [xmlFileName, setXmlFileName] = useState('');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState('');
   const [csvNewContent, setCsvNewContent] = useState('');
@@ -51,7 +52,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
     try {
       const { data, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw, csv_raw, csv_new_raw')
+        .select('xml_raw, xml_name, file_name, csv_raw, csv_new_raw')
         .eq('company_name', companyName)
         .maybeSingle();
 
@@ -68,6 +69,19 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           (Array.isArray(data.csv_new_raw) ? data.csv_new_raw.length > 0 : String(data.csv_new_raw).trim().length > 0);
         
         setExistingXml(hasXml);
+        if (hasXml) {
+          let fname = (data as any)?.xml_name || (data as any)?.file_name || '';
+          if (!fname && data.xml_raw) {
+            const m = String(data.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+            if (m && m[1]) fname = m[1].trim();
+            else {
+              const m2 = String(data.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
+              if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
+            }
+          }
+          if (!fname) fname = `${companyName}.xml`;
+          setXmlFileName(fname);
+        }
         setExistingCsv(hasCsv);
         setExistingNewCsv(hasNewCsv);
       } else {
@@ -164,7 +178,8 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         setMessage({ text: 'XML file loaded successfully', type: 'success' });
         setReadingXml(false);
         if (step === 'xml') {
-          saveSingleStep('xml', content);
+          setXmlFileName(file.name);
+          saveSingleStep('xml', content, file.name);
         }
       });
     };
@@ -234,7 +249,202 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
     if (file) readNewCSVFile(file);
   };
 
-    const saveSingleStep = async (type: 'xml' | 'csv_base' | 'csv_new', rawContent: string) => {
+  const yieldToMainThread = () => new Promise(resolve => setTimeout(resolve, 0));
+
+  async function generateCsvFromCetXml(xmlString: string): Promise<string> {
+    if (!xmlString || !xmlString.trim() || typeof window === 'undefined') return '';
+    try {
+      await yieldToMainThread();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+      if (xmlDoc.querySelector("parsererror")) return '';
+
+      const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
+      const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+      const featureMap = new Map();
+
+      for (const f of globalFeatures) {
+        const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+        if (fCode) featureMap.set(fCode, f);
+      }
+
+      // Función recursiva con memorización para resolver todos los FeatureRefs
+      const featureCache = new Map<string, string[]>();
+      const getProductFeatureCodes = (pNode: Element) => {
+        const directRefs = Array.from(pNode.getElementsByTagName("FeatureRef")).map(r => r.textContent?.trim()).filter((c): c is string => !!c);
+        const cacheKey = directRefs.join('|');
+        if (featureCache.has(cacheKey)) {
+          return featureCache.get(cacheKey)!;
+        }
+
+        const resolved: string[] = [];
+        const visited = new Set<string>();
+
+        const traverse = (fCode: string) => {
+          if (!fCode || visited.has(fCode)) return;
+          visited.add(fCode);
+          resolved.push(fCode);
+
+          const fNode = featureMap.get(fCode);
+          if (fNode) {
+            const subRefs = Array.from(fNode.getElementsByTagName("FeatureRef"));
+            for (const sub of subRefs) {
+              const subCode = sub.textContent?.trim();
+              if (subCode) traverse(subCode);
+            }
+          }
+        };
+
+        for (const code of directRefs) {
+          traverse(code);
+        }
+
+        featureCache.set(cacheKey, resolved);
+        return resolved;
+      };
+
+      const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+      const optionMap = new Map();
+
+      for (let i = 0; i < productsXML.length; i++) {
+        if (i > 0 && i % 150 === 0) {
+          await yieldToMainThread();
+        }
+        const p = productsXML[i];
+        const featureCodes = getProductFeatureCodes(p);
+        for (const fCode of featureCodes) {
+          const featureNode = featureMap.get(fCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
+              const optDesc = opt.getElementsByTagName("Description")[0]?.textContent?.trim();
+              const optPriceElem = opt.querySelector("OptionPrice > Value");
+
+              if (optPriceElem && optCode) {
+                const optPrice = parseFloat(optPriceElem.textContent || "0");
+                const label = optDesc 
+                  ? (optDesc.toLowerCase().includes(optCode.toLowerCase()) ? optDesc : `${optCode} (${optDesc})`)
+                  : optCode;
+
+                const existing = optionMap.get(optCode);
+                if (!existing) {
+                  optionMap.set(optCode, { optCode, label, maxPrice: optPrice });
+                } else {
+                  if (optPrice > existing.maxPrice) existing.maxPrice = optPrice;
+                  if (!existing.label || existing.label === optCode) existing.label = label;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      const validColumns = Array.from(optionMap.values()).filter(c => c.maxPrice > 0);
+      const dynamicOptionHeaders = validColumns.map(c => c.label);
+      const computedHeaders = [...BASE_HEADERS, ...dynamicOptionHeaders];
+      const extracted: any[] = [];
+      await yieldToMainThread();
+
+      for (let i = 0; i < productsXML.length; i++) {
+        if (i > 0 && i % 150 === 0) {
+          await yieldToMainThread();
+        }
+        const p = productsXML[i];
+        const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
+        const description = p.getElementsByTagName("Description")[0]?.textContent || "";
+        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
+          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
+          || "Standard";
+
+        const priceElement = p.getElementsByTagName("Price")[0];
+        const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
+        const weight = p.getElementsByTagName("Weight")[0]?.textContent || "N/A";
+
+        const featureCodes = getProductFeatureCodes(p);
+        const productOptionPrices: Record<string, number> = {};
+
+        for (const fCode of featureCodes) {
+          const featureNode = featureMap.get(fCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
+              const optPriceElem = opt.querySelector("OptionPrice > Value");
+              if (optPriceElem && optCode) {
+                const optPrice = parseFloat(optPriceElem.textContent || "0");
+                if (productOptionPrices[optCode] === undefined || optPrice > productOptionPrices[optCode]) {
+                  productOptionPrices[optCode] = optPrice;
+                }
+              }
+            }
+          }
+        }
+
+        const createRow = (baseSku: string, optSuffixCode: string | null, optPrice: number) => {
+          const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
+          const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
+          const finalPrice = basePrice + (optPrice || 0);
+
+          const row: Record<string, any> = {};
+          computedHeaders.forEach(h => row[h] = "");
+
+          row["Model #"] = finalSku;
+          row["List Price"] = finalPrice;
+          row["Weight"] = weight;
+          row["Classic/ Premium"] = classification;
+          row["Model Name"] = finalDesc;
+
+          validColumns.forEach(col => {
+            if (productOptionPrices[col.optCode] !== undefined) {
+              row[col.label] = productOptionPrices[col.optCode];
+            } else {
+              row[col.label] = 0;
+            }
+          });
+
+          return row;
+        };
+
+        let hasSuffixes = false;
+        for (const fCode of featureCodes) {
+          const featureNode = featureMap.get(fCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName("Option"));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
+              if (optCode === "C" || optCode === "P") {
+                const optPriceElem = opt.querySelector("OptionPrice > Value");
+                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+
+                const suffixSku = `${sku}/${optCode}`;
+                if (!extracted.find(e => e["Model #"] === suffixSku)) {
+                  extracted.push(createRow(sku, optCode, optPrice));
+                  hasSuffixes = true;
+                }
+              }
+            }
+          }
+        }
+
+        if (!hasSuffixes) {
+          extracted.push(createRow(sku, null, 0));
+        }
+      }
+
+      if (extracted.length === 0) return '';
+
+      return Papa.unparse(extracted, {
+        columns: computedHeaders,
+        delimiter: ";"
+      });
+    } catch (err) {
+      console.error('Error generating CSV from CET XML:', err);
+      return '';
+    }
+  }
+
+  const saveSingleStep = async (type: 'xml' | 'csv_base' | 'csv_new', rawContent: string, fileName?: string) => {
     setLoading(true);
     setMessage({ text: 'Saving to Supabase...', type: null });
 
@@ -249,7 +459,17 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
       }
 
       if (type === 'xml') {
-        payload.xml_raw = rawContent;
+        const prefixedContent = fileName ? `<!-- filename: ${fileName} -->\n${rawContent}` : rawContent;
+        payload.xml_raw = prefixedContent;
+        payload.XM_CET_import = prefixedContent;
+        if (fileName) {
+          payload.xml_name = fileName;
+          payload.file_name = fileName;
+        }
+        const generatedCsv = await generateCsvFromCetXml(rawContent);
+        if (generatedCsv) {
+          payload.csv_raw = generatedCsv;
+        }
       } else if (type === 'csv_base') {
         payload.csv_raw = sanitizeCSV(rawContent);
       } else if (type === 'csv_new') {
@@ -291,7 +511,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
 
 
   return (
-    <div className="w-full max-w-sm mx-auto flex font-sans text-[#242424] relative bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
+    <div className="w-full max-w-sm mx-auto flex font-sans text-[#242424] relative bg-transparent p-0">
       <div className="flex-1 flex flex-col gap-3">
 
         {/* --- POPUP PROCESANDO DATOS BASE --- */}
@@ -357,7 +577,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                             ? 'File already exists in DB'
                             : 'Upload XML'}
                     </p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">Catalog Creator Catalog</p>
+                    <p className="text-[9px] sm:text-[10px] text-[#464775] font-bold mt-1 font-mono leading-tight px-1 max-w-full truncate bg-[#464775]/10 py-0.5 rounded">{xmlFileName || "Catalog Creator Catalog"}</p>
                     {showXmlExistingNotice && (
                       <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
                     )}
@@ -403,36 +623,14 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
 
                 </div>
 
-                {/* Previews */}
-                <div className={`grid grid-cols-1 ${step === 'all' ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-3`}>
-                  {(step === 'all' || step === 'xml') && (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">XML Preview</label>
-                    <textarea className="w-full text-[10px] font-mono rounded border border-white/40 bg-white/20 backdrop-blur-md text-gray-700 px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
-                  </div>
-                  )}
-                  
-                  {(step === 'all' || step === 'csv_new') && (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">New CSV Preview</label>
-                    <textarea className="w-full text-[10px] font-mono rounded border border-white/40 bg-white/20 backdrop-blur-md text-gray-700 px-3 py-2 h-32 resize-none outline-none" value={csvNewContent} readOnly />
-                  </div>
-                  )}
-                </div>
-
                 {message.type && (
-                  <div className={`p-3 rounded flex items-center gap-3 text-xs font-semibold border-l-4
-                    ${message.type === 'success' ? 'bg-green-50 border-l-green-600 text-green-800' : 'bg-red-50 border-l-red-600 text-red-800'}`}>
-                    {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                  <div className={`p-3 rounded-lg flex items-center gap-3 text-xs font-semibold border-l-4
+                    ${message.type === 'success' ? 'bg-[#464775]/10 border-l-[#464775] text-[#464775]' : 'bg-red-50 border-l-red-600 text-red-800'}`}>
+                    {message.type === 'success' ? <CheckCircle2 size={16} className="text-[#464775]" /> : <AlertCircle size={16} />}
                     {message.text}
                   </div>
                 )}
               </div>
-
-              
             </div>
-        
-      
-    
   );
 }

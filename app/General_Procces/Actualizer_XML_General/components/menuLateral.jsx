@@ -22,8 +22,6 @@ import {
 const menuItems = [
   { id: 'reporting', label: 'General Process Home', icon: LayoutDashboard, sub: 'Dashboard' },
   { id: 'xml_results', label: 'Export Data client', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'inbox', label: 'cataloge base', icon: FileCode, sub: 'Intelligence' },
-  { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'excel_redirect', label: 'Transform to Excel', icon: ArrowRightLeft, sub: 'Data', link: '/General_Procces/Actualizer_Excel_General' },
@@ -88,7 +86,7 @@ export default function MenuLateral({
           <div className={`flex items-center ${isEffectivelyCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
             <Link href="/panel" className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors cursor-pointer">
               <img
-                src="/logosEmpresas/General Process_logo_RGB.svg"
+                src="/logosEmpresas/General_logo_RGB.svg"
                 alt="Logo"
                 className={`object-contain transition-all duration-300 ${isEffectivelyCollapsed ? 'w-5 h-5' : 'w-7 h-7'}`}
               />

@@ -353,21 +353,63 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
     if (queryToSend.toLowerCase() === '/importcetxml') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos CET en el chat...', isNew: true }, { from: 'tool', toolId: 'import_cet_xml' }]);
+        setMessages(prev => [...prev, { from: 'bot', text: 'Opening CET Data Ingestion environment in chat...\n\nHere we process XMLs from any catalog to dynamically convert them into a structured matrix, allowing the system to automatically generate client injection and update data.', isNew: true }, { from: 'tool', toolId: 'import_cet_xml' }]);
         setIsLoading(false);
         scrollToBottom(true);
       }, 500);
       return;
     }
-if (queryToSend.toLowerCase() === '/importbase') {
-      setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Abriendo entorno de Ingestión de Datos en el chat...', isNew: true }, { from: 'tool', toolId: 'incert_delete' }]);
+            if (queryToSend.toLowerCase() === '/importbase') {
+      (async () => {
+        try {
+          const { data } = await supabase
+            .from('ClientsSERVEX_LESRO')
+            .select('xml_raw, xml_name, file_name, XM_CET_import')
+            .eq('company_name', 'LESRO')
+            .maybeSingle();
+
+          const xmlContent = data?.xml_raw || data?.XM_CET_import || '';
+          const hasXml = !!xmlContent && String(xmlContent).trim().length > 0;
+
+          if (hasXml) {
+            let fname = data?.xml_name || data?.file_name || '';
+            if (!fname && xmlContent) {
+              const m = String(xmlContent).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+              if (m && m[1]) fname = m[1].trim();
+              else {
+                const m2 = String(xmlContent).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
+                if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
+              }
+            }
+            if (!fname) fname = 'LESRO.xml';
+
+            setMessages(prev => [
+              ...prev,
+              {
+                from: 'bot',
+                text: `El archivo XML maestro **(${fname})** de LESRO ya se encuentra cargado en la base de datos (**File already exists in DB**). El sistema está listo para cargar el nuevo catálogo CSV (csv_new_raw).`,
+                isNew: true
+              },
+              { from: 'tool', toolId: 'incert_wbs_csv_new' }
+            ]);
+          } else {
+            setMessages(prev => [
+              ...prev,
+              { from: 'bot', text: 'Por favor, sube el archivo XML maestro de LESRO.', isNew: true },
+              { from: 'tool', toolId: 'incert_delete' }
+            ]);
+          }
+        } catch (e) {
+          setMessages(prev => [
+            ...prev,
+            { from: 'bot', text: 'Por favor, sube el archivo XML maestro de LESRO.', isNew: true },
+            { from: 'tool', toolId: 'incert_delete' }
+          ]);
+        }
         setIsLoading(false);
         scrollToBottom(true);
-      }, 500);
+      })();
       return;
-
-
     }
     
     if (queryToSend.toLowerCase() === '/exportcetcsv') {

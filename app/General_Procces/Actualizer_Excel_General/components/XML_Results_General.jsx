@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -8,7 +8,8 @@ import {
   Filter, 
   AlertCircle,
   Download,
-  X
+  X,
+  Search
 } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -26,10 +27,104 @@ const DynamicDataMatrix = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
+  const processedXmlRef = useRef(null);
+  const [processedIndex, setProcessedIndex] = useState(0);
+  const [totalProductsInXml, setTotalProductsInXml] = useState(0);
+  const [isExportingFull, setIsExportingFull] = useState(false);
+
+  const yieldToMainThread = () => new Promise(resolve => setTimeout(resolve, 0));
+
+  const extractProductRows = (p, featureMap, getProductFeatureCodes, validColumns, computedHeaders) => {
+    const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
+    const description = p.getElementsByTagName("Description")[0]?.textContent || "";
+    const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
+      || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
+      || "Standard";
+    
+    const priceElement = p.getElementsByTagName("Price")[0];
+    const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
+    const weight = p.getElementsByTagName("Weight")[0]?.textContent || "N/A";
+
+    const featureCodes = getProductFeatureCodes(p);
+    const productOptionPrices = {};
+    
+    for (const fCode of featureCodes) {
+      const featureNode = featureMap.get(fCode);
+      if (featureNode) {
+        const options = Array.from(featureNode.getElementsByTagName("Option"));
+        for (const opt of options) {
+          const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
+          const optPriceElem = opt.querySelector("OptionPrice > Value");
+          if (optPriceElem && optCode) {
+            const optPrice = parseFloat(optPriceElem.textContent || "0");
+            if (productOptionPrices[optCode] === undefined || optPrice > productOptionPrices[optCode]) {
+              productOptionPrices[optCode] = optPrice;
+            }
+          }
+        }
+      }
+    }
+
+    const createRow = (baseSku, optSuffixCode, optPrice) => {
+      const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
+      const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
+      const finalPrice = basePrice + (optPrice || 0);
+
+      const row = {};
+      computedHeaders.forEach(h => row[h] = "");
+
+      row["Model #"] = finalSku;
+      row["List Price"] = finalPrice;
+      row["Weight"] = weight;
+      row["Classic/ Premium"] = classification;
+      row["Model Name"] = finalDesc;
+
+      validColumns.forEach(col => {
+        if (productOptionPrices[col.optCode] !== undefined) {
+          row[col.label] = productOptionPrices[col.optCode];
+        } else {
+          row[col.label] = 0;
+        }
+      });
+
+      return row;
+    };
+
+    const rows = [];
+    let hasSuffixes = false;
+    for (const fCode of featureCodes) {
+      const featureNode = featureMap.get(fCode);
+      if (featureNode) {
+        const options = Array.from(featureNode.getElementsByTagName("Option"));
+        for (const opt of options) {
+          const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
+          if (optCode === "C" || optCode === "P") {
+            const optPriceElem = opt.querySelector("OptionPrice > Value");
+            const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+            
+            const suffixSku = `${sku}/${optCode}`;
+            if (!rows.find(e => e["Model #"] === suffixSku)) {
+              rows.push(createRow(sku, optCode, optPrice));
+              hasSuffixes = true;
+            }
+          }
+        }
+      }
+    }
+    
+    if (!hasSuffixes) {
+      rows.push(createRow(sku, null, 0));
+    }
+
+    return rows;
+  };
+
   const processXML = async () => {
     try {
       setLoading(true);
       setError(null);
+      setProducts([]);
+      setProcessedIndex(0);
 
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
@@ -43,8 +138,11 @@ const DynamicDataMatrix = () => {
       if (!data?.XM_CET_import) {
         setProducts([]);
         setMatrixHeaders(BASE_HEADERS);
+        setLoading(false);
         return;
       }
+
+      await yieldToMainThread();
 
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(data.XM_CET_import, "text/xml");
@@ -54,150 +152,169 @@ const DynamicDataMatrix = () => {
 
       const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
       const featureMap = new Map();
-      const optionDetailsMap = new Map();
 
       for (const f of globalFeatures) {
         const fCode = f.getElementsByTagName("Code")[0]?.textContent;
-        const fDesc = f.getElementsByTagName("Description")[0]?.textContent;
         if (fCode) {
           featureMap.set(fCode, f);
         }
-        
-        // Mapear opciones dentro de este feature
-        const options = Array.from(f.getElementsByTagName("Option"));
-        for (const opt of options) {
-          const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-          const optDesc = opt.getElementsByTagName("Description")[0]?.textContent;
-          if (optCode && optCode !== "C" && optCode !== "P") {
-            const label = optDesc ? `${optCode} (${optDesc})` : optCode;
-            optionDetailsMap.set(optCode, label);
-          }
-        }
-      }
-      
-      const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
-      const discoveredOptionsSet = new Set();
-      const extractedTemp = [];
-
-      // Primera pasada: recolectar todas las opciones presentes en este XML específico
-      for (const p of productsXML) {
-        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode && optCode !== "C" && optCode !== "P") {
-                const colLabel = optionDetailsMap.get(optCode) || optCode;
-                discoveredOptionsSet.add(colLabel);
-              }
-            }
-          }
-        }
       }
 
-      const dynamicOptionHeaders = Array.from(discoveredOptionsSet).sort();
-      const computedHeaders = [...BASE_HEADERS, ...dynamicOptionHeaders];
-      setMatrixHeaders(computedHeaders);
+      const featureCache = new Map();
+      const getProductFeatureCodes = (pNode) => {
+        const directRefs = Array.from(pNode.getElementsByTagName("FeatureRef")).map(r => r.textContent?.trim()).filter(Boolean);
+        const cacheKey = directRefs.join('|');
+        if (featureCache.has(cacheKey)) {
+          return featureCache.get(cacheKey);
+        }
 
-      // Segunda pasada: Construir las filas con sus valores mapeados dinámicamente
-      for (const p of productsXML) {
-        const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
-        const description = p.getElementsByTagName("Description")[0]?.textContent || "";
-        const classification = p.getElementsByTagName("ClassificationRef")[0]?.getElementsByTagName("Code")[0]?.textContent 
-          || p.getElementsByTagName("ClassificationRef")[0]?.textContent 
-          || "Standard";
-        
-        const priceElement = p.getElementsByTagName("Price")[0];
-        const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
-        const weight = p.getElementsByTagName("Weight")[0]?.textContent || "N/A";
+        const resolved = [];
+        const visited = new Set();
 
-        const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        
-        const productOptionPrices = {};
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode && optCode !== "C" && optCode !== "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                const colLabel = optionDetailsMap.get(optCode) || optCode;
-                productOptionPrices[colLabel] = optPrice;
-                productOptionPrices[optCode] = optPrice;
-              }
+        const traverse = (fCode) => {
+          if (!fCode || visited.has(fCode)) return;
+          visited.add(fCode);
+          resolved.push(fCode);
+
+          const fNode = featureMap.get(fCode);
+          if (fNode) {
+            const subRefs = Array.from(fNode.getElementsByTagName("FeatureRef"));
+            for (const sub of subRefs) {
+              const subCode = sub.textContent?.trim();
+              if (subCode) traverse(subCode);
             }
           }
-        }
-        
-        const createRow = (baseSku, optSuffixCode, optPrice) => {
-          const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
-          const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
-          const finalPrice = basePrice + (optPrice || 0);
-
-          const row = {};
-          computedHeaders.forEach(h => row[h] = ""); // Inicializar vacío
-
-          // Campos base fijos universales
-          row["Model #"] = finalSku;
-          row["List Price"] = finalPrice;
-          row["Weight"] = weight;
-          row["Classic/ Premium"] = classification;
-          row["Model Name"] = finalDesc;
-
-          // Asignación de opciones dinámicas del catálogo subido
-          dynamicOptionHeaders.forEach(colLabel => {
-            const rawCode = colLabel.split(" (")[0];
-            if (productOptionPrices[colLabel] !== undefined) {
-              row[colLabel] = productOptionPrices[colLabel];
-            } else if (productOptionPrices[rawCode] !== undefined) {
-              row[colLabel] = productOptionPrices[rawCode];
-            }
-          });
-
-          return row;
         };
 
-        let hasSuffixes = false;
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
+        for (const code of directRefs) {
+          traverse(code);
+        }
+
+        featureCache.set(cacheKey, resolved);
+        return resolved;
+      };
+
+      const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+      setTotalProductsInXml(productsXML.length);
+
+      const optionMap = new Map();
+
+      for (let i = 0; i < productsXML.length; i++) {
+        if (i > 0 && i % 200 === 0) {
+          await yieldToMainThread();
+        }
+        const p = productsXML[i];
+        const featureCodes = getProductFeatureCodes(p);
+        for (const fCode of featureCodes) {
+          const featureNode = featureMap.get(fCode);
           if (featureNode) {
             const options = Array.from(featureNode.getElementsByTagName("Option"));
             for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+              const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
+              const optDesc = opt.getElementsByTagName("Description")[0]?.textContent?.trim();
+              const optPriceElem = opt.querySelector("OptionPrice > Value");
+              
+              if (optPriceElem && optCode) {
+                const optPrice = parseFloat(optPriceElem.textContent || "0");
+                const label = optDesc 
+                  ? (optDesc.toLowerCase().includes(optCode.toLowerCase()) ? optDesc : `${optCode} (${optDesc})`)
+                  : optCode;
                 
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extractedTemp.find(e => e["Model #"] === suffixSku)) {
-                  extractedTemp.push(createRow(sku, optCode, optPrice));
-                  hasSuffixes = true;
+                const existing = optionMap.get(optCode);
+                if (!existing) {
+                  optionMap.set(optCode, { optCode, label, maxPrice: optPrice });
+                } else {
+                  if (optPrice > existing.maxPrice) {
+                    existing.maxPrice = optPrice;
+                  }
+                  if (!existing.label || existing.label === optCode) {
+                    existing.label = label;
+                  }
                 }
               }
             }
           }
         }
-        
-        if (!hasSuffixes) {
-          extractedTemp.push(createRow(sku, null, 0));
-        }
       }
+
+      const validColumns = Array.from(optionMap.values()).filter(c => c.maxPrice > 0);
+      const dynamicOptionHeaders = validColumns.map(c => c.label);
+      const computedHeaders = [...BASE_HEADERS, ...dynamicOptionHeaders];
       
-      setProducts(extractedTemp);
+      setMatrixHeaders(computedHeaders);
+
+      // Guardar referencia en el ref para carga bajo demanda
+      processedXmlRef.current = {
+        productsXML,
+        featureMap,
+        getProductFeatureCodes,
+        validColumns,
+        computedHeaders
+      };
+
+      // CARGA DE BÚFER INICIAL (EXACTAMENTE 30 PRODUCTOS = 2 PÁGINAS DE 15)
+      const initialRows = [];
+      const initialCount = Math.min(30, productsXML.length);
+      
+      for (let i = 0; i < initialCount; i++) {
+        const rows = extractProductRows(productsXML[i], featureMap, getProductFeatureCodes, validColumns, computedHeaders);
+        initialRows.push(...rows);
+      }
+
+      setProducts(initialRows);
+      setProcessedIndex(initialCount);
+      setLoading(false);
       setCurrentPage(1); 
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error processing catalog XML data matrix:", err);
       setError(err.message || "Error processing catalog information.");
-    } finally {
       setLoading(false);
     }
+  };
+
+  const loadMoreProductsBuffer = async (countToLoad = 30) => {
+    if (!processedXmlRef.current) return;
+    const { productsXML, featureMap, getProductFeatureCodes, validColumns, computedHeaders } = processedXmlRef.current;
+    
+    if (processedIndex >= productsXML.length) return;
+
+    const nextIndex = Math.min(processedIndex + countToLoad, productsXML.length);
+    const newRows = [];
+
+    for (let i = processedIndex; i < nextIndex; i++) {
+      const rows = extractProductRows(productsXML[i], featureMap, getProductFeatureCodes, validColumns, computedHeaders);
+      newRows.push(...rows);
+    }
+
+    setProducts(prev => [...prev, ...newRows]);
+    setProcessedIndex(nextIndex);
+  };
+
+  // Carga bajo demanda al navegar a páginas posteriores
+  useEffect(() => {
+    const requiredItemCount = (currentPage + 1) * itemsPerPage;
+    if (requiredItemCount >= products.length && processedIndex < totalProductsInXml) {
+      loadMoreProductsBuffer(30);
+    }
+  }, [currentPage, products.length, processedIndex, totalProductsInXml]);
+
+  const loadAllForExport = async () => {
+    if (!processedXmlRef.current || processedIndex >= totalProductsInXml) return products;
+    setIsExportingFull(true);
+
+    const { productsXML, featureMap, getProductFeatureCodes, validColumns, computedHeaders } = processedXmlRef.current;
+    const allRows = [...products];
+
+    for (let i = processedIndex; i < productsXML.length; i++) {
+      if (i % 200 === 0) await yieldToMainThread();
+      const rows = extractProductRows(productsXML[i], featureMap, getProductFeatureCodes, validColumns, computedHeaders);
+      allRows.push(...rows);
+    }
+
+    setProducts(allRows);
+    setProcessedIndex(productsXML.length);
+    setIsExportingFull(false);
+    return allRows;
   };
 
   useEffect(() => {
@@ -234,16 +351,17 @@ const DynamicDataMatrix = () => {
     return { total, filtered: filtered.length, avgPrice };
   }, [products, filtered]);
 
-  const exportToCSV = () => {
-    if (!filtered || filtered.length === 0) return;
+  const exportToCSV = async () => {
+    const fullProducts = await loadAllForExport();
+    if (!fullProducts || fullProducts.length === 0) return;
     
-    const csv = Papa.unparse(filtered, {
+    const csv = Papa.unparse(fullProducts, {
       columns: matrixHeaders,
       delimiter: ";"
     });
     
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
     link.setAttribute('download', `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.csv`);
@@ -252,10 +370,11 @@ const DynamicDataMatrix = () => {
     document.body.removeChild(link);
   };
 
-  const exportToExcel = () => {
-    if (!filtered || filtered.length === 0) return;
+  const exportToExcel = async () => {
+    const fullProducts = await loadAllForExport();
+    if (!fullProducts || fullProducts.length === 0) return;
     
-    const worksheet = XLSX.utils.json_to_sheet(filtered, { header: matrixHeaders });
+    const worksheet = XLSX.utils.json_to_sheet(fullProducts, { header: matrixHeaders });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
     
@@ -286,152 +405,161 @@ const DynamicDataMatrix = () => {
   );
 
   return (
-    <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent p-2 md:p-4 text-slate-800 font-sans antialiased">
+    <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent p-2 md:p-4 font-sans antialiased">
       <div className="w-full mx-auto">
         
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#464775]/10 overflow-hidden flex flex-col w-full">
+        <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#464775]/30 shadow-lg shadow-[#464775]/5 overflow-hidden flex flex-col w-full">
           
           {/* Operations / Filters Header */}
-          <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="px-4 py-2.5 border-b border-[#464775]/15 bg-white/40 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-2.5">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-800">Universal Dynamic XML Catalog Matrix</span>
-                <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
-                  Live Engine
-                </span>
+                <span className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">Export Data Client Matrix</span>
+                {isExportingFull ? (
+                  <span className="text-[9px] font-bold text-indigo-700 bg-indigo-50/80 border border-indigo-200 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse select-none">
+                    <RefreshCw size={9} className="animate-spin text-indigo-600" />
+                    Preparing ({products.length} / {totalProductsInXml})
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-bold text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full border border-[#464775]/20 select-none">
+                    Live Engine ({products.length} / {totalProductsInXml})
+                  </span>
+                )}
               </div>
-              <span className="text-[10px] text-slate-500">
-                Automated Dynamic Feature Ingestion & Data Mapping
+              <span className="text-[9.5px] text-slate-500 font-medium">
+                Dynamic catalog matrix & client data injection engine
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 bg-transparent/80 border border-slate-200/60 rounded-sm px-2 py-0.5 text-[10px] text-slate-500 font-medium select-none">
-                <span>PRODUCTS: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
-                <span className="text-[#D2D2D2]">|</span>
-                <span>FILTERED: <strong className="text-slate-800 font-bold">{stats.filtered}</strong></span>
-                <span className="text-[#D2D2D2]">|</span>
-                <span>AVG BASE PRICE: <strong className="text-slate-800 font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
+              <div className="hidden sm:flex items-center gap-2 bg-[#464775]/5 border border-[#464775]/15 rounded-lg px-2.5 py-1 text-[10px] text-slate-600 font-medium select-none">
+                <span>Products: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
+                <span className="text-[#464775]/30">|</span>
+                <span>Filtered: <strong className="text-slate-800 font-bold">{stats.filtered}</strong></span>
+                <span className="text-[#464775]/30">|</span>
+                <span>Avg Price: <strong className="text-[#464775] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
               </div>
 
-              <input
-                type="text"
-                placeholder="Search matrix..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#464775] outline-none transition-all w-[180px]"
-              />
+              <div className="relative flex items-center">
+                <Search size={12} className="absolute left-2.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search matrix..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-white/70 border border-[#464775]/25 rounded-lg pl-7 pr-2.5 py-0.5 text-[10.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#464775] focus:bg-white transition-all w-[160px]"
+                />
+              </div>
 
               <button 
                 onClick={processXML}
                 type="button"
-                className="p-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors"
+                className="p-1 bg-white/70 border border-[#464775]/25 hover:bg-[#464775]/10 rounded-lg text-[#464775] transition-all shadow-2xs"
                 title="Synchronize and recalculate matrices"
               >
-                <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                <RefreshCw size={12} className={loading ? "animate-spin text-[#464775]" : ""} />
               </button>
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={() => setShowWarningModal(true)}
-                  type="button"
-                  className="px-2 py-1 bg-white border border-slate-200/60 hover:bg-slate-100 rounded-sm text-slate-500 transition-colors flex items-center justify-center gap-1.5 text-[11px] font-bold"
-                  title="Export current view to Excel"
-                >
-                  <Download size={13} /> Excel
-                </button>
-              </div>
+
+              <button 
+                onClick={() => setShowWarningModal(true)}
+                type="button"
+                className="px-2.5 py-1 bg-[#464775] hover:bg-[#3b3c63] text-white rounded-lg transition-all flex items-center gap-1 text-[10.5px] font-semibold shadow-2xs"
+                title="Export current view to Excel"
+              >
+                <Download size={11} /> Export Excel
+              </button>
             </div>
           </div>
 
           {/* Table Matrix */}
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-20 text-center bg-white/40 backdrop-blur-md">
-              <div className="w-16 h-16 rounded-2xl bg-[#464775]/5 flex items-center justify-center mb-4 border border-[#464775]/10 shadow-inner">
-                <svg className="w-8 h-8 text-[#464775]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div className="flex flex-col items-center justify-center p-16 text-center bg-white/30 backdrop-blur-sm">
+              <div className="w-12 h-12 rounded-xl bg-[#464775]/10 flex items-center justify-center mb-2.5 border border-[#464775]/20">
+                <svg className="w-6 h-6 text-[#464775]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
-              <h3 className="text-sm font-bold text-slate-700 mb-1">No data found</h3>
-              <p className="text-xs text-slate-500 max-w-sm font-medium">
+              <h3 className="text-xs font-bold text-slate-800 mb-0.5">No data found</h3>
+              <p className="text-[10px] text-slate-500 max-w-xs font-medium">
                 We couldn't find any records matching your current filter criteria.
               </p>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-gray-300 max-h-[58vh]">
-              <table className="table-fixed border-collapse overflow-hidden text-left text-xs w-max min-w-[2000px]">
-                <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
+            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-slate-300 max-h-[58vh]">
+              <table className="table-fixed border-collapse text-left text-[10px] w-max min-w-[2000px]">
+                <thead className="sticky top-0 z-20 bg-[#464775]/10 backdrop-blur-md border-b border-[#464775]/20">
                   <tr>
-                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
-                      Index
+                    <th className="w-10 px-2 py-2 text-center text-[9px] font-bold uppercase tracking-wider text-[#464775] bg-[#464775]/10 backdrop-blur-md sticky left-0 z-30 border-r border-b border-[#464775]/20 select-none">
+                      #
                     </th>
                     {matrixHeaders.map((header, i) => (
                       <th
                         key={header + i}
-                        className="px-3 py-2 text-[11px] font-semibold text-slate-800 bg-white/80 backdrop-blur-md border-r border-b border-slate-100 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
+                        className="px-3 py-2 text-[10px] font-bold text-[#464775] bg-[#464775]/10 backdrop-blur-md border-r border-b border-[#464775]/20 min-w-[150px] max-w-[260px] whitespace-nowrap truncate uppercase tracking-wider select-none"
                       >
-                        <div className="flex items-center gap-1.5">
-                          {header || "(Empty)"}
-                          <Filter size={8} className="text-[#464775] opacity-40" />
+                        <div className="flex items-center gap-1">
+                          <span>{header || "(Empty)"}</span>
+                          <Filter size={9} className="text-[#464775] opacity-50" />
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
 
-                <tbody className="bg-white divide-y divide-[#F0F0F0]">
-                  <AnimatePresence initial={false}>
-                    {paginatedProducts.map((p, idx) => {
-                      const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
-                      
-                      return (
-                        <motion.tr 
-                          key={p["Model #"] || realIndex}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.15 }}
-                          className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75 group"
-                        >
-                          <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#464775] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
-                            {realIndex}
-                          </td>
+                <tbody className="bg-white/60 divide-y divide-[#464775]/10">
+                  {paginatedProducts.map((p, idx) => {
+                    const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
+                    
+                    return (
+                      <tr 
+                        key={p["Model #"] || realIndex}
+                        className="hover:bg-[#464775]/10 transition-colors group"
+                      >
+                        <td className="px-2 py-1.5 text-center text-[9.5px] font-bold text-[#464775] border-r border-[#464775]/10 sticky left-0 z-10 bg-white/90 group-hover:bg-[#464775]/10 border-b border-[#464775]/10 font-mono">
+                          {realIndex}
+                        </td>
 
-                          {matrixHeaders.map((header, i) => {
-                            let value = p[header];
-                            if (header === "List Price") value = `$${(p["List Price"] || 0).toLocaleString()}`;
-                            
-                            return (
-                              <td key={header + i} className="p-0 text-slate-800 border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
-                                <div className={`px-3 py-1.5 font-sans text-[11px] whitespace-nowrap truncate ${header === 'Model #' || header === 'List Price' ? 'font-bold font-mono text-[#464775]' : 'font-medium'}`} title={value}>
-                                  {value !== undefined && value !== null ? String(value) : ""}
-                                </div>
-                              </td>
-                            );
-                          })}
-                        </motion.tr>
-                      );
-                    })}
-                  </AnimatePresence>
+                        {matrixHeaders.map((header, i) => {
+                          let value = p[header];
+                          if (header === "List Price") value = `$${(p["List Price"] || 0).toLocaleString()}`;
+                          
+                          const isHighlight = header === 'Model #' || header === 'List Price';
+                          return (
+                            <td key={header + i} className="p-0 text-slate-800 border-r border-b border-[#464775]/10 min-w-[150px] max-w-[260px]">
+                              <div 
+                                className={`px-3 py-1.5 font-sans text-[10px] whitespace-nowrap truncate ${isHighlight ? 'font-bold text-[#464775] font-mono' : 'font-medium text-slate-700'}`} 
+                                title={value}
+                              >
+                                {value !== undefined && value !== null ? String(value) : ""}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           )}
 
-          <div className="bg-gradient-to-r from-slate-50/40 to-white px-4 py-2 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-semibold text-slate-500 select-none">
-            <div className="flex gap-4">
-              <span className="uppercase tracking-tight">TOTAL COLUMNS: {matrixHeaders.length}</span>
-              <span className="uppercase tracking-tight">RECORDS MATCHED: {filtered.length} of {products.length}</span>
+          {/* Footer */}
+          <div className="bg-white/40 backdrop-blur-md px-4 py-2 border-t border-[#464775]/15 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-medium text-slate-600 select-none">
+            <div className="flex items-center gap-3">
+              <span>Columns: <strong className="text-slate-800 font-bold">{matrixHeaders.length}</strong></span>
+              <span className="text-[#464775]/30">|</span>
+              <span>Showing <strong className="text-slate-800 font-bold">{filtered.length}</strong> of <strong className="text-slate-800 font-bold">{products.length}</strong> items</span>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="px-2 py-1 bg-white border border-slate-200/60 rounded-sm text-slate-800 transition-colors enabled:hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-bold"
+                className="px-2.5 py-0.5 bg-white/80 border border-[#464775]/25 hover:bg-[#464775] hover:text-white rounded-md text-[#464775] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px]"
               >
                 Previous
               </button>
               
-              <span className="text-slate-800 font-mono px-1 text-[11px]">
+              <span className="text-[#464775] font-bold px-1.5 text-[10px]">
                 Page {currentPage} of {totalPages}
               </span>
 
@@ -439,7 +567,7 @@ const DynamicDataMatrix = () => {
                 type="button"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className="px-2 py-1 bg-white border border-slate-200/60 rounded-sm text-slate-800 transition-colors enabled:hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-bold"
+                className="px-2.5 py-0.5 bg-white/80 border border-[#464775]/25 hover:bg-[#464775] hover:text-white rounded-md text-[#464775] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px]"
               >
                 Next
               </button>

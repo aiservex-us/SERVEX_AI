@@ -131,9 +131,7 @@ export default function MenuInicial() {
                     case 'exportCETcsv': return <XMLResultsWBO />;
                     case 'compareCET': return <CETComparator />;
                     case 'xml_results': return <XMLResultsWBO />;
-      case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
-      case 'inbox': return <Csvs />;
       case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
       case 'report': return <Report />;

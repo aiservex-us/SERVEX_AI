@@ -74,7 +74,9 @@ function generateCsvFromXml(xmlString: string): string {
             if (optCode !== "C" && optCode !== "P") {
               const optPriceElem = opt.querySelector("OptionPrice > Value");
               const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-              if (optCode) productOptionPrices[optCode] = optPrice;
+              if (optCode && (productOptionPrices[optCode] === undefined || optPrice > 0)) {
+                productOptionPrices[optCode] = optPrice;
+              }
             }
           }
         }
@@ -93,7 +95,14 @@ function generateCsvFromXml(xmlString: string): string {
         row["Model Name"] = finalDesc;
 
         Object.keys(productOptionPrices).forEach(optCode => {
-          const matchingHeader = DESKS_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
+          const optClean = optCode.replace(/^-/, '');
+          const matchingHeader = DESKS_HEADERS.find(h => {
+            const hUpper = h.toUpperCase();
+            return hUpper.includes(`(${optCode.toUpperCase()})`) ||
+                   hUpper.includes(`-${optCode.toUpperCase()}`) ||
+                   hUpper.includes(`(${optClean.toUpperCase()})`) ||
+                   hUpper.includes(`-${optClean.toUpperCase()}`);
+          });
           if (matchingHeader) {
             row[matchingHeader] = productOptionPrices[optCode];
           } else if (optCode.includes('MB')) {
@@ -173,6 +182,19 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
       } else if (data) {
         const hasXml = !!data.XM_CET_import && String(data.XM_CET_import).trim().length > 0;
         setExistingXml(hasXml);
+        if (hasXml) {
+          let fname = (data as any)?.xml_name || (data as any)?.file_name || '';
+          if (!fname && data.xml_raw) {
+            const m = String(data.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+            if (m && m[1]) fname = m[1].trim();
+            else {
+              const m2 = String(data.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
+              if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
+            }
+          }
+          if (!fname) fname = `${companyName}.xml`;
+          setXmlFileName(fname);
+        }
       } else {
         setExistingXml(false);
       }

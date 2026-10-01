@@ -22,8 +22,6 @@ import {
 const menuItems = [
   { id: 'reporting', label: 'WBG Home', icon: LayoutDashboard, sub: 'Dashboard' },
   { id: 'xml_results', label: 'Export Data client', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'inbox', label: 'cataloge base', icon: FileCode, sub: 'Intelligence' },
-  { id: 'kanban', label: 'XML base', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'excel_redirect', label: 'Transform to Excel', icon: ArrowRightLeft, sub: 'Data', link: '/WBG/Actualizer_Excel_Storage' },

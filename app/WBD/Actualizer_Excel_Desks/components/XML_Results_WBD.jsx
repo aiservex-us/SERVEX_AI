@@ -98,7 +98,9 @@ const WBDDataMatrix = () => {
               if (optCode !== "C" && optCode !== "P") {
                 const optPriceElem = opt.querySelector("OptionPrice > Value");
                 const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optCode) productOptionPrices[optCode] = optPrice;
+                if (optCode && (productOptionPrices[optCode] === undefined || optPrice > 0)) {
+                  productOptionPrices[optCode] = optPrice;
+                }
               }
             }
           }
@@ -119,7 +121,14 @@ const WBDDataMatrix = () => {
 
           // Map extracted options to the respective columns if their code is in the header
           Object.keys(productOptionPrices).forEach(optCode => {
-            const matchingHeader = DESKS_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
+            const optClean = optCode.replace(/^-/, '');
+            const matchingHeader = DESKS_HEADERS.find(h => {
+              const hUpper = h.toUpperCase();
+              return hUpper.includes(`(${optCode.toUpperCase()})`) ||
+                     hUpper.includes(`-${optCode.toUpperCase()}`) ||
+                     hUpper.includes(`(${optClean.toUpperCase()})`) ||
+                     hUpper.includes(`-${optClean.toUpperCase()}`);
+            });
             if (matchingHeader) {
               row[matchingHeader] = productOptionPrices[optCode];
             } else if (optCode.includes('MB')) {

@@ -1,5 +1,5 @@
 'use client';
-import XMLResultsGeneral Process from '../Actualizer_Excel_General/components/XML_Results_General.jsx';
+import XMLResultsGeneral from '../Actualizer_Excel_General/components/XML_Results_General.jsx';
 import ImportCETXml from '../Actualizer_Excel_General/components/IncertDataExcel/incertXML_excel';
 
 
@@ -99,10 +99,8 @@ export default function MenuInicial() {
       case 'incert_delete': return <IncertDelete step="xml" />;
                     case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
                     case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-      case 'xml_results': return <XMLResultsGeneral Process />;
-      case 'kanban': return <PriceProduct />;
+      case 'xml_results': return <XMLResultsGeneral />;
       case 'Tasks': return <CatalogParser />;
-      case 'inbox': return <Csvs />;
       case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
       case 'report': return <Report />;
@@ -314,7 +312,7 @@ export default function MenuInicial() {
                     case 'report': return <Report />;
                     case 'graphics': return <ViewportGraphics />;
                     case 'AI_reporter': return <Responce_ai />;
-                    case 'exportCETcsv': return <XMLResultsGeneral Process />;
+                    case 'exportCETcsv': return <XMLResultsGeneral />;
                     case 'compareCET': return <CETComparator />;
                     default: return null;
                   }

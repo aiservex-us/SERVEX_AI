@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Papa from 'papaparse';
 
-const CSVFinalResultsGeneral Process = () => {
+const CSVFinalResultsGeneral = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,10 +24,15 @@ const CSVFinalResultsGeneral Process = () => {
   
   const [optionHeaders, setOptionHeaders] = useState([]);
 
+  const rawDatasetRef = React.useRef([]);
+  const [processedIndex, setProcessedIndex] = useState(0);
+
   const processXML = async () => {
     try {
       setLoading(true);
       setError(null);
+      setProducts([]);
+      setProcessedIndex(0);
 
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
@@ -41,6 +46,7 @@ const CSVFinalResultsGeneral Process = () => {
       if (!data?.CSV_final) {
         setProducts([]);
         setOptionHeaders([]);
+        setLoading(false);
         return;
       }
 
@@ -57,20 +63,37 @@ const CSVFinalResultsGeneral Process = () => {
         parsed = [];
       }
 
-      setProducts(parsed);
+      rawDatasetRef.current = parsed;
+
       if (parsed.length > 0) {
         setOptionHeaders(Object.keys(parsed[0]).filter(k => k !== '_orphaned_fields' && k !== 'sku' && k !== 'description'));
       } else {
         setOptionHeaders([]);
       }
+
+      // BÚFER INICIAL: Cargar exactamente 30 items (Página 1 y Página 2)
+      const initialCount = Math.min(30, parsed.length);
+      setProducts(parsed.slice(0, initialCount));
+      setProcessedIndex(initialCount);
+      setLoading(false);
       setCurrentPage(1);
     } catch (err) {
       console.error("Error processing CSV Final data:", err);
       setError(err.message || "Error processing CSV Final information General Process.");
-    } finally {
       setLoading(false);
     }
   };
+
+  // Cargar 30 productos adicionales bajo demanda al pasar páginas
+  useEffect(() => {
+    const requiredCount = (currentPage + 1) * itemsPerPage;
+    const allParsed = rawDatasetRef.current;
+    if (requiredCount >= products.length && processedIndex < allParsed.length) {
+      const nextCount = Math.min(processedIndex + 30, allParsed.length);
+      setProducts(allParsed.slice(0, nextCount));
+      setProcessedIndex(nextCount);
+    }
+  }, [currentPage, products.length, processedIndex]);
 
   useEffect(() => {
     processXML();
@@ -234,38 +257,30 @@ const CSVFinalResultsGeneral Process = () => {
                 </thead>
 
                 <tbody className="bg-white divide-y divide-[#F0F0F0]">
-                  <AnimatePresence initial={false}>
-                    {paginatedProducts.map((p, idx) => {
-                      const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
-                      
-                      return (
-                        <motion.tr 
-                          key={p.sku || realIndex}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.15 }}
-                          className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75 group"
-                        >
-                          <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#464775] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
-                            {realIndex}
-                          </td>
+                  {paginatedProducts.map((p, idx) => {
+                    const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
+                    
+                    return (
+                      <tr 
+                        key={p.sku || realIndex}
+                        className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75 group"
+                      >
+                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#464775] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
+                          {realIndex}
+                        </td>
 
-                          
-
-                          {optionHeaders.map(oh => {
-                            let value = p[oh];
-                            if (value === null || value === undefined) value = '-';
-                            return (
-                              <td key={oh} className="px-3 py-1.5 text-[11px] font-medium text-slate-600 border-r border-slate-100 whitespace-nowrap truncate border-b border-slate-50 min-w-[160px] max-w-[280px]" title={String(value)}>
-                                {String(value)}
-                              </td>
-                            );
-                          })}
-                        </motion.tr>
-                      );
-                    })}
-                  </AnimatePresence>
+                        {optionHeaders.map(oh => {
+                          let value = p[oh];
+                          if (value === null || value === undefined) value = '-';
+                          return (
+                            <td key={oh} className="px-3 py-1.5 text-[11px] font-medium text-slate-600 border-r border-slate-100 whitespace-nowrap truncate border-b border-slate-50 min-w-[160px] max-w-[280px]" title={String(value)}>
+                              {String(value)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -307,4 +322,4 @@ const CSVFinalResultsGeneral Process = () => {
   );
 };
 
-export default CSVFinalResultsGeneral Process;
+export default CSVFinalResultsGeneral;

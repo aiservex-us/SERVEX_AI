@@ -44,6 +44,19 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
       } else if (data) {
         const hasXml = !!data.XM_CET_import && String(data.XM_CET_import).trim().length > 0;
         setExistingXml(hasXml);
+        if (hasXml) {
+          let fname = (data as any)?.xml_name || (data as any)?.file_name || '';
+          if (!fname && data.xml_raw) {
+            const m = String(data.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+            if (m && m[1]) fname = m[1].trim();
+            else {
+              const m2 = String(data.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
+              if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
+            }
+          }
+          if (!fname) fname = `${companyName}.xml`;
+          setXmlFileName(fname);
+        }
       } else {
         setExistingXml(false);
       }
@@ -100,7 +113,8 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
 
       const payload: any = {
         company_name: moduleName,
-        XM_CET_import: rawContent
+        XM_CET_import: rawContent,
+        xml_raw: rawContent
       };
       if (user?.id) {
         payload.user_id = user.id;
@@ -130,7 +144,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
   const showXmlExistingNotice = existingXml && !xmlContent && !readingXml;
 
   return (
-    <div className="w-full max-w-sm mx-auto flex font-sans text-[#242424] relative bg-white/50 backdrop-blur-md border border-white/60 rounded-xl p-3 shadow-sm">
+    <div className="w-full max-w-sm mx-auto flex font-sans text-[#242424] relative bg-transparent p-0">
       <div className="flex-1 flex flex-col gap-3">
 
         {loading && (
@@ -182,7 +196,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer h-32 flex flex-col items-center justify-center
-                      ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
+                      ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/60'}`}
                   >
                     {readingXml ? (
                       <RefreshCw className="mx-auto mb-1.5 text-[#464775] animate-spin" size={20} />
@@ -210,17 +224,10 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-[#242424]">XML Preview</label>
-                    <textarea className="w-full text-[10px] font-mono rounded border border-white/40 bg-white/20 backdrop-blur-md text-gray-700 px-3 py-2 h-32 resize-none outline-none" value={xmlContent} readOnly />
-                  </div>
-                </div>
-
                 {message.type && (
-                  <div className={`p-3 rounded flex items-center gap-3 text-xs font-semibold border-l-4
-                    ${message.type === 'success' ? 'bg-green-50 border-l-green-600 text-green-800' : 'bg-red-50 border-l-red-600 text-red-800'}`}>
-                    {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                  <div className={`p-3 rounded-lg flex items-center gap-3 text-xs font-semibold border-l-4
+                    ${message.type === 'success' ? 'bg-[#464775]/10 border-l-[#464775] text-[#464775]' : 'bg-red-50 border-l-red-600 text-red-800'}`}>
+                    {message.type === 'success' ? <CheckCircle2 size={16} className="text-[#464775]" /> : <AlertCircle size={16} />}
                     {message.text}
                   </div>
                 )}

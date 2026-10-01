@@ -18,6 +18,7 @@ import {
 
 export default function UploadClientXML() {
   const [companyName] = useState('LESRO');
+  const [xmlFileName, setXmlFileName] = useState('');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState('');
   const [csvNewContent, setCsvNewContent] = useState('');
@@ -51,7 +52,7 @@ export default function UploadClientXML() {
     try {
       const { data, error } = await supabase
         .from('ClientsSERVEX_LESRO')
-        .select('xml_raw, csv_raw, csv_new_raw')
+        .select('xml_raw, xml_name, file_name, csv_raw, csv_new_raw')
         .eq('company_name', companyName)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -70,6 +71,19 @@ export default function UploadClientXML() {
           (Array.isArray(data.csv_new_raw) ? data.csv_new_raw.length > 0 : String(data.csv_new_raw).trim().length > 0);
         
         setExistingXml(hasXml);
+        if (hasXml) {
+          let fname = (data as any)?.xml_name || (data as any)?.file_name || '';
+          if (!fname && data.xml_raw) {
+            const m = String(data.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+            if (m && m[1]) fname = m[1].trim();
+            else {
+              const m2 = String(data.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
+              if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
+            }
+          }
+          if (!fname) fname = `${companyName}.xml`;
+          setXmlFileName(fname);
+        }
         setExistingCsv(hasCsv);
         setExistingNewCsv(hasNewCsv);
       } else {
@@ -386,7 +400,7 @@ export default function UploadClientXML() {
                             ? 'File already exists in DB'
                             : 'Upload XML'}
                     </p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">Catalog Creator Catalog</p>
+                    <p className="text-[9px] sm:text-[10px] text-[#464775] font-bold mt-1 font-mono leading-tight px-1 max-w-full truncate bg-[#464775]/10 py-0.5 rounded">{xmlFileName || "Catalog Creator Catalog"}</p>
                     {showXmlExistingNotice && (
                       <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
                     )}

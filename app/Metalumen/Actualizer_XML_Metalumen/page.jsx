@@ -129,9 +129,7 @@ export default function MenuInicial() {
                     case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
                     case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
       case 'xml_results': return <XMLResults_Metalumen />;
-      case 'kanban': return <PriceProduct />;
       case 'Tasks': return <CatalogParser />;
-      case 'inbox': return <Csvs />;
       case 'inbox_updated': return <Csvs_updated />;
       case 'presentation': return <PrecentMain />;
       case 'report': return <Report />;
