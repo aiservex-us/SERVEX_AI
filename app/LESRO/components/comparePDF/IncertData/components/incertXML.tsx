@@ -64,7 +64,7 @@ export default function UploadClientXML() {
         setExistingCsv(false);
         setExistingNewCsv(false);
       } else if (data) {
-        const hasXml = !!data.xml_raw && String(data.xml_raw).trim().length > 0;
+        const hasXml = !!(data as any)?.xml_raw && String((data as any)?.xml_raw).trim().length > 0;
         const hasCsv = !!data.csv_raw &&
           (Array.isArray(data.csv_raw) ? data.csv_raw.length > 0 : String(data.csv_raw).trim().length > 0);
         const hasNewCsv = !!data.csv_new_raw &&
@@ -73,11 +73,11 @@ export default function UploadClientXML() {
         setExistingXml(hasXml);
         if (hasXml) {
           let fname = (data as any)?.xml_name || (data as any)?.file_name || '';
-          if (!fname && data.xml_raw) {
-            const m = String(data.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+          if (!fname && (data as any)?.xml_raw) {
+            const m = String((data as any)?.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
             if (m && m[1]) fname = m[1].trim();
             else {
-              const m2 = String(data.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
+              const m2 = String((data as any)?.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
               if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
             }
           }

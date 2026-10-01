@@ -62,7 +62,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         setExistingCsv(false);
         setExistingNewCsv(false);
       } else if (data) {
-        const hasXml = !!data.xml_raw && String(data.xml_raw).trim().length > 0;
+        const hasXml = !!(data as any)?.xml_raw && String((data as any)?.xml_raw).trim().length > 0;
         const hasCsv = !!data.csv_raw &&
           (Array.isArray(data.csv_raw) ? data.csv_raw.length > 0 : String(data.csv_raw).trim().length > 0);
         const hasNewCsv = !!data.csv_new_raw &&
@@ -71,11 +71,11 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         setExistingXml(hasXml);
         if (hasXml) {
           let fname = (data as any)?.xml_name || (data as any)?.file_name || '';
-          if (!fname && data.xml_raw) {
-            const m = String(data.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+          if (!fname && (data as any)?.xml_raw) {
+            const m = String((data as any)?.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
             if (m && m[1]) fname = m[1].trim();
             else {
-              const m2 = String(data.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
+              const m2 = String((data as any)?.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
               if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
             }
           }
@@ -287,7 +287,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
 
           const fNode = featureMap.get(fCode);
           if (fNode) {
-            const subRefs = Array.from(fNode.getElementsByTagName("FeatureRef"));
+            const subRefs = Array.from((fNode as Element).getElementsByTagName("FeatureRef"));
             for (const sub of subRefs) {
               const subCode = sub.textContent?.trim();
               if (subCode) traverse(subCode);
@@ -315,8 +315,8 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         for (const fCode of featureCodes) {
           const featureNode = featureMap.get(fCode);
           if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
+            const options = Array.from((featureNode as Element).getElementsByTagName("Option"));
+            for (const opt of (options as Element[])) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
               const optDesc = opt.getElementsByTagName("Description")[0]?.textContent?.trim();
               const optPriceElem = opt.querySelector("OptionPrice > Value");
@@ -367,8 +367,8 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         for (const fCode of featureCodes) {
           const featureNode = featureMap.get(fCode);
           if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
+            const options = Array.from((featureNode as Element).getElementsByTagName("Option"));
+            for (const opt of (options as Element[])) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
               const optPriceElem = opt.querySelector("OptionPrice > Value");
               if (optPriceElem && optCode) {
@@ -410,8 +410,8 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         for (const fCode of featureCodes) {
           const featureNode = featureMap.get(fCode);
           if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
+            const options = Array.from((featureNode as Element).getElementsByTagName("Option"));
+            for (const opt of (options as Element[])) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
               if (optCode === "C" || optCode === "P") {
                 const optPriceElem = opt.querySelector("OptionPrice > Value");

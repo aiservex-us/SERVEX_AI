@@ -18,6 +18,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
   const [xmlContent, setXmlContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [readingXml, setReadingXml] = useState(false);
+  const [xmlFileName, setXmlFileName] = useState('');
 
   // --- Estado de verificación de columnas existentes en BD ---
   const [checkingExisting, setCheckingExisting] = useState(true);
@@ -48,15 +49,16 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
         setExistingXml(hasXml);
         if (hasXml) {
           let fname = (data as any)?.xml_name || (data as any)?.file_name || '';
-          if (!fname && data.xml_raw) {
-            const m = String(data.xml_raw).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+          const rawXml = (data as any)?.xml_raw || (data as any)?.XM_CET_import || '';
+          if (!fname && rawXml) {
+            const m = String(rawXml).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
             if (m && m[1]) fname = m[1].trim();
             else {
-              const m2 = String(data.xml_raw).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
+              const m2 = String(rawXml).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
               if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
             }
           }
-          if (!fname) fname = `${companyName}.xml`;
+          if (!fname) fname = `${moduleName}.xml`;
           setXmlFileName(fname);
         }
       } else {
