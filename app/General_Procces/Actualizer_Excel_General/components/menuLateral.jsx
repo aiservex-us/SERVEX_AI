@@ -23,7 +23,7 @@ const menuItems = [
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
   { id: 'xml_results', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'cet_comparator', label: 'CET XML Comparator', icon: Activity, sub: 'Audit' },
-  { id: 'xml_redirect', label: 'Ejecutar Actualizacion de XML inicial!!', icon: RefreshCcw, sub: 'Action', link: '/General_Procces/Actualizer_XML_General' }
+  { id: 'xml_redirect', label: '', icon: RefreshCcw, link: '/General_Procces/Actualizer_XML_General' }
 ];
 
 export default function MenuLateral({
@@ -132,30 +132,29 @@ export default function MenuLateral({
                   ${item.id === 'incert_delete' ? 'max-[400px]:opacity-60 max-[400px]:bg-slate-50' : ''}
                 `}
               >
-                <div className={`flex items-center w-full ${isEffectivelyCollapsed ? 'justify-center' : 'gap-3'}`}>
+                <div className={`flex items-center w-full ${isEffectivelyCollapsed || !item.label ? 'justify-center' : 'gap-3'}`}>
                   <div className={`${isActive ? 'text-[#464775]' : 'text-slate-400'} transition-all duration-300`}>
-                    <Icon size={isEffectivelyCollapsed ? 15 : 17} strokeWidth={isActive ? 2.5 : 2} />
+                    <Icon size={isEffectivelyCollapsed || !item.label ? 16 : 17} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
 
-                  <div className={`flex flex-col items-start overflow-hidden text-left transition-all duration-[400ms] ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 hidden' : 'max-w-[160px] opacity-100 w-full'}`}>
-                    <span className={`text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-opacity duration-500 delay-100 ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'} ${isEffectivelyCollapsed ? 'opacity-0' : 'opacity-100'}`}>
-                      {item.label}
-                    </span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-[8px] text-slate-400 font-medium uppercase tracking-tighter whitespace-nowrap transition-opacity duration-500 delay-150 ${isEffectivelyCollapsed ? 'opacity-0' : 'opacity-100'}`}>
-                        {item.sub}
+                  {item.label && (
+                    <div className={`flex flex-col items-start overflow-hidden text-left transition-all duration-[400ms] ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 hidden' : 'max-w-[160px] opacity-100 w-full'}`}>
+                      <span className={`text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-opacity duration-500 delay-100 ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'} ${isEffectivelyCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+                        {item.label}
                       </span>
-                      {item.id === 'incert_delete' && (
-                        <span className={`min-[400px]:hidden text-[8px] text-[#464775]/80 font-bold uppercase tracking-tighter bg-[#464775]/10 px-1.5 py-0.5 rounded-full border border-[#464775]/20 whitespace-nowrap transition-opacity duration-500 delay-200 ${isEffectivelyCollapsed ? 'opacity-0' : 'opacity-100'}`}>
-                          Desktop Only
-                        </span>
+                      {item.sub && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`text-[8px] text-slate-400 font-medium uppercase tracking-tighter whitespace-nowrap transition-opacity duration-500 delay-150 ${isEffectivelyCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+                            {item.sub}
+                          </span>
+                        </div>
                       )}
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* FLOATING ALERT / TOOLTIP WHEN COLLAPSED */}
-                {isEffectivelyCollapsed && (
+                {isEffectivelyCollapsed && item.label && (
                   <div className="pointer-events-none fixed left-[78px] opacity-0 group-hover:opacity-100 transition-all duration-200 z-[99999] flex items-center">
                     <div className="w-2 h-2 bg-slate-900 rotate-45 -mr-1 z-10"></div>
                     <div className="bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap flex items-center gap-2 border border-slate-700/50 shadow-2xl">
