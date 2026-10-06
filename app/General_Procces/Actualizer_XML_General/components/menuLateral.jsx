@@ -177,13 +177,15 @@ export default function MenuLateral({
         {/* FOOTER */}
         <div className="p-3 border-t border-slate-50 bg-white/50 space-y-2">
           {[
-            { label: 'Support', icon: Headphones },
+            { label: 'Support', icon: Headphones, href: 'https://axglynne.com/Support' },
             { label: 'Settings', icon: Settings },
           ].map(item => {
             const Icon = item.icon;
+            const Component = item.href ? 'a' : 'button';
             return (
-              <button
+              <Component
                 key={item.label}
+                {...(item.href ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
                 className={`
                   group relative w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-[#464775] transition-all duration-200
                   ${isEffectivelyCollapsed ? 'justify-center h-10' : 'px-3 py-2'}
@@ -205,7 +207,7 @@ export default function MenuLateral({
                     </div>
                   </div>
                 )}
-              </button>
+              </Component>
             );
           })}
 
