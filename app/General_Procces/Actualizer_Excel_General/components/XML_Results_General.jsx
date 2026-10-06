@@ -489,10 +489,10 @@ const DynamicDataMatrix = () => {
               <button 
                 onClick={() => setShowWarningModal(true)}
                 type="button"
-                className="px-2.5 py-1 bg-[#464775] hover:bg-[#3b3c63] text-white rounded-lg transition-all flex items-center gap-1 text-[10.5px] font-semibold shadow-2xs"
+                className="p-1 bg-[#464775] hover:bg-[#3b3c63] text-white rounded-lg transition-all flex items-center justify-center shadow-2xs"
                 title="Export current view to Excel"
               >
-                <Download size={11} /> Export Excel
+                <Download size={12} />
               </button>
             </div>
           </div>
