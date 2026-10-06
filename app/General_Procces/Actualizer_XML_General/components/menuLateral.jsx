@@ -24,7 +24,6 @@ const menuItems = [
   { id: 'xml_results', label: 'Export Data client', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'inbox_updated', label: 'Current Catalog', icon: FileCode, sub: 'Data' },
   { id: 'dashboard', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'excel_redirect', label: 'Transform to Excel', icon: ArrowRightLeft, sub: 'Data', link: '/General_Procces/Actualizer_Excel_General' },
 ];
 
 export default function MenuLateral({
