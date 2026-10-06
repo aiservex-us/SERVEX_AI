@@ -11,18 +11,18 @@ const WBmfgAdminHero = () => {
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
   return (
-    <div className="relative h-[94vh] w-full font-sans overflow-hidden bg-white flex">
+    <div className="relative h-full min-h-[80vh] w-full font-sans overflow-y-auto custom-scrollbar bg-transparent flex flex-col lg:flex-row">
       
       {/* --- POPUP / MODAL OVERLAY --- */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center  backdrop-blur-sm p-4 animate-in fade-in duration-300"
-          onClick={toggleModal} // Cierra al hacer clic en el fondo
+          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm p-4 animate-in fade-in duration-300"
+          onClick={toggleModal}
         >
           {/* Contenedor del Modal */}
           <div 
             className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden bg-white rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()} // Evita que el clic dentro del modal lo cierre
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header del Modal con Botón de Close */}
             <div className="absolute top-4 right-4 z-[110]">
@@ -41,20 +41,18 @@ const WBmfgAdminHero = () => {
                 </svg>
               </button>
             </div>
-            
-        
           </div>
         </div>
       )}
 
       {/* --- LADO IZQUIERDO (CONTENIDO) --- */}
-      <div className="w-full lg:w-[65%] h-full bg-white flex flex-col justify-center items-center p-8 sm:p-12 lg:p-20">
+      <div className="w-full lg:w-[65%] h-full bg-transparent flex flex-col justify-center items-center p-4 sm:p-8 lg:p-12">
         
-        <div className="max-w-3xl w-full flex flex-col items-center text-center">
+        <div className="max-w-2xl w-full flex flex-col items-center text-center">
           
           {/* Logo Area */}
-          <div className="flex flex-col items-center gap-4 mb-12 lg:mb-16">
-            <div className="w-16 h-16 flex items-center justify-center p-2 bg-slate-50 rounded-xl border border-slate-100">
+          <div className="flex flex-col items-center gap-3 mb-6 lg:mb-8">
+            <div className="w-14 h-14 flex items-center justify-center p-2 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-md">
               <img 
                 src="/logo.png" 
                 alt="General Process Logo" 
@@ -62,10 +60,10 @@ const WBmfgAdminHero = () => {
               />
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-bold text-lg tracking-widest uppercase text-black">
+              <span className="font-bold text-base tracking-widest uppercase text-slate-900">
                 General Process Seating
               </span>
-              <span className="font-medium text-[10px] tracking-[0.2em] uppercase text-black/40">
+              <span className="font-semibold text-[9.5px] tracking-[0.2em] uppercase text-slate-500 mt-0.5">
                 Client Export Module
               </span>
             </div>
@@ -73,30 +71,29 @@ const WBmfgAdminHero = () => {
 
           {/* Hero Content */}
           <div className="flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 mb-8 rounded-full border border-[#464775]/20 bg-[#464775]/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#464775]">
+            <div className="inline-flex items-center gap-2 mb-5 rounded-full border border-[#464775]/20 bg-[#464775]/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#464775]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#464775] animate-pulse" />
               Data Distribution Center
             </div>
 
-            <h2 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-black leading-[1] mb-8">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 leading-tight mb-5">
               Export Data <br />
-              <span className="text-black/25">For Complete Client</span>
+              <span className="text-slate-400 font-light">For Complete Client</span>
             </h2>
             
-            <p className="max-w-xl text-base sm:text-lg text-black/50 leading-relaxed mb-12 font-light">
-              Seamlessly format, preview, and export complete datasets directly to your clients through the <span className="text-black/80 font-medium">SERVEX ecosystem</span>.
+            <p className="max-w-lg text-xs sm:text-sm text-slate-600 leading-relaxed mb-8 font-normal">
+              Seamlessly format, preview, and export complete datasets directly to your clients through the <span className="text-slate-900 font-semibold">SERVEX ecosystem</span>.
             </p>
 
-            {/* Botón que dispara el modal */}
-            <div className="flex flex-col items-center gap-8">
-  
-              <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-widest text-black/30">
+            {/* Features */}
+            <div className="flex flex-col items-center gap-6">
+              <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white/60 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-200/80 shadow-xs">
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  <svg className="w-3.5 h-3.5 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   1-Click Export
                 </span>
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  <svg className="w-3.5 h-3.5 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   Client Verified
                 </span>
               </div>
@@ -106,77 +103,52 @@ const WBmfgAdminHero = () => {
       </div>
 
       {/* --- LADO DERECHO (VISUAL) --- */}
-      <div className="hidden lg:flex w-[35%] h-full relative items-center justify-center overflow-hidden border-l border-gray-100 bg-gradient-to-b from-[#464775]/40 via-[#464775]/10 to-white">
+      <div className="hidden lg:flex w-[35%] h-full relative items-center justify-center overflow-hidden border-l border-slate-200/50 bg-transparent">
         
-        {/* Decorative Floating 3D Glass Shapes (Ultra Pro) */}
-        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px', filter: 'drop-shadow(0 25px 35px rgba(0,0,0,0.15)) drop-shadow(0 5px 15px rgba(0,0,0,0.05))' }}>
+        {/* Decorative Floating 3D Glass Shapes */}
+        <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px' }}>
 
-          {/* Shape 1: Back left */}
+          {/* Shape 1 */}
           <div
-            className="absolute top-[15%] left-[5%] w-[180px] h-[180px] backdrop-blur-md"
+            className="absolute top-[15%] left-[5%] w-[150px] h-[150px] backdrop-blur-md"
             style={{
               background: 'linear-gradient(135deg, #46477533, rgba(255,255,255,0.1))',
               transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
-              boxShadow: 'inset 0 0 40px rgba(255,255,255,0.4), inset 2px 2px 5px rgba(255,255,255,0.8), inset -2px -2px 15px rgba(0,0,0,0.2)',
+              boxShadow: 'inset 0 0 40px rgba(255,255,255,0.4)',
               clipPath: 'polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)'
             }}
           />
 
-          {/* Shape 2: Main center, solid professional color */}
+          {/* Shape 2 */}
           <div
-            className="absolute top-[20%] left-[20%] w-[200px] h-[200px] bg-gradient-to-br from-[#464775]/80 to-[#32335b]/40 backdrop-blur-xl z-10"
+            className="absolute top-[20%] left-[20%] w-[170px] h-[170px] bg-gradient-to-br from-[#464775]/80 to-[#32335b]/40 backdrop-blur-xl z-10"
             style={{
               transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
-              boxShadow: 'inset 0 0 50px rgba(255,255,255,0.2), inset 2px 2px 5px rgba(255,255,255,0.4), inset -4px -4px 15px rgba(0,0,0,0.4)',
+              boxShadow: 'inset 0 0 50px rgba(255,255,255,0.2)',
               clipPath: 'polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)'
             }}
           />
 
-          {/* Shape 3: Thin, right side rotated deeply */}
+          {/* Shape 3 */}
           <div
-            className="absolute top-[30%] right-[25%] w-[160px] h-[160px] backdrop-blur-md z-10"
+            className="absolute top-[30%] right-[25%] w-[140px] h-[140px] backdrop-blur-md z-10"
             style={{
               background: 'linear-gradient(45deg, rgba(255,255,255,0.3), #4647751A)',
               transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
-              boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), inset 1px 1px 3px rgba(255,255,255,0.9), inset -1px -1px 10px rgba(0,0,0,0.1)',
+              boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5)',
               clipPath: 'polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)'
             }}
           />
-
-          {/* Shape 4: Middle right */}
-          <div
-            className="absolute bottom-[35%] right-[10%] w-[190px] h-[190px] bg-white/40 backdrop-blur-lg"
-            style={{
-              transform: 'rotateX(15deg) rotateY(20deg) translateZ(0px)',
-              boxShadow: 'inset 0 0 30px rgba(255,255,255,0.6), inset 2px 2px 8px rgba(255,255,255,1), inset -2px -2px 10px rgba(0,0,0,0.05)',
-              clipPath: 'polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)'
-            }}
-          />
-
-          {/* Shape 5: Blurry foreground bottom left */}
-          <div
-            className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] backdrop-blur-2xl blur-[2px]"
-            style={{
-              backgroundColor: '#4647754D',
-              transform: 'rotateX(45deg) rotateY(15deg) translateZ(150px)',
-              boxShadow: 'inset 0 0 20px rgba(255,255,255,0.2), inset 2px 2px 10px rgba(255,255,255,0.5)',
-              clipPath: 'polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)'
-            }}
-          />
-
         </div>
 
-        <div className="absolute top-12 right-12 cursor-pointer group z-20">
-          <div className="w-6 h-[1.5px] bg-[#464775] mb-1.5 transition-all group-hover:w-8" />
-          <div className="w-4 h-[1.5px] bg-[#464775] ml-auto" />
-        </div>
-        
-        <div className="relative z-20 rotate-90 pointer-events-none opacity-30 mix-blend-multiply">
-          <span className="text-[#464775] font-black text-[120px] tracking-tighter select-none leading-none">
+        <div className="relative z-20 rotate-90 pointer-events-none opacity-20 mix-blend-multiply">
+          <span className="text-[#464775] font-black text-[90px] tracking-tighter select-none leading-none">
             General Process Seating
           </span>
         </div>
       </div>
+
+    </div>
 
     </div>
   );
