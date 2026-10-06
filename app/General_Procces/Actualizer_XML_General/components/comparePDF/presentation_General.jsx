@@ -145,8 +145,6 @@ const WBmfgAdminHero = () => {
       </div>
 
     </div>
-
-    </div>
   );
 };
 
