@@ -7,8 +7,8 @@ import {supabase } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
-  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search, BrainCircuit, CheckCircle2
-, Download
+  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search, BrainCircuit, CheckCircle2,
+  Download, User
 } from 'lucide-react';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
@@ -725,11 +725,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                             whileHover={{scale: 1.05, rotate: isUser ? 5 : -5 }}
                             className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
                             ${isUser
-                              ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                              ? 'bg-[#464775] text-white border border-[#464775]'
                               : 'bg-transparent'
                             }`}
                           >
-                            {isUser ? 'YOU' : <img src="/logo2.png" alt="SVX" className="w-6 h-6 object-contain" />}
+                            {isUser ? <User size={15} className="text-white" /> : <img src="/logo2.png" alt="SVX" className="w-6 h-6 object-contain" />}
                           </motion.div>
 
                           {/* Bubble col */}

@@ -5,7 +5,7 @@ import { marked } from "marked";
 import { 
   Sparkles, Layout, BarChart3, Shield, 
   SendHorizontal, Paperclip, Mic, Trash2, AlertCircle,
-  Database, ChevronDown, Check, Zap, Info, X, FileText
+  Database, ChevronDown, Check, Zap, Info, X, FileText, User
 } from 'lucide-react';
 
 const Viewport = () => {
@@ -233,7 +233,7 @@ const Viewport = () => {
               {messages.map((msg, idx) => (
                 <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-4 w-full ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                   {/* Cambio de color en avatar del user a Morado */}
-                  <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-sm ${msg.from === 'user' ? 'bg-[#464775]' : 'bg-slate-200 !text-slate-600'}`}>{msg.from === 'user' ? 'ME' : 'AI'}</div>
+                  <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-sm ${msg.from === 'user' ? 'bg-[#464775]' : 'bg-slate-200 !text-slate-600'}`}>{msg.from === 'user' ? <User size={16} className="text-white" /> : 'AI'}</div>
                   <div className={`flex flex-col max-w-[85%] ${msg.from === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className={`flex items-baseline gap-2 mb-1 ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                       <span className="font-bold text-[12px] text-slate-700">{msg.from === 'user' ? 'You' : 'Copilot'}</span>
