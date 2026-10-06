@@ -15,7 +15,7 @@ import {
   FiXCircle 
 } from 'react-icons/fi';
 import { BsFileEarmarkArrowUp } from 'react-icons/bs';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase, resolveXmlContent } from '../../lib/supabaseClient';
 
 const SVXUnifiedEnterprise = () => {
   // --- ESTADOS DE AUDITORÍA (CSV) ---
@@ -55,9 +55,10 @@ const SVXUnifiedEnterprise = () => {
           .single();
 
         if (error) throw error;
-        if (data?.xml_raw) {
+        const rawXmlText = await resolveXmlContent(data?.xml_raw);
+        if (rawXmlText) {
           const parser = new DOMParser();
-          const doc = parser.parseFromString(data.xml_raw, "text/xml");
+          const doc = parser.parseFromString(rawXmlText, "text/xml");
           setXmlDoc(doc);
           const codes = [...doc.getElementsByTagName("Product")].map(p => 
             p.getElementsByTagName("Code")[0]?.textContent

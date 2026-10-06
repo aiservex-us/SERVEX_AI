@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RefreshCw, 
@@ -128,14 +128,15 @@ const DynamicDataMatrix = () => {
 
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('XM_CET_import')
+        .select('XM_CET_import, xml_raw')
         .eq('company_name', 'General_Procces')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (dbError) throw dbError;
-      if (!data?.XM_CET_import) {
+      const rawXmlStr = await resolveXmlContent(data?.XM_CET_import || data?.xml_raw);
+      if (!rawXmlStr) {
         setProducts([]);
         setMatrixHeaders(BASE_HEADERS);
         setLoading(false);
@@ -145,7 +146,7 @@ const DynamicDataMatrix = () => {
       await yieldToMainThread();
 
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data.XM_CET_import, "text/xml");
+      const xmlDoc = parser.parseFromString(rawXmlStr, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing XML structure");
@@ -265,10 +266,33 @@ const DynamicDataMatrix = () => {
       setProcessedIndex(initialCount);
       setLoading(false);
       setCurrentPage(1); 
+
+      // Sincronizar en segundo plano la matriz completa en csv_raw en la base de datos
+      setTimeout(() => {
+        loadAllForExport();
+      }, 500);
     } catch (err) {
       console.error("Error processing catalog XML data matrix:", err);
       setError(err.message || "Error processing catalog information.");
       setLoading(false);
+    }
+  };
+
+  const syncMatrixCsvToDb = async (rowsData, headers) => {
+    try {
+      if (!rowsData || rowsData.length === 0 || !headers) return;
+      const csvString = Papa.unparse(rowsData, {
+        columns: headers,
+        delimiter: ";"
+      });
+      if (csvString) {
+        await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .update({ csv_raw: csvString })
+          .eq('company_name', 'General_Procces');
+      }
+    } catch (err) {
+      console.warn('⚠️ Error guardando csv_raw de la matriz:', err);
     }
   };
 
@@ -299,21 +323,27 @@ const DynamicDataMatrix = () => {
   }, [currentPage, products.length, processedIndex, totalProductsInXml]);
 
   const loadAllForExport = async () => {
-    if (!processedXmlRef.current || processedIndex >= totalProductsInXml) return products;
-    setIsExportingFull(true);
+    if (!processedXmlRef.current) return products;
 
     const { productsXML, featureMap, getProductFeatureCodes, validColumns, computedHeaders } = processedXmlRef.current;
-    const allRows = [...products];
+    let allRows = [...products];
 
-    for (let i = processedIndex; i < productsXML.length; i++) {
-      if (i % 200 === 0) await yieldToMainThread();
-      const rows = extractProductRows(productsXML[i], featureMap, getProductFeatureCodes, validColumns, computedHeaders);
-      allRows.push(...rows);
+    if (processedIndex < productsXML.length) {
+      setIsExportingFull(true);
+      for (let i = processedIndex; i < productsXML.length; i++) {
+        if (i % 200 === 0) await yieldToMainThread();
+        const rows = extractProductRows(productsXML[i], featureMap, getProductFeatureCodes, validColumns, computedHeaders);
+        allRows.push(...rows);
+      }
+
+      setProducts(allRows);
+      setProcessedIndex(productsXML.length);
+      setIsExportingFull(false);
     }
 
-    setProducts(allRows);
-    setProcessedIndex(productsXML.length);
-    setIsExportingFull(false);
+    // Almacena automáticamente la matriz convertida en la columna csv_raw
+    syncMatrixCsvToDb(allRows, computedHeaders);
+
     return allRows;
   };
 

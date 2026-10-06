@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Database, 
@@ -41,13 +41,14 @@ const WBDDataMatrix = () => {
         .maybeSingle();
 
       if (dbError) throw dbError;
-      if (!data?.xml_actualizer_raw) {
+      const rawText = await resolveXmlContent(data?.xml_actualizer_raw);
+      if (!rawText) {
         setProducts([]);
         return;
       }
 
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data.xml_actualizer_raw, "text/xml");
+      const xmlDoc = parser.parseFromString(rawText, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing General Process XML structure");

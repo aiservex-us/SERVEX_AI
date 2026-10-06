@@ -52,7 +52,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
     try {
       const { data, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw, xml_name, file_name, csv_raw, csv_new_raw')
+        .select('xml_raw, xml_name, file_name, csv_raw, csv_new_raw, storage_url')
         .eq('company_name', companyName)
         .maybeSingle();
 
@@ -62,7 +62,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         setExistingCsv(false);
         setExistingNewCsv(false);
       } else if (data) {
-        const hasXml = !!(data as any)?.xml_raw && String((data as any)?.xml_raw).trim().length > 0;
+        const hasXml = (!!(data as any)?.xml_raw && String((data as any)?.xml_raw).trim().length > 0) || !!(data as any)?.storage_url;
         const hasCsv = !!data.csv_raw &&
           (Array.isArray(data.csv_raw) ? data.csv_raw.length > 0 : String(data.csv_raw).trim().length > 0);
         const hasNewCsv = !!data.csv_new_raw &&
@@ -460,21 +460,59 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
 
       if (type === 'xml') {
         const prefixedContent = fileName ? `<!-- filename: ${fileName} -->\n${rawContent}` : rawContent;
-        payload.xml_raw = prefixedContent;
-        payload.XM_CET_import = prefixedContent;
         if (fileName) {
           payload.xml_name = fileName;
           payload.file_name = fileName;
         }
+
+        // --- OPTIMIZACIÓN EN SUPABASE STORAGE (catalogs-storage) ---
+        let uploadedPublicUrl = '';
+        try {
+          const cleanName = (fileName || 'catalog.xml').replace(/[^a-zA-Z0-9._-]/g, '_');
+          const storageFilePath = `General_Procces/${Date.now()}_${cleanName}`;
+          const xmlBlob = new Blob([prefixedContent], { type: 'application/xml' });
+
+          const { data: storageData, error: storageErr } = await supabase.storage
+            .from('catalogs-storage')
+            .upload(storageFilePath, xmlBlob, {
+              cacheControl: '3600',
+              upsert: true,
+              contentType: 'application/xml'
+            });
+
+          if (!storageErr && storageData) {
+            const { data: publicUrlObj } = supabase.storage
+              .from('catalogs-storage')
+              .getPublicUrl(storageData.path);
+
+            if (publicUrlObj?.publicUrl) {
+              uploadedPublicUrl = publicUrlObj.publicUrl;
+            }
+          } else if (storageErr) {
+            console.warn('⚠️ Supabase Storage catalogs-storage warning:', storageErr.message);
+          }
+        } catch (stgErr) {
+          console.warn('⚠️ Error secundario al subir a catalogs-storage:', stgErr);
+        }
+
+        // Manejo ligero en BD si el XML es pesado para evitar saturación de la tabla
+        if (uploadedPublicUrl && prefixedContent.length > 300 * 1024) {
+          payload.xml_raw = `[STORAGE_URL]: ${uploadedPublicUrl}`;
+          payload.XM_CET_import = `[STORAGE_URL]: ${uploadedPublicUrl}`;
+        } else {
+          payload.xml_raw = prefixedContent;
+          payload.XM_CET_import = prefixedContent;
+        }
+
         const generatedCsv = await generateCsvFromCetXml(rawContent);
         if (generatedCsv) {
           payload.csv_raw = generatedCsv;
         }
       } else if (type === 'csv_base') {
-        payload.csv_raw = sanitizeCSV(rawContent);
+        payload.csv_raw = rawContent;
       } else if (type === 'csv_new') {
-        payload.csv_new_raw = sanitizeCSV(rawContent);
-        payload.CSV_final = sanitizeCSV(rawContent);
+        payload.csv_new_raw = rawContent;
+        payload.CSV_final = rawContent;
       }
 
       const { error } = await supabase

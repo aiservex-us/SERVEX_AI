@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Database, 
@@ -34,20 +34,21 @@ const WBDDataMatrix = () => {
       // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad General Process
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw')
+        .select('xml_raw, storage_url')
         .eq('company_name', 'General_Procces')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (dbError) throw dbError;
-      if (!data?.xml_raw) {
+      const rawText = await resolveXmlContent(data?.xml_raw, data?.storage_url);
+      if (!rawText) {
         setProducts([]);
         return;
       }
 
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
+      const xmlDoc = parser.parseFromString(rawText, "text/xml");
       
       const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) throw new Error("Error parsing General Process XML structure");

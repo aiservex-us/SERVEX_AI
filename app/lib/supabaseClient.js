@@ -147,3 +147,25 @@ export async function saveAuditToSupabase({ audit_content, user }) {
 
   return { data, error: null };
 }
+
+/**
+ * Helper transparente para resolver el contenido de archivos XML pesados.
+ * Si el contenido inicia con '[STORAGE_URL]:' o 'http://' / 'https://', descargará el archivo del Bucket.
+ */
+export async function resolveXmlContent(contentOrUrl, fallbackUrl) {
+  const target = contentOrUrl || fallbackUrl;
+  if (!target) return '';
+  const str = String(target).trim();
+  if (str.startsWith('[STORAGE_URL]:') || str.startsWith('http://') || str.startsWith('https://')) {
+    const cleanUrl = str.replace('[STORAGE_URL]:', '').trim();
+    try {
+      const res = await fetch(cleanUrl);
+      if (res.ok) {
+        return await res.text();
+      }
+    } catch (err) {
+      console.warn('⚠️ Error al descargar XML desde Supabase Storage:', err);
+    }
+  }
+  return str;
+}

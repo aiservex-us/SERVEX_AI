@@ -11,6 +11,33 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
+      // 1. Obtener y eliminar archivos del bucket catalogs-storage si existen
+      const { data: record } = await supabase
+        .from('ClientsSERVEX_General_Procces')
+        .select('xml_raw')
+        .eq('company_name', currentTenant)
+        .maybeSingle();
+
+      if (record?.xml_raw && String(record.xml_raw).startsWith('[STORAGE_URL]:')) {
+        const urlStr = String(record.xml_raw).replace('[STORAGE_URL]:', '').trim();
+        const urlParts = urlStr.split('/catalogs-storage/');
+        if (urlParts[1]) {
+          await supabase.storage
+            .from('catalogs-storage')
+            .remove([decodeURIComponent(urlParts[1])]);
+        }
+      }
+
+      const { data: fileList } = await supabase.storage
+        .from('catalogs-storage')
+        .list(currentTenant);
+
+      if (fileList && fileList.length > 0) {
+        const filePaths = fileList.map(f => `${currentTenant}/${f.name}`);
+        await supabase.storage.from('catalogs-storage').remove(filePaths);
+      }
+
+      // 2. Eliminar el registro en la BD
       const { error } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .delete()

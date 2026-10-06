@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent } from '@/app/lib/supabaseClient';
 
 export const useCatalogData = () => {
   const [products, setProducts] = useState([]);
@@ -15,15 +15,17 @@ export const useCatalogData = () => {
 
       const { data } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw')
+        .select('xml_raw, storage_url')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
-      if (data?.xml_raw) {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(data.xml_raw, "text/xml");
+      if (data) {
+        const rawXmlText = await resolveXmlContent(data.xml_raw, data.storage_url);
+        if (rawXmlText) {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(rawXmlText, "text/xml");
         
         // Extraer métricas generales de estructura
         const materialCount = xmlDoc.getElementsByTagName("Material").length;
@@ -59,6 +61,7 @@ export const useCatalogData = () => {
           avgPrice: totalSum / (extracted.length || 1),
           currency: xmlDoc.getElementsByTagName("Currency")[0]?.textContent || "USD"
         });
+        }
       }
     } catch (err) {
       console.error("Error parsing XML:", err);

@@ -114,12 +114,46 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
       const { data: { user } } = await supabase.auth.getUser();
 
       const payload: any = {
-        company_name: moduleName,
-        XM_CET_import: rawContent,
-        xml_raw: rawContent
+        company_name: moduleName
       };
       if (user?.id) {
         payload.user_id = user.id;
+      }
+
+      // --- OPTIMIZACIÓN SUPABASE STORAGE (catalogs-storage) ---
+      let uploadedPublicUrl = '';
+      try {
+        const cleanName = (xmlFileName || `${moduleName}.xml`).replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storageFilePath = `${moduleName}/${Date.now()}_${cleanName}`;
+        const xmlBlob = new Blob([rawContent], { type: 'application/xml' });
+
+        const { data: storageData, error: storageErr } = await supabase.storage
+          .from('catalogs-storage')
+          .upload(storageFilePath, xmlBlob, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: 'application/xml'
+          });
+
+        if (!storageErr && storageData) {
+          const { data: publicUrlObj } = supabase.storage
+            .from('catalogs-storage')
+            .getPublicUrl(storageData.path);
+
+          if (publicUrlObj?.publicUrl) {
+            uploadedPublicUrl = publicUrlObj.publicUrl;
+          }
+        }
+      } catch (stgErr) {
+        console.warn('⚠️ Error secundario al subir a catalogs-storage:', stgErr);
+      }
+
+      if (uploadedPublicUrl && rawContent.length > 300 * 1024) {
+        payload.xml_raw = `[STORAGE_URL]: ${uploadedPublicUrl}`;
+        payload.XM_CET_import = `[STORAGE_URL]: ${uploadedPublicUrl}`;
+      } else {
+        payload.xml_raw = rawContent;
+        payload.XM_CET_import = rawContent;
       }
 
       const { error } = await supabase
