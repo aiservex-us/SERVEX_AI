@@ -90,15 +90,6 @@ export default function MenuLateral({
                 className={`object-contain transition-all duration-300 ${isEffectivelyCollapsed ? 'w-6 h-6' : 'w-8 h-8'}`}
               />
             </Link>
-
-            <div className={`
-              overflow-hidden transition-all duration-[400ms]
-              ${isEffectivelyCollapsed ? 'max-w-0 opacity-0' : 'max-w-[150px] opacity-100'}
-            `}>
-              <span className="font-black text-[15px] tracking-tight text-[#464775] whitespace-nowrap uppercase">
-                DATA General Process
-              </span>
-            </div>
           </div>
           <button
             onClick={() => setCollapsed(!collapsed)}
