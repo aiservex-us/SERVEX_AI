@@ -227,9 +227,6 @@ const WBDDataMatrix = () => {
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-800">General Process Data Matrix Master</span>
-                <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
-                  WBD Schema Engine Live
-                </span>
               </div>
               <span className="text-[10px] text-slate-500">
                 Automated Ingestion Pipeline & Structured Data Mapping

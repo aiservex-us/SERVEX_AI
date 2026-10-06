@@ -445,14 +445,10 @@ const DynamicDataMatrix = () => {
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">Export Data Client Matrix</span>
-                {isExportingFull ? (
+                {isExportingFull && (
                   <span className="text-[9px] font-bold text-indigo-700 bg-indigo-50/80 border border-indigo-200 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse select-none">
                     <RefreshCw size={9} className="animate-spin text-indigo-600" />
                     Preparing ({products.length} / {totalProductsInXml})
-                  </span>
-                ) : (
-                  <span className="text-[9px] font-bold text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full border border-[#464775]/20 select-none">
-                    Live Engine ({products.length} / {totalProductsInXml})
                   </span>
                 )}
               </div>
