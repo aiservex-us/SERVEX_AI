@@ -250,16 +250,6 @@ export default function MenuLateral({
               </div>
             )}
           </div>
-
-          {/* LEYENDA GLYNNE */}
-          <div className={`
-            transition-all duration-[400ms] overflow-hidden pt-1
-            ${isEffectivelyCollapsed ? 'max-h-0 opacity-0 hidden' : 'max-h-12 opacity-100'}
-          `}>
-            <p className="text-[7px] text-slate-400 leading-tight tracking-tight px-1 uppercase font-medium">
-              © 2025 GLYNNE S.A.S
-            </p>
-          </div>
         </div>
       </aside>
     </>
