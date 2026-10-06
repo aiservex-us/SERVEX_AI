@@ -64,7 +64,7 @@ const EJECUTOR_PLAY = ({
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
-      const baseUrl = 'http://localhost:8000'; 
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com'; 
       
       // RUTA ÚNICA: Gateway exclusivo para el motor universal General_Procces
       const endpointUrl = `${baseUrl}/api/v1/General_Procces/pipeline/compare-only`;

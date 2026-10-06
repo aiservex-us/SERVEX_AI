@@ -32,7 +32,7 @@ export default function ExcelActualizer() {
           return;
         }
         
-        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
         const res = await fetch(`${apiURL}/api/v1/General_Procces`);
         const responseData = await res.json();
         

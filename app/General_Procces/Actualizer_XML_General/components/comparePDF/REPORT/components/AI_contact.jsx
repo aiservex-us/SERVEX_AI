@@ -281,7 +281,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   }, []);
 
   const inputRef = useRef(null);
-  const apiURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
 
   useEffect(() => {
     const fetchHistory = async () => {

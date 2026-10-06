@@ -133,8 +133,8 @@ const Viewport = () => {
     setAttachedFile(null);
     setIsLoading(true);
 
-    try {
-      const response = await fetch('http://localhost:8000/context-chat', {
+      const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+      const response = await fetch(`${apiURL}/context-chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
