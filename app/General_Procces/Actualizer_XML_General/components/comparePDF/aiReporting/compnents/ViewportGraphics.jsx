@@ -250,6 +250,7 @@ const ViewportGraphics = () => {
     setAttachedFile(null);
     setIsLoadingChat(true);
 
+    try {
       const apiURL = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
       const response = await fetch(`${apiURL}/context-chat`, {
         method: 'POST',
