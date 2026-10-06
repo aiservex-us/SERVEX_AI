@@ -101,31 +101,9 @@ export default function MenuLateral({
           </button>
         </div>
 
-        {/* SEARCH BAR SECTION */}
-        <div className="px-3 mb-4">
-          <div className={`
-            relative flex items-center transition-all duration-300
-            ${isEffectivelyCollapsed ? 'justify-center h-10' : 'h-8 bg-slate-50/50 border border-slate-100 rounded-lg px-2'}
-          `}>
-            <SearchCode className={`shrink-0 transition-colors ${searchQuery ? 'text-[#464775]' : 'text-slate-400'} ${isEffectivelyCollapsed ? 'w-4 h-4' : 'w-3.5 h-3.5'}`} />
-
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`
-                bg-transparent border-none focus:ring-0 text-[11px] w-full ml-2 placeholder:text-slate-400 text-slate-700
-                transition-all duration-300
-                ${isEffectivelyCollapsed ? 'w-0 opacity-0 p-0' : 'opacity-100'}
-              `}
-            />
-          </div>
-        </div>
-
         {/* MENU PRINCIPAL REPARTIDO CON ESTILO CARD */}
-        <nav className="flex-1 px-3 space-y-2.5 overflow-y-auto custom-scrollbar flex flex-col">
-          {filteredItems.map(item => {
+        <nav className="flex-1 px-3 space-y-2.5 overflow-y-auto custom-scrollbar flex flex-col pt-2">
+          {menuItems.map(item => {
             const Icon = item.icon;
             const isActive = active === item.id;
 
