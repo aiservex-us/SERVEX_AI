@@ -116,7 +116,7 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+    <div className="h-screen md:h-[97vh] w-full md:w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
@@ -165,7 +165,7 @@ export default function MenuInicial() {
         </div>
       )}
 
-      <main className="w-full h-[95vh] p-0 flex relative overflow-hidden">
+      <main className="w-full h-full md:h-[95vh] p-0 flex relative overflow-hidden">
 
       {/* ── GLOBAL SPLASH MODAL ── */}
       <div
@@ -247,8 +247,8 @@ export default function MenuInicial() {
           setCollapsed={setCollapsed}
         />
                 {/* CONTENEDOR UNIFICADO */}
-        <div className="flex flex-1 h-full w-full min-w-0 p-2 lg:p-3 bg-transparent">
-          <div className="flex flex-col w-full h-full bg-transparent border border-slate-200/80 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden relative">
+        <div className="flex flex-1 h-full w-full min-w-0 p-1 sm:p-2 lg:p-3 bg-transparent">
+          <div className="flex flex-col w-full h-full bg-transparent border border-slate-200/80 rounded-2xl md:rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden relative">
             {/* Unified Chat Background (Spans full container across chat & right panel) */}
             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
               <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-60" />
@@ -263,18 +263,18 @@ export default function MenuInicial() {
             </div>
 
             {/* ── TOP BAR (100% Width across entire container) ── */}
-            <header className="relative z-20 h-[52px] flex-shrink-0 flex items-center justify-between px-5 bg-white/60 backdrop-blur-md border-b border-white/50 w-full">
-              <div className="flex items-center gap-2.5">
-                <span className="text-[14px] font-black tracking-tight text-[#464775] uppercase">
+            <header className="relative z-20 h-[52px] flex-shrink-0 flex items-center justify-between px-3 sm:px-5 bg-white/60 backdrop-blur-md border-b border-white/50 w-full">
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <span className="text-[13px] sm:text-[14px] font-black tracking-tight text-[#464775] uppercase">
                   Alysa
                 </span>
-                <span className="text-[9.5px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="text-[8.5px] sm:text-[9.5px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   Servex Copilot
                 </span>
               </div>
 
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Engine v4.10 · Online
                 </div>
@@ -298,45 +298,51 @@ export default function MenuInicial() {
             {/* Body Area (Split View below 100% Header) */}
             <div className="flex flex-1 w-full min-h-0 relative z-10 overflow-hidden">
               {/* Lado Izquierdo: Asistente IA */}
-            <div className={`hidden md:flex h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 ${isToolsOpen ? 'w-[50%] border-r border-slate-200/60 bg-transparent' : 'w-full bg-transparent'}`}>
-              <TeamsAgentChat 
-                currentSection={active}
-                onOpenToolPanel={handleSetActive}
-                renderTool={(toolId) => {
-                  switch (toolId) {
-                    case 'incert_delete': return <IncertDelete step="xml" />;
-                    case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
-                    case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-                    case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="General_Procces" /></div>;
-                    case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
-                    case 'report': return <Report />;
-                    case 'graphics': return <ViewportGraphics />;
-                    case 'AI_reporter': return <Responce_ai />;
-                    case 'exportCETcsv': return <XMLResultsGeneral />;
-                    case 'compareCET': return <CETComparator />;
-                    default: return null;
-                  }
-                }}
-              />
-            </div>
+              <div className={`
+                h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
+                ${isToolsOpen 
+                  ? 'hidden md:flex md:w-[50%] border-r border-slate-200/60' 
+                  : 'flex w-full'}
+              `}>
+                <TeamsAgentChat 
+                  currentSection={active}
+                  onOpenToolPanel={handleSetActive}
+                  renderTool={(toolId) => {
+                    switch (toolId) {
+                      case 'incert_delete': return <IncertDelete step="xml" />;
+                      case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
+                      case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
+                      case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="General_Procces" /></div>;
+                      case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
+                      case 'report': return <Report />;
+                      case 'graphics': return <ViewportGraphics />;
+                      case 'AI_reporter': return <Responce_ai />;
+                      case 'exportCETcsv': return <XMLResultsGeneral />;
+                      case 'compareCET': return <CETComparator />;
+                      default: return null;
+                    }
+                  }}
+                />
+              </div>
 
-            {/* Lado Derecho: Contenido Principal */}
-            <div 
-               className={`relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
-               ${isToolsOpen ? 'w-[50%] opacity-100' : 'w-0 opacity-0'}`}
-            >
+              {/* Lado Derecho: Contenido Principal */}
+              <div className={`
+                relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
+                ${isToolsOpen 
+                  ? 'flex w-full md:w-[50%] opacity-100' 
+                  : 'hidden md:flex md:w-0 opacity-0'}
+              `}>
                 {/* Contenedor interno absoluto para evitar squish en animación */}
-                <div className="absolute top-0 left-0 w-full h-full flex flex-col overflow-hidden min-w-[500px]">
-
-                  <div className="flex-1 w-full relative overflow-y-auto pb-24">
-                    <div className="p-2 w-full h-full">
+                <div className="absolute top-0 left-0 w-full h-full flex flex-col overflow-hidden min-w-0 md:min-w-[500px]">
+                  <div className="flex-1 w-full relative overflow-y-auto pb-24 custom-scrollbar">
+                    <div className="p-1 sm:p-2 w-full h-full">
                       {renderContent()}
                     </div>
                   </div>
                 </div>
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </main>
     </div>

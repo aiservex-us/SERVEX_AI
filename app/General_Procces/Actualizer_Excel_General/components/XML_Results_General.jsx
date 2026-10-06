@@ -457,7 +457,7 @@ const DynamicDataMatrix = () => {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
               <div className="hidden sm:flex items-center gap-2 bg-[#464775]/5 border border-[#464775]/15 rounded-lg px-2.5 py-1 text-[10px] text-slate-600 font-medium select-none">
                 <span>Products: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
                 <span className="text-[#464775]/30">|</span>
@@ -466,14 +466,14 @@ const DynamicDataMatrix = () => {
                 <span>Avg Price: <strong className="text-[#464775] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
               </div>
 
-              <div className="relative flex items-center">
+              <div className="relative flex items-center flex-1 sm:flex-initial min-w-[120px]">
                 <Search size={12} className="absolute left-2.5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search matrix..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-white/70 border border-[#464775]/25 rounded-lg pl-7 pr-2.5 py-0.5 text-[10.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#464775] focus:bg-white transition-all w-[160px]"
+                  className="bg-white/70 border border-[#464775]/25 rounded-lg pl-7 pr-2.5 py-0.5 text-[10.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#464775] focus:bg-white transition-all w-full sm:w-[160px]"
                 />
               </div>
 

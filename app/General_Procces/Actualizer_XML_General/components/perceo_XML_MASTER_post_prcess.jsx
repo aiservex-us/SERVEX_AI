@@ -233,7 +233,7 @@ const WBDDataMatrix = () => {
   );
 
   return (
-    <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent relative z-10 p-2 md:p-4 font-sans antialiased">
+    <div className="h-full md:h-[80vh] flex flex-col justify-center items-center bg-transparent relative z-10 p-1 sm:p-2 md:p-4 font-sans antialiased">
       <div className="w-full mx-auto">
         
         <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#464775]/30 shadow-lg shadow-[#464775]/5 overflow-hidden flex flex-col w-full">
