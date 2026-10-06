@@ -84,13 +84,27 @@ export default function MenuLateral({
         {/* HEADER: LOGO & TOGGLE */}
         <div className="h-20 flex items-center justify-between px-4 shrink-0 relative">
           <div className={`flex items-center ${isEffectivelyCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
-            <Link href="/panel" className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors cursor-pointer">
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className={`object-contain transition-all duration-300 ${isEffectivelyCollapsed ? 'w-6 h-6' : 'w-8 h-8'}`}
-              />
-            </Link>
+            {isEffectivelyCollapsed ? (
+              <button 
+                onClick={() => setCollapsed(false)}
+                title="Desplegar menú"
+                className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors cursor-pointer"
+              >
+                <img
+                  src="/logo.png"
+                  alt="Logo"
+                  className="w-6 h-6 object-contain transition-all duration-300"
+                />
+              </button>
+            ) : (
+              <Link href="/panel" className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors cursor-pointer">
+                <img
+                  src="/logo.png"
+                  alt="Logo"
+                  className="w-8 h-8 object-contain transition-all duration-300"
+                />
+              </Link>
+            )}
           </div>
           <button
             onClick={() => setCollapsed(!collapsed)}
