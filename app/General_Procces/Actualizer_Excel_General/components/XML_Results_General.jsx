@@ -536,7 +536,7 @@ const DynamicDataMatrix = () => {
                     
                     return (
                       <tr 
-                        key={p["Model #"] || realIndex}
+                        key={`${p["Model #"] || 'prod'}-${realIndex}`}
                         className="hover:bg-[#464775]/10 transition-colors group"
                       >
                         <td className="px-2 py-1.5 text-center text-[9.5px] font-bold text-[#464775] border-r border-[#464775]/10 sticky left-0 z-10 bg-white/90 group-hover:bg-[#464775]/10 border-b border-[#464775]/10 font-mono">

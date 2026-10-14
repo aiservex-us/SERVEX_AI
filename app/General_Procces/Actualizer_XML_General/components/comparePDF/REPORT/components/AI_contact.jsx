@@ -212,6 +212,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   useEffect(() => {
     const checkDbPhase = async () => {
       try {
+        const modName = 'General_Procces';
         const tableName = 'ClientsSERVEX_General_Procces';
         
         const { data, error } = await supabase

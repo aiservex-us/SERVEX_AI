@@ -15,6 +15,9 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Servex Copilot",
   description: "Generated GLYNNE S.A.S col",
+  other: {
+    google: "notranslate",
+  },
 };
 
 export default function RootLayout({
@@ -23,9 +26,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" translate="no" className="notranslate">
       <body
-        className={`${interFont.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${interFont.variable} ${jetbrainsMono.variable} antialiased notranslate`}
       >
         {children}
       </body>
