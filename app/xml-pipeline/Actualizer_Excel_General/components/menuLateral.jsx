@@ -23,7 +23,7 @@ const menuItems = [
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
   { id: 'xml_results', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
   { id: 'cet_comparator', label: 'CET XML Comparator', icon: Activity, sub: 'Audit' },
-  { id: 'xml_redirect', label: '', icon: RefreshCcw, link: '/General_Procces/Actualizer_XML_General' }
+  { id: 'xml_redirect', label: '', icon: RefreshCcw, link: '/xml-pipeline/Actualizer_XML_General' }
 ];
 
 export default function MenuLateral({

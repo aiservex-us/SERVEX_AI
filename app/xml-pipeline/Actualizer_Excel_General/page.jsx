@@ -28,7 +28,7 @@ export default function ExcelActualizer() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          window.location.href = '/General_Procces';
+          window.location.href = '/xml-pipeline';
           return;
         }
         
@@ -42,7 +42,7 @@ export default function ExcelActualizer() {
         }
 
         if (!responseData.locked || (responseData.data && responseData.data.user_id !== user.id)) {
-          window.location.href = '/General_Procces';
+          window.location.href = '/xml-pipeline';
         }
       } catch (err) {
         console.error('Delegation check failed', err);
@@ -96,7 +96,7 @@ export default function ExcelActualizer() {
 
   return (
     <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
-      <CriticalExcelModal xmlRoute="/General_Procces/Actualizer_XML_General" />
+      <CriticalExcelModal xmlRoute="/xml-pipeline/Actualizer_XML_General" />
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">

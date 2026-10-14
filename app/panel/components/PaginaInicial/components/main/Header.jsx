@@ -4,7 +4,6 @@ import {
   Search,
   Bell,
   ChevronDown,
-  Settings,
   BookOpen,
   Brain,
   Layers,
@@ -99,7 +98,6 @@ export default function Header() {
 
                   <div className="h-px bg-slate-200"></div>
 
-                  <MenuItem icon={Settings} label="Settings" />
                   <MenuItem icon={BookOpen} label="Documentation" />
                   <MenuItem icon={Brain} label="AI Context" />
                   <MenuItem icon={Layers} label="AI Models" />

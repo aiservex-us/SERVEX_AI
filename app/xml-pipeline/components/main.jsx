@@ -62,7 +62,7 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-1 max-w-xl gap-3 lg:gap-5 w-[90%] mx-auto mb-10 md:mb-12 text-left">
           
           <Link 
-            href="/General_Procces/Actualizer_XML_General"
+            href="/xml-pipeline/Actualizer_XML_General"
             className="group flex flex-col bg-white/50 backdrop-blur-2xl border border-white/80 rounded-3xl p-6 lg:p-8 hover:bg-white/90 hover:border-indigo-200 hover:shadow-[0_20px_40px_rgba(70,71,117,0.12)] hover:-translate-y-1 transition-all duration-500 ease-out"
           >
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-[#464775] shadow-sm border border-indigo-100 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
