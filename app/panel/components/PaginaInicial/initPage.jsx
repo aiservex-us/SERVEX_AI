@@ -7,15 +7,13 @@ import Sidebar from './components/main/loogout';
 // VISTAS / COMPONENTES
 import Content from './components/main/Content';
 import Chart from './components/main/Chart';
-import DashboardRight from './components/main/Dashboard';
+import { ArchitectureSpecs } from './components/main/Dashboard';
 import Forum from './components/main/Forum';
 
 // VISTAS ADICIONALES
 import Calendar from './components/menuEmpresas';
 import Products from './components/main/AccesAgent';
 import FilesView from './components/main/FilesView';
-import { Brain } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 
 import Footer from './components/main/footer';
 
@@ -23,66 +21,83 @@ const InitPage = () => {
   const [activeView, setActiveView] = useState('dashboard');
   // NUEVO: Estado para controlar si el menú está colapsado o no
   const [collapsed, setCollapsed] = useState(false);
-  // Estado para el chat flotante
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const renderMainContent = () => {
     switch (activeView) {
       case 'home':
         return (
-          <div key="home" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
-            <Content setActiveView={setActiveView} />
+          <div key="home" className="col-span-12 space-y-6 animate-view-fade">
+            <div className="grid grid-cols-12 gap-6 items-stretch">
+              <div className="col-span-12 lg:col-span-8 flex flex-col">
+                <Content setActiveView={setActiveView} />
+              </div>
+              <div className="col-span-12 lg:col-span-4 flex flex-col">
+                <ArchitectureSpecs />
+              </div>
+            </div>
           </div>
         );
 
       case 'dashboard':
+      default:
         return (
-          <div key="dashboard" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
-            <Content setActiveView={setActiveView} />
-            <Chart setActiveView={setActiveView} />
+          <div key="dashboard" className="col-span-12 space-y-6 animate-view-fade">
+            {/* ROW 1: Operations Hero Banner (8 cols) + Architecture Specs (4 cols) */}
+            <div className="grid grid-cols-12 gap-6 items-stretch">
+              <div className="col-span-12 lg:col-span-8 flex flex-col">
+                <Content setActiveView={setActiveView} />
+              </div>
+              <div className="col-span-12 lg:col-span-4 flex flex-col">
+                <ArchitectureSpecs />
+              </div>
+            </div>
+
+            {/* ROW 2: Pipeline Execution & Analytics (8 cols) + Servex Copilot Chat (4 cols) */}
+            <div className="grid grid-cols-12 gap-6 items-stretch">
+              <div className="col-span-12 lg:col-span-8 flex flex-col">
+                <Chart setActiveView={setActiveView} />
+              </div>
+              <div className="col-span-12 lg:col-span-4 flex flex-col">
+                <section className="w-full h-[580px] rounded-3xl overflow-hidden border border-slate-200/90 shadow-[0_10px_35px_-10px_rgba(70,71,117,0.08)] relative bg-white flex flex-col">
+                  <Products isFloating={false} isInitialWidget={true} />
+                </section>
+              </div>
+            </div>
           </div>
         );
 
       case 'calendar':
         return (
-          <div key="calendar" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
+          <div key="calendar" className="col-span-12 space-y-6 animate-view-fade">
             <Calendar />
           </div>
         );
 
       case 'products':
         return (
-          <div key="products" className="col-span-12 space-y-6 animate-view-fade">
+          <div key="products" className="col-span-12 h-full min-h-0 flex flex-col animate-view-fade">
             <Products />
           </div>
         );
 
       case 'foro':
         return (
-          <div key="foro" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
+          <div key="foro" className="col-span-12 space-y-6 animate-view-fade">
             <Forum />
           </div>
         );
 
       case 'files':
         return (
-          <div key="files" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
+          <div key="files" className="col-span-12 space-y-6 animate-view-fade">
             <FilesView />
-          </div>
-        );
-
-      default:
-        return (
-          <div key="default" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
-            <Content setActiveView={setActiveView} />
-            <Chart />
           </div>
         );
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-[90vh] bg-[#FFF] font-sans overflow-hidden text-slate-700 relative">
+    <div className="flex flex-col md:flex-row w-full h-full bg-[#FFF] font-sans overflow-hidden text-slate-700 relative min-h-0">
       {/* INYECCIÓN DE ANIMACIÓN PREMIUM AUTÓNOMA */}
       <style>{`
         @keyframes subtleFadeUp {
@@ -125,75 +140,19 @@ const InitPage = () => {
         setCollapsed={setCollapsed}
       />
 
-      <main className="flex-1 h-full flex flex-col overflow-hidden">
-        {/* CONTENIDO SCROLLABLE */}
-        <div className={`flex-1 overflow-y-auto bg-[#FFF] ${activeView === 'products' ? 'p-3 md:p-6' : 'p-4 md:p-8 pb-24 md:pb-8'}`}>
-          <div className="grid grid-cols-12 gap-6 max-w-[1600px] mx-auto">
-
-            {/* COLUMNA PRINCIPAL */}
-            {renderMainContent()}
-
-            {/* COLUMNA DERECHA (FIJA) - Se oculta en la vista del chat */}
-            {activeView !== 'products' && (
-              <aside className="col-span-12 lg:col-span-4 relative mt-4 lg:mt-0">
-                <div className="sticky top-0">
-                  <DashboardRight setActiveView={setActiveView} />
-                </div>
-              </aside>
-            )}
-
+      <main className="flex-1 h-full flex flex-col overflow-hidden min-h-0">
+        {activeView === 'products' ? (
+          <div className="flex-1 h-full w-full min-h-0 flex flex-col max-[700px]:pb-[60px] overflow-hidden">
+            <Products />
           </div>
-          {activeView !== 'products' && <Footer />}
-        </div>
-
-        {/* BOTÓN FLOTANTE Y CHAT (Si no estamos en 'products') */}
-        {activeView !== 'products' && (
-          <AnimatePresence mode="wait">
-            {isChatOpen ? (
-              <motion.div
-                key="chat-window"
-                initial={{ opacity: 0, x: -250, y: 150, scale: 0.5 }}
-                animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -250, y: 150, scale: 0.5 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25, mass: 0.8 }}
-                className="fixed inset-0 md:top-auto md:left-auto md:bottom-8 md:right-10 z-[100] flex flex-col md:items-end pointer-events-none"
-              >
-                <div className="pointer-events-auto w-full h-full md:w-auto md:h-auto md:mb-4 flex flex-col">
-                  <Products isFloating={true} onClose={() => setIsChatOpen(false)} />
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="chat-button"
-                initial={{ opacity: 0, y: 40, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 40, scale: 0.9 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-[100] pointer-events-none max-[700px]:scale-90 origin-bottom"
-              >
-                <div className="relative">
-                  {/* Animación de fondo sutil (glow/vibración) */}
-                  <div className="absolute -inset-1.5 bg-indigo-500/20 rounded-full blur-md animate-soft-glow pointer-events-none" />
-                  
-                  <button
-                    onClick={() => setIsChatOpen(true)}
-                    className="relative flex items-center gap-3 bg-white border border-gray-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] px-5 py-3 rounded-full hover:bg-gray-50 hover:-translate-y-1 transition-all pointer-events-auto w-[320px] group animate-float-idle"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-[#464775] text-white flex items-center justify-center relative flex-shrink-0 group-hover:scale-105 transition-transform">
-                      <Brain size={16} />
-                      <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-white rounded-full animate-pulse" />
-                    </div>
-                    <div className="flex flex-col items-start text-left flex-1">
-                      <span className="text-[13px] font-bold text-gray-800 leading-none">Servex Copilot</span>
-                      <span className="text-[11px] text-gray-500 font-medium mt-1 truncate">Online · Chat with Alysa</span>
-                    </div>
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        ) : (
+          <div className="flex-1 overflow-y-auto bg-[#FFF] p-4 md:p-8 pb-24 md:pb-8">
+            <div className="max-w-[1600px] mx-auto w-full">
+              {renderMainContent()}
+            </div>
+            <Footer />
+          </div>
         )}
-
       </main>
     </div>
   );

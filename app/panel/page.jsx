@@ -25,29 +25,10 @@ export default function PanelPage() {
   }, [router]);
 
   return (
-    /* Contenedor padre sin scroll y altura completa */
-    <div className="h-screen w-full bg-[#f8fafc] font-sans overflow-hidden flex items-center justify-center">
-      
-      {/* MAIN: 
-          - h-[95vh]: Ocupa el 95% de la altura.
-          - w-full: Ocupa el 100% del ancho.
-      */}
-      <main className="w-full h-[95vh] p-0">
-        <div className="relative group w-full h-full">
-          
-          {/* Glow decorativo */}
-          <div className="absolute -inset-1 blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-
-          {/* Contenedor del Menú */}
-          <div className="relative bg-white border-y md:border border-slate-200 md:rounded-2xl shadow-xl shadow-slate-200/50 w-full h-full overflow-y-auto">
-            <div className="p-1 w-full h-full">
-              <GlobalOnboarding>
-                <PanelMenur />
-              </GlobalOnboarding>
-            </div>
-          </div>
-        </div>
-      </main>
+    <div className="w-full h-screen overflow-hidden bg-white font-sans flex flex-col m-0 p-0 min-h-0">
+      <GlobalOnboarding>
+        <PanelMenur />
+      </GlobalOnboarding>
     </div>
   );
 }

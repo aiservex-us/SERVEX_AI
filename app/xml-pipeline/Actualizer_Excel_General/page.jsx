@@ -95,7 +95,7 @@ export default function ExcelActualizer() {
   };
 
   return (
-    <div className="h-[97vh] w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+    <div className="w-full h-screen overflow-hidden bg-white font-sans flex flex-col m-0 p-0 min-h-0 relative">
       <CriticalExcelModal xmlRoute="/xml-pipeline/Actualizer_XML_General" />
 
       {showExitModal && (
@@ -145,7 +145,7 @@ export default function ExcelActualizer() {
         </div>
       )}
 
-      <main className="w-full h-[95vh] p-0 flex relative overflow-hidden">
+      <main className="w-full h-full p-0 m-0 flex relative overflow-hidden flex-1 min-h-0">
         <MenuLateral
           active={active}
           setActive={setActive}

@@ -6,14 +6,156 @@ import { marked } from "marked";
 import {
   Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
-  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
+  Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search, User,
+  X, ChevronRight, BookOpen
 } from 'lucide-react';
 import { supabase } from '@/app/lib/supabaseClient';
+
+const AI_GUIDE_QUESTIONS = [
+  {
+    category: "Plataforma",
+    tag: "General",
+    q: "¿Qué es la plataforma SERVEX y cuál es su objetivo principal?",
+    desc: "Visión global del sistema, propósito y herramientas estratégicas."
+  },
+  {
+    category: "Plataforma",
+    tag: "Módulos",
+    q: "¿Cuáles son los módulos y herramientas disponibles en el panel?",
+    desc: "Guía de navegación entre Dashboard, Copilot y Pipelines."
+  },
+  {
+    category: "Plataforma",
+    tag: "Seguridad",
+    q: "¿Cómo se garantiza la seguridad y trazabilidad de los datos corporativos?",
+    desc: "Auditoría en tiempo real, aislamiento y protocolos de sesión."
+  },
+  {
+    category: "Plataforma",
+    tag: "Navegación",
+    q: "¿Cómo cambiar de sección o navegar entre las diferentes herramientas?",
+    desc: "Uso del menú lateral, atajos y cambio de vistas operativas."
+  },
+  {
+    category: "Pipeline XML",
+    tag: "Proceso",
+    q: "¿Cómo funciona el Pipeline de procesamiento y actualización de XML?",
+    desc: "Flujo de ingesta, normalización y transformación de catálogos."
+  },
+  {
+    category: "Pipeline XML",
+    tag: "Formatos",
+    q: "¿Qué formatos de archivo puedo cargar en la plataforma (Excel, XML, PDF)?",
+    desc: "Compatibilidad de tablas XLSX, esquemas XML y reportes PDF."
+  },
+  {
+    category: "Pipeline XML",
+    tag: "CET Designer",
+    q: "¿Cómo exporto o genero un catálogo verificado para CET Designer?",
+    desc: "Generación de estructuras válidas para CET y visualización 3D."
+  },
+  {
+    category: "Pipeline XML",
+    tag: "Validación",
+    q: "¿Cómo detecta el sistema discrepancias en códigos de producto y precios?",
+    desc: "Reglas de validación contra listas maestras y tolerancias."
+  },
+  {
+    category: "Pipeline XML",
+    tag: "Errores",
+    q: "¿Qué debo hacer si un archivo XML presenta errores de estructura?",
+    desc: "Detección automática de nodos faltantes o sintaxis rota."
+  },
+  {
+    category: "Auditoría",
+    tag: "Métricas",
+    q: "¿Cómo interpreto las métricas de discrepancia y variación de precios?",
+    desc: "Comprensión de desviaciones porcentuales y deltas de costo."
+  },
+  {
+    category: "Auditoría",
+    tag: "Conciliación",
+    q: "¿Cómo se realiza la conciliación entre órdenes de compra y listas de precios?",
+    desc: "Cruce automático de líneas de compra con catálogos oficiales."
+  },
+  {
+    category: "Auditoría",
+    tag: "Fabricantes",
+    q: "¿Qué fabricantes están integrados (Teknion, LESRO, VIA Seating, etc.)?",
+    desc: "Marcas y líneas comerciales soportadas en el catálogo central."
+  },
+  {
+    category: "Auditoría",
+    tag: "Historial",
+    q: "¿Puedo auditar órdenes históricas y ver reportes de discrepancia anteriores?",
+    desc: "Consulta de registros pasados y comparativas temporales."
+  },
+  {
+    category: "Auditoría",
+    tag: "Márgenes",
+    q: "¿Cómo se calculan los márgenes y porcentajes de desviación en los reportes?",
+    desc: "Fórmulas financieras aplicadas al análisis de órdenes."
+  },
+  {
+    category: "Alysa Copilot",
+    tag: "Consultas",
+    q: "¿Qué tipos de consultas puedo realizarle a Alysa Copilot en lenguaje natural?",
+    desc: "Preguntas técnicas, análisis de datos y comandos del sistema."
+  },
+  {
+    category: "Alysa Copilot",
+    tag: "Voz STT",
+    q: "¿Cómo utilizo el reconocimiento de voz (Studio Audio Mixer) para preguntar?",
+    desc: "Instrucciones para activar el micrófono y dictar consultas."
+  },
+  {
+    category: "Alysa Copilot",
+    tag: "Puntuación",
+    q: "¿Cómo funciona la función de auto-puntuación y pulido de texto con IA?",
+    desc: "Estandarización ortográfica corporativa en un clic."
+  },
+  {
+    category: "Alysa Copilot",
+    tag: "Lotes",
+    q: "¿Puedo solicitarle a Alysa que resuma un lote de órdenes o audite un archivo?",
+    desc: "Capacidades de análisis conversacional de lotes de datos."
+  },
+  {
+    category: "Alysa Copilot",
+    tag: "Soporte",
+    q: "¿A quién debo contactar si requiero soporte técnico avanzado o personalizado?",
+    desc: "Canales de contacto y asistencia directa de GLYNNE S.A.S."
+  },
+  {
+    category: "Plataforma",
+    tag: "Arquitectura",
+    q: "¿Cómo opera el ecosistema de IA desarrollado por GLYNNE S.A.S.?",
+    desc: "Estructura de modelos autónomos y procesamiento centralizado."
+  }
+];
 
 const QUICK_PROMPTS = [
   { icon: Shield, label: "Core Principles", q: "What is the strategic imperative of SERVEX AI?" },
   { icon: Activity, label: "Platform Guide", q: "Explain the End-to-End ingestion pipeline." },
 ];
+
+const AlysaSvgIcon = ({ className = "w-7 h-7 flex-shrink-0", ...props }) => (
+  <svg
+    viewBox="60 180 870 640"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    {...props}
+  >
+    <rect x="593" y="197" width="153" height="149" rx="32" fill="#35365e" />
+    <rect x="766" y="232" width="106" height="101" rx="22" fill="#7e81b8" />
+    <rect x="740" y="350" width="176" height="174" rx="36" fill="#6264A7" />
+    <path
+      d="M 353 202 L 340 221 L 223 471 L 72 773 L 69 784 L 72 795 L 88 805 L 258 805 L 269 801 L 278 791 L 440 452 L 445 449 L 527 606 L 389 608 L 383 611 L 375 626 L 371 697 L 377 706 L 567 707 L 581 718 L 621 793 L 629 801 L 640 805 L 840 804 L 847 799 L 852 789 L 849 776 L 702 542 L 590 356 L 506 205 L 491 197 L 365 197 Z"
+      fill="#464775"
+    />
+  </svg>
+);
 
 
 const BotMessage = ({ text }) => {
@@ -182,16 +324,63 @@ function formatProfessionalSpeechText(rawText) {
   return result;
 }
 
-export default function TeamsAgentChat({ isFloating = false, onClose }) {
+const INITIAL_PROACTIVE_MESSAGE = {
+  from: 'bot',
+  text: '¡Hola! 👋 Soy **Alysa**, tu copiloto de ingeniería y catálogos XML.\n\n¿En qué catálogo o matriz de precios estás trabajando hoy? Puedo auditar discrepancias en tus archivos, verificar reglas de opciones en CET/20-20 o resolver cualquier consulta sobre especificaciones.',
+  isProactiveGreeting: true
+};
 
-  const [selectedAgent] = useState({ agent_name: "Alysa SVX", role: "AI Engine" });
+export default function TeamsAgentChat({ isFloating = false, onClose, isInitialWidget = false }) {
+
   const [messages, setMessages] = useState([]);
+  const [isSimulatingTyping, setIsSimulatingTyping] = useState(isInitialWidget);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [context, setContext] = useState('Servex General');
   const [charCount, setCharCount] = useState(0);
   const [userId, setUserId] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [showAiGuideModal, setShowAiGuideModal] = useState(false);
+  const [guideSearch, setGuideSearch] = useState("");
+  const [guideCategory, setGuideCategory] = useState("all");
+
+  // Animación de typing realista antes de enviar el mensaje inicial en el widget
+  useEffect(() => {
+    if (!isInitialWidget) return;
+
+    if (messages.length > 0) {
+      setIsSimulatingTyping(false);
+      return;
+    }
+
+    setIsSimulatingTyping(true);
+    const timer = setTimeout(() => {
+      setMessages(prev => {
+        if (prev.length === 0) {
+          return [{
+            ...INITIAL_PROACTIVE_MESSAGE,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }];
+        }
+        return prev;
+      });
+      setIsSimulatingTyping(false);
+    }, 1800);
+
+    return () => clearTimeout(timer);
+  }, [isInitialWidget, messages.length]);
+
+  const filteredGuideQuestions = React.useMemo(() => {
+    return AI_GUIDE_QUESTIONS.filter(item => {
+      const matchesCat = guideCategory === "all" || item.category === guideCategory;
+      const matchesSearch = !guideSearch.trim() || 
+        item.q.toLowerCase().includes(guideSearch.toLowerCase()) ||
+        item.desc.toLowerCase().includes(guideSearch.toLowerCase()) ||
+        item.tag.toLowerCase().includes(guideSearch.toLowerCase());
+      return matchesCat && matchesSearch;
+    });
+  }, [guideCategory, guideSearch]);
+
   const recognitionRef = useRef(null);
   const ignoreSpeechRef = useRef(false);
   const speechBaseTextRef = useRef("");
@@ -221,8 +410,10 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
         const res = await fetch(`${apiURL}/api/v1/general_agent/history?user_id=${userId}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.status === "success" && data.history) {
+          if (data.status === "success" && Array.isArray(data.history) && data.history.length > 0) {
             setMessages(data.history);
+            setIsSimulatingTyping(false);
+            return;
           }
         }
       } catch (e) {
@@ -429,11 +620,139 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
     }
   };
 
+  const renderInputCard = (isCentered = false) => {
+    return (
+      <div
+        className={`w-full ${
+          isCentered ? 'max-w-[760px] mx-auto shadow-[0_12px_40px_-6px_rgba(70,71,117,0.14),0_2px_10px_-2px_rgba(70,71,117,0.06)]' : 'max-w-[1000px] mx-auto shadow-sm'
+        } bg-white/80 backdrop-blur-xl border border-white/70 rounded-2xl relative focus-within:border-[#464775]/50 focus-within:ring-4 focus-within:ring-[#464775]/10 transition-all duration-300`}
+      >
+        {/* Meta row */}
+        <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#464775]">
+            <Zap size={12} className="text-[#6264A7]" />
+            <span>Engine v4.10</span>
+          </div>
+          {isRecording ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#6264A7]/10 border border-[#6264A7]/25 text-[#464775] text-[11px] font-bold tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-[#6264A7] animate-pulse" />
+              <span>Audio Mixer Active</span>
+            </div>
+          ) : charCount > 0 ? (
+            <span className="text-[10px] font-medium text-gray-500 bg-white/80 border border-gray-200/60 px-2 py-0.5 rounded-md">
+              {charCount} chars
+            </span>
+          ) : null}
+        </div>
+
+        {/* Textarea */}
+        <div className="flex flex-col px-3.5 pt-3 pb-1 w-full">
+          <div className="flex items-start gap-2.5 w-full">
+            <Sparkles size={16} className={`mt-1 flex-shrink-0 transition-colors ${isRecording ? 'text-[#6264A7] animate-pulse' : 'text-[#464775]/60'}`} />
+            <textarea
+              ref={inputRef}
+              rows={1}
+              className="flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[28px] max-h-[140px] overflow-y-auto caret-[#464775] font-sans"
+              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Ask about processes, data, or system architecture…"}
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+
+          {/* Efecto Studio Audio Mixer a todo lo ancho del input */}
+          {isRecording && (
+            <div className="w-full mt-2.5 mb-1 p-2.5 rounded-xl bg-gradient-to-r from-[#464775]/5 via-[#6264A7]/10 to-[#464775]/5 border border-[#6264A7]/20 shadow-sm animate-fadeIn">
+              <div className="flex items-center justify-between mb-1.5 px-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6264A7] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#464775]"></span>
+                  </span>
+                  <span className="text-[11.5px] font-bold text-[#464775] tracking-tight">
+                    Studio Audio Mixer
+                  </span>
+                  <span className="text-[11px] text-slate-500 hidden sm:inline font-medium">
+                    · Capturing and transcribing speech frequencies live
+                  </span>
+                </div>
+
+                <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#6264A7]/15 text-[#6264A7] border border-[#6264A7]/20">
+                  Live Input
+                </span>
+              </div>
+
+              {/* Espectro completo de barras de ecualizador de audio a lo ancho de todo el input */}
+              <div className="w-full h-8 flex items-end justify-between gap-[2px] md:gap-[3px] px-1 overflow-hidden">
+                {Array.from({ length: 48 }).map((_, idx) => (
+                  <span
+                    key={idx}
+                    className="flex-1 max-w-[5px] min-w-[2px] rounded-full bg-gradient-to-t from-[#464775] to-[#6264A7]"
+                    style={{
+                      animation: `mixer-bar-bounce 0.85s ease-in-out infinite ${(idx * 0.038).toFixed(2)}s`,
+                      opacity: 0.55 + (idx % 4) * 0.14
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-between px-3.5 py-2">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              title={isRecording ? "Stop Recording (Stop STT)" : "Voice Recording (Speech-to-Text)"}
+              onClick={toggleRecording}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                isRecording
+                  ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/25 ring-2 ring-[#6264A7]/50 animate-pulse'
+                  : 'text-gray-400 hover:bg-gray-100 hover:text-[#464775]'
+              }`}
+            >
+              {isRecording ? <MicOff size={17} /> : <Mic size={17} />}
+            </button>
+
+            <button
+              type="button"
+              title="Guía IA & Preguntas Frecuentes"
+              onClick={() => setShowAiGuideModal(true)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-[#464775] transition-colors"
+            >
+              <HelpCircle size={17} />
+            </button>
+          </div>
+
+          <button
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || isLoading}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
+              ${input.trim() && !isLoading
+                ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/25 hover:bg-[#35365e] hover:-translate-y-px'
+                : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+              }`}
+          >
+            {isLoading ? (
+              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                <span>Send</span>
+                <SendHorizonal size={14} />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={
       isFloating
-        ? "w-full h-full md:w-[500px] md:h-[600px] md:max-h-[85vh] flex flex-col font-sans text-gray-900 md:border md:border-gray-200 md:rounded-2xl md:shadow-2xl overflow-hidden md:shadow-indigo-100/50 pointer-events-auto relative bg-white"
-        : "w-full h-[82vh] md:h-[84vh] flex flex-col font-sans text-gray-900 border border-gray-200/90 rounded-2xl shadow-sm overflow-hidden relative bg-white"
+        ? "w-full h-full md:w-[500px] md:h-[600px] md:max-h-[85vh] flex flex-col min-h-0 font-sans text-gray-900 border-0 md:border md:border-gray-200 rounded-none md:rounded-2xl shadow-none md:shadow-2xl overflow-hidden md:shadow-indigo-100/50 pointer-events-auto relative bg-white"
+        : "w-full h-full flex flex-col min-h-0 font-sans text-gray-900 overflow-hidden relative bg-white"
     }>
 
       {/* --- FONDO ESTILO MAIN1 (SIN ANIMACIONES) --- */}
@@ -450,43 +769,46 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
       </div>
 
       {/* ── TOP BAR ── */}
-      <header className="relative z-10 h-[52px] flex-shrink-0 flex items-center justify-between px-5 bg-white/60 backdrop-blur-md border-b border-white/50">
+      <header className="relative z-10 h-[52px] flex-shrink-0 flex items-center justify-between px-5 max-[700px]:px-3.5 bg-transparent border-b border-slate-200/30">
         <div className="flex items-center gap-2.5">
-          <span className="text-[14px] font-black tracking-tight text-[#464775] uppercase">
-            Alysa
-          </span>
-          <span className="text-[9.5px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
             Servex Copilot
           </span>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Engine v4.10
-          </div>
-          {isFloating ? (
+          {/* AI Guide Modal Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setShowAiGuideModal(true)}
+            title="Guía IA & Preguntas Frecuentes"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#464775]/10 hover:bg-[#464775]/20 text-[#464775] border border-[#464775]/20 hover:border-[#464775]/35 transition-all text-[11px] font-semibold shadow-sm group"
+          >
+            <Sparkles size={13} className="text-[#6264A7] group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline">Guía IA</span>
+          </button>
+
+          {isFloating && (
             <button
               onClick={onClose}
               className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
             >
               <Plus size={16} className="rotate-45" />
             </button>
-          ) : (
-            <button className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
-              <Settings size={15} />
-            </button>
           )}
-          {messages.length > 0 && (
+          {messages.some(m => m.from === 'user') && (
             <button
               onClick={async () => {
                 if (!userId) return;
-                setMessages([]);
+                setMessages(isInitialWidget ? [{
+                  ...INITIAL_PROACTIVE_MESSAGE,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                }] : []);
                 try {
                   await fetch(`${apiURL}/api/v1/general_agent/history?user_id=${userId}`, { method: "DELETE" });
                 } catch (e) {}
               }}
-              className="text-[11px] font-medium text-gray-500 border border-gray-300 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors"
+              className="text-[11px] font-medium text-gray-500 border border-gray-300 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
             >
               Clear
             </button>
@@ -495,85 +817,85 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
       </header>
 
       {/* ── MAIN ── */}
-      <main ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">
-        <div className="w-full max-w-[1000px] mx-auto flex flex-col px-5 min-h-full">
-
-          {messages.length === 0 ? (
-            /* ── HOME ── */
-            <div className="flex flex-col flex-1 pt-6 pb-5">
-              {/* Hero */}
-              <div className="relative text-center mb-10">
-                <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-96 h-64 rounded-full blur-3xl pointer-events-none" />
-                <motion.div
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <div className="flex justify-center mb-4 mt-2">
-                    <img src="/alysa.png" alt="Alysa Logo" className="h-28 w-auto object-contain" />
-                  </div>
-                  <h2 className="text-[12px] text-gray-400 font-medium">
-                    (AI Autonomous Logic & Yield System Architect.)
-                  </h2>
-                </motion.div>
-
-                <div className="relative mx-auto max-w-sm mt-6">
-                  <motion.div
-                    className="absolute inset-0 bg-indigo-400/30 rounded-[30px] blur-[20px]"
-                    animate={{
-                      scale: [0.95, 1.05, 0.95],
-                      opacity: [0.4, 0.8, 0.4],
-                    }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <motion.div
-                    className="relative z-10 flex border border-white/60 rounded-xl overflow-hidden bg-white/60 backdrop-blur-md shadow-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3, duration: 0.5 }}
-                  >
-                    {[
-                      { label: "Role", value: "Root Presenter" },
-                      { label: "Accuracy", value: "99.9%" },
-                      { label: "Sync", value: "Real-time" },
-                    ].map((m, i) => (
-                      <div key={m.label} className={`flex-1 flex flex-col gap-0.5 py-3 px-4 text-center ${i < 2 ? 'border-r border-white/50' : ''}`}>
-                        <span className="text-[12px] font-semibold tracking-tight text-gray-700">{m.value}</span>
-                        <span className="text-[10px] uppercase tracking-wider text-gray-400">{m.label}</span>
-                      </div>
-                    ))}
-                  </motion.div>
-                </div>
+      <main ref={scrollContainerRef} className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">
+        {messages.length === 0 && !isSimulatingTyping ? (
+          /* ── HOME (CENTERED HEADER & PROFESSIONAL INPUT) ── */
+          <div className="w-full max-w-[840px] mx-auto min-h-full flex flex-col justify-center items-center py-8 px-4">
+            {/* Hero Presentation Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 22 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              className="text-center mb-6 w-full flex flex-col items-center"
+            >
+              <div className="flex justify-center mb-3">
+                <img src="/alysa.png" alt="Alysa Logo" className="h-20 md:h-24 w-auto object-contain drop-shadow-sm" />
               </div>
+              <h2 className="text-[12px] md:text-[13px] text-gray-400 font-medium tracking-tight">
+                (AI Autonomous Logic &amp; Yield System Architect.)
+              </h2>
 
-              {/* Quick prompts */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.45, duration: 0.5 }}
-              >
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-3">
-                  Frequent Queries
-                </p>
-                <div className={`grid gap-2 ${isFloating ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                  {QUICK_PROMPTS.map(({ icon: Icon, label, q }) => (
-                    <button
-                      key={label}
-                      onClick={() => sendMessage(q)}
-                      className="flex flex-col items-start gap-1.5 p-3.5 rounded-xl bg-white/60 backdrop-blur-md border border-white/50 text-left hover:border-indigo-200 hover:bg-white/80 hover:-translate-y-px hover:shadow-md transition-all duration-200 group"
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-100 transition-colors">
-                        <Icon size={15} />
-                      </div>
-                      <span className="text-[12px] font-semibold text-gray-800">{label}</span>
-                      <span className="text-[11px] text-gray-400 leading-relaxed line-clamp-2">{q}</span>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          ) : (
-            /* ── MESSAGES ── */
+              {/* Status Badges */}
+              <div className="flex items-center justify-center gap-2 flex-wrap mt-3.5">
+                <span className="text-[11px] font-semibold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                  <Shield size={12} className="text-[#464775]" />
+                  Root Presenter
+                </span>
+                <span className="text-[11px] font-medium text-slate-600 bg-white/70 border border-slate-200/80 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                  <Activity size={12} className="text-[#6264A7]" />
+                  Accuracy 99.9%
+                </span>
+                <span className="text-[11px] font-medium text-slate-600 bg-white/70 border border-slate-200/80 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                  <Zap size={12} className="text-[#6264A7]" />
+                  Real-time Sync
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Centered Professional Input Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12, duration: 0.5 }}
+              className="w-full"
+            >
+              {renderInputCard(true)}
+            </motion.div>
+
+            {/* Quick Prompts below input */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.24, duration: 0.5 }}
+              className="w-full mt-4 flex items-center justify-center gap-2.5 flex-wrap"
+            >
+              {QUICK_PROMPTS.map(({ icon: Icon, label, q }) => (
+                <button
+                  key={label}
+                  onClick={() => sendMessage(q)}
+                  title={q}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/70 backdrop-blur-md border border-white/80 hover:border-[#464775]/40 hover:bg-white hover:-translate-y-0.5 hover:shadow-sm transition-all duration-200 group text-[12px] text-gray-700 shadow-[0_2px_8px_-2px_rgba(70,71,117,0.06)]"
+                >
+                  <div className="w-5 h-5 rounded-md bg-[#464775]/10 flex items-center justify-center text-[#464775] group-hover:bg-[#464775]/20 transition-colors flex-shrink-0">
+                    <Icon size={12} />
+                  </div>
+                  <span className="font-semibold text-gray-800 whitespace-nowrap">{label}</span>
+                </button>
+              ))}
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35, duration: 0.5 }}
+              className="text-center mt-6 text-[10.5px] text-gray-400 tracking-wide"
+            >
+              © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
+            </motion.p>
+          </div>
+        ) : (
+          /* ── ACTIVE CHAT STREAM ── */
+          <div className="w-full max-w-[1000px] mx-auto flex flex-col px-5 max-[700px]:px-3 min-h-full">
             <div className="flex flex-col gap-6 py-7">
               <AnimatePresence initial={false}>
                 {messages.map((msg, idx) => {
@@ -592,26 +914,30 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                       className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
                       {/* Avatar */}
-                      <motion.div
-                        whileHover={{ scale: 1.05, rotate: isUser ? 5 : -5 }}
-                        className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10
-                        ${isUser
-                            ? 'bg-slate-100 text-slate-500 border border-slate-200'
-                            : 'bg-[#464775] text-white'
-                          }`}
-                      >
-                        {isUser ? 'YOU' : <img src="/logo2.png" alt="SVX" className="w-4 h-4 object-contain brightness-200" />}
-                        {!isUser && (
-                          <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
-                        )}
-                      </motion.div>
+                      {isUser ? (
+                        <motion.div
+                          whileHover={{ scale: 1.05, rotate: 5 }}
+                          className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10 bg-slate-100 text-slate-600 border border-slate-200"
+                        >
+                          <User size={15} className="text-slate-600" />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          whileHover={{ scale: 1.08 }}
+                          className="flex-shrink-0 flex items-center justify-center pt-0.5"
+                        >
+                          <AlysaSvgIcon className="w-7 h-7 drop-shadow-sm" />
+                        </motion.div>
+                      )}
 
                       {/* Bubble col */}
                       <div className={`flex flex-col min-w-0 max-w-[88%] md:max-w-[85%] gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
                         <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
-                          <span className="text-[12px] font-semibold text-gray-800">
-                            {isUser ? 'You' : selectedAgent.agent_name}
-                          </span>
+                          {isUser && (
+                            <span className="text-[12px] font-semibold text-gray-800">
+                              You
+                            </span>
+                          )}
                           <span className="text-[10px] text-gray-400">{msg.time}</span>
                         </div>
 
@@ -636,7 +962,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
               </AnimatePresence>
 
               {/* Typing indicator */}
-              {isLoading && (
+              {(isLoading || isSimulatingTyping) && (
                 <motion.div
                   layout
                   initial={{ opacity: 0, y: 15, x: -10, scale: 0.95 }}
@@ -645,17 +971,14 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                   transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                   className="flex gap-3 items-start"
                 >
-                  <motion.div
-                    initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5 }}
-                    className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center bg-[#464775] text-white shadow-sm"
-                  >
-                    <img src="/logo2.png" alt="SVX" className="w-4 h-4 object-contain brightness-200" />
-                    <span className="absolute -inset-1 rounded-[14px] border border-[#464775]/40 animate-pulse" />
-                  </motion.div>
+                  <div className="flex-shrink-0 flex items-center justify-center pt-0.5">
+                    <AlysaSvgIcon className="w-7 h-7 drop-shadow-sm" />
+                  </div>
                   <div className="flex flex-col items-start gap-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-[12px] font-semibold text-gray-800">{selectedAgent.agent_name}</span>
-                      <span className="text-[10px] text-gray-400 font-medium">Processing...</span>
+                      <span className="text-[10px] text-gray-400 font-medium">
+                        {isSimulatingTyping ? 'Alysa está escribiendo...' : 'Processing...'}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1.5 py-2.5">
                       {[0, 1, 2].map((i) => (
@@ -677,161 +1000,173 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                 </motion.div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
 
-      {/* ── INPUT ── */}
-      <footer className="relative z-10 flex-shrink-0 px-5 py-3 pb-4 bg-white/40 backdrop-blur-md border-t border-white/50">
-        <div className="max-w-[1000px] mx-auto bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl relative focus-within:border-[#464775]/40 shadow-sm">
+      {/* ── INPUT (DOCKED WHEN CHATTING OR TYPING) ── */}
+      {(messages.length > 0 || isSimulatingTyping) && (
+        <footer className="relative z-10 flex-shrink-0 px-5 max-[700px]:px-2.5 py-3 max-[700px]:py-2 pb-4 max-[700px]:pb-2.5 bg-white/40 backdrop-blur-md border-t border-white/50 animate-fadeIn">
+          {renderInputCard(false)}
+          <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
+            © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
+          </p>
+        </footer>
+      )}
 
-          {/* Meta row */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-              <Zap size={12} className="text-indigo-400" />
-              <span>Engine v4.10</span>
-            </div>
-            {isRecording ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#6264A7]/10 border border-[#6264A7]/25 text-[#464775] text-[11px] font-bold tracking-wide">
-                <span className="w-2 h-2 rounded-full bg-[#6264A7] animate-pulse" />
-                <span>Audio Mixer Active</span>
-              </div>
-            ) : charCount > 0 && (
-              <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
-                {charCount}
-              </span>
-            )}
-          </div>
-
-          {/* Textarea */}
-          <div className="flex flex-col px-3.5 pt-3 pb-1 w-full">
-            <div className="flex items-start gap-2 w-full">
-              <Sparkles size={15} className={`mt-0.5 flex-shrink-0 transition-colors ${isRecording ? 'text-[#6264A7] animate-pulse' : 'text-indigo-400 opacity-70'}`} />
-              <textarea
-                ref={inputRef}
-                rows={1}
-                className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[120px] overflow-y-auto caret-indigo-500 font-sans"
-                placeholder={isRecording ? "Listening to your voice... Speak now..." : "Ask about processes, data, or system architecture…"}
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
-
-            {/* Efecto Studio Audio Mixer a todo lo ancho del input */}
-            {isRecording && (
-              <div className="w-full mt-2.5 mb-1 p-2.5 rounded-xl bg-gradient-to-r from-[#464775]/5 via-[#6264A7]/10 to-[#464775]/5 border border-[#6264A7]/20 shadow-sm animate-fadeIn">
-                <div className="flex items-center justify-between mb-1.5 px-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6264A7] opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#464775]"></span>
-                    </span>
-                    <span className="text-[11.5px] font-bold text-[#464775] tracking-tight">
-                      Studio Audio Mixer
-                    </span>
-                    <span className="text-[11px] text-slate-500 hidden sm:inline font-medium">
-                      · Capturing and transcribing speech frequencies live
-                    </span>
+      {/* ── MODAL DE GUÍA IA (20 PREGUNTAS ORIENTATIVAS) ── */}
+      <AnimatePresence>
+        {showAiGuideModal && (
+          <div 
+            onClick={() => setShowAiGuideModal(false)}
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-3 md:p-6 backdrop-blur-md bg-transparent"
+          >
+            <motion.div
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-3xl max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden text-slate-800"
+            >
+              {/* Header del Modal */}
+              <div className="px-5 py-4 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#464775]/10 border border-[#464775]/20 flex items-center justify-center text-[#464775] shadow-sm">
+                    <Sparkles size={18} />
                   </div>
-
-                  <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#6264A7]/15 text-[#6264A7] border border-[#6264A7]/20">
-                    Live Input
-                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">
+                        Guía de Orientación & Documentación IA
+                      </h3>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#464775] text-white">
+                        20 Preguntas
+                      </span>
+                    </div>
+                    <p className="text-[11.5px] text-gray-500 mt-0.5">
+                      Selecciona una pregunta clave para consultar a Alysa Copilot y recibir orientación técnica instantánea.
+                    </p>
+                  </div>
                 </div>
 
-                {/* Espectro completo de barras de ecualizador de audio a lo ancho de todo el input */}
-                <div className="w-full h-8 flex items-end justify-between gap-[2px] md:gap-[3px] px-1 overflow-hidden">
-                  {Array.from({ length: 48 }).map((_, idx) => (
-                    <span
-                      key={idx}
-                      className="flex-1 max-w-[5px] min-w-[2px] rounded-full bg-gradient-to-t from-[#464775] to-[#6264A7]"
-                      style={{
-                        animation: `mixer-bar-bounce 0.85s ease-in-out infinite ${(idx * 0.038).toFixed(2)}s`,
-                        opacity: 0.55 + (idx % 4) * 0.14
-                      }}
-                    />
+                <button
+                  type="button"
+                  onClick={() => setShowAiGuideModal(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Filtro y Búsqueda */}
+              <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between flex-shrink-0">
+                {/* Search input */}
+                <div className="relative flex-1">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={guideSearch}
+                    onChange={(e) => setGuideSearch(e.target.value)}
+                    placeholder="Filtrar preguntas por palabra clave (XML, auditoría, márgenes, etc.)..."
+                    className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-[12.5px] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#464775] focus:ring-2 focus:ring-[#464775]/10 transition-all"
+                  />
+                  {guideSearch && (
+                    <button
+                      onClick={() => setGuideSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-[11px]"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+
+                {/* Categorías */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                  {[
+                    { id: "all", label: "Todas" },
+                    { id: "Plataforma", label: "Plataforma" },
+                    { id: "Pipeline XML", label: "Pipeline XML" },
+                    { id: "Auditoría", label: "Auditoría" },
+                    { id: "Alysa Copilot", label: "Copilot" },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setGuideCategory(cat.id)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap ${
+                        guideCategory === cat.id
+                          ? 'bg-[#464775] text-white shadow-sm'
+                          : 'bg-white border border-slate-200 text-gray-600 hover:border-[#464775]/30 hover:text-[#464775]'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
                   ))}
                 </div>
               </div>
-            )}
+
+              {/* Lista de Preguntas */}
+              <div className="flex-1 overflow-y-auto p-4 overscroll-contain">
+                {filteredGuideQuestions.length === 0 ? (
+                  <div className="text-center py-10 text-gray-400">
+                    <p className="text-[13px]">No se encontraron preguntas con el término &ldquo;{guideSearch}&rdquo;.</p>
+                    <button
+                      onClick={() => { setGuideSearch(""); setGuideCategory("all"); }}
+                      className="mt-2 text-[12px] text-[#464775] font-semibold underline"
+                    >
+                      Ver todas las preguntas
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    {filteredGuideQuestions.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setShowAiGuideModal(false);
+                          sendMessage(item.q);
+                        }}
+                        className="group flex flex-col justify-between p-3.5 rounded-xl bg-white border border-slate-200/90 hover:border-[#464775]/50 hover:bg-[#464775]/[0.03] hover:shadow-md transition-all text-left"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 group-hover:bg-[#464775]/10 group-hover:text-[#464775] transition-colors">
+                              {item.category} · {item.tag}
+                            </span>
+                            <ChevronRight size={14} className="text-gray-300 group-hover:text-[#464775] group-hover:translate-x-0.5 transition-all" />
+                          </div>
+                          <h4 className="text-[12.5px] font-semibold text-gray-800 group-hover:text-[#464775] leading-snug transition-colors">
+                            {item.q}
+                          </h4>
+                        </div>
+                        <p className="text-[11px] text-gray-500 mt-2 line-clamp-2 leading-relaxed">
+                          {item.desc}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer del Modal */}
+              <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+                <span className="text-[11px] text-gray-500 flex items-center gap-1.5">
+                  <Sparkles size={13} className="text-[#6264A7]" />
+                  <span>Haz clic en cualquier pregunta para enviarla directamente al chat.</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowAiGuideModal(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-gray-300 text-[12px] font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </motion.div>
           </div>
-
-          {/* Actions */}
-          <div className="flex items-center justify-between px-3.5 py-2">
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                title="Attach"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-              >
-                <Plus size={17} />
-              </button>
-
-              <button
-                type="button"
-                title={isRecording ? "Stop Recording (Stop STT)" : "Voice Recording (Speech-to-Text)"}
-                onClick={toggleRecording}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                  isRecording
-                    ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/25 ring-2 ring-[#6264A7]/50 animate-pulse'
-                    : 'text-gray-400 hover:bg-gray-100 hover:text-[#464775]'
-                }`}
-              >
-                {isRecording ? <MicOff size={17} /> : <Mic size={17} />}
-              </button>
-
-              <button
-                type="button"
-                title="Auto-Punctuate & Polish Text"
-                onClick={() => {
-                  if (input.trim()) {
-                    const polished = formatProfessionalSpeechText(input);
-                    setInput(polished);
-                    setCharCount(polished.length);
-                    currentTranscriptRef.current = polished;
-                  }
-                }}
-                disabled={!input.trim()}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-[#6264A7] transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
-              >
-                <Sparkles size={16} />
-              </button>
-
-              <button
-                type="button"
-                title="Help"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-              >
-                <HelpCircle size={17} />
-              </button>
-            </div>
-
-            <button
-              onClick={() => sendMessage()}
-              disabled={!input.trim() || isLoading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
-                ${input.trim() && !isLoading
-                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-200 hover:bg-indigo-600 hover:-translate-y-px'
-                  : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                }`}
-            >
-              {isLoading ? (
-                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>Send</span>
-                  <SendHorizonal size={14} />
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
-          © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
-        </p>
-      </footer>
+        )}
+      </AnimatePresence>
 
       {/* Keyframe animations */}
       <style jsx global>{`

@@ -3,16 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Activity, 
-  Clock, 
   FileCheck, 
   RefreshCw, 
   ArrowRight, 
-  Database, 
-  Layers, 
-  CheckCircle2, 
-  BarChart3,
-  ExternalLink
+  CheckCircle2 
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabaseClient';
@@ -98,10 +92,34 @@ const FALLBACK_LOGS = [
     status: 'Matrix Reconciled',
     time: 'Yesterday',
     records_count: '890 SKUs'
+  },
+  {
+    id: 'log-4',
+    company_name: 'DALS Lighting',
+    file_name: 'DALS_ARCHITECTURAL_2024.xml',
+    status: 'Catalog Compiled',
+    time: '2 days ago',
+    records_count: '2,150 SKUs'
+  },
+  {
+    id: 'log-5',
+    company_name: 'Via Seating',
+    file_name: 'VIA_SPECIFICATION_MATRIX.xml',
+    status: 'Schema Compliant',
+    time: '3 days ago',
+    records_count: '1,780 SKUs'
+  },
+  {
+    id: 'log-6',
+    company_name: '9to5 Seating',
+    file_name: '9TO5_SEATING_COLLECTION_REV2.xml',
+    status: 'Verified & Synced',
+    time: '4 days ago',
+    records_count: '940 SKUs'
   }
 ];
 
-export default function Chart({ setActiveView }) {
+export default function Chart() {
   const router = useRouter();
   const [viewTab, setViewTab] = useState('feed'); // 'feed' | 'benchmarks'
   const [benchmarkMode, setBenchmarkMode] = useState('comparison');
@@ -116,10 +134,15 @@ export default function Chart({ setActiveView }) {
         .from('ClientsSERVEX_General_Procces')
         .select('id, created_at, company_name, file_name')
         .order('created_at', { ascending: false })
-        .limit(4);
+        .limit(6);
 
       if (!error && data && data.length > 0) {
-        setLiveRecords(data);
+        if (data.length < 6) {
+          const combined = [...data, ...FALLBACK_LOGS.slice(data.length, 6)];
+          setLiveRecords(combined);
+        } else {
+          setLiveRecords(data);
+        }
       } else {
         setLiveRecords(FALLBACK_LOGS);
       }
@@ -139,7 +162,7 @@ export default function Chart({ setActiveView }) {
   const strokeDashoffset = circumference - (circumference * currentBenchmark.savings) / 100;
 
   return (
-    <section className="bg-white rounded-3xl p-6 md:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.05)] border border-slate-200/80 overflow-hidden font-sans">
+    <section className="bg-white rounded-3xl p-6 md:p-7 shadow-[0_10px_35px_-10px_rgba(70,71,117,0.08)] border border-slate-200/90 overflow-hidden font-sans flex flex-col justify-between h-[580px]">
       
       {/* SECTION HEADER & TABS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
@@ -209,7 +232,7 @@ export default function Chart({ setActiveView }) {
               return (
                 <div 
                   key={item.id || idx}
-                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white transition-colors group"
+                  className="py-2.5 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white transition-colors group"
                 >
                   <div className="flex items-start sm:items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center text-[#464775] shrink-0 shadow-xs">
@@ -247,11 +270,11 @@ export default function Chart({ setActiveView }) {
             })}
           </div>
 
-          <div className="pt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>Direct pipeline connection with Supabase storage and PostgreSQL</span>
+          <div className="pt-3 flex items-center justify-between text-xs text-slate-500 border-t border-slate-100">
+            <span>Autonomous XML catalog pipeline synchronization</span>
             <button
               onClick={() => router.push('/xml-pipeline')}
-              className="text-[#464775] font-semibold hover:underline inline-flex items-center gap-1"
+              className="text-[#464775] font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
             >
               <span>View Full Pipeline</span>
               <ArrowRight size={12} />

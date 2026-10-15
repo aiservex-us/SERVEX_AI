@@ -28,7 +28,6 @@ import CETComparator from '../Actualizer_Excel_General/components/CET_Comparator
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
-  const [collapsed, setCollapsed] = useState(true);
   const [showExitModal, setShowExitModal] = useState(false);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
 
@@ -75,7 +74,7 @@ export default function MenuInicial() {
 
   
   const [isToolsOpen, setIsToolsOpen] = useState(false);
-  const [isIntroDismissed, setIsIntroDismissed] = useState(false);
+  const [isIntroDismissed, setIsIntroDismissed] = useState(true);
 
   const handleSetActive = (id) => {
     setActive(id);
@@ -86,7 +85,7 @@ export default function MenuInicial() {
       return (
         <div className="p-6 flex flex-col items-center justify-center h-full text-center bg-slate-50">
           <AlertCircle className="text-amber-500 mb-2" size={32} />
-          <h3 className="text-[14px] font-bold text-slate-800 uppercase tracking-wider">Panel bloqueado</h3>
+          <h3 className="text-[14px] font-bold text-slate-800 uppercase tracking-wider">Panel Locked</h3>
           <p className={"text-[12px] text-slate-500 max-w-xs mt-1"}>
             The Change Tracker section is only available for desktop (PC) environments.
           </p>
@@ -116,7 +115,7 @@ export default function MenuInicial() {
   };
 
   return (
-    <div className="h-screen md:h-[97vh] w-full md:w-[99%] bg-[#fff] font-sans flex items-center justify-center relative">
+    <div className="w-full h-screen overflow-hidden bg-white font-sans flex flex-col m-0 p-0 min-h-0 relative">
 
       {showExitModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center">
@@ -165,7 +164,7 @@ export default function MenuInicial() {
         </div>
       )}
 
-      <main className="w-full h-full md:h-[95vh] p-0 flex relative overflow-hidden">
+      <main className="w-full h-full p-0 m-0 flex relative overflow-hidden flex-1 min-h-0">
 
       {/* ── GLOBAL SPLASH MODAL ── */}
       <div
@@ -243,51 +242,57 @@ export default function MenuInicial() {
         <MenuLateral
           active={active}
           setActive={handleSetActive}
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
+          onExit={() => setShowExitModal(true)}
         />
                 {/* CONTENEDOR UNIFICADO */}
-        <div className="flex flex-1 h-full w-full min-w-0 p-1 sm:p-2 lg:p-3 bg-transparent">
-          <div className="flex flex-col w-full h-full bg-transparent border border-slate-200/80 rounded-2xl md:rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden relative">
-            {/* Unified Chat Background (Spans full container across chat & right panel) */}
-            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="flex flex-1 h-full w-full min-w-0 p-0 bg-transparent">
+          <div className="flex flex-col w-full h-full bg-transparent overflow-hidden relative">
+            {/* --- FONDO ESTILO PANEL PRINCIPAL (MISMO DISEÑO Y COLORES, DIFERENTE COMPOSICIÓN Y POSICIÓN) --- */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none">
               <img src="/fondo.jpg" alt="Background" className="w-full h-full object-cover opacity-60" />
               <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
               <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/15" />
-              <div className="absolute top-[-10%] right-[-5%] w-[60%] h-[120%] rotate-[15deg]">
-                <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-l border-white/60 shadow-[1px_0_10px_rgba(0,0,0,0.03)]" />
+              
+              {/* Cuadro 1: Plano geométrico izquierdo rotado en ángulo opuesto */}
+              <div className="absolute top-[-10%] left-[-5%] w-[55%] h-[120%] -rotate-[12deg]">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/10 to-transparent border-r border-white/60 shadow-[-1px_0_10px_rgba(0,0,0,0.03)]" />
               </div>
-              <div className="absolute top-[5%] right-[15%] w-[40%] h-[100%] rotate-[15deg]">
-                <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/5 to-transparent border-l border-white/50" />
+              
+              {/* Cuadro 2: Segundo plano complementario izquierdo */}
+              <div className="absolute top-[8%] left-[10%] w-[38%] h-[100%] -rotate-[12deg]">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#464775]/5 to-transparent border-r border-white/50" />
+              </div>
+
+              {/* Cuadro 3: Plano geométrico inferior derecho de balance */}
+              <div className="absolute bottom-[-15%] right-[-5%] w-[48%] h-[75%] rotate-[10deg]">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#464775]/8 to-transparent border-t border-l border-white/60 shadow-[0_2px_12px_rgba(0,0,0,0.02)]" />
               </div>
             </div>
 
             {/* ── TOP BAR (100% Width across entire container) ── */}
-            <header className="relative z-20 h-[52px] flex-shrink-0 flex items-center justify-between px-3 sm:px-5 bg-white/60 backdrop-blur-md border-b border-white/50 w-full">
+            <header className="relative z-20 h-[52px] flex-shrink-0 flex items-center justify-between px-3 sm:px-5 bg-transparent border-b border-slate-200/30 w-full">
               <div className="flex items-center gap-2 sm:gap-2.5">
-                <span className="text-[13px] sm:text-[14px] font-black tracking-tight text-[#464775] uppercase">
-                  Alysa
-                </span>
-                <span className="text-[8.5px] sm:text-[9.5px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2 sm:px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   Servex Copilot
                 </span>
               </div>
 
               <div className="flex items-center gap-2 sm:gap-2.5">
-                <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Engine v4.10 · Online
-                </div>
-
-                <button className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
-                  <Settings size={15} />
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('openAiGuide'))}
+                  title="AI Guide & Documentation"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#464775]/10 hover:bg-[#464775]/20 text-[#464775] border border-[#464775]/20 hover:border-[#464775]/35 transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
+                >
+                  <Sparkles size={13} className="text-[#6264A7] group-hover:scale-110 transition-transform" />
+                  <span className="hidden sm:inline">AI Guide</span>
                 </button>
 
                 {isToolsOpen && (
                   <button 
                     onClick={() => setIsToolsOpen(false)}
                     className="flex items-center justify-center p-1.5 rounded-full border bg-white border-slate-200 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-all ml-1"
-                    title="Cerrar panel"
+                    title="Close panel"
                   >
                     <X size={16} />
                   </button>
