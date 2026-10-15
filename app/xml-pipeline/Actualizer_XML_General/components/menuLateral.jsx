@@ -224,21 +224,21 @@ export default function MenuLateral({ active, setActive, onExit }) {
           <SidebarIcon
             icon={<LogOut size={18} />}
             active={false}
-            title="Exit"
+            title="Salir / Cerrar Sesión"
             onClick={() => (onExit ? onExit() : router.push('/panel'))}
           />
         </nav>
 
-        {/* BOTTOM SECTION: Exit to Panel (Desktop) */}
+        {/* BOTTOM SECTION: Exit to Panel or Sign Out (Desktop) */}
         <div className="hidden md:flex items-center justify-center w-full pb-2">
           <SidebarIcon
             icon={<LogOut size={18} />}
             active={false}
-            title="Exit Workspace"
+            title="Salir / Cerrar Sesión"
             stepNumber="EXIT"
-            tagline="Navigation"
-            description="Safely leave the XML Pipeline workspace and return to the main Servex panel."
-            tip="Return to Panel"
+            tagline="Navegación y Sesión"
+            description="Cerrar sesión de forma segura y salir al Home, o volver al panel de control general."
+            tip="Cerrar Sesión / Panel"
             onClick={() => (onExit ? onExit() : router.push('/panel'))}
           />
         </div>

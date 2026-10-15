@@ -18,8 +18,6 @@ export default function PanelPage() {
       // Si no hay user válido (o no es azure, o no es @servex-us.com), getCurrentUser() devuelve null y cierra sesión
       if (!user) {
         router.replace('/login'); 
-      } else {
-        router.replace('/xml-pipeline');
       }
     };
 

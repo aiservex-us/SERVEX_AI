@@ -99,6 +99,16 @@ export default function MenuInicial() {
     router.push('/panel');
   };
 
+  const handleSignOut = async () => {
+    setShowExitModal(false);
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error signing out:', err);
+    }
+    window.location.href = '/';
+  };
+
   
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isIntroDismissed, setIsIntroDismissed] = useState(true);
@@ -160,41 +170,49 @@ export default function MenuInicial() {
             onClick={() => setShowExitModal(false)}
           />
 
-          <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
+          <div className="relative bg-white w-[460px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <span className="text-[14px] font-bold text-[#242424]">Confirm exit</span>
+              <span className="text-[14px] font-bold text-[#242424]">Navegación y Sesión</span>
               <button onClick={() => setShowExitModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={18} />
               </button>
             </div>
 
             <div className="px-8 py-6 flex gap-4">
-              <div className="bg-[#C4314B]/10 p-2 h-fit rounded-full shrink-0">
-                <AlertCircle size={22} className="text-[#C4314B]" />
+              <div className="bg-[#464775]/10 p-2.5 h-fit rounded-full shrink-0">
+                <AlertCircle size={22} className="text-[#464775]" />
               </div>
               <div>
                 <p className="text-[14px] font-bold text-[#242424] mb-1">
-                  Do you want to return to the main panel?
+                  ¿Deseas cerrar sesión o volver al panel principal?
                 </p>
                 <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the WBT management area. Any temporary changes in this view will be closed.
+                  Puedes cerrar tu sesión de forma segura y salir al Home, o regresar al panel de control general sin cerrar sesión.
                 </p>
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
+            <div className="px-6 py-4 bg-[#F5F5F5] flex items-center justify-between gap-2 rounded-b-xl border-t border-slate-100">
               <button
                 onClick={() => setShowExitModal(false)}
-                className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all"
+                className="px-3.5 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all"
               >
-                Cancel
+                Cancelar
               </button>
-              <button
-                onClick={handleConfirmExit}
-                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#5B5FC7] rounded hover:bg-[#4F52B2] transition-all shadow-md"
-              >
-                Confirm and return
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleConfirmExit}
+                  className="px-3.5 py-1.5 text-[12px] font-semibold text-slate-700 bg-slate-200 hover:bg-slate-300 rounded transition-all"
+                >
+                  Ir al Panel
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#C4314B] hover:bg-[#a8253c] rounded transition-all shadow-sm"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
             </div>
           </div>
         </div>
