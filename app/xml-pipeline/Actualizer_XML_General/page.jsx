@@ -5,7 +5,7 @@ import ImportCETXml from '../Actualizer_Excel_General/components/IncertDataExcel
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient.js';
+import { supabase, getCurrentUser } from '../../lib/supabaseClient.js';
 import {  X, AlertCircle , Sparkles, Settings } from 'lucide-react';
 import TeamsAgentChat from './components/comparePDF/REPORT/components/AI_contact.jsx';
 
@@ -30,8 +30,35 @@ export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
   const [showExitModal, setShowExitModal] = useState(false);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   const router = useRouter();
+
+  // 🔒 PROTECCIÓN DE RUTA DE XML PIPELINE
+  useEffect(() => {
+    let isMounted = true;
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          router.replace('/login');
+        } else {
+          if (isMounted) {
+            setIsAuthenticated(true);
+            setIsLoadingAuth(false);
+          }
+        }
+      } catch (err) {
+        console.error('Auth verification error:', err);
+        router.replace('/login');
+      }
+    };
+    checkAuth();
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
 
   
@@ -113,6 +140,15 @@ export default function MenuInicial() {
         return <div className="p-6 text-gray-500">View under construction</div>;
     }
   };
+
+  if (isLoadingAuth || !isAuthenticated) {
+    return (
+      <div className="w-full h-screen flex flex-col items-center justify-center bg-white text-slate-400 select-none">
+        <div className="w-8 h-8 border-2 border-[#464775]/20 border-t-[#464775] rounded-full animate-spin mb-3" />
+        <span className="text-xs font-medium tracking-wide text-slate-500">Verifying session...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-screen overflow-hidden bg-white font-sans flex flex-col m-0 p-0 min-h-0 relative">

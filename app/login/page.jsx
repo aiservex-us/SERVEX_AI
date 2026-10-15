@@ -24,7 +24,7 @@ export default function LoginPage() {
       if (user) {
         const audio = new Audio('/tu-sonido.mp3');
         audio.play().catch(err => console.log("Browser blocked autoplay:", err));
-        router.push('/panel');
+        router.push('/xml-pipeline');
       }
     });
   }, [router]);

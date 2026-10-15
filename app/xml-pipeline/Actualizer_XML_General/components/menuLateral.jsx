@@ -6,8 +6,7 @@ import {
   Sparkles,
   FileSpreadsheet,
   FileCode,
-  FileDiff,
-  ArrowLeft
+  FileDiff
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -146,18 +145,6 @@ export default function MenuLateral({ active, setActive, onExit }) {
 
           {/* Navigation Items (Top-aligned, directly below logo) */}
           <nav className="flex flex-col items-center gap-2 w-full px-2">
-            {/* STEP 0: Return to Main Panel */}
-            <SidebarIcon
-              icon={<ArrowLeft size={18} />}
-              active={false}
-              title="Return to Main Panel"
-              stepNumber="PANEL"
-              tagline="Servex"
-              description="Exit the current workspace and return to the primary Servex Operations & Analytics dashboard."
-              tip="Go to Panel"
-              onClick={() => router.push('/panel')}
-            />
-
             {/* STEP 1: Process Overview */}
             <SidebarIcon
               icon={<Sparkles size={18} />}
@@ -210,12 +197,6 @@ export default function MenuLateral({ active, setActive, onExit }) {
 
         {/* MOBILE NAVIGATION BAR */}
         <nav className="md:hidden flex flex-row items-center justify-around w-full h-full">
-          <SidebarIcon
-            icon={<ArrowLeft size={18} />}
-            active={false}
-            title="Panel"
-            onClick={() => router.push('/panel')}
-          />
           <SidebarIcon
             icon={<Sparkles size={18} />}
             active={active === 'reporting'}

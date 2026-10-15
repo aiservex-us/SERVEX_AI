@@ -13,130 +13,148 @@ import { supabase } from '@/app/lib/supabaseClient';
 
 const AI_GUIDE_QUESTIONS = [
   {
-    category: "Plataforma",
-    tag: "General",
-    q: "¿Qué es la plataforma SERVEX y cuál es su objetivo principal?",
-    desc: "Visión global del sistema, propósito y herramientas estratégicas."
+    category: "Platform & Governance",
+    tag: "Vision",
+    q: "What is the SERVEX AI platform and what is its primary operational objective?",
+    desc: "Global system vision, high-speed automated data transformations, and autonomous enterprise management."
   },
   {
-    category: "Plataforma",
-    tag: "Módulos",
-    q: "¿Cuáles son los módulos y herramientas disponibles en el panel?",
-    desc: "Guía de navegación entre Dashboard, Copilot y Pipelines."
+    category: "Platform & Governance",
+    tag: "Modules",
+    q: "What modules, pipelines, and autonomous tools are available in the system?",
+    desc: "Seamless workflow integration between Copilot chat, XML Pipeline Engine, and live telemetry."
   },
   {
-    category: "Plataforma",
-    tag: "Seguridad",
-    q: "¿Cómo se garantiza la seguridad y trazabilidad de los datos corporativos?",
-    desc: "Auditoría en tiempo real, aislamiento y protocolos de sesión."
+    category: "Platform & Governance",
+    tag: "Data Security",
+    q: "How does the system enforce tenant isolation and enterprise data traceability?",
+    desc: "Real-time cryptographically secure audits, tenant isolation, and strict session integrity."
   },
   {
-    category: "Plataforma",
-    tag: "Navegación",
-    q: "¿Cómo cambiar de sección o navegar entre las diferentes herramientas?",
-    desc: "Uso del menú lateral, atajos y cambio de vistas operativas."
+    category: "Platform & Governance",
+    tag: "Architecture",
+    q: "How does the proprietary AI ecosystem engineered by GLYNNE S.A.S. operate?",
+    desc: "Proprietary multi-agent architecture and high-throughput data streaming pipelines by GLYNNE S.A.S."
   },
   {
-    category: "Pipeline XML",
-    tag: "Proceso",
-    q: "¿Cómo funciona el Pipeline de procesamiento y actualización de XML?",
-    desc: "Flujo de ingesta, normalización y transformación de catálogos."
+    category: "Company & Analytics",
+    tag: "Tenant Health",
+    q: "How can I evaluate operational performance and sync health across company tenants?",
+    desc: "Aggregated analytics on catalog sync speed, processing latency, and node ingestion volume."
   },
   {
-    category: "Pipeline XML",
-    tag: "Formatos",
-    q: "¿Qué formatos de archivo puedo cargar en la plataforma (Excel, XML, PDF)?",
-    desc: "Compatibilidad de tablas XLSX, esquemas XML y reportes PDF."
+    category: "Company & Analytics",
+    tag: "Margins",
+    q: "How are financial deviation margins and tolerance thresholds calculated in reports?",
+    desc: "Precision margin formulas, list price delta calculations, and financial variance metrics."
   },
   {
-    category: "Pipeline XML",
-    tag: "CET Designer",
-    q: "¿Cómo exporto o genero un catálogo verificado para CET Designer?",
-    desc: "Generación de estructuras válidas para CET y visualización 3D."
+    category: "Company & Analytics",
+    tag: "Manufacturers",
+    q: "Which commercial manufacturers are integrated into the core catalog matrix?",
+    desc: "Supported brands including Teknion, LESRO, VIA Seating, and custom enterprise catalogs."
   },
   {
-    category: "Pipeline XML",
-    tag: "Validación",
-    q: "¿Cómo detecta el sistema discrepancias en códigos de producto y precios?",
-    desc: "Reglas de validación contra listas maestras y tolerancias."
+    category: "Company & Analytics",
+    tag: "Historical Audits",
+    q: "Can I query historical audit logs and compare past catalog revisions?",
+    desc: "Full chronological traceability and persistent historical database record inspection."
   },
   {
-    category: "Pipeline XML",
-    tag: "Errores",
-    q: "¿Qué debo hacer si un archivo XML presenta errores de estructura?",
-    desc: "Detección automática de nodos faltantes o sintaxis rota."
+    category: "Company & Analytics",
+    tag: "Batch Synthesis",
+    q: "Can Alysa synthesize massive multi-company order batches in conversational mode?",
+    desc: "High-throughput AI batch analysis delivering instantaneous executive summaries."
   },
   {
-    category: "Auditoría",
-    tag: "Métricas",
-    q: "¿Cómo interpreto las métricas de discrepancia y variación de precios?",
-    desc: "Comprensión de desviaciones porcentuales y deltas de costo."
+    category: "XML Pipeline Engine",
+    tag: "Automation",
+    q: "How does the XML Pipeline compress 3 weeks of manual engineering into seconds?",
+    desc: "Autonomous ETL engine: users upload raw files and AI executes extraction, parsing, and rebuilding."
   },
   {
-    category: "Auditoría",
-    tag: "Conciliación",
-    q: "¿Cómo se realiza la conciliación entre órdenes de compra y listas de precios?",
-    desc: "Cruce automático de líneas de compra con catálogos oficiales."
+    category: "XML Pipeline Engine",
+    tag: "File Formats",
+    q: "What file formats are supported for catalog conversion (XML, CSV, XLSX, CET)?",
+    desc: "Native ingestion and autonomous normalization of manufacturer schemas and pricing tables."
   },
   {
-    category: "Auditoría",
-    tag: "Fabricantes",
-    q: "¿Qué fabricantes están integrados (Teknion, LESRO, VIA Seating, etc.)?",
-    desc: "Marcas y líneas comerciales soportadas en el catálogo central."
+    category: "XML Pipeline Engine",
+    tag: "CET 3D",
+    q: "How does the AI generate verified catalogs ready for direct import into CET Designer?",
+    desc: "CET 3D compliant schema synthesis, graphic placement rules, and commercial SKU verification."
   },
   {
-    category: "Auditoría",
-    tag: "Historial",
-    q: "¿Puedo auditar órdenes históricas y ver reportes de discrepancia anteriores?",
-    desc: "Consulta de registros pasados y comparativas temporales."
+    category: "XML Pipeline Engine",
+    tag: "20/20 & BIM",
+    q: "Are catalog conversions compliant with 20/20 Design environments and BIM standards?",
+    desc: "Standardized architectural specification normalization for CAD and commercial design suites."
   },
   {
-    category: "Auditoría",
-    tag: "Márgenes",
-    q: "¿Cómo se calculan los márgenes y porcentajes de desviación en los reportes?",
-    desc: "Fórmulas financieras aplicadas al análisis de órdenes."
+    category: "XML Pipeline Engine",
+    tag: "Self-Healing",
+    q: "What happens if a raw catalog file contains missing nodes or malformed syntax?",
+    desc: "Self-healing algorithms automatically reconstruct and close broken tags to guarantee total integrity."
+  },
+  {
+    category: "XML Pipeline Engine",
+    tag: "Dynamic Trees",
+    q: "How does the AI handle dynamic product finishes, options, and tier surcharges?",
+    desc: "Autonomous resolution of complex option trees and dependency rules according to official specs."
+  },
+  {
+    category: "Audits & Pricing",
+    tag: "Price Deltas",
+    q: "How does the system detect and flag price discrepancies across list catalogs?",
+    desc: "Item-by-item audit engine with real-time percentage delta calculations and anomaly detection."
+  },
+  {
+    category: "Audits & Pricing",
+    tag: "PO Reconciliation",
+    q: "How is purchase order reconciliation executed against official price lists?",
+    desc: "Algorithmic cross-referencing between client purchase orders and published manufacturer matrices."
+  },
+  {
+    category: "Audits & Pricing",
+    tag: "Executive Forum",
+    q: "How does the AI publish smart audit reports directly to the corporate Forum?",
+    desc: "Automated executive report generation and publishing with key performance indicators."
   },
   {
     category: "Alysa Copilot",
-    tag: "Consultas",
-    q: "¿Qué tipos de consultas puedo realizarle a Alysa Copilot en lenguaje natural?",
-    desc: "Preguntas técnicas, análisis de datos y comandos del sistema."
+    tag: "Voice STT",
+    q: "How do I use the Studio Audio Mixer speech-to-text to dictate complex queries?",
+    desc: "Integrated high-fidelity speech recognition engine with live frequency analysis and AI auto-polishing."
   },
   {
     category: "Alysa Copilot",
-    tag: "Voz STT",
-    q: "¿Cómo utilizo el reconocimiento de voz (Studio Audio Mixer) para preguntar?",
-    desc: "Instrucciones para activar el micrófono y dictar consultas."
-  },
-  {
-    category: "Alysa Copilot",
-    tag: "Puntuación",
-    q: "¿Cómo funciona la función de auto-puntuación y pulido de texto con IA?",
-    desc: "Estandarización ortográfica corporativa en un clic."
-  },
-  {
-    category: "Alysa Copilot",
-    tag: "Lotes",
-    q: "¿Puedo solicitarle a Alysa que resuma un lote de órdenes o audite un archivo?",
-    desc: "Capacidades de análisis conversacional de lotes de datos."
-  },
-  {
-    category: "Alysa Copilot",
-    tag: "Soporte",
-    q: "¿A quién debo contactar si requiero soporte técnico avanzado o personalizado?",
-    desc: "Canales de contacto y asistencia directa de GLYNNE S.A.S."
-  },
-  {
-    category: "Plataforma",
-    tag: "Arquitectura",
-    q: "¿Cómo opera el ecosistema de IA desarrollado por GLYNNE S.A.S.?",
-    desc: "Estructura de modelos autónomos y procesamiento centralizado."
+    tag: "Support",
+    q: "How do I contact enterprise engineering support for custom workflows?",
+    desc: "Direct support channels and dedicated enterprise engineering assistance from GLYNNE S.A.S."
   }
 ];
 
 const QUICK_PROMPTS = [
-  { icon: Shield, label: "Core Principles", q: "What is the strategic imperative of SERVEX AI?" },
-  { icon: Activity, label: "Platform Guide", q: "Explain the End-to-End ingestion pipeline." },
+  { 
+    icon: BarChart2, 
+    label: "Company Analysis", 
+    q: "Provide a comprehensive operational analysis of our enterprise tenants, active catalogs, and telemetry status." 
+  },
+  { 
+    icon: Shield, 
+    label: "Audit Discrepancies", 
+    q: "Run a discrepancy audit across all catalog pricing lists and flag critical margin variations." 
+  },
+  { 
+    icon: Cpu, 
+    label: "Pipeline Execution", 
+    q: "What is the current live status of the XML Pipeline, ingestion batches, and catalog conversions?" 
+  },
+  { 
+    icon: Activity, 
+    label: "Architecture Specs", 
+    q: "Explain the Servex AI multi-agent architecture and technical engine specifications." 
+  },
 ];
 
 const AlysaSvgIcon = ({ className = "w-7 h-7 flex-shrink-0", ...props }) => (
@@ -470,7 +488,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = typeof navigator !== 'undefined' ? (navigator.language || "es-ES") : "es-ES";
+      recognition.lang = typeof navigator !== 'undefined' ? (navigator.language || "en-US") : "en-US";
 
       ignoreSpeechRef.current = false;
       const initialVal = inputRef.current ? inputRef.current.value : input;
@@ -653,7 +671,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
               ref={inputRef}
               rows={1}
               className="flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[28px] max-h-[140px] overflow-y-auto caret-[#464775] font-sans"
-              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Ask about processes, data, or system architecture…"}
+              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Ask about company analysis, catalog pipelines, or discrepancies… (type '/' for commands)"}
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
@@ -717,7 +735,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
 
             <button
               type="button"
-              title="Guía IA & Preguntas Frecuentes"
+              title="AI Guide & FAQ"
               onClick={() => setShowAiGuideModal(true)}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-[#464775] transition-colors"
             >
@@ -781,11 +799,11 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
           <button
             type="button"
             onClick={() => setShowAiGuideModal(true)}
-            title="Guía IA & Preguntas Frecuentes"
+            title="AI Guide & FAQ"
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#464775]/10 hover:bg-[#464775]/20 text-[#464775] border border-[#464775]/20 hover:border-[#464775]/35 transition-all text-[11px] font-semibold shadow-sm group"
           >
             <Sparkles size={13} className="text-[#6264A7] group-hover:scale-110 transition-transform" />
-            <span className="hidden sm:inline">Guía IA</span>
+            <span className="hidden sm:inline">AI Guide</span>
           </button>
 
           {isFloating && (
@@ -1038,14 +1056,14 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">
-                        Guía de Orientación & Documentación IA
+                        AI Guidance & Documentation
                       </h3>
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#464775] text-white">
-                        20 Preguntas
+                        20 Questions
                       </span>
                     </div>
                     <p className="text-[11.5px] text-gray-500 mt-0.5">
-                      Selecciona una pregunta clave para consultar a Alysa Copilot y recibir orientación técnica instantánea.
+                      Select a key question to query Alysa Copilot and receive instant architectural guidance.
                     </p>
                   </div>
                 </div>
@@ -1068,7 +1086,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
                     type="text"
                     value={guideSearch}
                     onChange={(e) => setGuideSearch(e.target.value)}
-                    placeholder="Filtrar preguntas por palabra clave (XML, auditoría, márgenes, etc.)..."
+                    placeholder="Filter questions by keyword (XML, audit, margins, CET, etc.)..."
                     className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-[12.5px] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#464775] focus:ring-2 focus:ring-[#464775]/10 transition-all"
                   />
                   {guideSearch && (
@@ -1084,11 +1102,11 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
                 {/* Categorías */}
                 <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                   {[
-                    { id: "all", label: "Todas" },
-                    { id: "Plataforma", label: "Plataforma" },
-                    { id: "Pipeline XML", label: "Pipeline XML" },
-                    { id: "Auditoría", label: "Auditoría" },
-                    { id: "Alysa Copilot", label: "Copilot" },
+                    { id: "all", label: "All" },
+                    { id: "Platform & Governance", label: "Platform" },
+                    { id: "Company & Analytics", label: "Analytics" },
+                    { id: "XML Pipeline Engine", label: "Pipeline" },
+                    { id: "Audits & Pricing", label: "Audits" },
                   ].map((cat) => (
                     <button
                       key={cat.id}
@@ -1109,12 +1127,12 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
               <div className="flex-1 overflow-y-auto p-4 overscroll-contain">
                 {filteredGuideQuestions.length === 0 ? (
                   <div className="text-center py-10 text-gray-400">
-                    <p className="text-[13px]">No se encontraron preguntas con el término &ldquo;{guideSearch}&rdquo;.</p>
+                    <p className="text-[13px]">No questions found matching &ldquo;{guideSearch}&rdquo;.</p>
                     <button
                       onClick={() => { setGuideSearch(""); setGuideCategory("all"); }}
                       className="mt-2 text-[12px] text-[#464775] font-semibold underline"
                     >
-                      Ver todas las preguntas
+                      View all questions
                     </button>
                   </div>
                 ) : (
@@ -1153,14 +1171,14 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
               <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
                 <span className="text-[11px] text-gray-500 flex items-center gap-1.5">
                   <Sparkles size={13} className="text-[#6264A7]" />
-                  <span>Haz clic en cualquier pregunta para enviarla directamente al chat.</span>
+                  <span>Click any question to send it directly to the chat.</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowAiGuideModal(false)}
                   className="px-3.5 py-1.5 rounded-lg border border-gray-300 text-[12px] font-medium text-gray-700 hover:bg-gray-100 transition-colors"
                 >
-                  Cerrar
+                  Close
                 </button>
               </div>
             </motion.div>

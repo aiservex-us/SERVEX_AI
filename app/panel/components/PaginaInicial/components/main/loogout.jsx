@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { LogOut, LayoutDashboard, Bot, FileCode2 } from 'lucide-react';
+import { LogOut, Bot, FileCode2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -150,52 +150,35 @@ export default function Sidebar({ activeView, setActiveView }) {
 
           {/* Navigation Items (Top-aligned, directly below logo) */}
           <nav className="flex flex-col items-center gap-2 w-full px-2">
-            {/* STEP 1: Overview Dashboard */}
-            <SidebarIcon
-              icon={<LayoutDashboard size={18} />}
-              active={activeView === 'dashboard'}
-              title="Overview & Control Dashboard"
-              stepNumber="STEP 1"
-              tagline="Metrics"
-              description="Monitor your global platform summary, catalog health metrics, active audits, and primary workspace shortcuts."
-              tip="Open Global Dashboard"
-              onClick={() => setActiveView('dashboard')}
-            />
-
-            {/* STEP 2: Alysa SVX Copilot */}
+            {/* STEP 1: Alysa SVX Copilot (Primary Chat Workspace) */}
             <SidebarIcon
               icon={<Bot size={18} />}
               active={activeView === 'products'}
               title="Alysa SVX Copilot (AI)"
-              stepNumber="STEP 2"
+              stepNumber="STEP 1"
               tagline="AI Assistant"
-              description="Interact with the core AI assistant to resolve technical queries, audit catalog lines, and automate routine workflows."
-              tip="Start conversation with Alysa"
+              description="Primary intelligent workspace: query company analytics, audit catalogs, execute pipelines, and automate workflows."
+              tip="Chat with Alysa"
               onClick={() => setActiveView('products')}
             />
 
-            {/* STEP 3: XML Pipeline Engine */}
+            {/* STEP 2: XML Pipeline Engine */}
             <SidebarIcon
               icon={<FileCode2 size={18} />}
               active={false}
               title="XML Pipeline Engine"
-              stepNumber="STEP 3"
+              stepNumber="STEP 2"
               tagline="Processing"
               description="End-to-end data audit and conversion pipeline: import Excel/XML files, detect price discrepancies, and export verified CET catalogs."
               tip="Launch XML Pipeline"
               onClick={() => router.push('/xml-pipeline')}
             />
+
           </nav>
         </div>
 
         {/* MOBILE NAVIGATION BAR */}
         <nav className="md:hidden flex flex-row items-center justify-around w-full h-full">
-          <SidebarIcon
-            icon={<LayoutDashboard size={18} />}
-            active={activeView === 'dashboard'}
-            title="Overview"
-            onClick={() => setActiveView('dashboard')}
-          />
           <SidebarIcon
             icon={<Bot size={18} />}
             active={activeView === 'products'}

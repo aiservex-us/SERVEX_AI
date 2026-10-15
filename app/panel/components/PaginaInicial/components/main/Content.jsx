@@ -45,7 +45,6 @@ export default function Content({ setActiveView }) {
           
           {/* TELEMETRY STATUS PILL */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-200/80 mb-5 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[11px] font-semibold text-slate-700 tracking-wide uppercase">
               Servex Core Engine v2.4 · Pipeline Ready
             </span>
