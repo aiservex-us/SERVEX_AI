@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 // Cambiaste el nombre del file o alias, se inyectan las props aquí
 import Sidebar from './components/main/loogout';
-import Header from './components/main/Header';
 
 // VISTAS / COMPONENTES
 import Content from './components/main/Content';
@@ -40,7 +39,7 @@ const InitPage = () => {
         return (
           <div key="dashboard" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
             <Content setActiveView={setActiveView} />
-            <Chart />
+            <Chart setActiveView={setActiveView} />
           </div>
         );
 
@@ -53,7 +52,7 @@ const InitPage = () => {
 
       case 'products':
         return (
-          <div key="products" className="col-span-12 lg:col-span-8 space-y-6 animate-view-fade">
+          <div key="products" className="col-span-12 space-y-6 animate-view-fade">
             <Products />
           </div>
         );
@@ -127,24 +126,24 @@ const InitPage = () => {
       />
 
       <main className="flex-1 h-full flex flex-col overflow-hidden">
-        <Header />
-
         {/* CONTENIDO SCROLLABLE */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#FFF] pb-24 md:pb-8">
+        <div className={`flex-1 overflow-y-auto bg-[#FFF] ${activeView === 'products' ? 'p-3 md:p-6' : 'p-4 md:p-8 pb-24 md:pb-8'}`}>
           <div className="grid grid-cols-12 gap-6 max-w-[1600px] mx-auto">
 
-            {/* COLUMNA IZQUIERDA (DINÁMICA) */}
+            {/* COLUMNA PRINCIPAL */}
             {renderMainContent()}
 
-            {/* COLUMNA DERECHA (FIJA) */}
-            <aside className="col-span-12 lg:col-span-4 relative mt-4 lg:mt-0">
-              <div className="sticky top-0">
-                <DashboardRight />
-              </div>
-            </aside>
+            {/* COLUMNA DERECHA (FIJA) - Se oculta en la vista del chat */}
+            {activeView !== 'products' && (
+              <aside className="col-span-12 lg:col-span-4 relative mt-4 lg:mt-0">
+                <div className="sticky top-0">
+                  <DashboardRight setActiveView={setActiveView} />
+                </div>
+              </aside>
+            )}
 
           </div>
-          <Footer />
+          {activeView !== 'products' && <Footer />}
         </div>
 
         {/* BOTÓN FLOTANTE Y CHAT (Si no estamos en 'products') */}

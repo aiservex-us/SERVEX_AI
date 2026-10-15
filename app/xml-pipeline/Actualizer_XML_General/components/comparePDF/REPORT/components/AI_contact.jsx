@@ -136,33 +136,12 @@ const BotMessage =
     return finalStr;
   }, [text]);
 
-  const [displayedText, setDisplayedText] = useState(isNew ? "" : processedText);
-
-  useEffect(() => {
-    if (!isNew) {
-      setDisplayedText(processedText);
-      return;
-    }
-    let i = 0;
-    const intervalId = setInterval(() => {
-      i += 4;
-      setDisplayedText(processedText.slice(0, i));
-      if (onType) onType(true);
-      if (i >= processedText.length) {
-        setDisplayedText(processedText);
-        clearInterval(intervalId);
-      }
-    }, 15);
-    return () => clearInterval(intervalId);
-  }, [processedText, isNew, onType]);
-
-
   const htmlContent = useMemo(() => {
     let html = "";
-    if (typeof displayedText === 'string') {
-        html = marked.parse(displayedText);
+    if (typeof processedText === 'string') {
+        html = marked.parse(processedText);
     } else {
-        html = marked.parse(String(displayedText || ""));
+        html = marked.parse(String(processedText || ""));
     }
     
     // Inject interactive command buttons AFTER parsing markdown
@@ -172,7 +151,7 @@ const BotMessage =
     html = html.replace(/<pre[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/pre>/gi, '$1');
     html = html.replace(/<pre[^>]*>\s*<code[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/code>\s*<\/pre>/gi, '$1');
     return html;
-  }, [displayedText]);
+  }, [processedText]);
 
   const handleClick = (e) => {
     const btn = e.target.closest('.alysa-cmd-btn');

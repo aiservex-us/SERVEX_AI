@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
 import {
-  Plus, Mic, ChevronDown, Database, Sparkles,
+  Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
   Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search
 } from 'lucide-react';
@@ -16,7 +16,7 @@ const QUICK_PROMPTS = [
 ];
 
 
-const BotMessage = ({ text, isNew, onType }) => {
+const BotMessage = ({ text }) => {
   const processedText = React.useMemo(() => {
     if (!text) return "";
     if (text.includes('\t') && !text.includes('|---')) {
@@ -45,33 +45,142 @@ const BotMessage = ({ text, isNew, onType }) => {
     return text;
   }, [text]);
 
-  const [displayedText, setDisplayedText] = useState(isNew ? "" : processedText);
-
-  useEffect(() => {
-    if (!isNew) {
-      setDisplayedText(processedText);
-      return;
+  const htmlContent = React.useMemo(() => {
+    if (!processedText) return "";
+    try {
+      return marked.parse(processedText);
+    } catch (e) {
+      return processedText;
     }
-    let i = 0;
-    const intervalId = setInterval(() => {
-      i += 4;
-      setDisplayedText(processedText.slice(0, i));
-      if (onType) onType(true);
-      if (i >= processedText.length) {
-        setDisplayedText(processedText);
-        clearInterval(intervalId);
-      }
-    }, 15);
-    return () => clearInterval(intervalId);
-  }, [processedText, isNew, onType]);
+  }, [processedText]);
 
   return (
     <div
-      className="prose-light"
-      dangerouslySetInnerHTML={{ __html: marked.parse(displayedText) }}
+      className="prose-light animate-fadeIn"
+      dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );
 };
+
+// Motor de puntuación, gramática, acentuación y estandarización corporativa para Speech-to-Text
+function formatProfessionalSpeechText(rawText) {
+  if (!rawText || !rawText.trim()) return "";
+
+  let text = rawText.trim();
+
+  // 1. Sustituir comandos de puntuación hablados (Español / Inglés)
+  const punctuationMap = [
+    { regex: /\b(signo de interrogaci[oó]n|question mark)\b/gi, replacement: '?' },
+    { regex: /\b(signo de exclamaci[oó]n|exclamation mark)\b/gi, replacement: '!' },
+    { regex: /\b(punto y coma|semicolon)\b/gi, replacement: ';' },
+    { regex: /\b(dos puntos|colon)\b/gi, replacement: ':' },
+    { regex: /\b(punto y aparte|nueva l[ií]nea|new line)\b/gi, replacement: '\n' },
+    { regex: /\b(punto seguido|punto final|punto|period|full stop)\b/gi, replacement: '.' },
+    { regex: /\b(coma|comma)\b/gi, replacement: ',' },
+  ];
+
+  punctuationMap.forEach(({ regex, replacement }) => {
+    text = text.replace(regex, replacement);
+  });
+
+  // 2. Limpieza de espaciados alrededor de signos
+  text = text
+    .replace(/\s+([.,;:!?])/g, '$1')
+    .replace(/([.,;:!?])(?=[^\s\d])/g, '$1 ')
+    .replace(/\s+/g, ' ');
+
+  // 3. Diccionario corporativo y acrónimos clave
+  const termsMap = [
+    { regex: /\b(servex ai|servex copilot|servex)\b/gi, replacement: 'SERVEX' },
+    { regex: /\balysa\b/gi, replacement: 'Alysa' },
+    { regex: /\bglynne\b/gi, replacement: 'GLYNNE' },
+    { regex: /\bxml\b/gi, replacement: 'XML' },
+    { regex: /\bcsv\b/gi, replacement: 'CSV' },
+    { regex: /\bpdf\b/gi, replacement: 'PDF' },
+    { regex: /\bapi\b/gi, replacement: 'API' },
+    { regex: /\bcet designer\b/gi, replacement: 'CET Designer' },
+    { regex: /\bcet\b/gi, replacement: 'CET' },
+    { regex: /\bxlsx?\b/gi, replacement: 'Excel' },
+    { regex: /\bwbs\b/gi, replacement: 'WBS' },
+    { regex: /\bwbg\b/gi, replacement: 'WBG' },
+    { regex: /\bwbo\b/gi, replacement: 'WBO' },
+    { regex: /\bwbd\b/gi, replacement: 'WBD' },
+    { regex: /\bwba\b/gi, replacement: 'WBA' },
+    { regex: /\bwbt\b/gi, replacement: 'WBT' },
+    { regex: /\blesro\b/gi, replacement: 'LESRO' },
+    { regex: /\bteknion\b/gi, replacement: 'Teknion' },
+  ];
+
+  termsMap.forEach(({ regex, replacement }) => {
+    text = text.replace(regex, replacement);
+  });
+
+  // 4. Saludos y fórmulas comunes en español
+  const accentsMap = [
+    { regex: /\b(como estas|como esta)\b/gi, replacement: '¿cómo estás?' },
+    { regex: /\b(hola alysa)\b/gi, replacement: '¡Hola Alysa!' },
+    { regex: /\b(hola)\b/gi, replacement: '¡Hola!' },
+    { regex: /\bque tal\b/gi, replacement: '¿qué tal?' },
+    { regex: /\bcatalogo\b/gi, replacement: 'catálogo' },
+    { regex: /\bcatalogos\b/gi, replacement: 'catálogos' },
+    { regex: /\bauditoria\b/gi, replacement: 'auditoría' },
+    { regex: /\bauditorias\b/gi, replacement: 'auditorías' },
+    { regex: /\blinea\b/gi, replacement: 'línea' },
+    { regex: /\blineas\b/gi, replacement: 'líneas' },
+    { regex: /\bcodigo\b/gi, replacement: 'código' },
+    { regex: /\bcodigos\b/gi, replacement: 'códigos' },
+  ];
+
+  accentsMap.forEach(({ regex, replacement }) => {
+    text = text.replace(regex, replacement);
+  });
+
+  // 5. División en oraciones y puntuación automática de preguntas y cierres
+  const questionStartersEs = [
+    'cómo', 'como', 'cuál', 'cual', 'cuáles', 'cuales', 'qué', 'que',
+    'por qué', 'quién', 'quien', 'cuándo', 'cuando',
+    'dónde', 'donde', 'cuánto', 'cuanto', 'puedes', 'podrías', 'me ayudas', 'ayúdame'
+  ];
+
+  const segments = text.split(/(?<=[.!?\n])\s+/);
+
+  const formattedSegments = segments.map(seg => {
+    let s = seg.trim();
+    if (!s) return "";
+
+    // Capitalizar primera letra
+    s = s.charAt(0).toUpperCase() + s.slice(1);
+
+    // Detección inteligente de preguntas
+    const isQuestionEs = questionStartersEs.some(q => s.toLowerCase().startsWith(q + ' ') || s.toLowerCase() === q);
+    const isQuestionEn = /^(how|what|why|when|where|who|can you|could you|is there|are there|will you)\b/i.test(s);
+
+    if ((isQuestionEs || isQuestionEn) && !s.endsWith('?') && !s.endsWith('!')) {
+      if (!s.startsWith('¿') && isQuestionEs) {
+        s = '¿' + s + '?';
+      } else if (!s.endsWith('?')) {
+        s = s + '?';
+      }
+    } else if (!/[.!?]$/.test(s)) {
+      s = s + '.';
+    }
+
+    // Normalizar signos repetidos
+    s = s.replace(/\?+\./g, '?').replace(/!+\./g, '!').replace(/\.{2,}/g, '.');
+
+    return s;
+  });
+
+  let result = formattedSegments.filter(Boolean).join(' ');
+
+  result = result
+    .replace(/\s+([.,;:!?])/g, '$1')
+    .replace(/([¿¡])\s+/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return result;
+}
 
 export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
@@ -82,6 +191,11 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
   const [context, setContext] = useState('Servex General');
   const [charCount, setCharCount] = useState(0);
   const [userId, setUserId] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef(null);
+  const ignoreSpeechRef = useRef(false);
+  const speechBaseTextRef = useRef("");
+  const currentTranscriptRef = useRef("");
 
   // Obtener usuario actual
   useEffect(() => {
@@ -120,6 +234,115 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  // Cleanup de reconocimiento de voz al desmontar
+  useEffect(() => {
+    return () => {
+      ignoreSpeechRef.current = true;
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch (e) {}
+      }
+    };
+  }, []);
+
+  // Función STT para grabar voz y transcribir directamente al input
+  const toggleRecording = useCallback(() => {
+    if (isRecording) {
+      // Al detener manualmente desde el micrófono:
+      // Usamos stop() en lugar de abort() para consolidar el audio y conservar el texto en el input
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
+      }
+      setIsRecording(false);
+      // Aplicar formateo, puntuación y estandarización corporativa inteligente
+      if (currentTranscriptRef.current) {
+        const polished = formatProfessionalSpeechText(currentTranscriptRef.current);
+        currentTranscriptRef.current = polished;
+        setInput(polished);
+        setCharCount(polished.length);
+      }
+      return;
+    }
+
+    const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+    if (!SpeechRecognition) {
+      alert("Voice recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      return;
+    }
+
+    try {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch (e) {}
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = typeof navigator !== 'undefined' ? (navigator.language || "es-ES") : "es-ES";
+
+      ignoreSpeechRef.current = false;
+      const initialVal = inputRef.current ? inputRef.current.value : input;
+      speechBaseTextRef.current = initialVal ? (initialVal.trim() + " ") : "";
+      currentTranscriptRef.current = initialVal || "";
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+      };
+
+      recognition.onresult = (event) => {
+        if (ignoreSpeechRef.current) return;
+
+        let interimTranscript = "";
+        let finalTranscript = "";
+
+        for (let i = 0; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal) {
+            finalTranscript += res[0].transcript + " ";
+          } else {
+            interimTranscript += res[0].transcript;
+          }
+        }
+
+        if (ignoreSpeechRef.current) return;
+
+        const currentSpoken = (finalTranscript + interimTranscript).trim();
+        const newText = speechBaseTextRef.current ? (speechBaseTextRef.current + currentSpoken) : currentSpoken;
+        currentTranscriptRef.current = newText;
+        setInput(newText);
+        setCharCount(newText.length);
+        if (inputRef.current) {
+          inputRef.current.scrollTop = inputRef.current.scrollHeight;
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("Speech recognition notice:", event.error);
+        if (event.error !== "no-speech") {
+          setIsRecording(false);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+        recognitionRef.current = null;
+        if (!ignoreSpeechRef.current && currentTranscriptRef.current) {
+          const polished = formatProfessionalSpeechText(currentTranscriptRef.current);
+          currentTranscriptRef.current = polished;
+          setInput(polished);
+          setCharCount(polished.length);
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error("Speech recognition start error:", err);
+      setIsRecording(false);
+    }
+  }, [isRecording, input]);
+
   const scrollToBottom = useCallback((immediate = false) => {
     if (scrollContainerRef.current) {
       const { scrollHeight, scrollTop, clientHeight } = scrollContainerRef.current;
@@ -140,9 +363,20 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
     const val = e.target.value;
     setInput(val);
     setCharCount(val.length);
+    currentTranscriptRef.current = val;
   };
 
   const sendMessage = async (overrideText) => {
+    // 1. INMEDIATAMENTE invalidar e interrumpir cualquier captura de voz
+    ignoreSpeechRef.current = true;
+    speechBaseTextRef.current = "";
+    currentTranscriptRef.current = "";
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch (e) {}
+      recognitionRef.current = null;
+    }
+    setIsRecording(false);
+
     const queryToSend = (overrideText || input).trim();
     if (!queryToSend || isLoading) return;
 
@@ -199,7 +433,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
     <div className={
       isFloating
         ? "w-full h-full md:w-[500px] md:h-[600px] md:max-h-[85vh] flex flex-col font-sans text-gray-900 md:border md:border-gray-200 md:rounded-2xl md:shadow-2xl overflow-hidden md:shadow-indigo-100/50 pointer-events-auto relative bg-white"
-        : "w-full h-[77vh] flex flex-col font-sans text-gray-900 border border-gray-200 rounded-xl shadow-sm overflow-hidden relative"
+        : "w-full h-[82vh] md:h-[84vh] flex flex-col font-sans text-gray-900 border border-gray-200/90 rounded-2xl shadow-sm overflow-hidden relative bg-white"
     }>
 
       {/* --- FONDO ESTILO MAIN1 (SIN ANIMACIONES) --- */}
@@ -262,7 +496,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
       {/* ── MAIN ── */}
       <main ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">
-        <div className="w-full max-w-[820px] mx-auto flex flex-col px-5 min-h-full">
+        <div className="w-full max-w-[1000px] mx-auto flex flex-col px-5 min-h-full">
 
           {messages.length === 0 ? (
             /* ── HOME ── */
@@ -390,7 +624,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
                             }`}
                         >
                           {msg.from === "bot" ? (
-                            <BotMessage text={msg.text} isNew={msg.isNew} onType={scrollToBottom} />
+                            <BotMessage text={msg.text} />
                           ) : (
                             <p className="whitespace-pre-wrap m-0">{msg.text}</p>
                           )}
@@ -449,7 +683,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
 
       {/* ── INPUT ── */}
       <footer className="relative z-10 flex-shrink-0 px-5 py-3 pb-4 bg-white/40 backdrop-blur-md border-t border-white/50">
-        <div className="max-w-[820px] mx-auto bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl relative focus-within:border-[#464775]/40 shadow-sm">
+        <div className="max-w-[1000px] mx-auto bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl relative focus-within:border-[#464775]/40 shadow-sm">
 
           {/* Meta row */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
@@ -457,7 +691,12 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
               <Zap size={12} className="text-indigo-400" />
               <span>Engine v4.10</span>
             </div>
-            {charCount > 0 && (
+            {isRecording ? (
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#6264A7]/10 border border-[#6264A7]/25 text-[#464775] text-[11px] font-bold tracking-wide">
+                <span className="w-2 h-2 rounded-full bg-[#6264A7] animate-pulse" />
+                <span>Audio Mixer Active</span>
+              </div>
+            ) : charCount > 0 && (
               <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
                 {charCount}
               </span>
@@ -465,35 +704,107 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
           </div>
 
           {/* Textarea */}
-          <div className="flex items-start gap-2 px-3.5 pt-3 pb-1">
-            <Sparkles size={15} className="text-indigo-400 mt-0.5 flex-shrink-0 opacity-70" />
-            <textarea
-              ref={inputRef}
-              rows={1}
-              className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[120px] overflow-y-auto caret-indigo-500 font-sans"
-              placeholder="Ask about processes, data, or system architecture…"
-              value={input}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-            />
+          <div className="flex flex-col px-3.5 pt-3 pb-1 w-full">
+            <div className="flex items-start gap-2 w-full">
+              <Sparkles size={15} className={`mt-0.5 flex-shrink-0 transition-colors ${isRecording ? 'text-[#6264A7] animate-pulse' : 'text-indigo-400 opacity-70'}`} />
+              <textarea
+                ref={inputRef}
+                rows={1}
+                className="flex-1 bg-transparent border-none outline-none resize-none text-[16px] md:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[24px] max-h-[120px] overflow-y-auto caret-indigo-500 font-sans"
+                placeholder={isRecording ? "Listening to your voice... Speak now..." : "Ask about processes, data, or system architecture…"}
+                value={input}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+
+            {/* Efecto Studio Audio Mixer a todo lo ancho del input */}
+            {isRecording && (
+              <div className="w-full mt-2.5 mb-1 p-2.5 rounded-xl bg-gradient-to-r from-[#464775]/5 via-[#6264A7]/10 to-[#464775]/5 border border-[#6264A7]/20 shadow-sm animate-fadeIn">
+                <div className="flex items-center justify-between mb-1.5 px-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6264A7] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#464775]"></span>
+                    </span>
+                    <span className="text-[11.5px] font-bold text-[#464775] tracking-tight">
+                      Studio Audio Mixer
+                    </span>
+                    <span className="text-[11px] text-slate-500 hidden sm:inline font-medium">
+                      · Capturing and transcribing speech frequencies live
+                    </span>
+                  </div>
+
+                  <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#6264A7]/15 text-[#6264A7] border border-[#6264A7]/20">
+                    Live Input
+                  </span>
+                </div>
+
+                {/* Espectro completo de barras de ecualizador de audio a lo ancho de todo el input */}
+                <div className="w-full h-8 flex items-end justify-between gap-[2px] md:gap-[3px] px-1 overflow-hidden">
+                  {Array.from({ length: 48 }).map((_, idx) => (
+                    <span
+                      key={idx}
+                      className="flex-1 max-w-[5px] min-w-[2px] rounded-full bg-gradient-to-t from-[#464775] to-[#6264A7]"
+                      style={{
+                        animation: `mixer-bar-bounce 0.85s ease-in-out infinite ${(idx * 0.038).toFixed(2)}s`,
+                        opacity: 0.55 + (idx % 4) * 0.14
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
           <div className="flex items-center justify-between px-3.5 py-2">
-            <div className="flex items-center gap-0.5">
-              {[
-                { icon: Plus, title: "Attach" },
-                { icon: Mic, title: "Voice" },
-                { icon: HelpCircle, title: "Help" },
-              ].map(({ icon: Icon, title }) => (
-                <button
-                  key={title}
-                  title={title}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-                >
-                  <Icon size={17} />
-                </button>
-              ))}
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                title="Attach"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+              >
+                <Plus size={17} />
+              </button>
+
+              <button
+                type="button"
+                title={isRecording ? "Stop Recording (Stop STT)" : "Voice Recording (Speech-to-Text)"}
+                onClick={toggleRecording}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                  isRecording
+                    ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/25 ring-2 ring-[#6264A7]/50 animate-pulse'
+                    : 'text-gray-400 hover:bg-gray-100 hover:text-[#464775]'
+                }`}
+              >
+                {isRecording ? <MicOff size={17} /> : <Mic size={17} />}
+              </button>
+
+              <button
+                type="button"
+                title="Auto-Punctuate & Polish Text"
+                onClick={() => {
+                  if (input.trim()) {
+                    const polished = formatProfessionalSpeechText(input);
+                    setInput(polished);
+                    setCharCount(polished.length);
+                    currentTranscriptRef.current = polished;
+                  }
+                }}
+                disabled={!input.trim()}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-[#6264A7] transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <Sparkles size={16} />
+              </button>
+
+              <button
+                type="button"
+                title="Help"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+              >
+                <HelpCircle size={17} />
+              </button>
             </div>
 
             <button
@@ -528,6 +839,13 @@ export default function TeamsAgentChat({ isFloating = false, onClose }) {
         .orb-ring-2 { animation: orb-pulse 3s ease-in-out infinite 0.6s; }
         .avatar-pulse { animation: avatar-pulse 2.5s ease-in-out infinite; }
         .dot-bounce   { animation: dot-bounce 1.2s ease-in-out infinite; }
+
+        @keyframes mixer-bar-bounce {
+          0%, 100% { height: 4px; }
+          25% { height: 26px; }
+          50% { height: 7px; }
+          75% { height: 20px; }
+        }
 
         @keyframes orb-pulse {
           0%, 100% { opacity: 1; transform: scale(1); }

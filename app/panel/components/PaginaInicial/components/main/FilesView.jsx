@@ -211,7 +211,7 @@ export default function FilesView() {
       const content = e.target?.result || '';
       setXmlText(content);
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
       let dataObjects = null;
       let isBackendSuccess = false;
 
@@ -314,7 +314,7 @@ export default function FilesView() {
     if (!parsedData || !parsedData.length) return;
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
       const formData = new FormData();
       if (xmlFile) {
         formData.append('file', xmlFile);
@@ -358,7 +358,7 @@ export default function FilesView() {
     if (!parsedData || !parsedData.length) return;
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
       const formData = new FormData();
       if (xmlFile) {
         formData.append('file', xmlFile);
@@ -408,7 +408,7 @@ export default function FilesView() {
     if (!parsedData || !parsedData.length) return;
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
       const formData = new FormData();
       if (xmlFile) {
         formData.append('file', xmlFile);
