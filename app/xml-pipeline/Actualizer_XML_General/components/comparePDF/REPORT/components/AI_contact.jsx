@@ -468,18 +468,28 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         
         const { data } = await supabase
           .from(tableName)
-          .select('xml_raw, xml_actualizer_raw')
+          .select('xml_raw, XM_CET_import, csv_raw, csv_new_raw, xml_actualizer_raw')
           .eq('company_name', 'General_Procces')
           .maybeSingle();
 
         if (data) {
-          if (data.xml_actualizer_raw) {
+          const hasXml = !!((data.xml_raw && String(data.xml_raw).trim()) || (data.XM_CET_import && String(data.XM_CET_import).trim()));
+          const hasCsvBase = !!(data.csv_raw && String(data.csv_raw).trim());
+          const hasCsvNew = !!(data.csv_new_raw && String(data.csv_new_raw).trim());
+          const hasFinalXml = !!(data.xml_actualizer_raw && String(data.xml_actualizer_raw).trim());
+
+          if (hasFinalXml) {
              setUnlockedPhase(4);
              localStorage.setItem('alysa_phase_' + modName, 4);
-          }
-          else if (data.xml_raw) {
+          } else if (hasXml && hasCsvBase && hasCsvNew) {
              setUnlockedPhase(3);
              localStorage.setItem('alysa_phase_' + modName, 3);
+          } else if (hasXml) {
+             setUnlockedPhase(2);
+             localStorage.setItem('alysa_phase_' + modName, 2);
+          } else {
+             setUnlockedPhase(1);
+             localStorage.setItem('alysa_phase_' + modName, 1);
           }
         }
       } catch (err) {
