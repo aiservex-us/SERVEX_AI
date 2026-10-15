@@ -973,7 +973,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
     // Solicitud ordinaria al agente IA
     try {
-      const historyPayload = messages.filter(msg => msg.text).map(msg => ({
+      // Optimización de payload: enviar solo los últimos 8 mensajes para evitar latencia de red y sobrecarga de tokens
+      const historyPayload = messages.filter(msg => msg.text).slice(-8).map(msg => ({
         role: msg.from === "user" ? "user" : "assistant",
         content: msg.text
       }));
@@ -984,7 +985,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: historyPayload,
-          raw_messages: [...messages.filter(msg => msg.text), { from: "user", text: queryToSend, time: now }],
+          raw_messages: [...messages.filter(msg => msg.text).slice(-15), { from: "user", text: queryToSend, time: now }],
           company_name: context,
           current_section: currentSection,
           unlocked_phase: unlockedPhase
