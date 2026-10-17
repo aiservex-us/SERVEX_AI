@@ -461,7 +461,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
       if (type === 'xml') {
         const prefixedContent = fileName ? `<!-- filename: ${fileName} -->\n${rawContent}` : rawContent;
         if (fileName) {
-          payload.xml_name = fileName;
+          payload.xml_name = fileName.replace(/\.xml$/i, '').trim();
           payload.file_name = fileName;
         }
 

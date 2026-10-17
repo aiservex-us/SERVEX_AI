@@ -17,6 +17,28 @@ const DeleteTenantButton = ({ currentTenant = 'WBA', onDeleted }) => {
         .eq('company_name', currentTenant);
 
       if (error) throw error;
+
+      // Limpiar memoria de sesion, historial de chat y contexto del modelo en backend
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+      try {
+        await Promise.allSettled([
+          fetch(backendUrl + '/api/v1/cet-ai-engine/clear-session', { method: 'POST' }),
+          fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/clear-session', { method: 'POST' }),
+          fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/agent/history', { method: 'DELETE' })
+        ]);
+      } catch (beErr) {
+        console.warn('[-] Advertencia limpiando memoria de sesion en backend:', beErr);
+      }
+
+      // Limpiar almacenamiento local para reiniciar conversacion fresca
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.clear();
+          localStorage.removeItem('chat_history_' + currentTenant);
+          localStorage.removeItem('cet_active_messages');
+        } catch (_) {}
+      }
+
       
       setIsModalOpen(false);
       if (onDeleted) onDeleted();

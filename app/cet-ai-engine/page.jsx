@@ -26,10 +26,9 @@ import { supabase, getCurrentUser } from '../lib/supabaseClient';
 import MenuLateral from '../xml-pipeline/Actualizer_XML_General/components/menuLateral.jsx';
 
 const BACKEND_BASE_URL =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:8000'
-    : process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  'https://servex-ai-back.onrender.com';
 
 // Configuración de Marked para formato corporativo de tablas y código
 const origRenderer = new marked.Renderer();
@@ -211,13 +210,16 @@ export default function CETDirectPipelinePage() {
 
         // Persistir referencia ligera en la tabla de Supabase
         const tbl = compToUse === 'General_Procces' ? 'ClientsSERVEX_General_Procces' : `ClientsSERVEX_${compToUse}`;
+        const baseXmlName = (file.name || '').replace(/\.xml$/i, '').trim();
+        const { data: authData } = await supabase.auth.getUser();
         const payload = {
           company_name: compToUse,
           file_name: file.name,
-          xml_name: file.name,
+          xml_name: baseXmlName,
           xml_raw: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : '',
           XM_CET_import: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : ''
         };
+        if (authData?.user?.id) payload.user_id = authData.user.id;
         await supabase.from(tbl).upsert(payload, { onConflict: 'company_name' });
       } catch (stgErr) {
         console.warn('[-] Advertencia en almacenamiento primario Supabase:', stgErr);

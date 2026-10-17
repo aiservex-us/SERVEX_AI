@@ -528,10 +528,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const [dragActiveXml, setDragActiveXml] = useState(false);
 
   const apiURL =
-    (typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
-      ? 'http://localhost:8000'
-      : (process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com');
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    'https://servex-ai-back.onrender.com';
 
   // Listener para el botón "Guía IA" ubicado en el header de page.jsx
   useEffect(() => {
@@ -1094,10 +1093,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         // Persistir referencia ligera en la tabla de Supabase sin saturar postgres
         const { data: authData } = await supabase.auth.getUser();
         const user = authData?.user;
+        const baseXmlName = (file.name || '').replace(/\.xml$/i, '').trim();
         const payload = {
           company_name: 'General_Procces',
           file_name: file.name,
-          xml_name: file.name,
+          xml_name: baseXmlName,
           xml_raw: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : '',
           XM_CET_import: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : ''
         };
