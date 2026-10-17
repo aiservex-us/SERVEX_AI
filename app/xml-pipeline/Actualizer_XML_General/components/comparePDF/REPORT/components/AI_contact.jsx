@@ -11,6 +11,7 @@ import {
   Download, User, X, ChevronRight, UploadCloud, Table, CheckCheck, FileCode2, Paperclip, AlertCircle,
   Layers, Box, Tag, Sliders, Palette
 } from 'lucide-react';
+import CatalogProcessConsole from '@/app/cet-ai-engine/components/CatalogProcessConsole.jsx';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
@@ -1118,13 +1119,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         )
       );
 
-      // Respuesta instantánea de confirmación del guardado en Supabase
+      // Respuesta instantánea de confirmación del guardado en Supabase con consola en vivo
       const ackTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const processConsoleId = Date.now() + 1;
       setMessages((prev) => [
         ...prev,
         {
+          id: processConsoleId,
           from: 'bot',
           text: `**Catálogo guardado exitosamente en Supabase Storage.**\n\nEl archivo \`${file.name}\` ha sido respaldado en el bucket seguro. Iniciando ahora la desestructuración y análisis en memoria de sus productos, precios y características...`,
+          isProcessingConsole: true,
+          processFileName: file.name,
+          processCompleted: false,
           time: ackTime
         }
       ]);
@@ -1152,10 +1158,20 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       if (unlockedPhase < 2) updatePhase(2);
 
-      // Emitir mensaje enriquecido con el análisis completo (5 métricas, features y ejemplo de producto)
+      // Marcar consola de proceso como completada
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === processConsoleId
+            ? { ...m, processCompleted: true, processSummary: data }
+            : m
+        )
+      );
+
+      // Emitir mensaje enriquecido con el análisis completo
       setMessages((prev) => [
         ...prev,
         {
+          id: Date.now() + 2,
           from: 'bot',
           text: `**Catálogo XML Maestro Ingerido y Desestructurado en Memoria**\n\nEl archivo \`${file.name}\` fue analizado sin tocar Excel. El catálogo está listo para recibir instrucciones de actualización de precios o consulta de características.`,
           uploadSummary: data,
@@ -1630,6 +1646,15 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                               {msg.from === "bot" ? (
                                 <>
                                   <BotMessage text={msg.text} onCommandSelect={handleCommandSelect} />
+
+                                  {/* ── CONSOLA DE PROCESAMIENTO EN TIEMPO REAL ── */}
+                                  {msg.isProcessingConsole && (
+                                    <CatalogProcessConsole
+                                      fileName={msg.processFileName || 'catalogo.xml'}
+                                      isCompleted={msg.processCompleted}
+                                      summary={msg.processSummary}
+                                    />
+                                  )}
 
                                   {/* ── REPORTE DE INGESTIÓN XML DIRECTO EN EL CHAT ── */}
                                   {msg.uploadSummary && (

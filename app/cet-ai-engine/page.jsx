@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { supabase, getCurrentUser } from '../lib/supabaseClient';
 import MenuLateral from '../xml-pipeline/Actualizer_XML_General/components/menuLateral.jsx';
+import CatalogProcessConsole from './components/CatalogProcessConsole.jsx';
 
 const BACKEND_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -236,14 +237,18 @@ export default function CETDirectPipelinePage() {
         )
       );
 
-      // Respuesta instantánea de confirmación del guardado en Supabase
+      // Respuesta instantánea de confirmación del guardado en Supabase con consola en vivo
       const ackTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const processConsoleId = Date.now() + 1;
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 1,
+          id: processConsoleId,
           from: 'bot',
           text: `**Catálogo guardado exitosamente en Supabase Storage.**\n\nEl archivo \`${file.name}\` ha sido respaldado en el bucket seguro. Iniciando ahora la desestructuración y análisis en memoria de sus productos, precios y características...`,
+          isProcessingConsole: true,
+          processFileName: file.name,
+          processCompleted: false,
           time: ackTime
         }
       ]);
@@ -268,6 +273,15 @@ export default function CETDirectPipelinePage() {
 
       const data = await res.json();
       setUploadedXmlSummary(data);
+
+      // Marcar consola de proceso como completada
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === processConsoleId
+            ? { ...m, processCompleted: true, processSummary: data }
+            : m
+        )
+      );
 
       setMessages((prev) => [
         ...prev,
@@ -790,6 +804,15 @@ export default function CETDirectPipelinePage() {
                                   Formatos soportados: .xml de CET Designer o Catalog Creator. Se montará al instante en memoria.
                                 </p>
                               </div>
+                            )}
+
+                            {/* ── CONSOLA DE PROCESAMIENTO EN TIEMPO REAL ── */}
+                            {m.isProcessingConsole && (
+                              <CatalogProcessConsole
+                                fileName={m.processFileName || 'catalogo.xml'}
+                                isCompleted={m.processCompleted}
+                                summary={m.processSummary}
+                              />
                             )}
 
                             {/* ── REPORTE DE INGESTIÓN XML DIRECTO EN EL CHAT ── */}
