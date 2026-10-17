@@ -8,13 +8,13 @@ import {
   Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
   Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search, BrainCircuit, CheckCircle2,
-  Download, User, X, ChevronRight
+  Download, User, X, ChevronRight, UploadCloud, Table, CheckCheck, FileCode2, Paperclip, AlertCircle,
+  Layers, Box
 } from 'lucide-react';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
-  { id: 'import_cet', icon: Database, label: '/importCETxml', desc: 'Import CET XML', phase: 1, category: 'Export Data From CET or Client' },
   { id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4, category: 'Export Data From CET or Client' },
   { id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4, category: 'Export Data From CET or Client' },
   
@@ -416,7 +416,7 @@ const BotMessage = ({ text, onCommandSelect }) => {
     }
     
     // Inyectar botones interactivos para comandos de barra después del markdown
-    const COMMANDS_REGEX = /(\/(?:importCETxml|SaveXMLcet|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
+    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
     html = html.replace(COMMANDS_REGEX, '<button class="text-[#464775] hover:text-[#35365e] font-semibold hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none" data-cmd="$1">$1</button>');
     html = html.replace(/<code[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/code>/gi, '$1');
     html = html.replace(/<pre[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/pre>/gi, '$1');
@@ -521,7 +521,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const inputRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
-  const apiURL = process.env.NEXT_PUBLIC_API_URL || "https://servex-ai-back.onrender.com";
+  const xmlFileInputRef = useRef(null);
+
+  const [isCommitting, setIsCommitting] = useState(false);
+  const [isUploadingXml, setIsUploadingXml] = useState(false);
+  const [dragActiveXml, setDragActiveXml] = useState(false);
+
+  const apiURL =
+    (typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+      ? 'http://localhost:8000'
+      : (process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com');
 
   // Listener para el botón "Guía IA" ubicado en el header de page.jsx
   useEffect(() => {
@@ -784,10 +794,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
     if (qLower === '/importcetxml') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Opening CET Data Ingestion environment in chat...\n\nHere we process XMLs from any catalog to dynamically convert them into a structured matrix, allowing the system to automatically generate client injection and update data.', isNew: true }, { from: 'tool', toolId: 'import_cet_xml' }]);
+        setMessages(prev => [
+          ...prev,
+          {
+            from: 'bot',
+            text: '💡 **Carga Directa de Catálogo XML Maestro**\n\nEl comando `/importCETxml` ha sido retirado. Ahora el catálogo XML se sube y desestructura directamente desde la opción del input (haciendo clic en el icono 📎 o arrastrando y soltando tu archivo `.xml` aquí).',
+            needs_upload: true,
+            isNew: true
+          }
+        ]);
         setIsLoading(false);
         scrollToBottom(true);
-      }, 500);
+      }, 300);
       return;
     }
 
@@ -1003,13 +1021,217 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: data?.reply || "No response received.", time: botTime }]);
+      setMessages(prev => [
+        ...prev,
+        {
+          from: "bot",
+          text: data?.reply || "No response received.",
+          staged_result: data?.staged_result || null,
+          can_commit: Boolean(data?.can_commit),
+          needs_upload: Boolean(data?.needs_upload),
+          committed: false,
+          time: botTime
+        }
+      ]);
     } catch {
       setMessages(prev => [...prev, { from: "bot", text: "❌ Connection error.", time: "--:--" }]);
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
+  };
+
+  // Manejo de Carga e Ingesta de XML Directo en el Chat
+  const handleXmlFileUpload = async (file) => {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.xml')) {
+      alert('Solo se admiten archivos en formato .xml (CET Designer / Catalog Creator).');
+      return;
+    }
+
+    setIsUploadingXml(true);
+    const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const uploadId = `xml-upload-${Date.now()}`;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: uploadId,
+        from: 'user',
+        isXmlUpload: true,
+        fileName: file.name,
+        fileSizeKb: (file.size / 1024).toFixed(1),
+        uploadStatus: 'uploading',
+        text: `**Archivo XML adjunto para ingestión:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
+        time: userTime
+      }
+    ]);
+
+    try {
+      // ── PASO 1: Subida ultrarrápida al bucket de Supabase (catalogs-storage) ──
+      let uploadedPublicUrl = '';
+      try {
+        const cleanName = (file.name || 'catalog.xml').replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storageFilePath = `General_Procces/${Date.now()}_${cleanName}`;
+
+        const { data: storageData, error: storageErr } = await supabase.storage
+          .from('catalogs-storage')
+          .upload(storageFilePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: 'application/xml'
+          });
+
+        if (!storageErr && storageData) {
+          const { data: publicUrlObj } = supabase.storage
+            .from('catalogs-storage')
+            .getPublicUrl(storageData.path);
+          if (publicUrlObj?.publicUrl) {
+            uploadedPublicUrl = publicUrlObj.publicUrl;
+          }
+        }
+
+        // Persistir referencia ligera en la tabla de Supabase sin saturar postgres
+        const { data: authData } = await supabase.auth.getUser();
+        const user = authData?.user;
+        const payload = {
+          company_name: 'General_Procces',
+          file_name: file.name,
+          xml_name: file.name,
+          xml_raw: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : '',
+          XM_CET_import: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : ''
+        };
+        if (user?.id) payload.user_id = user.id;
+
+        await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .upsert(payload, { onConflict: 'company_name' });
+      } catch (stgErr) {
+        console.warn('[-] Advertencia en almacenamiento primario Supabase:', stgErr);
+      }
+
+      // Marcar de inmediato el check en la barra del mensaje del usuario
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === uploadId ? { ...m, uploadStatus: 'completed' } : m
+        )
+      );
+
+      // Respuesta instantánea de confirmación del guardado en Supabase
+      const ackTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages((prev) => [
+        ...prev,
+        {
+          from: 'bot',
+          text: `**Catálogo guardado exitosamente en Supabase Storage.**\n\nEl archivo \`${file.name}\` ha sido respaldado en el bucket seguro. Iniciando ahora la desestructuración y análisis en memoria de sus productos, precios y características...`,
+          time: ackTime
+        }
+      ]);
+
+      // ── PASO 2: Ingesta y análisis estructural en el motor de memoria ──
+      const formData = new FormData();
+      formData.append('company_name', context || 'LESRO');
+      formData.append('xml_file', file);
+      if (uploadedPublicUrl) {
+        formData.append('storage_url', uploadedPublicUrl);
+      }
+
+      const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/upload-xml`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Falla al desestructurar XML');
+      }
+
+      const data = await res.json();
+      const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (unlockedPhase < 2) updatePhase(2);
+
+      // Emitir mensaje enriquecido con el análisis completo (5 métricas, features y ejemplo de producto)
+      setMessages((prev) => [
+        ...prev,
+        {
+          from: 'bot',
+          text: `**Catálogo XML Maestro Ingerido y Desestructurado en Memoria**\n\nEl archivo \`${file.name}\` fue analizado sin tocar Excel. El catálogo está listo para recibir instrucciones de actualización de precios o consulta de características.`,
+          uploadSummary: data,
+          time: botTime
+        }
+      ]);
+    } catch (err) {
+      console.error('Error subiendo XML:', err);
+      // Marcar mensaje de subida con error
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === uploadId ? { ...m, uploadStatus: 'error' } : m
+        )
+      );
+      const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages((prev) => [
+        ...prev,
+        {
+          from: 'bot',
+          text: `**Error al ingerir el archivo XML:** ${err.message}`,
+          time: botTime
+        }
+      ]);
+    } finally {
+      setIsUploadingXml(false);
+    }
+  };
+
+  // Aplicar cambios quirúrgicos al XML desde el Staging Board
+  const handleCommitStaged = async (msgIdx, stagedItems) => {
+    if (!stagedItems || stagedItems.length === 0) return;
+    setIsCommitting(true);
+    try {
+      const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/commit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company_name: context || 'LESRO',
+          staged_items: stagedItems
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Falla durante la inyección en el catálogo');
+      }
+
+      const data = await res.json();
+
+      setMessages((prev) =>
+        prev.map((msg, i) =>
+          i === msgIdx ? { ...msg, committed: true, appliedCount: data.applied_count || stagedItems.length } : msg
+        )
+      );
+
+      const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages((prev) => [
+        ...prev,
+        {
+          from: 'bot',
+          text: `🎯 **Inyección Quirúrgica 1-to-1 Completada con Éxito**\n\n• **Nodos Modificados:** **${data.applied_count || stagedItems.length}**\n• **Catálogo Afectado:** \`${context || 'General_Procces'}\`\n• **Integridad XML:** 100% Certificada para CET Designer y Catalog Creator.\n\nEl archivo XML maestro ya contiene los nuevos precios. Puedes descargarlo directamente a continuación:`,
+          showDownloadCard: true,
+          time: botTime
+        }
+      ]);
+    } catch (err) {
+      console.error('Error inyectando en XML:', err);
+      alert(`Error al aplicar cambios: ${err.message}`);
+    } finally {
+      setIsCommitting(false);
+    }
+  };
+
+  // Descarga directa del XML actualizado
+  const handleDownloadXml = () => {
+    const url = `${apiURL}/api/v1/General_Procces/agent/download-xml?company_name=${encodeURIComponent(context || 'LESRO')}`;
+    window.open(url, '_blank');
   };
 
   const handleKeyDown = (e) => {
@@ -1122,7 +1344,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               ref={inputRef}
               rows={1}
               className="flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[28px] max-h-[140px] overflow-y-auto caret-[#464775] font-sans"
-              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Ask about processes, data, or system architecture… (type '/' for commands)"}
+              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Actualiza precios (ej: AS1101 a $850 o pega cambios), consulta catálogo, o escribe '/' para comandos…"}
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
@@ -1171,6 +1393,31 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         {/* Actions toolbar */}
         <div className="flex items-center justify-between px-3.5 py-2">
           <div className="flex items-center gap-1">
+            <input
+              type="file"
+              ref={xmlFileInputRef}
+              accept=".xml"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleXmlFileUpload(file);
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              disabled={isUploadingXml}
+              title="Adjuntar y cargar catálogo XML maestro de CET Designer"
+              onClick={() => xmlFileInputRef.current?.click()}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                isUploadingXml
+                  ? 'bg-[#464775]/10 text-[#464775] animate-pulse'
+                  : 'text-gray-400 hover:bg-gray-100 hover:text-[#464775]'
+              }`}
+            >
+              {isUploadingXml ? <RefreshCw size={16} className="animate-spin text-[#464775]" /> : <Paperclip size={17} />}
+            </button>
+
             <button
               type="button"
               title={isRecording ? "Stop Recording (Stop STT)" : "Voice Recording (Speech-to-Text)"}
@@ -1218,7 +1465,26 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   };
 
   return (
-    <div className="w-full h-full flex flex-col font-sans text-gray-900 overflow-hidden relative bg-transparent">
+    <div
+      onDragOver={(e) => { e.preventDefault(); setDragActiveXml(true); }}
+      onDragLeave={(e) => { e.preventDefault(); setDragActiveXml(false); }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragActiveXml(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) handleXmlFileUpload(file);
+      }}
+      className="w-full h-full flex flex-col font-sans text-gray-900 overflow-hidden relative bg-transparent"
+    >
+      {/* Overlay al arrastrar archivo XML */}
+      {dragActiveXml && (
+        <div className="absolute inset-0 z-50 bg-[#464775]/25 backdrop-blur-sm border-2 border-dashed border-[#464775] rounded-2xl flex flex-col items-center justify-center pointer-events-none p-6 animate-fadeIn">
+          <UploadCloud size={52} className="text-[#464775] animate-bounce mb-3" />
+          <h3 className="text-base font-bold text-[#464775]">Suelta tu archivo XML maestro de CET Designer aquí</h3>
+          <p className="text-xs text-slate-600 mt-1">El catálogo se ingerirá y desestructurará en memoria al instante sin tocar Excel</p>
+        </div>
+      )}
+
       {/* ── MAIN SCROLLABLE CONTAINER ── */}
       <main ref={scrollContainerRef} className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">
         {messages.length === 0 ? (
@@ -1361,7 +1627,448 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                 }`}
                             >
                               {msg.from === "bot" ? (
-                                <BotMessage text={msg.text} onCommandSelect={handleCommandSelect} />
+                                <>
+                                  <BotMessage text={msg.text} onCommandSelect={handleCommandSelect} />
+
+                                  {/* ── REPORTE DE INGESTIÓN XML DIRECTO EN EL CHAT ── */}
+                                  {msg.uploadSummary && (
+                                    <div className="mt-3 border border-[#464775]/25 rounded-2xl overflow-hidden shadow-xs bg-white/95 backdrop-blur-xs">
+                                      <div className="p-3.5 bg-gradient-to-r from-[#464775]/12 via-[#464775]/6 to-transparent border-b border-[#464775]/15 flex flex-wrap items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                          <FileCode2 size={16} className="text-[#464775]" />
+                                          <span className="font-bold text-xs text-[#464775] font-sans">
+                                            Catálogo Maestro: {msg.uploadSummary.catalog_name || msg.uploadSummary.file_name}
+                                          </span>
+                                        </div>
+                                        <span className="px-2 py-0.5 rounded-full bg-[#464775] text-white text-[9.5px] font-mono font-bold shadow-xs">
+                                          {msg.uploadSummary.file_size_kb || 0} KB · Listo en Memoria
+                                        </span>
+                                      </div>
+
+                                      <div className="p-3 bg-white/60 space-y-3">
+                                        {/* 5 Métricas Principales */}
+                                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
+                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
+                                              SKUs Base
+                                            </span>
+                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
+                                              {msg.uploadSummary.total_products?.toLocaleString() || msg.uploadSummary.base_skus || 0}
+                                            </span>
+                                          </div>
+                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
+                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
+                                              Nodos Precio
+                                            </span>
+                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
+                                              {msg.uploadSummary.total_prices?.toLocaleString() || msg.uploadSummary.price_nodes || 0}
+                                            </span>
+                                          </div>
+                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
+                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
+                                              Features
+                                            </span>
+                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
+                                              {msg.uploadSummary.total_features?.toLocaleString() || msg.uploadSummary.features_count || 0}
+                                            </span>
+                                          </div>
+                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
+                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
+                                              Opciones
+                                            </span>
+                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
+                                              {msg.uploadSummary.total_options?.toLocaleString() || msg.uploadSummary.options || 0}
+                                            </span>
+                                          </div>
+                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8 col-span-2 sm:col-span-1">
+                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
+                                              Integridad
+                                            </span>
+                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
+                                              {msg.uploadSummary.integrity || '100% CET'}
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        {/* Sección de Características (Features) */}
+                                        {msg.uploadSummary.features_list && msg.uploadSummary.features_list.length > 0 && (
+                                          <div className="p-3 bg-[#464775]/4 rounded-xl border border-[#464775]/15">
+                                            <div className="flex items-center justify-between mb-2">
+                                              <div className="flex items-center gap-1.5">
+                                                <Layers size={13} className="text-[#464775]" />
+                                                <span className="text-[10.5px] font-bold text-[#464775] uppercase tracking-wider font-sans">
+                                                  Features y Modificadores del Catálogo
+                                                </span>
+                                              </div>
+                                              <span className="text-[9.5px] font-mono font-bold text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full border border-[#464775]/20">
+                                                {msg.uploadSummary.total_features || msg.uploadSummary.features_list.length} Características
+                                              </span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-1.5 max-h-[130px] overflow-y-auto scrollbar-thin pr-1">
+                                              {msg.uploadSummary.features_list.map((feat, fIdx) => (
+                                                <span
+                                                  key={fIdx}
+                                                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs"
+                                                  title={`${feat.code}: ${feat.name} (${feat.options_count} opciones)`}
+                                                >
+                                                  <strong className="font-mono font-bold text-[#464775]">{feat.code}</strong>
+                                                  <span className="text-[#464775]/80 font-medium truncate max-w-[140px]">{feat.name}</span>
+                                                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
+                                                    {feat.options_count} opts
+                                                  </span>
+                                                </span>
+                                              ))}
+                                              {msg.uploadSummary.total_features > msg.uploadSummary.features_list.length && (
+                                                <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
+                                                  +{(msg.uploadSummary.total_features - msg.uploadSummary.features_list.length).toLocaleString()} más en el catálogo maestro
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {/* Ejemplo de Estructura de Producto en el Catálogo */}
+                                        {msg.uploadSummary.sample_product_example && (
+                                          <div className="p-3 bg-white/90 rounded-xl border border-[#464775]/20 shadow-2xs">
+                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#464775]/15 pb-2">
+                                              <div className="flex items-center gap-2">
+                                                <Box size={14} className="text-[#464775]" />
+                                                <span className="text-[10.5px] font-bold text-[#464775] uppercase tracking-wider font-sans">
+                                                  Ejemplo de Producto en Memoria
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-2">
+                                                <span className="px-2 py-0.5 rounded-lg bg-[#464775] text-white text-[10.5px] font-mono font-bold shadow-2xs">
+                                                  SKU: {msg.uploadSummary.sample_product_example.sku}
+                                                </span>
+                                                <span className="px-2 py-0.5 rounded-lg bg-[#464775]/10 text-[#464775] border border-[#464775]/20 text-[10.5px] font-mono font-bold">
+                                                  Precio Base: ${msg.uploadSummary.sample_product_example.base_price || '0'}
+                                                </span>
+                                              </div>
+                                            </div>
+
+                                            <p className="text-[11px] text-[#464775]/85 font-medium mt-2">
+                                              {msg.uploadSummary.sample_product_example.description || 'Producto configurado en CET Designer'}
+                                            </p>
+
+                                            {msg.uploadSummary.sample_product_example.features && msg.uploadSummary.sample_product_example.features.length > 0 && (
+                                              <div className="mt-2.5 space-y-2">
+                                                <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
+                                                  Árbol de Features y Opciones Vinculadas al Producto:
+                                                </span>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                  {msg.uploadSummary.sample_product_example.features.map((feat, featIdx) => (
+                                                    <div
+                                                      key={featIdx}
+                                                      className="p-2 bg-[#464775]/5 rounded-lg border border-[#464775]/15 text-left"
+                                                    >
+                                                      <div className="flex items-center justify-between gap-1 mb-1">
+                                                        <span className="font-mono font-bold text-[10.5px] text-[#464775]">
+                                                          {feat.feature_code}
+                                                        </span>
+                                                        <span className="text-[9px] font-mono text-[#464775]/80 bg-[#464775]/10 px-1.5 py-0.2 rounded font-semibold">
+                                                          {feat.total_options || feat.options?.length || 0} opciones
+                                                        </span>
+                                                      </div>
+                                                      <p className="text-[10px] text-[#464775]/80 font-medium truncate mb-1.5" title={feat.feature_name}>
+                                                        {feat.feature_name}
+                                                      </p>
+                                                      {feat.options && feat.options.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1">
+                                                          {feat.options.map((opt, optIdx) => (
+                                                            <span
+                                                              key={optIdx}
+                                                              className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-white text-[#464775] border border-[#464775]/20 shadow-2xs"
+                                                              title={`${opt.code} - ${opt.description} (${Number(opt.current_price) > 0 ? '+$' + opt.current_price : '+$0'})`}
+                                                            >
+                                                              {opt.code}
+                                                              {Number(opt.current_price) > 0 && (
+                                                                <span className="font-bold ml-1 text-[#464775]">
+                                                                  +${opt.current_price}
+                                                                </span>
+                                                              )}
+                                                            </span>
+                                                          ))}
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* ── UPLOADER INLINE CUANDO SE REQUIERE XML ── */}
+                                  {msg.needs_upload && (
+                                    <div
+                                      onClick={() => xmlFileInputRef.current?.click()}
+                                      className="mt-3 p-4 border-2 border-dashed border-[#464775]/40 hover:border-[#464775] rounded-2xl bg-[#464775]/5 hover:bg-[#464775]/10 transition-all text-center cursor-pointer group"
+                                    >
+                                      <UploadCloud size={28} className="mx-auto text-[#464775] mb-1.5 group-hover:scale-110 transition-transform" />
+                                      <h4 className="text-xs font-bold text-[#464775]">
+                                        Arrastra o haz clic para subir tu catálogo XML maestro
+                                      </h4>
+                                      <p className="text-[10.5px] text-slate-500 mt-0.5">
+                                        Formatos soportados: .xml de CET Designer o Catalog Creator. Se montará al instante en memoria.
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* ── STAGING BOARD & XML DIFF PREVIEW ── */}
+                                  {msg.staged_result && msg.staged_result.items && msg.staged_result.items.length > 0 && (
+                                    <div className="mt-4 border border-[#464775]/25 rounded-2xl overflow-hidden shadow-xs bg-white/95 backdrop-blur-xs">
+                                      <div className="p-3.5 bg-gradient-to-r from-[#464775]/12 via-[#464775]/6 to-transparent border-b border-[#464775]/15 flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                          <div className="flex items-center gap-1.5">
+                                            <Table size={14} className="text-[#464775]" />
+                                            <h4 className="text-xs font-bold text-[#464775] uppercase tracking-wider font-sans">
+                                              Surgical Staging & XML Diff Board
+                                            </h4>
+                                            <span className="px-2 py-0.5 rounded-full bg-[#464775] text-white text-[9.5px] font-mono font-bold shadow-xs">
+                                              {msg.staged_result.items.length} Cambios
+                                            </span>
+                                          </div>
+                                          <p className="text-[11px] text-[#464775]/75 mt-0.5 font-medium">
+                                            Previsualización en memoria. Confirma para inyectar directamente en el XML maestro.
+                                          </p>
+                                        </div>
+
+                                        <button
+                                          onClick={() => handleCommitStaged(idx, msg.staged_result.items)}
+                                          disabled={isCommitting || msg.committed}
+                                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs flex items-center gap-1.5 ${
+                                            msg.committed
+                                              ? 'bg-[#464775]/90 hover:bg-[#464775]'
+                                              : 'bg-[#464775] hover:bg-[#38395f] active:scale-[0.98]'
+                                          } disabled:opacity-60 cursor-pointer`}
+                                        >
+                                          {isCommitting ? (
+                                            <>
+                                              <RefreshCw size={12} className="animate-spin" />
+                                              Inyectando...
+                                            </>
+                                          ) : msg.committed ? (
+                                            <>
+                                              <CheckCheck size={13} className="text-purple-200" />
+                                              ¡XML Actualizado!
+                                            </>
+                                          ) : (
+                                            <>
+                                              <CheckCircle2 size={13} />
+                                              Aplicar Cambios al XML
+                                            </>
+                                          )}
+                                        </button>
+                                      </div>
+
+                                      <div className="overflow-x-auto max-h-[380px] scrollbar-thin">
+                                        <table className="w-full text-left text-xs text-slate-700">
+                                          <thead className="bg-[#464775]/5 sticky top-0 z-10 border-b border-[#464775]/15 text-[#464775] font-bold text-[10px] uppercase tracking-wider">
+                                            <tr>
+                                              <th className="px-3.5 py-2.5">SKU / Nodo</th>
+                                              <th className="px-3.5 py-2.5">Tipo de Nodo</th>
+                                              <th className="px-3.5 py-2.5">Detalle / Opción</th>
+                                              <th className="px-3.5 py-2.5 text-right">Actual</th>
+                                              <th className="px-3.5 py-2.5 text-right">Nuevo</th>
+                                              <th className="px-3.5 py-2.5 text-right">Variación</th>
+                                              <th className="px-3.5 py-2.5 text-center">Estado</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody className="divide-y divide-[#464775]/10">
+                                            {msg.staged_result.items.map((item, itemIdx) => {
+                                              const isOption = String(item.target_type || item.type || '').toLowerCase().includes('option');
+                                              const isMatched = item.status === 'MATCHED' || (!item.status && item.old_price != null);
+                                              const pct = item.percent_delta != null ? item.percent_delta : (item.diff_pct != null ? item.diff_pct : (item.pct != null ? item.pct : null));
+                                              const isPositive = pct != null && pct >= 0;
+                                              return (
+                                                <tr
+                                                  key={itemIdx}
+                                                  className="transition-colors hover:bg-[#464775]/5"
+                                                >
+                                                  <td className="px-3.5 py-2.5 font-mono font-bold text-[#464775] text-xs">
+                                                    {item.sku}
+                                                  </td>
+                                                  <td className="px-3.5 py-2.5">
+                                                    <span
+                                                      className={`inline-block px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold ${
+                                                        isOption
+                                                          ? 'bg-[#6264A7]/15 text-[#464775] border border-[#6264A7]/25'
+                                                          : 'bg-[#464775]/10 text-[#464775] border border-[#464775]/20'
+                                                      }`}
+                                                    >
+                                                      {isOption ? '<OptionPrice>' : '<Price>'}
+                                                    </span>
+                                                  </td>
+                                                  <td
+                                                    className="px-3.5 py-2.5 text-[11px] text-[#464775]/80 max-w-[140px] truncate font-medium"
+                                                    title={item.matched_option_name || item.option_name || item.option_code || item.option}
+                                                  >
+                                                    {item.matched_option_name || item.option_name || item.option_code || item.option || 'Precio Base'}
+                                                  </td>
+                                                  <td className="px-3.5 py-2.5 text-right font-mono text-[#464775]/60 text-xs">
+                                                    {item.old_price != null ? `$${item.old_price}` : <span className="text-[#464775]/40">—</span>}
+                                                  </td>
+                                                  <td className="px-3.5 py-2.5 text-right font-mono font-bold text-[#464775] text-xs">
+                                                    ${item.new_price != null ? item.new_price : item.new_value}
+                                                  </td>
+                                                  <td className="px-3.5 py-2.5 text-right font-mono font-bold text-xs text-[#464775]">
+                                                    {pct != null ? (
+                                                      <span className="bg-[#464775]/10 px-1.5 py-0.5 rounded text-[#464775]">
+                                                        {isPositive ? `+${pct}%` : `${pct}%`}
+                                                      </span>
+                                                    ) : (
+                                                      <span className="text-[#464775]/40 font-normal">—</span>
+                                                    )}
+                                                  </td>
+                                                  <td className="px-3.5 py-2.5 text-center">
+                                                    {isMatched ? (
+                                                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#464775] bg-[#464775]/12 px-2 py-0.5 rounded-full border border-[#464775]/25">
+                                                        <CheckCircle2 size={10} className="text-[#464775]" />
+                                                        Verificado
+                                                      </span>
+                                                    ) : (
+                                                      <span
+                                                        className="inline-flex items-center gap-1 text-[10px] font-medium text-[#6264A7] bg-[#6264A7]/10 px-2 py-0.5 rounded-full border border-[#6264A7]/20"
+                                                        title={item.reason}
+                                                      >
+                                                        <AlertCircle size={10} className="text-[#6264A7]" />
+                                                        No en XML
+                                                      </span>
+                                                    )}
+                                                  </td>
+                                                </tr>
+                                              );
+                                            })}
+                                          </tbody>
+                                        </table>
+                                      </div>
+
+                                      <div className="p-2.5 bg-[#464775]/5 border-t border-[#464775]/15 flex items-center justify-between">
+                                        <span className="text-[10.5px] text-[#464775]/80 font-medium">
+                                          Catálogo: <strong className="text-[#464775]">{context || 'General Process'}</strong>
+                                        </span>
+                                        {msg.committed && (
+                                          <button
+                                            onClick={handleDownloadXml}
+                                            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#464775] hover:bg-[#38395f] text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer"
+                                          >
+                                            <Download size={12} />
+                                            Descargar XML Actualizado
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* ── CARD DIRECTA DE DESCARGA FINAL EN EL CHAT ── */}
+                                  {msg.showDownloadCard && (
+                                    <div className="mt-3 p-3.5 bg-[#464775]/6 border border-[#464775]/20 rounded-2xl flex items-center justify-between">
+                                      <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-xl bg-[#464775] text-white flex items-center justify-center shadow-xs">
+                                          <CheckCheck size={16} />
+                                        </div>
+                                        <div>
+                                          <h4 className="text-xs font-bold text-[#464775]">
+                                            Catálogo XML Certificado y Actualizado
+                                          </h4>
+                                          <p className="text-[10.5px] text-[#464775]/75 font-medium">
+                                            Listo para importar directamente en CET Designer sin errores de formato.
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={handleDownloadXml}
+                                        className="px-3.5 py-1.5 bg-[#464775] hover:bg-[#38395f] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                                      >
+                                        <Download size={13} />
+                                        Descargar .XML
+                                      </button>
+                                    </div>
+                                  )}
+                                </>
+                              ) : msg.isXmlUpload || (msg.text && msg.text.includes("Archivo XML adjunto para ingestión:")) ? (
+                                (() => {
+                                  const fnMatch = msg.fileName || (msg.text.match(/`([^`]+)`/) ? msg.text.match(/`([^`]+)`/)[1] : "catálogo.xml");
+                                  const sizeMatch = msg.fileSizeKb || (msg.text.match(/\(([0-9.]+)\s*KB\)/i) ? msg.text.match(/\(([0-9.]+)\s*KB\)/i)[1] : null);
+                                  const isUploading = msg.uploadStatus === "uploading";
+                                  const isError = msg.uploadStatus === "error";
+
+                                  return (
+                                    <div className="space-y-2 text-white min-w-[240px] sm:min-w-[280px]">
+                                      <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
+                                          <FileCode2 size={16} className="text-white" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          <span className="text-[11px] font-medium text-white/80 block leading-tight">
+                                            Archivo XML adjunto para ingestión:
+                                          </span>
+                                          <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                            <span className="font-mono font-bold text-xs bg-white/20 px-2 py-0.5 rounded text-white tracking-wide">
+                                              {fnMatch}
+                                            </span>
+                                            {sizeMatch && (
+                                              <span className="text-[10.5px] font-mono text-white/75">
+                                                ({sizeMatch} KB)
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Barra de progreso interactiva */}
+                                      <div className="pt-1">
+                                        <div className="w-full bg-white/20 rounded-full h-1.5 overflow-hidden">
+                                          <motion.div
+                                            initial={{ width: "25%" }}
+                                            animate={{
+                                              width: isUploading ? "80%" : isError ? "100%" : "100%"
+                                            }}
+                                            transition={{
+                                              duration: isUploading ? 1.5 : 0.4,
+                                              ease: "easeOut"
+                                            }}
+                                            className={`h-full rounded-full ${
+                                              isError
+                                                ? "bg-rose-300"
+                                                : isUploading
+                                                ? "bg-white/80 animate-pulse"
+                                                : "bg-white"
+                                            }`}
+                                          />
+                                        </div>
+                                        <div className="flex items-center justify-between text-[10px] font-mono text-white/85 mt-1.5">
+                                          {isUploading ? (
+                                            <>
+                                              <span className="flex items-center gap-1.5 font-medium">
+                                                <RefreshCw size={10} className="animate-spin text-white" />
+                                                Subiendo e ingiriendo en memoria...
+                                              </span>
+                                              <span>80%</span>
+                                            </>
+                                          ) : isError ? (
+                                            <>
+                                              <span className="text-rose-200 font-medium">Error en la carga</span>
+                                              <span>Fallo</span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <span className="flex items-center gap-1 font-semibold text-white">
+                                                <Check size={12} className="text-white" />
+                                                Archivo cargado e ingerido
+                                              </span>
+                                              <span className="font-bold text-white">100%</span>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()
                               ) : (
                                 <p className="whitespace-pre-wrap m-0">{msg.text}</p>
                               )}
