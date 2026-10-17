@@ -1732,6 +1732,78 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                             </div>
                                           </div>
                                         )}
+
+                                        {/* Ejemplo de Estructura de Producto en el Catálogo */}
+                                        {msg.uploadSummary.sample_product_example && (
+                                          <div className="p-3 bg-white/90 rounded-xl border border-[#464775]/20 shadow-2xs">
+                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#464775]/15 pb-2">
+                                              <div className="flex items-center gap-2">
+                                                <Box size={14} className="text-[#464775]" />
+                                                <span className="text-[10.5px] font-bold text-[#464775] uppercase tracking-wider font-sans">
+                                                  Ejemplo de Producto en Memoria
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-2">
+                                                <span className="px-2 py-0.5 rounded-lg bg-[#464775] text-white text-[10.5px] font-mono font-bold shadow-2xs">
+                                                  SKU: {msg.uploadSummary.sample_product_example.sku}
+                                                </span>
+                                                <span className="px-2 py-0.5 rounded-lg bg-[#464775]/10 text-[#464775] border border-[#464775]/20 text-[10.5px] font-mono font-bold">
+                                                  Precio Base: ${msg.uploadSummary.sample_product_example.base_price || '0'}
+                                                </span>
+                                              </div>
+                                            </div>
+
+                                            <p className="text-[11px] text-[#464775]/85 font-medium mt-2">
+                                              {msg.uploadSummary.sample_product_example.description || 'Producto configurado en CET Designer'}
+                                            </p>
+
+                                            {msg.uploadSummary.sample_product_example.features && msg.uploadSummary.sample_product_example.features.length > 0 && (
+                                              <div className="mt-2.5 space-y-2">
+                                                <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
+                                                  Árbol de Features y Opciones Vinculadas al Producto:
+                                                </span>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                  {msg.uploadSummary.sample_product_example.features.map((feat, featIdx) => (
+                                                    <div
+                                                      key={featIdx}
+                                                      className="p-2 bg-[#464775]/5 rounded-lg border border-[#464775]/15 text-left"
+                                                    >
+                                                      <div className="flex items-center justify-between gap-1 mb-1">
+                                                        <span className="font-mono font-bold text-[10.5px] text-[#464775]">
+                                                          {feat.feature_code}
+                                                        </span>
+                                                        <span className="text-[9px] font-mono text-[#464775]/80 bg-[#464775]/10 px-1.5 py-0.2 rounded font-semibold">
+                                                          {feat.total_options || feat.options?.length || 0} opciones
+                                                        </span>
+                                                      </div>
+                                                      <p className="text-[10px] text-[#464775]/80 font-medium truncate mb-1.5" title={feat.feature_name}>
+                                                        {feat.feature_name}
+                                                      </p>
+                                                      {feat.options && feat.options.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1">
+                                                          {feat.options.map((opt, optIdx) => (
+                                                            <span
+                                                              key={optIdx}
+                                                              className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-white text-[#464775] border border-[#464775]/20 shadow-2xs"
+                                                              title={`${opt.code} - ${opt.description} (${Number(opt.current_price) > 0 ? '+$' + opt.current_price : '+$0'})`}
+                                                            >
+                                                              {opt.code}
+                                                              {Number(opt.current_price) > 0 && (
+                                                                <span className="font-bold ml-1 text-[#464775]">
+                                                                  +${opt.current_price}
+                                                                </span>
+                                                              )}
+                                                            </span>
+                                                          ))}
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   )}
