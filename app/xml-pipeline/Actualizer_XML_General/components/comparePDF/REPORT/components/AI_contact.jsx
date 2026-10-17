@@ -1647,22 +1647,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                       </div>
 
                                       <div className="p-3 bg-white/60 space-y-3">
-                                        {/* 5 Métricas Principales */}
-                                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                                        {/* 4 Métricas Principales */}
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                                           <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
                                             <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
                                               SKUs Base
                                             </span>
                                             <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
                                               {msg.uploadSummary.total_products?.toLocaleString() || msg.uploadSummary.base_skus || 0}
-                                            </span>
-                                          </div>
-                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
-                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                              Nodos Precio
-                                            </span>
-                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                              {msg.uploadSummary.total_prices?.toLocaleString() || msg.uploadSummary.price_nodes || 0}
                                             </span>
                                           </div>
                                           <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
@@ -1681,7 +1673,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                               {msg.uploadSummary.total_options?.toLocaleString() || msg.uploadSummary.options || 0}
                                             </span>
                                           </div>
-                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8 col-span-2 sm:col-span-1">
+                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8 ">
                                             <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
                                               Integridad
                                             </span>
