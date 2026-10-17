@@ -381,19 +381,15 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           }
         }
 
-        const createRow = (baseSku: string, optSuffixCode: string | null, optPrice: number) => {
-          const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
-          const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
-          const finalPrice = basePrice + (optPrice || 0);
-
+        const createRow = (baseSku: string) => {
           const row: Record<string, any> = {};
           computedHeaders.forEach(h => row[h] = "");
 
-          row["Model #"] = finalSku;
-          row["List Price"] = finalPrice;
+          row["Model #"] = baseSku;
+          row["List Price"] = basePrice;
           row["Weight"] = weight;
           row["Classic/ Premium"] = classification;
-          row["Model Name"] = finalDesc;
+          row["Model Name"] = description;
 
           validColumns.forEach(col => {
             if (productOptionPrices[col.optCode] !== undefined) {
@@ -406,30 +402,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           return row;
         };
 
-        let hasSuffixes = false;
-        for (const fCode of featureCodes) {
-          const featureNode = featureMap.get(fCode);
-          if (featureNode) {
-            const options = Array.from((featureNode as Element).getElementsByTagName("Option"));
-            for (const opt of (options as Element[])) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e["Model #"] === suffixSku)) {
-                  extracted.push(createRow(sku, optCode, optPrice));
-                  hasSuffixes = true;
-                }
-              }
-            }
-          }
-        }
-
-        if (!hasSuffixes) {
-          extracted.push(createRow(sku, null, 0));
-        }
+        extracted.push(createRow(sku));
       }
 
       if (extracted.length === 0) return '';

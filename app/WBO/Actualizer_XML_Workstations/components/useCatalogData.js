@@ -56,55 +56,13 @@ export const useCatalogData = () => {
           const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
           let hasSuffixes = false;
 
-          for (const ref of featureRefs) {
-            const refCode = ref.textContent;
-            const featureNode = featureMap.get(refCode);
-            if (featureNode) {
-              const options = Array.from(featureNode.getElementsByTagName("Option"));
-              for (const opt of options) {
-                const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-                if (optCode === "C" || optCode === "P") {
-                  const optPriceElem = opt.querySelector("OptionPrice > Value");
-                  const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                  
-                  const suffixSku = `${baseSku}/${optCode}`;
-                  if (!extracted.find(e => e.code === suffixSku)) {
-                    const finalPrice = basePrice + optPrice;
-                    extracted.push({
-                      id: idCounter++,
-                      code: suffixSku,
-                      description: `${description} [Option ${optCode}]`,
-                      price: finalPrice,
-                      category, x, y, z, features: featuresLen
-                    });
-                    totalSum += finalPrice;
-                    hasSuffixes = true;
-                  }
-                }
-              }
-            }
-          }
-
-          if (!hasSuffixes) {
-            extracted.push({
-              id: idCounter++,
-              code: baseSku,
-              description,
-              price: basePrice,
-              category, x, y, z, features: featuresLen
-            });
-            totalSum += basePrice;
-          }
-        }
-
-        setMetadata({ materials: materialCount, features: featureCount, rawNodes: totalNodes });
-        setProducts(extracted);
-        setCatalogStats({
-          totalValue: totalSum,
-          avgPrice: totalSum / (extracted.length || 1),
-          currency: xmlDoc.getElementsByTagName("Currency")[0]?.textContent || "USD"
-        });
-      }
+          extracted.push({
+            sku,
+            description,
+            classification,
+            basePrice,
+            ...productOptionPrices
+          });
     } catch (err) {
       console.error("Error parsing XML:", err);
     } finally {

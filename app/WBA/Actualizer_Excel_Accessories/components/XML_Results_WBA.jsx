@@ -165,44 +165,14 @@ const WBODataMatrix = () => {
           "Custom Sizes": "-"
         };
 
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e.sku === suffixSku)) {
-                  extracted.push({
-                    sku: suffixSku,
-                    description: `${description} [Option ${optCode}]`,
-                    classification,
-                    basePrice: basePrice + optPrice,
-                    ...staticFields,
-                    ...productOptionPrices
-                  });
-                  hasSuffixes = true;
-                }
-              }
-            }
-          }
-        }
-        
-        if (!hasSuffixes) {
-          extracted.push({
-            sku,
-            description,
-            classification,
-            basePrice,
-            ...staticFields,
-            ...productOptionPrices
-          });
-        }
+        extracted.push({
+          sku,
+          description,
+          classification,
+          basePrice,
+          ...staticFields,
+          ...productOptionPrices
+        });
       }
       
       setProducts(extracted);

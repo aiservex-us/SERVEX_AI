@@ -67,9 +67,7 @@ export default function XmlToCsvConverter() {
             const options = Array.from(featureNode.getElementsByTagName("Option"));
             for (const opt of options) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                if (optCode) allPossibleOptionsMap.set(optCode, optCode);
-              }
+              if (optCode) allPossibleOptionsMap.set(optCode, optCode);
             }
           }
         }
@@ -89,8 +87,6 @@ export default function XmlToCsvConverter() {
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
         const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        let hasSuffixes = false;
-        
         const productOptionPrices = {};
         for (const ref of featureRefs) {
           const refCode = ref.textContent;
@@ -99,51 +95,20 @@ export default function XmlToCsvConverter() {
             const options = Array.from(featureNode.getElementsByTagName("Option"));
             for (const opt of options) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optCode) productOptionPrices[optCode] = optPrice;
-              }
+              const optPriceElem = opt.querySelector("OptionPrice > Value");
+              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+              if (optCode) productOptionPrices[optCode] = optPrice;
             }
           }
         }
-        
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e.sku === suffixSku)) {
-                  extracted.push({
-                    sku: suffixSku,
-                    description: `${description} [Option ${optCode}]`,
-                    classification,
-                    basePrice: basePrice + optPrice,
-                    ...productOptionPrices
-                  });
-                  hasSuffixes = true;
-                }
-              }
-            }
-          }
-        }
-        
-        if (!hasSuffixes) {
-          extracted.push({
-            sku,
-            description,
-            classification,
-            basePrice,
-            ...productOptionPrices
-          });
-        }
+
+        extracted.push({
+          sku,
+          description,
+          classification,
+          basePrice,
+          ...productOptionPrices
+        });
       }
 
       setProducts(extracted);

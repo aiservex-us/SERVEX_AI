@@ -76,73 +76,7 @@ const WBGDataMatrix = () => {
         let hasSuffixes = false;
         
         const productOptionPrices = {};
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optCode) productOptionPrices[optCode] = optPrice;
-              }
-            }
-          }
-        }
-        
-        const createRow = (baseSku, optSuffixCode, optPrice) => {
-          const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
-          const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
-          const finalPrice = basePrice + (optPrice || 0);
-
-          const row = {};
-          WBG_HEADERS.forEach(h => row[h] = ""); // Initialize empty string
-
-          // Map base fields
-          row["Model #"] = finalSku;
-          row["List Price"] = finalPrice;
-          row["Model Name"] = finalDesc;
-
-          // Map extracted options to the respective columns if their code is in the header
-          Object.keys(productOptionPrices).forEach(optCode => {
-            const matchingHeader = WBG_HEADERS.find(h => h.includes(`(${optCode})`) || h.includes(`-${optCode}`));
-            if (matchingHeader) {
-              row[matchingHeader] = productOptionPrices[optCode];
-            } else if (optCode.includes('MB')) {
-               const mbHeader = WBG_HEADERS.find(h => h.includes("(__MB)"));
-               if (mbHeader) row[mbHeader] = productOptionPrices[optCode];
-            }
-          });
-
-          return row;
-        };
-
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e["Model #"] === suffixSku)) {
-                  extracted.push(createRow(sku, optCode, optPrice));
-                  hasSuffixes = true;
-                }
-              }
-            }
-          }
-        }
-        
-        if (!hasSuffixes) {
-          extracted.push(createRow(sku, null, 0));
-        }
+        extracted.push(createRow(sku, null, 0));
       }
       
       setProducts(extracted);

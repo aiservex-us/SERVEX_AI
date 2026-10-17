@@ -103,8 +103,6 @@ const WBDDataMatrix = () => {
         const basePrice = priceElement ? parseFloat(priceElement.getElementsByTagName("Value")[0]?.textContent || "0") : 0;
 
         const featureRefs = Array.from(p.getElementsByTagName("FeatureRef"));
-        let hasSuffixes = false;
-        
         // Recolectar los precios de las opciones para este producto
         const productOptionPrices = {};
         for (const ref of featureRefs) {
@@ -114,54 +112,23 @@ const WBDDataMatrix = () => {
             const options = Array.from(featureNode.getElementsByTagName("Option"));
             for (const opt of options) {
               const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode !== "C" && optCode !== "P") {
-                const optDesc = opt.getElementsByTagName("Description")[0]?.textContent || optCode;
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                if (optDesc) productOptionPrices[optDesc] = optPrice;
+              const optPriceElem = opt.querySelector("OptionPrice > Value");
+              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
+              if (optCode) {
+                productOptionPrices[optCode] = optPrice;
+                allPossibleOptionsMap.set(optCode, optCode);
               }
             }
           }
         }
         
-        // 2. Extraer opciones /C y /P buscando en sus FeatureRefs
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e.sku === suffixSku)) {
-                  extracted.push({
-                    sku: suffixSku,
-                    description: `${description} [Option ${optCode}]`,
-                    classification,
-                    basePrice: basePrice + optPrice,
-                    ...productOptionPrices
-                  });
-                  hasSuffixes = true;
-                }
-              }
-            }
-          }
-        }
-        
-        // Si no tiene sufijos C o P, entonces añadimos el producto base
-        if (!hasSuffixes) {
-          extracted.push({
-            sku,
-            description,
-            classification,
-            basePrice,
-            ...productOptionPrices
-          });
-        }
+        extracted.push({
+          sku,
+          description,
+          classification,
+          basePrice,
+          ...productOptionPrices
+        });
       }
       
       setProducts(extracted);

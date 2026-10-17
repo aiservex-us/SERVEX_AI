@@ -98,10 +98,10 @@ export default function XmlToCsvConverter() {
           }
         }
         
-        const createRow = (baseSku, optSuffixCode, optPrice) => {
-          const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
-          const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
-          const finalPrice = basePrice + (optPrice || 0);
+        const createRow = (baseSku) => {
+          const finalSku = baseSku;
+          const finalDesc = description;
+          const finalPrice = basePrice;
 
           const row = {};
           // Initialize all to "-" or 0 to match master struct
@@ -134,30 +134,7 @@ export default function XmlToCsvConverter() {
           return row;
         };
 
-        for (const ref of featureRefs) {
-          const refCode = ref.textContent;
-          const featureNode = featureMap.get(refCode);
-          if (featureNode) {
-            const options = Array.from(featureNode.getElementsByTagName("Option"));
-            for (const opt of options) {
-              const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-              if (optCode === "C" || optCode === "P") {
-                const optPriceElem = opt.querySelector("OptionPrice > Value");
-                const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-                
-                const suffixSku = `${sku}/${optCode}`;
-                if (!extracted.find(e => e["Model #"] === suffixSku)) {
-                  extracted.push(createRow(sku, optCode, optPrice));
-                  hasSuffixes = true;
-                }
-              }
-            }
-          }
-        }
-        
-        if (!hasSuffixes) {
-          extracted.push(createRow(sku, null, 0));
-        }
+        extracted.push(createRow(sku));
       }
 
       setProducts(extracted);

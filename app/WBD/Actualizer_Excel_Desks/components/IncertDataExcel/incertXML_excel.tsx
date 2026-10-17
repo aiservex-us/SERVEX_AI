@@ -82,62 +82,28 @@ function generateCsvFromXml(xmlString: string): string {
         }
       }
       
-      const createRow = (baseSku: string, optSuffixCode: string | null, optPrice: number) => {
-        const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
-        const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
-        const finalPrice = basePrice + (optPrice || 0);
+      const createRow = (baseSku: string) => {
+          const row: Record<string, any> = {};
+          computedHeaders.forEach(h => row[h] = "");
 
-        const row: Record<string, any> = {};
-        DESKS_HEADERS.forEach(h => row[h] = "");
+          row["Model #"] = baseSku;
+          row["List Price"] = basePrice;
+          row["Weight"] = weight;
+          row["Classic/ Premium"] = classification;
+          row["Model Name"] = description;
 
-        row["Model #"] = finalSku;
-        row["List Price"] = finalPrice;
-        row["Model Name"] = finalDesc;
-
-        Object.keys(productOptionPrices).forEach(optCode => {
-          const optClean = optCode.replace(/^-/, '');
-          const matchingHeader = DESKS_HEADERS.find(h => {
-            const hUpper = h.toUpperCase();
-            return hUpper.includes(`(${optCode.toUpperCase()})`) ||
-                   hUpper.includes(`-${optCode.toUpperCase()}`) ||
-                   hUpper.includes(`(${optClean.toUpperCase()})`) ||
-                   hUpper.includes(`-${optClean.toUpperCase()}`);
-          });
-          if (matchingHeader) {
-            row[matchingHeader] = productOptionPrices[optCode];
-          } else if (optCode.includes('MB')) {
-             const mbHeader = DESKS_HEADERS.find(h => h.includes("(__MB)"));
-             if (mbHeader) row[mbHeader] = productOptionPrices[optCode];
-          }
-        });
-
-        return row;
-      };
-
-      for (const ref of featureRefs) {
-        const refCode = ref.textContent;
-        const featureNode = refCode ? featureMap.get(refCode) : null;
-        if (featureNode) {
-          const options = Array.from(featureNode.getElementsByTagName("Option")) as Element[];
-          for (const opt of options) {
-            const optCode = opt.getElementsByTagName("Code")[0]?.textContent;
-            if (optCode === "C" || optCode === "P") {
-              const optPriceElem = opt.querySelector("OptionPrice > Value");
-              const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-              
-              const suffixSku = `${sku}/${optCode}`;
-              if (!extracted.find(e => e["Model #"] === suffixSku)) {
-                extracted.push(createRow(sku, optCode, optPrice));
-                hasSuffixes = true;
-              }
+          validColumns.forEach(col => {
+            if (productOptionPrices[col.optCode] !== undefined) {
+              row[col.label] = productOptionPrices[col.optCode];
+            } else {
+              row[col.label] = 0;
             }
-          }
-        }
-      }
-      
-      if (!hasSuffixes) {
-        extracted.push(createRow(sku, null, 0));
-      }
+          });
+
+          return row;
+        };
+
+        extracted.push(createRow(sku));
     }
 
     if (extracted.length === 0) return '';

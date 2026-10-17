@@ -65,19 +65,15 @@ const DynamicDataMatrix = () => {
       }
     }
 
-    const createRow = (baseSku, optSuffixCode, optPrice) => {
-      const finalSku = optSuffixCode ? `${baseSku}/${optSuffixCode}` : baseSku;
-      const finalDesc = optSuffixCode ? `${description} [Option ${optSuffixCode}]` : description;
-      const finalPrice = basePrice + (optPrice || 0);
-
+    const createRow = (baseSku) => {
       const row = {};
       computedHeaders.forEach(h => row[h] = "");
 
-      row["Model #"] = finalSku;
-      row["List Price"] = finalPrice;
+      row["Model #"] = baseSku;
+      row["List Price"] = basePrice;
       row["Weight"] = weight;
       row["Classic/ Premium"] = classification;
-      row["Model Name"] = finalDesc;
+      row["Model Name"] = description;
 
       validColumns.forEach(col => {
         if (productOptionPrices[col.optCode] !== undefined) {
@@ -90,33 +86,7 @@ const DynamicDataMatrix = () => {
       return row;
     };
 
-    const rows = [];
-    let hasSuffixes = false;
-    for (const fCode of featureCodes) {
-      const featureNode = featureMap.get(fCode);
-      if (featureNode) {
-        const options = Array.from(featureNode.getElementsByTagName("Option"));
-        for (const opt of options) {
-          const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
-          if (optCode === "C" || optCode === "P") {
-            const optPriceElem = opt.querySelector("OptionPrice > Value");
-            const optPrice = optPriceElem ? parseFloat(optPriceElem.textContent || "0") : 0;
-            
-            const suffixSku = `${sku}/${optCode}`;
-            if (!rows.find(e => e["Model #"] === suffixSku)) {
-              rows.push(createRow(sku, optCode, optPrice));
-              hasSuffixes = true;
-            }
-          }
-        }
-      }
-    }
-    
-    if (!hasSuffixes) {
-      rows.push(createRow(sku, null, 0));
-    }
-
-    return rows;
+    return [createRow(sku)];
   };
 
   const processXML = async () => {
