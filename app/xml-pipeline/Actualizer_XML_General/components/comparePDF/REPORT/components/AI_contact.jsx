@@ -442,6 +442,7 @@ const BotMessage = ({ text, onCommandSelect }) => {
 };
 
 export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolPanel }) {
+  const [catalogTab, setCatalogTab] = useState("price");
   const [selectedAgent] = useState({ agent_name: "Alysa", role: "AI Engine" });
 
   const getInitialPhase = () => {
@@ -1690,46 +1691,158 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                           </div>
                                         </div>
 
-                                        {/* Sección de Opciones de Precio del Catálogo (Nombres y Códigos de las Opciones de Precio) */}
-                                        {((msg.uploadSummary.price_options_list && msg.uploadSummary.price_options_list.length > 0) || (msg.uploadSummary.features_list && msg.uploadSummary.features_list.length > 0)) && (
-                                          <div className="p-3 bg-[#464775]/4 rounded-xl border border-[#464775]/15">
-                                            <div className="flex items-center justify-between mb-2">
+                                        {/* Sección Clasificada de Características y Opciones del Catálogo */}
+                                        {((msg.uploadSummary.price_options_list && msg.uploadSummary.price_options_list.length > 0) ||
+                                          (msg.uploadSummary.physical_components_list && msg.uploadSummary.physical_components_list.length > 0) ||
+                                          (msg.uploadSummary.finishes_list && msg.uploadSummary.finishes_list.length > 0) ||
+                                          (msg.uploadSummary.features_list && msg.uploadSummary.features_list.length > 0)) && (
+                                          <div className="p-3 bg-[#464775]/4 rounded-xl border border-[#464775]/15 space-y-2.5">
+                                            {/* Segmented Tab Controls */}
+                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#464775]/15 pb-2">
                                               <div className="flex items-center gap-1.5">
                                                 <Layers size={13} className="text-[#464775]" />
                                                 <span className="text-[10.5px] font-bold text-[#464775] uppercase tracking-wider font-sans">
-                                                  Opciones de Precio del Catálogo
+                                                  Estructura del Catálogo
                                                 </span>
                                               </div>
-                                              <span className="text-[9.5px] font-mono font-bold text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full border border-[#464775]/20">
-                                                {(msg.uploadSummary.total_price_options || msg.uploadSummary.price_options_list?.length || msg.uploadSummary.total_options || 0).toLocaleString()} Opciones de Precio
-                                              </span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
-                                              {(msg.uploadSummary.price_options_list || msg.uploadSummary.features_list || []).map((opt, oIdx) => (
-                                                <span
-                                                  key={oIdx}
-                                                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
-                                                  title={`${opt.code}: ${opt.name} ${opt.price && opt.price !== '0' ? `(+$${opt.price} USD)` : ''} ${opt.feature_name ? `• ${opt.feature_name}` : ''}`}
+                                              <div className="flex flex-wrap items-center gap-1 bg-[#464775]/10 p-0.5 rounded-lg border border-[#464775]/20">
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setCatalogTab('price')}
+                                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                                                    catalogTab === 'price'
+                                                      ? 'bg-[#464775] text-white shadow-2xs'
+                                                      : 'text-[#464775] hover:bg-[#464775]/10'
+                                                  }`}
                                                 >
-                                                  <strong className="font-mono font-bold text-[#464775]">{opt.code}</strong>
-                                                  <span className="text-[#464775]/80 font-medium truncate max-w-[150px]">{opt.name}</span>
-                                                  {opt.price && opt.price !== '0' ? (
-                                                    <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                      +${opt.price}
-                                                    </span>
-                                                  ) : opt.options_count ? (
-                                                    <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                      {opt.options_count} opts
-                                                    </span>
-                                                  ) : null}
-                                                </span>
-                                              ))}
-                                              {((msg.uploadSummary.total_price_options || 0) > (msg.uploadSummary.price_options_list?.length || 0)) && (
-                                                <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
-                                                  +{((msg.uploadSummary.total_price_options || 0) - (msg.uploadSummary.price_options_list?.length || 0)).toLocaleString()} más en el catálogo maestro
-                                                </span>
-                                              )}
+                                                  🏷️ Opciones de Precio ({msg.uploadSummary.total_price_options || msg.uploadSummary.price_options_list?.length || 0})
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setCatalogTab('physical')}
+                                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                                                    catalogTab === 'physical'
+                                                      ? 'bg-[#464775] text-white shadow-2xs'
+                                                      : 'text-[#464775] hover:bg-[#464775]/10'
+                                                  }`}
+                                                >
+                                                  🪑 Componentes por Modelo ({msg.uploadSummary.total_physical_components || msg.uploadSummary.physical_components_list?.length || 0})
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setCatalogTab('finishes')}
+                                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                                                    catalogTab === 'finishes'
+                                                      ? 'bg-[#464775] text-white shadow-2xs'
+                                                      : 'text-[#464775] hover:bg-[#464775]/10'
+                                                  }`}
+                                                >
+                                                  🎨 Telas y Acabados Base ({msg.uploadSummary.total_finishes || msg.uploadSummary.finishes_list?.length || 0})
+                                                </button>
+                                              </div>
                                             </div>
+
+                                            {/* Pestaña: Opciones de Precio */}
+                                            {catalogTab === 'price' && (
+                                              <div>
+                                                <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
+                                                  <strong>Opciones de Precio (&lt;OptionPrice&gt;):</strong> Opciones comerciales que modifican o incrementan el precio final del producto según la configuración elegida.
+                                                </p>
+                                                <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
+                                                  {(msg.uploadSummary.price_options_list && msg.uploadSummary.price_options_list.length > 0
+                                                    ? msg.uploadSummary.price_options_list
+                                                    : msg.uploadSummary.features_list || []
+                                                  ).map((opt, oIdx) => (
+                                                    <span
+                                                      key={oIdx}
+                                                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
+                                                      title={`${opt.code}: ${opt.name} ${opt.price && opt.price !== '0' ? `(+$${opt.price} USD)` : ''} ${opt.feature_name ? `• ${opt.feature_name}` : ''}`}
+                                                    >
+                                                      <strong className="font-mono font-bold text-[#464775]">{opt.code}</strong>
+                                                      <span className="text-[#464775]/80 font-medium truncate max-w-[150px]">{opt.name}</span>
+                                                      {opt.price && opt.price !== '0' ? (
+                                                        <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
+                                                          +${opt.price}
+                                                        </span>
+                                                      ) : opt.options_count ? (
+                                                        <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
+                                                          {opt.options_count} opts
+                                                        </span>
+                                                      ) : null}
+                                                    </span>
+                                                  ))}
+                                                  {((msg.uploadSummary.total_price_options || 0) > (msg.uploadSummary.price_options_list?.length || 0)) && (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
+                                                      +{((msg.uploadSummary.total_price_options || 0) - (msg.uploadSummary.price_options_list?.length || 0)).toLocaleString()} más en el catálogo maestro
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {/* Pestaña: Componentes Físicos por Modelo */}
+                                            {catalogTab === 'physical' && (
+                                              <div>
+                                                <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
+                                                  <strong>Componentes Físicos por Modelo:</strong> Menús de apoyabrazos, patas, bases y accesorios compatibles según la serie o dimensiones específicas de cada mueble.
+                                                </p>
+                                                <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
+                                                  {(msg.uploadSummary.physical_components_list && msg.uploadSummary.physical_components_list.length > 0
+                                                    ? msg.uploadSummary.physical_components_list
+                                                    : msg.uploadSummary.features_list || []
+                                                  ).map((feat, fIdx) => (
+                                                    <span
+                                                      key={fIdx}
+                                                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
+                                                      title={`${feat.code}: ${feat.name} (${feat.options_count} tipos para este modelo)`}
+                                                    >
+                                                      <strong className="font-mono font-bold text-[#464775]">{feat.code}</strong>
+                                                      <span className="text-[#464775]/80 font-medium truncate max-w-[140px]">{feat.name}</span>
+                                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
+                                                        {feat.options_count} tipos para este modelo
+                                                      </span>
+                                                    </span>
+                                                  ))}
+                                                  {((msg.uploadSummary.total_physical_components || 0) > (msg.uploadSummary.physical_components_list?.length || 0)) && (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
+                                                      +{((msg.uploadSummary.total_physical_components || 0) - (msg.uploadSummary.physical_components_list?.length || 0)).toLocaleString()} más en el catálogo maestro
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {/* Pestaña: Telas y Acabados Base */}
+                                            {catalogTab === 'finishes' && (
+                                              <div>
+                                                <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
+                                                  <strong>Telas, Colores y Materiales Base:</strong> Colecciones de telas, pinturas y acabados visuales que vienen incluidos a costo estándar ($0).
+                                                </p>
+                                                <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
+                                                  {(msg.uploadSummary.finishes_list && msg.uploadSummary.finishes_list.length > 0
+                                                    ? msg.uploadSummary.finishes_list
+                                                    : msg.uploadSummary.features_list || []
+                                                  ).map((feat, fIdx) => (
+                                                    <span
+                                                      key={fIdx}
+                                                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
+                                                      title={`${feat.code}: ${feat.name} (${feat.options_count} colores/acabados)`}
+                                                    >
+                                                      <strong className="font-mono font-bold text-[#464775]">{feat.code}</strong>
+                                                      <span className="text-[#464775]/80 font-medium truncate max-w-[140px]">{feat.name}</span>
+                                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
+                                                        {feat.options_count} colores/acabados
+                                                      </span>
+                                                    </span>
+                                                  ))}
+                                                  {((msg.uploadSummary.total_finishes || 0) > (msg.uploadSummary.finishes_list?.length || 0)) && (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
+                                                      +{((msg.uploadSummary.total_finishes || 0) - (msg.uploadSummary.finishes_list?.length || 0)).toLocaleString()} más en el catálogo maestro
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            )}
                                           </div>
                                         )}
 
