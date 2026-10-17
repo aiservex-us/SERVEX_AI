@@ -76,37 +76,6 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
           localStorage.removeItem('cet_active_messages');
         } catch (_) {}
       }
-
-      if (currentTenant && currentTenant !== 'General_Procces') {
-        try {
-          await supabase
-            .from()
-            .delete()
-            .eq('company_name', currentTenant);
-        } catch (_) {}
-      }
-
-      // 3. Limpiar memoria de sesion, historial de chat y contexto del modelo en backend
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-      try {
-        await Promise.allSettled([
-          fetch(, { method: 'POST' }),
-          fetch(, { method: 'POST' }),
-          fetch(, { method: 'DELETE' })
-        ]);
-      } catch (beErr) {
-        console.warn('[-] Advertencia limpiando memoria de sesion en backend:', beErr);
-      }
-
-      // 4. Limpiar almacenamiento local para reiniciar conversacion fresca
-      if (typeof window !== 'undefined') {
-        try {
-          sessionStorage.clear();
-          localStorage.removeItem();
-          localStorage.removeItem('cet_active_messages');
-        } catch (_) {}
-      }
-
       if (error) throw error;
       
       setIsModalOpen(false);

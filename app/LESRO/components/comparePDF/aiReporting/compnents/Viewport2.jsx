@@ -134,7 +134,7 @@ const Viewport = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(, {
+      const response = await fetch((process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com') + '/context-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
