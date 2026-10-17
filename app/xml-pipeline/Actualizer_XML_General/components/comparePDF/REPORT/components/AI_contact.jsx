@@ -1715,7 +1715,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                                       : 'text-[#464775] hover:bg-[#464775]/10'
                                                   }`}
                                                 >
-                                                  🏷️ Opciones de Precio ({msg.uploadSummary.total_price_options || msg.uploadSummary.price_options_list?.length || 0})
+                                                  Opciones de Precio ({msg.uploadSummary.total_price_options || msg.uploadSummary.price_options_list?.length || 0})
                                                 </button>
                                                 <button
                                                   type="button"
@@ -1726,7 +1726,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                                       : 'text-[#464775] hover:bg-[#464775]/10'
                                                   }`}
                                                 >
-                                                  🪑 Componentes por Modelo ({msg.uploadSummary.total_physical_components || msg.uploadSummary.physical_components_list?.length || 0})
+                                                  Componentes por Modelo ({msg.uploadSummary.total_physical_components || msg.uploadSummary.physical_components_list?.length || 0})
                                                 </button>
                                                 <button
                                                   type="button"
@@ -1737,7 +1737,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                                       : 'text-[#464775] hover:bg-[#464775]/10'
                                                   }`}
                                                 >
-                                                  🎨 Telas y Acabados Base ({msg.uploadSummary.total_finishes || msg.uploadSummary.finishes_list?.length || 0})
+                                                  Telas y Acabados Base ({msg.uploadSummary.total_finishes || msg.uploadSummary.finishes_list?.length || 0})
                                                 </button>
                                               </div>
                                             </div>

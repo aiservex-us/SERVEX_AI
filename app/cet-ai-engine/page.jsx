@@ -873,7 +873,7 @@ export default function CETDirectPipelinePage() {
                                                  : 'text-[#464775] hover:bg-[#464775]/10'
                                              }`}
                                            >
-                                             🏷️ Opciones de Precio ({m.uploadSummary.total_price_options || m.uploadSummary.price_options_list?.length || 0})
+                                             Opciones de Precio ({m.uploadSummary.total_price_options || m.uploadSummary.price_options_list?.length || 0})
                                            </button>
                                            <button
                                              type="button"
@@ -884,7 +884,7 @@ export default function CETDirectPipelinePage() {
                                                  : 'text-[#464775] hover:bg-[#464775]/10'
                                              }`}
                                            >
-                                             🪑 Componentes por Modelo ({m.uploadSummary.total_physical_components || m.uploadSummary.physical_components_list?.length || 0})
+                                             Componentes por Modelo ({m.uploadSummary.total_physical_components || m.uploadSummary.physical_components_list?.length || 0})
                                            </button>
                                            <button
                                              type="button"
@@ -895,7 +895,7 @@ export default function CETDirectPipelinePage() {
                                                  : 'text-[#464775] hover:bg-[#464775]/10'
                                              }`}
                                            >
-                                             🎨 Telas y Acabados Base ({m.uploadSummary.total_finishes || m.uploadSummary.finishes_list?.length || 0})
+                                             Telas y Acabados Base ({m.uploadSummary.total_finishes || m.uploadSummary.finishes_list?.length || 0})
                                            </button>
                                          </div>
                                        </div>
