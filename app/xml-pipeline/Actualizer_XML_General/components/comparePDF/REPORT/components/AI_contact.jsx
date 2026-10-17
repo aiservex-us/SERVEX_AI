@@ -9,7 +9,7 @@ import {
   Check, Settings, HelpCircle, Zap, SendHorizonal,
   Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search, BrainCircuit, CheckCircle2,
   Download, User, X, ChevronRight, UploadCloud, Table, CheckCheck, FileCode2, Paperclip, AlertCircle,
-  Layers, Box
+  Layers, Box, Tag, Sliders, Palette
 } from 'lucide-react';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
@@ -1707,38 +1707,50 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                               </div>
                                               <div className="flex flex-wrap items-center gap-1 bg-[#464775]/10 p-0.5 rounded-lg border border-[#464775]/20">
                                                 <button
-                                                  type="button"
-                                                  onClick={() => setCatalogTab('price')}
-                                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                    catalogTab === 'price'
-                                                      ? 'bg-[#464775] text-white shadow-2xs'
-                                                      : 'text-[#464775] hover:bg-[#464775]/10'
-                                                  }`}
-                                                >
-                                                  Opciones de Precio ({msg.uploadSummary.total_price_options || msg.uploadSummary.price_options_list?.length || 0})
-                                                </button>
-                                                <button
-                                                  type="button"
-                                                  onClick={() => setCatalogTab('physical')}
-                                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                    catalogTab === 'physical'
-                                                      ? 'bg-[#464775] text-white shadow-2xs'
-                                                      : 'text-[#464775] hover:bg-[#464775]/10'
-                                                  }`}
-                                                >
-                                                  Componentes por Modelo ({msg.uploadSummary.total_physical_components || msg.uploadSummary.physical_components_list?.length || 0})
-                                                </button>
-                                                <button
-                                                  type="button"
-                                                  onClick={() => setCatalogTab('finishes')}
-                                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                    catalogTab === 'finishes'
-                                                      ? 'bg-[#464775] text-white shadow-2xs'
-                                                      : 'text-[#464775] hover:bg-[#464775]/10'
-                                                  }`}
-                                                >
-                                                  Telas y Acabados Base ({msg.uploadSummary.total_finishes || msg.uploadSummary.finishes_list?.length || 0})
-                                                </button>
+                                              type="button"
+                                              onClick={() => setCatalogTab('price')}
+                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                                                catalogTab === 'price'
+                                                  ? 'bg-[#464775] text-white shadow-2xs'
+                                                  : 'text-[#464775] hover:bg-[#464775]/10'
+                                              }`}
+                                            >
+                                              <Tag size={11} className={catalogTab === 'price' ? 'text-white' : 'text-[#464775]'} />
+                                              <span>Opciones de Precio</span>
+                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'price' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
+                                                {msg.uploadSummary.total_price_options || msg.uploadSummary.price_options_list?.length || 0}
+                                              </span>
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => setCatalogTab('physical')}
+                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                                                catalogTab === 'physical'
+                                                  ? 'bg-[#464775] text-white shadow-2xs'
+                                                  : 'text-[#464775] hover:bg-[#464775]/10'
+                                              }`}
+                                            >
+                                              <Sliders size={11} className={catalogTab === 'physical' ? 'text-white' : 'text-[#464775]'} />
+                                              <span>Componentes por Modelo</span>
+                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'physical' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
+                                                {msg.uploadSummary.total_physical_components || msg.uploadSummary.physical_components_list?.length || 0}
+                                              </span>
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => setCatalogTab('finishes')}
+                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                                                catalogTab === 'finishes'
+                                                  ? 'bg-[#464775] text-white shadow-2xs'
+                                                  : 'text-[#464775] hover:bg-[#464775]/10'
+                                              }`}
+                                            >
+                                              <Palette size={11} className={catalogTab === 'finishes' ? 'text-white' : 'text-[#464775]'} />
+                                              <span>Telas y Acabados Base</span>
+                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'finishes' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
+                                                {msg.uploadSummary.total_finishes || msg.uploadSummary.finishes_list?.length || 0}
+                                              </span>
+                                            </button>
                                               </div>
                                             </div>
 
