@@ -209,13 +209,13 @@ const Viewport = () => {
 
       <header className="h-10 flex items-center justify-between px-6 bg-[#FFFFFF] border-b border-[#EDEBE9] z-20">
         <div className="text-[11px] font-medium text-[#605E5C]">
-          Project / <span className="text-[#464775] font-bold">Servex Copilot v1.2</span>
+          Project / <span className="text-[#18181b] font-bold">Servex Copilot v1.2</span>
         </div>
         <div className="flex items-center gap-2">
           {isChatActive && (
             <button onClick={() => setShowDeleteConfirm(true)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-md transition-all mr-1"><Trash2 size={16} /></button>
           )}
-          <div className="w-6 h-6 rounded-full bg-[#EDEBE9] flex items-center justify-center text-[#464775]"><PH.User size={14} weight="bold" /></div>
+          <div className="w-6 h-6 rounded-full bg-[#EDEBE9] flex items-center justify-center text-[#18181b]"><PH.User size={14} weight="bold" /></div>
         </div>
       </header>
 
@@ -233,14 +233,14 @@ const Viewport = () => {
               {messages.map((msg, idx) => (
                 <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-4 w-full ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                   {/* Cambio de color en avatar del user a Morado */}
-                  <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-sm ${msg.from === 'user' ? 'bg-[#464775]' : 'bg-slate-200 !text-slate-600'}`}>{msg.from === 'user' ? <User size={16} className="text-white" /> : 'AI'}</div>
+                  <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-sm ${msg.from === 'user' ? 'bg-[#18181b]' : 'bg-slate-200 !text-slate-600'}`}>{msg.from === 'user' ? <User size={16} className="text-white" /> : 'AI'}</div>
                   <div className={`flex flex-col max-w-[85%] ${msg.from === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className={`flex items-baseline gap-2 mb-1 ${msg.from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                       <span className="font-bold text-[12px] text-slate-700">{msg.from === 'user' ? 'You' : 'Copilot'}</span>
                       <span className="text-[10px] text-slate-400 font-medium">{msg.time}</span>
                     </div>
                     {/* Cambio de colores en burbujas: User -> Morado | Bot -> Blanco con texto negro */}
-                    <div className={`p-4 rounded-2xl text-[13.5px] leading-relaxed border shadow-sm ${msg.from === 'user' ? 'bg-[#464775] border-[#464775] text-white rounded-tr-none' : 'bg-white border-slate-200 text-slate-700 rounded-tl-none'}`}>
+                    <div className={`p-4 rounded-2xl text-[13.5px] leading-relaxed border shadow-sm ${msg.from === 'user' ? 'bg-[#18181b] border-[#18181b] text-white rounded-tr-none' : 'bg-white border-slate-200 text-slate-700 rounded-tl-none'}`}>
                       {msg.from === "bot" ? <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }} /> : <p className="whitespace-pre-wrap">{msg.text}</p>}
                     </div>
                   </div>
@@ -253,8 +253,8 @@ const Viewport = () => {
             <div className="w-full max-w-4xl mx-auto pt-10 px-6 flex flex-col relative z-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
              <div className="w-full max-w-4xl mx-auto pt-4 px-6 flex flex-col relative z-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
   <div className="mb-3 w-[100%] border-b border-gray-100 pb-3">
-    <div className="flex items-center gap-1.5 text-[#464775] mb-1">
-      <Sparkles size={14} fill="#464775" fillOpacity={0.2} />
+    <div className="flex items-center gap-1.5 text-[#18181b] mb-1">
+      <Sparkles size={14} fill="#18181b" fillOpacity={0.2} />
       <span className="text-[9px] font-bold uppercase tracking-wider">Contextual Assistance Center</span>
     </div>
     <h1 className="text-xl font-bold text-gray-900 mb-0.5">Welcome to Servex Contextual Copilot</h1>
@@ -268,11 +268,11 @@ const Viewport = () => {
         </div>
 
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6 z-30">
-          <form onSubmit={handleSendMessage} className="bg-white border border-[#EDEBE9] rounded-xl shadow-2xl flex flex-col overflow-hidden focus-within:ring-1 focus-within:ring-[#464775]/20">
+          <form onSubmit={handleSendMessage} className="bg-white border border-[#EDEBE9] rounded-xl shadow-2xl flex flex-col overflow-hidden focus-within:ring-1 focus-within:ring-[#18181b]/20">
             
             <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100 relative">
               <button type="button" onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="flex items-center gap-2 text-[10px] font-bold text-gray-600 bg-white border border-gray-200 px-2 py-1 rounded hover:bg-gray-50">
-                <Database size={12} className="text-[#464775]" /> CONTEXT LESRO AI PROTOCOL <ChevronDown size={0} />
+                <Database size={12} className="text-[#18181b]" /> CONTEXT LESRO AI PROTOCOL <ChevronDown size={0} />
               </button>
            
               <div className="flex items-center gap-1.5 text-[9px] text-gray-400 font-bold ml-auto"><Zap size={10} className="text-yellow-500 fill-yellow-500" /> SVX ENGINE READY</div>
@@ -282,8 +282,8 @@ const Viewport = () => {
               {/* VISTA PREVIA DEL ARCHIVO CARGADO */}
               {attachedFile && (
                 <div className="flex items-center gap-2 mb-2 bg-[#F3F2F1] w-fit px-2 py-1 rounded border border-[#EDEBE9]">
-                  <FileText size={14} className="text-[#464775]" />
-                  <span className="text-[11px] font-bold text-[#464775]">{attachedFile.name}</span>
+                  <FileText size={14} className="text-[#18181b]" />
+                  <span className="text-[11px] font-bold text-[#18181b]">{attachedFile.name}</span>
                   <button type="button" onClick={() => setAttachedFile(null)} className="hover:bg-gray-200 rounded-full p-0.5">
                     <X size={12} />
                   </button>
@@ -301,18 +301,18 @@ const Viewport = () => {
 
             <div className="flex items-center justify-between px-3 py-2 bg-[#FAFBFC] border-t border-[#F3F2F1]">
               <div className="flex items-center gap-1">
-                <button type="button" onClick={() => fileInputRef.current.click()} className="p-2 text-gray-400 hover:text-[#464775] rounded-lg transition-colors">
+                <button type="button" onClick={() => fileInputRef.current.click()} className="p-2 text-gray-400 hover:text-[#18181b] rounded-lg transition-colors">
                   <Paperclip size={18} />
                 </button>
                 <button 
                   type="button" 
                   onClick={handleMicClick}
-                  className={`p-2 rounded-lg transition-all ${isListening ? 'text-red-500 bg-red-50 animate-pulse' : 'text-gray-400 hover:text-[#464775]'}`}
+                  className={`p-2 rounded-lg transition-all ${isListening ? 'text-red-500 bg-red-50 animate-pulse' : 'text-gray-400 hover:text-[#18181b]'}`}
                 >
                   <Mic size={18} />
                 </button>
               </div>
-              <button type="submit" disabled={(!inputValue.trim() && !attachedFile) || isLoading} className="bg-[#464775] text-white px-5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-[#3b3c63] transition-all disabled:opacity-40 shadow-sm">
+              <button type="submit" disabled={(!inputValue.trim() && !attachedFile) || isLoading} className="bg-[#18181b] text-white px-5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-[#09090b] transition-all disabled:opacity-40 shadow-sm">
                 {isLoading ? "SENDING..." : "SEND QUERY"} <SendHorizontal size={14} />
               </button>
             </div>

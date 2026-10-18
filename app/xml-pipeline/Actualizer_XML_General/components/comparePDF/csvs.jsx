@@ -171,7 +171,7 @@ export default function DataViewer() {
   if (loading) return (
     <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-4 h-4 border-2 border-[#18181b] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix for General Process...
       </div>
     </div>
@@ -194,7 +194,7 @@ export default function DataViewer() {
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-800">Entity: {data.company_name}</span>
-                <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
+                <span className="text-[10px] font-bold text-[#18181b] bg-[#18181b]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#18181b]/10 select-none">
                   Active Sanitization
                 </span>
               </div>
@@ -210,7 +210,7 @@ export default function DataViewer() {
                   type="button"
                   onClick={() => setActiveTab('csv_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csv_raw' ? 'bg-white text-[#464775] shadow-xs' : 'text-slate-500 hover:text-[#464775]'
+                    activeTab === 'csv_raw' ? 'bg-white text-[#18181b] shadow-xs' : 'text-slate-500 hover:text-[#18181b]'
                   }`}
                 >
                   Manual Optimizer
@@ -219,7 +219,7 @@ export default function DataViewer() {
                   type="button"
                   onClick={() => setActiveTab('csvpdf_raw')}
                   className={`px-2.5 py-1 rounded-sm text-[11px] font-medium transition-all ${
-                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#464775] shadow-xs' : 'text-slate-500 hover:text-[#464775]'
+                    activeTab === 'csvpdf_raw' ? 'bg-white text-[#18181b] shadow-xs' : 'text-slate-500 hover:text-[#18181b]'
                   }`}
                 >
                   PDF Intelligence.
@@ -232,7 +232,7 @@ export default function DataViewer() {
                 placeholder="Search matrix..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#464775] outline-none transition-all w-[180px]"
+                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#18181b] outline-none transition-all w-[180px]"
               />
 
               {/* Actions */}
@@ -259,8 +259,8 @@ export default function DataViewer() {
           {/* Table Container */}
           {paginatedData.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-20 text-center bg-white/40 backdrop-blur-md">
-              <div className="w-16 h-16 rounded-2xl bg-[#464775]/5 flex items-center justify-center mb-4 border border-[#464775]/10 shadow-inner">
-                <svg className="w-8 h-8 text-[#464775]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <div className="w-16 h-16 rounded-2xl bg-[#18181b]/5 flex items-center justify-center mb-4 border border-[#18181b]/10 shadow-inner">
+                <svg className="w-8 h-8 text-[#18181b]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
               <h3 className="text-sm font-bold text-slate-700 mb-1">No data found</h3>
               <p className="text-xs text-slate-500 max-w-sm font-medium">
@@ -272,7 +272,7 @@ export default function DataViewer() {
               <table className="table-fixed border-collapse overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-slate-50/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
+                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#18181b] bg-slate-50/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
                     {Object.keys(currentCsvData[0]).map((header) => (
@@ -282,7 +282,7 @@ export default function DataViewer() {
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
-                          <Filter size={8} className="text-[#464775] opacity-40" />
+                          <Filter size={8} className="text-[#18181b] opacity-40" />
                         </div>
                       </th>
                     ))}
@@ -294,7 +294,7 @@ export default function DataViewer() {
                     const absoluteIdx = startIndex + relativeIdx;
                     return (
                       <tr key={absoluteIdx} className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75">
-                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#464775] border-r border-slate-100 sticky left-0 z-10 bg-white border-b border-slate-50">
+                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#18181b] border-r border-slate-100 sticky left-0 z-10 bg-white border-b border-slate-50">
                           {absoluteIdx + 1}
                         </td>
 
@@ -355,7 +355,7 @@ export default function DataViewer() {
             </div>
             
             <div className="flex items-center gap-4">
-              <div className="bg-[#464775]/10 px-2.5 py-0.5 rounded border border-[#464775]/20 text-[#464775] font-extrabold uppercase text-[10px]">
+              <div className="bg-[#18181b]/10 px-2.5 py-0.5 rounded border border-[#18181b]/20 text-[#18181b] font-extrabold uppercase text-[10px]">
                 {activeTab === 'csv_raw' ? 'Dataset: Sanitized Manual ERP' : 'Dataset: AI PDF Extraction'}
               </div>
             </div>

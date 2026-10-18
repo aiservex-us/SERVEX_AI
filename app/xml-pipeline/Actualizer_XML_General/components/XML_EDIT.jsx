@@ -212,7 +212,7 @@ const SVXUnifiedEnterprise = () => {
     return config.basePrice + selectionsTotal;
   };
 
-  if (loadingXML) return <div className="h-screen flex items-center justify-center bg-[#FDFDFD] text-[10px] font-bold text-[#464775]">LOADING SVX ECOSYSTEM...</div>;
+  if (loadingXML) return <div className="h-screen flex items-center justify-center bg-[#FDFDFD] text-[10px] font-bold text-[#18181b]">LOADING SVX ECOSYSTEM...</div>;
 
   return (
     // AJUSTE: h-screen y w-screen con overflow-hidden
@@ -235,8 +235,8 @@ const SVXUnifiedEnterprise = () => {
       <div className="flex-[0.65] flex flex-col border-r border-[#EDEBE9] overflow-hidden h-full">
         <div className="p-4 border-b bg-[#FAF9F8] flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2">
-            <div className="bg-[#464775] p-1.5 rounded text-white"><FiCpu size={14}/></div>
-            <h2 className="text-xs font-black uppercase tracking-widest text-[#464775]">Master Audit</h2>
+            <div className="bg-[#18181b] p-1.5 rounded text-white"><FiCpu size={14}/></div>
+            <h2 className="text-xs font-black uppercase tracking-widest text-[#18181b]">Master Audit</h2>
           </div>
           <div className="flex gap-4">
             <Step icon={<FiCheck size={10}/>} title="Data" active={data.length > 0} />
@@ -248,8 +248,8 @@ const SVXUnifiedEnterprise = () => {
           {data.length === 0 ? (
             <div onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)} onDrop={handleDrop}
-              className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}>
-              <FiUploadCloud size={40} className="text-[#464775] mb-4 opacity-20" />
+              className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#18181b]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}>
+              <FiUploadCloud size={40} className="text-[#18181b] mb-4 opacity-20" />
               <p className="text-xs font-bold text-gray-400">DRAG CSV TO COMPARE</p>
             </div>
           ) : (
@@ -259,7 +259,7 @@ const SVXUnifiedEnterprise = () => {
                 <thead className="bg-[#FAF9F8] sticky top-0 z-10 border-b">
                   <tr>
                     {data[0].map((h, i) => (
-                      <th key={i} className="p-3 text-left font-black text-[#464775] uppercase whitespace-nowrap">{h}</th>
+                      <th key={i} className="p-3 text-left font-black text-[#18181b] uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -292,7 +292,7 @@ const SVXUnifiedEnterprise = () => {
           <button onClick={() => { setData([]); setMatchStatus(null); setSelectedConfigs([]); }} 
             className="px-4 py-2 text-[10px] font-bold text-gray-400 hover:text-gray-600 uppercase">Reset</button>
           <button onClick={handleAnalyze} disabled={data.length === 0 || isAnalyzing}
-            className={`px-6 py-2 rounded-md text-[10px] font-black flex items-center gap-2 transition-all shadow-lg ${data.length > 0 ? 'bg-[#464775] text-white hover:brightness-110' : 'bg-gray-100 text-gray-300'}`}>
+            className={`px-6 py-2 rounded-md text-[10px] font-black flex items-center gap-2 transition-all shadow-lg ${data.length > 0 ? 'bg-[#18181b] text-white hover:brightness-110' : 'bg-gray-100 text-gray-300'}`}>
             {isAnalyzing ? "AUDITANDO..." : "EJECUTAR SINCRONIZACIÓN"} <FiZap size={12}/>
           </button>
         </div>
@@ -303,7 +303,7 @@ const SVXUnifiedEnterprise = () => {
       <div className="flex-[0.35] h-full bg-[#F9F9F9] flex flex-col shadow-2xl border-l border-[#EDEBE9] overflow-hidden">
         <div className="p-4 bg-white border-b shrink-0" ref={dropdownRef}>
           <div className="relative">
-            <div className="flex items-center bg-[#F3F2F1] rounded px-3 border-b-2 border-transparent focus-within:border-[#464775] transition-all">
+            <div className="flex items-center bg-[#F3F2F1] rounded px-3 border-b-2 border-transparent focus-within:border-[#18181b] transition-all">
               <FiSearch className="text-gray-400" size={14}/>
               <input type="text" placeholder="AÑADIR SKU..." className="w-full p-2.5 bg-transparent outline-none text-[11px] font-bold uppercase"
                 value={selectedSKU} onChange={(e) => { setSelectedSKU(e.target.value.toUpperCase()); setShowDropdown(true); }} />
@@ -311,7 +311,7 @@ const SVXUnifiedEnterprise = () => {
             {showDropdown && selectedSKU && (
               <div className="absolute w-full mt-1 bg-white shadow-2xl rounded border z-50 max-h-60 overflow-auto border-[#EDEBE9]">
                 {products.filter(p => p.includes(selectedSKU)).slice(0, 8).map(p => (
-                  <div key={p} onClick={() => handleSearch(p)} className="p-3 hover:bg-[#F3F2F1] cursor-pointer text-[10px] font-black border-b last:border-none text-[#464775]">
+                  <div key={p} onClick={() => handleSearch(p)} className="p-3 hover:bg-[#F3F2F1] cursor-pointer text-[10px] font-black border-b last:border-none text-[#18181b]">
                     {p}
                   </div>
                 ))}
@@ -325,10 +325,10 @@ const SVXUnifiedEnterprise = () => {
             selectedConfigs.map((config, pIdx) => (
               <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} key={pIdx} className="bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden">
                 <div onClick={() => setExpandedIndex(expandedIndex === pIdx ? null : pIdx)}
-                  className={`p-3 flex justify-between items-center cursor-pointer transition-colors ${expandedIndex === pIdx ? 'bg-[#464775] text-white' : 'hover:bg-gray-50'}`}>
+                  className={`p-3 flex justify-between items-center cursor-pointer transition-colors ${expandedIndex === pIdx ? 'bg-[#18181b] text-white' : 'hover:bg-gray-50'}`}>
                   <div>
                     <p className="text-[10px] font-black leading-none">{config.sku}</p>
-                    <p className={`text-[9px] mt-1 font-bold ${expandedIndex === pIdx ? 'text-white/70' : 'text-[#464775]'}`}>
+                    <p className={`text-[9px] mt-1 font-bold ${expandedIndex === pIdx ? 'text-white/70' : 'text-[#18181b]'}`}>
                       ${calculateProductTotal(config).toLocaleString()}
                     </p>
                   </div>
@@ -347,9 +347,9 @@ const SVXUnifiedEnterprise = () => {
                               const nc = [...selectedConfigs];
                               nc[pIdx].selections[feat.id] = opt;
                               setSelectedConfigs(nc);
-                            }} className={`p-2.5 text-left text-[9px] rounded border transition-all flex justify-between items-center ${config.selections[feat.id]?.code === opt.code ? 'border-[#464775] bg-[#F3F2F1] font-bold shadow-sm' : 'border-[#F0F0F0] hover:bg-gray-50'}`}>
+                            }} className={`p-2.5 text-left text-[9px] rounded border transition-all flex justify-between items-center ${config.selections[feat.id]?.code === opt.code ? 'border-[#18181b] bg-[#F3F2F1] font-bold shadow-sm' : 'border-[#F0F0F0] hover:bg-gray-50'}`}>
                               <span className="pr-2">{opt.desc}</span>
-                              <span className="text-[#464775] font-black">+$ {opt.price}</span>
+                              <span className="text-[#18181b] font-black">+$ {opt.price}</span>
                             </button>
                           ))}
                         </div>
@@ -361,8 +361,8 @@ const SVXUnifiedEnterprise = () => {
             ))
           ) : (
             <div className="h-full flex flex-col items-center justify-center opacity-30 text-center p-10">
-              <FiShield size={40} className="mb-4 text-[#464775]" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#464775]">Empty PIM Panel</p>
+              <FiShield size={40} className="mb-4 text-[#18181b]" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#18181b]">Empty PIM Panel</p>
               <p className="text-[9px] mt-2 font-medium">CSV discrepancies will appear here to be re-configured.</p>
             </div>
           )}
@@ -374,10 +374,10 @@ const SVXUnifiedEnterprise = () => {
 
 const Step = ({ icon, title, active, isLast }) => (
   <div className="flex items-center gap-2">
-    <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${active ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-gray-200 text-gray-300'}`}>
+    <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${active ? 'bg-[#18181b] border-[#18181b] text-white' : 'bg-white border-gray-200 text-gray-300'}`}>
       {icon}
     </div>
-    <span className={`text-[9px] font-black uppercase tracking-tighter ${active ? 'text-[#464775]' : 'text-gray-300'}`}>{title}</span>
+    <span className={`text-[9px] font-black uppercase tracking-tighter ${active ? 'text-[#18181b]' : 'text-gray-300'}`}>{title}</span>
     {!isLast && <div className="w-4 h-[1px] bg-gray-200" />}
   </div>
 );

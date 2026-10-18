@@ -162,7 +162,7 @@ const WBDDataMatrix = () => {
   if (loading) return (
     <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-4 h-4 border-2 border-[#18181b] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix from WBD Engine...
       </div>
     </div>
@@ -175,7 +175,7 @@ const WBDDataMatrix = () => {
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
       <button 
         onClick={processXML} 
-        className="flex items-center gap-2 px-4 py-2 bg-[#464775] hover:bg-[#2B2C4B] text-white text-xs font-bold rounded shadow-sm transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-[#18181b] hover:bg-black text-white text-xs font-bold rounded shadow-sm transition-colors"
       >
         <RefreshCw size={12} /> Retry Loading
       </button>
@@ -213,7 +213,7 @@ const WBDDataMatrix = () => {
                 placeholder="Search matrix..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#464775] outline-none transition-all w-[180px]"
+                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#18181b] outline-none transition-all w-[180px]"
               />
 
               <button 
@@ -230,8 +230,8 @@ const WBDDataMatrix = () => {
           {/* Table Matrix */}
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-20 text-center bg-white/40 backdrop-blur-md">
-              <div className="w-16 h-16 rounded-2xl bg-[#464775]/5 flex items-center justify-center mb-4 border border-[#464775]/10 shadow-inner">
-                <svg className="w-8 h-8 text-[#464775]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <div className="w-16 h-16 rounded-2xl bg-[#18181b]/5 flex items-center justify-center mb-4 border border-[#18181b]/10 shadow-inner">
+                <svg className="w-8 h-8 text-[#18181b]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
               <h3 className="text-sm font-bold text-slate-700 mb-1">No data found</h3>
               <p className="text-xs text-slate-500 max-w-sm font-medium">
@@ -243,7 +243,7 @@ const WBDDataMatrix = () => {
               <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-slate-50/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
+                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#18181b] bg-slate-50/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
                     {baseHeaders.map((header) => (
@@ -253,19 +253,19 @@ const WBDDataMatrix = () => {
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
-                          <Filter size={8} className="text-[#464775] opacity-40" />
+                          <Filter size={8} className="text-[#18181b] opacity-40" />
                         </div>
                       </th>
                     ))}
                     {optionHeaders.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[11px] font-semibold text-[#464775] bg-[#464775]/5 backdrop-blur-md border-r border-b border-[#464775]/10 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
+                        className="px-3 py-2 text-[11px] font-semibold text-[#18181b] bg-[#18181b]/5 backdrop-blur-md border-r border-b border-[#18181b]/10 min-w-[160px] max-w-[280px] whitespace-nowrap truncate uppercase tracking-wider"
                         title={header}
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
-                          <Filter size={8} className="text-[#464775] opacity-40" />
+                          <Filter size={8} className="text-[#18181b] opacity-40" />
                         </div>
                       </th>
                     ))}
@@ -287,12 +287,12 @@ const WBDDataMatrix = () => {
                           className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75 group"
                         >
                           {/* Index Column */}
-                          <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#464775] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
+                          <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#18181b] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
                             {realIndex}
                           </td>
 
                           {/* SKU */}
-                          <td className="p-0 text-[#464775] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
+                          <td className="p-0 text-[#18181b] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
                             <div className="px-3 py-1.5 font-mono text-[11px] font-bold whitespace-nowrap truncate" title={p.sku}>
                               {p.sku}
                             </div>
@@ -321,7 +321,7 @@ const WBDDataMatrix = () => {
 
                           {/* Dynamic Option Prices */}
                           {optionHeaders.map(oh => (
-                            <td key={oh} className="p-0 text-[#464775] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
+                            <td key={oh} className="p-0 text-[#18181b] border-r border-b border-slate-50 min-w-[160px] max-w-[280px]">
                               <div className="px-3 py-1.5 font-mono text-[11px] font-semibold whitespace-nowrap truncate">
                                 {p[oh] !== undefined ? `$${p[oh].toLocaleString()}` : "-"}
                               </div>
@@ -369,7 +369,7 @@ const WBDDataMatrix = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="bg-[#464775]/10 px-2.5 py-0.5 rounded border border-[#464775]/20 text-[#464775] font-extrabold uppercase text-[10px]">
+              <div className="bg-[#18181b]/10 px-2.5 py-0.5 rounded border border-[#18181b]/20 text-[#18181b] font-extrabold uppercase text-[10px]">
                 WBD ETL Pipeline V2 (Oauth Verified)
               </div>
             </div>

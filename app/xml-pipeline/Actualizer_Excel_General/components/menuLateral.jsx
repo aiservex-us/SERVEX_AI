@@ -47,7 +47,7 @@ export default function MenuLateral({
         onClick={() => setCollapsed(!collapsed)}
         className={`
           md:hidden fixed top-5 w-7 h-7 bg-white border border-slate-200/80 rounded-full 
-          flex items-center justify-center shadow-md z-50 text-slate-500 hover:text-[#464775]
+          flex items-center justify-center shadow-md z-50 text-slate-500 hover:text-[#18181b]
           transition-all duration-300 ease-in-out
           ${collapsed ? 'left-4' : 'left-[244px]'}
         `}
@@ -87,7 +87,7 @@ export default function MenuLateral({
               <button 
                 onClick={() => setCollapsed(false)}
                 title="Desplegar menú"
-                className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors cursor-pointer"
+                className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#18181b]/30 transition-colors cursor-pointer"
               >
                 <img
                   src="/logo.png"
@@ -96,7 +96,7 @@ export default function MenuLateral({
                 />
               </button>
             ) : (
-              <Link href="/panel" className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#464775]/30 transition-colors cursor-pointer">
+              <Link href="/panel" className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border border-slate-100 shadow-sm shrink-0 group hover:border-[#18181b]/30 transition-colors cursor-pointer">
                 <img
                   src="/logo.png"
                   alt="Logo"
@@ -108,7 +108,7 @@ export default function MenuLateral({
           <button
             onClick={() => setCollapsed(!collapsed)}
             title={collapsed ? "Desplegar menú" : "Minimizar menú"}
-            className="hidden md:flex w-7 h-7 bg-white border border-slate-200/80 rounded-full items-center justify-center shadow-xs text-slate-500 hover:text-[#464775] hover:border-[#464775]/40 transition-all shrink-0 cursor-pointer"
+            className="hidden md:flex w-7 h-7 bg-white border border-slate-200/80 rounded-full items-center justify-center shadow-xs text-slate-500 hover:text-[#18181b] hover:border-[#18181b]/40 transition-all shrink-0 cursor-pointer"
           >
             <ChevronLeft className={`w-3.5 h-3.5 transition-transform duration-500 ${isEffectivelyCollapsed ? 'rotate-180' : ''}`} />
           </button>
@@ -141,19 +141,19 @@ export default function MenuLateral({
                   group relative flex flex-col transition-all duration-300 w-full rounded-xl border
                   ${isEffectivelyCollapsed ? 'items-center justify-center py-3' : 'p-3'}
                   ${isActive
-                    ? 'bg-[#464775]/5 border-[#464775]/30 shadow-sm'
+                    ? 'bg-[#18181b]/5 border-[#18181b]/30 shadow-sm'
                     : 'bg-white border-slate-100 shadow-sm hover:border-slate-200 hover:bg-slate-50/30'}
                   ${item.id === 'incert_delete' ? 'max-[400px]:opacity-60 max-[400px]:bg-slate-50' : ''}
                 `}
               >
                 <div className={`flex items-center w-full ${isEffectivelyCollapsed || !item.label ? 'justify-center' : 'gap-3'}`}>
-                  <div className={`${isActive ? 'text-[#464775]' : 'text-slate-400'} transition-all duration-300`}>
+                  <div className={`${isActive ? 'text-[#18181b]' : 'text-slate-400'} transition-all duration-300`}>
                     <Icon size={isEffectivelyCollapsed || !item.label ? 16 : 17} strokeWidth={isActive ? 2.5 : 2} />
                   </div>
 
                   {item.label && (
                     <div className={`flex flex-col items-start overflow-hidden text-left transition-all duration-[400ms] ${isEffectivelyCollapsed ? 'max-w-0 opacity-0 hidden' : 'max-w-[160px] opacity-100 w-full'}`}>
-                      <span className={`text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-opacity duration-500 delay-100 ${isActive ? 'text-[#464775] font-bold' : 'text-slate-700 font-semibold'} ${isEffectivelyCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+                      <span className={`text-[9px] uppercase tracking-wider leading-none whitespace-nowrap transition-opacity duration-500 delay-100 ${isActive ? 'text-[#18181b] font-bold' : 'text-slate-700 font-semibold'} ${isEffectivelyCollapsed ? 'opacity-0' : 'opacity-100'}`}>
                         {item.label}
                       </span>
                       {item.sub && (
@@ -174,7 +174,7 @@ export default function MenuLateral({
                     <div className="bg-slate-900 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap flex items-center gap-2 border border-slate-700/50 shadow-2xl">
                       <span className="text-white font-bold">{item.label}</span>
                       {item.sub && (
-                        <span className="text-[8.5px] text-indigo-300 font-bold uppercase tracking-wider bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700/80">
+                        <span className="text-[8.5px] text-zinc-300 font-bold uppercase tracking-wider bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700/80">
                           {item.sub}
                         </span>
                       )}
@@ -199,7 +199,7 @@ export default function MenuLateral({
                 key={item.label}
                 {...(item.href ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
                 className={`
-                  group relative w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-[#464775] transition-all duration-200
+                  group relative w-full flex items-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-[#18181b] transition-all duration-200
                   ${isEffectivelyCollapsed ? 'justify-center h-10' : 'px-3 py-2'}
                 `}
               >
@@ -226,10 +226,10 @@ export default function MenuLateral({
           {/* TARJETA Servex Copilot */}
           <div className={`
             group relative mt-2 flex items-center rounded-xl transition-all duration-300
-            ${isEffectivelyCollapsed ? 'justify-center h-10' : 'p-2 bg-[#464775] text-white shadow-lg shadow-[#464775]/20'}
+            ${isEffectivelyCollapsed ? 'justify-center h-10' : 'p-2 bg-[#18181b] text-white shadow-lg shadow-[#18181b]/20'}
           `}>
             <div className="relative shrink-0">
-              <div className={`rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-sm transition-all duration-300 ${isEffectivelyCollapsed ? 'w-6 h-6 p-1 bg-[#464775]' : 'w-7 h-7 p-1.5'}`}>
+              <div className={`rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-sm transition-all duration-300 ${isEffectivelyCollapsed ? 'w-6 h-6 p-1 bg-[#18181b]' : 'w-7 h-7 p-1.5'}`}>
                 <img
                   src="/logo2.png"
                   alt="Svx"
@@ -254,10 +254,10 @@ export default function MenuLateral({
 
             {isEffectivelyCollapsed && (
               <div className="pointer-events-none fixed left-[78px] opacity-0 group-hover:opacity-100 transition-all duration-200 z-[99999] flex items-center">
-                <div className="w-2 h-2 bg-[#464775] rotate-45 -mr-1 z-10"></div>
-                <div className="bg-[#464775] text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-indigo-400/30 shadow-2xl flex flex-col">
+                <div className="w-2 h-2 bg-[#18181b] rotate-45 -mr-1 z-10"></div>
+                <div className="bg-[#18181b] text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap border border-zinc-400/30 shadow-2xl flex flex-col">
                   <span className="font-black text-[10px] uppercase">Servex Copilot</span>
-                  <span className="text-[8px] text-indigo-200 font-normal">Next-gen Intelligence</span>
+                  <span className="text-[8px] text-zinc-300 font-normal">Next-gen Intelligence</span>
                 </div>
               </div>
             )}

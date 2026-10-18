@@ -256,7 +256,7 @@ export default function CETComparator() {
   if (loading) return (
     <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-4 h-4 border-2 border-[#18181b] border-t-transparent rounded-full animate-spin"></div>
         Initializing CET Configurator context...
       </div>
     </div>
@@ -268,13 +268,13 @@ export default function CETComparator() {
       <div className="w-full max-w-[90vw] mx-auto">
         
         {/* Header Principal */}
-        <div className="mb-6 rounded-lg p-10 border border-[#464775]/20 bg-gradient-to-tr from-white/90 via-white/80 to-[#464775]/5 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_2px_15px_rgba(70,71,117,0.05)] relative overflow-hidden">
-           <div className="absolute top-[-50%] right-[-10%] w-[40%] h-[200%] rotate-[15deg] bg-gradient-to-b from-[#464775]/5 to-transparent pointer-events-none" />
+        <div className="mb-6 rounded-lg p-10 border border-[#18181b]/20 bg-gradient-to-tr from-white/90 via-white/80 to-[#18181b]/5 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_2px_15px_rgba(0,0,0,0.04)] relative overflow-hidden">
+           <div className="absolute top-[-50%] right-[-10%] w-[40%] h-[200%] rotate-[15deg] bg-gradient-to-b from-[#18181b]/5 to-transparent pointer-events-none" />
            
            
 
            <h1 className="text-2xl font-light text-[#242424] tracking-wide relative z-10">
-            CET Matrix Comparator: <span className="font-normal text-[#464775]">General Process</span>
+            CET Matrix Comparator: <span className="font-normal text-[#18181b]">General Process</span>
            </h1>
            <p className="text-xs text-[#616161] mt-3 font-light tracking-[0.15em] uppercase relative z-10">
              1-to-1 analysis between Software Baseline (xml_actualizer_raw) & CET Modified Output (XM_CET_import)
@@ -285,7 +285,7 @@ export default function CETComparator() {
           <div className="flex flex-col items-center justify-center min-h-[40vh] bg-slate-50/50 border border-slate-100 rounded-xl">
             {isComputing ? (
               <>
-                <RefreshCw size={32} className="text-[#464775] mb-3 animate-spin" />
+                <RefreshCw size={32} className="text-[#18181b] mb-3 animate-spin" />
                 <p className="text-sm font-medium text-slate-500">Computing Deltas...</p>
                 <p className="text-xs text-slate-400 mt-1">Analyzing the XML DOMs, please wait...</p>
               </>
@@ -302,8 +302,8 @@ export default function CETComparator() {
             {/* Data Map / Information Section */}
             <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
               <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-                 <div className="flex items-center gap-2 text-[#464775]">
+                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#18181b]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                 <div className="flex items-center gap-2 text-[#18181b]">
                     <Zap size={16} />
                     <h3 className="font-semibold text-[13px] tracking-tight">List Price Variations</h3>
                  </div>
@@ -312,8 +312,8 @@ export default function CETComparator() {
                  </p>
               </div>
               <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-                 <div className="flex items-center gap-2 text-[#464775]">
+                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#18181b]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                 <div className="flex items-center gap-2 text-[#18181b]">
                     <Database size={16} />
                     <h3 className="font-semibold text-[13px] tracking-tight">Option Price Variations</h3>
                  </div>
@@ -322,8 +322,8 @@ export default function CETComparator() {
                  </p>
               </div>
               <div className="bg-gradient-to-br from-white to-slate-50/50 p-4 rounded-lg border border-slate-200/60 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-                 <div className="flex items-center gap-2 text-[#464775]">
+                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#18181b]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                 <div className="flex items-center gap-2 text-[#18181b]">
                     <Activity size={16} />
                     <h3 className="font-semibold text-[13px] tracking-tight">Additions & Deletions</h3>
                  </div>
@@ -338,7 +338,7 @@ export default function CETComparator() {
               {/* Module 1 - List Price Variations */}
               <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
                 <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
-                  <Zap size={16} className="text-[#5B5FC7]" />
+                  <Zap size={16} className="text-[#18181b]" />
                   <h2 className="text-sm font-bold text-[#242424]">List Price Variations ({filteredListPriceChanges.length})</h2>
                 </div>
                 <div className="w-full flex flex-col">
@@ -349,7 +349,7 @@ export default function CETComparator() {
                        placeholder="Filter List Prices..." 
                        value={searchTerm}
                        onChange={(e) => setSearchTerm(e.target.value)}
-                       className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] transition-all"
+                       className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#18181b] focus:border-[#18181b] transition-all"
                      />
                   </div>
                   <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
@@ -372,9 +372,9 @@ export default function CETComparator() {
                               <td className="px-4 py-3 font-mono font-bold text-slate-700">{c.model_id}</td>
                               <td className="px-4 py-3 text-slate-600 text-[11px]">{c.column_name}</td>
                               <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.old_value}</td>
-                              <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.new_value}</td>
+                              <td className="px-4 py-3 font-semibold text-[#18181b] font-mono">{c.new_value}</td>
                               <td className="px-4 py-3">
-                                 <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-[#464775]/10 text-[#464775]' : diffNum < 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                                 <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-[#18181b]/10 text-[#18181b]' : diffNum < 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
                                    {c.financial_impact || 'N/A'}
                                  </span>
                               </td>
@@ -402,7 +402,7 @@ export default function CETComparator() {
               {/* Module 2 - Option Price Variations */}
               <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
                 <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
-                  <Database size={16} className="text-[#5B5FC7]" />
+                  <Database size={16} className="text-[#18181b]" />
                   <h2 className="text-sm font-bold text-[#242424]">Option Price Variations ({filteredOptionPriceChanges.length})</h2>
                 </div>
                 <div className="w-full flex flex-col">
@@ -413,15 +413,15 @@ export default function CETComparator() {
                        placeholder="Filter Option Prices..." 
                        value={searchTerm}
                        onChange={(e) => setSearchTerm(e.target.value)}
-                       className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#464775] focus:border-[#464775] transition-all"
+                       className="w-full md:w-1/3 text-xs border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#18181b] focus:border-[#18181b] transition-all"
                      />
                   </div>
                   <div className="w-full overflow-x-auto max-h-[420px] overflow-y-auto custom-scrollbar">
                     <table className="table-fixed border-collapse text-left text-xs w-full">
-                      <thead className="bg-[#464775]/5 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
+                      <thead className="bg-[#18181b]/5 sticky top-0 z-[1] backdrop-blur-sm shadow-sm">
                         <tr>
                           {['#', 'Model ID', 'Option Element', 'Baseline Value', 'CET Value', '% Diff'].map(h => (
-                            <th key={h} className="px-4 py-3 text-[10px] font-bold text-[#464775] border-b border-[#464775]/20 uppercase tracking-wider">
+                            <th key={h} className="px-4 py-3 text-[10px] font-bold text-[#18181b] border-b border-[#18181b]/20 uppercase tracking-wider">
                               {h}
                             </th>
                           ))}
@@ -434,11 +434,11 @@ export default function CETComparator() {
                             <tr key={i} className="hover:bg-slate-50/80 transition-colors">
                               <td className="px-4 py-3 text-[10px] text-slate-400 font-mono">{i + 1}</td>
                               <td className="px-4 py-3 font-mono font-bold text-slate-700">{c.model_id}</td>
-                              <td className="px-4 py-3 text-[#464775] font-semibold text-[11px]">{c.column_name}</td>
+                              <td className="px-4 py-3 text-[#18181b] font-semibold text-[11px]">{c.column_name}</td>
                               <td className="px-4 py-3 text-slate-400 line-through decoration-slate-300 font-mono">{c.old_value}</td>
-                              <td className="px-4 py-3 font-semibold text-[#464775] font-mono">{c.new_value}</td>
+                              <td className="px-4 py-3 font-semibold text-[#18181b] font-mono">{c.new_value}</td>
                               <td className="px-4 py-3">
-                                 <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-[#464775]/10 text-[#464775]' : diffNum < 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                                 <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${diffNum > 0 ? 'bg-[#18181b]/10 text-[#18181b]' : diffNum < 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
                                    {c.financial_impact || 'N/A'}
                                  </span>
                               </td>
@@ -466,7 +466,7 @@ export default function CETComparator() {
               {/* Module 3 - Inventory Flux */}
               <div className="bg-white rounded-md border border-[#E0E0E0] shadow-[0_2px_4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col w-full">
                 <div className="px-4 py-3 bg-[#FAF9F8] border-b border-[#E0E0E0] flex items-center gap-2">
-                  <RefreshCw size={16} className="text-[#5B5FC7]" />
+                  <RefreshCw size={16} className="text-[#18181b]" />
                   <h2 className="text-sm font-bold text-[#242424]">Additions and Deletions ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })</h2>
                 </div>
                 <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FCFCFC]">
@@ -474,7 +474,7 @@ export default function CETComparator() {
                   {/* Columna New Models */}
                   <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                     <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-                      <PlusCircle size={16} className="text-[#464775]" />
+                      <PlusCircle size={16} className="text-[#18181b]" />
                       <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">New Models Added via CET</span>
                     </div>
                     <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
@@ -482,7 +482,7 @@ export default function CETComparator() {
                         summaryRaw.new_models_list.map((model, idx) => (
                           <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-colors">
                             <span className="text-slate-700 font-semibold">{model}</span>
-                            <span className="text-[10px] text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full font-sans font-semibold">New SKU</span>
+                            <span className="text-[10px] text-[#18181b] bg-[#18181b]/10 px-2 py-0.5 rounded-full font-sans font-semibold">New SKU</span>
                           </div>
                         ))
                       ) : (
@@ -543,7 +543,7 @@ export default function CETComparator() {
               </button>
             </div>
             <div className="px-8 py-6 flex gap-4">
-              <div className={`p-2 h-fit rounded-full shrink-0 ${modalConfig.isError ? 'bg-[#C4314B]/10 text-[#C4314B]' : modalConfig.type === 'confirm' ? 'bg-[#464775]/10 text-[#464775]' : 'bg-emerald-600/10 text-emerald-600'}`}>
+              <div className={`p-2 h-fit rounded-full shrink-0 ${modalConfig.isError ? 'bg-[#C4314B]/10 text-[#C4314B]' : modalConfig.type === 'confirm' ? 'bg-[#18181b]/10 text-[#18181b]' : 'bg-emerald-600/10 text-emerald-600'}`}>
                 <AlertCircle size={22} className="currentColor" />
               </div>
               <div className="flex-1 mt-1">
@@ -558,7 +558,7 @@ export default function CETComparator() {
                   <button onClick={closeModal} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
                     Cancel
                   </button>
-                  <button onClick={() => { closeModal(); if (modalConfig.onConfirm) modalConfig.onConfirm(); }} className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#464775] rounded hover:bg-[#5a1515] transition-all shadow-md">
+                  <button onClick={() => { closeModal(); if (modalConfig.onConfirm) modalConfig.onConfirm(); }} className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#18181b] rounded hover:bg-[#5a1515] transition-all shadow-md">
                     Confirm and apply
                   </button>
                 </>

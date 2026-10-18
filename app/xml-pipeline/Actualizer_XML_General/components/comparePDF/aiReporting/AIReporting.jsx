@@ -28,7 +28,7 @@ const AIReporting = () => {
       <div className="lg:hidden absolute top-2 left-4 z-[60]">
         <button 
           onClick={() => setIsLeftOpen(!isLeftOpen)}
-          className="p-2 bg-[#464775] text-white rounded-md shadow-md"
+          className="p-2 bg-[#18181b] text-white rounded-md shadow-md"
         >
           {isLeftOpen ? <X size={18} /> : <Menu size={18} />}
         </button>
@@ -40,8 +40,8 @@ const AIReporting = () => {
           onClick={() => setIsRightOpen(!isRightOpen)}
           className={`p-1.5 rounded-md border transition-all shadow-sm ${
             isRightOpen 
-            ? "bg-[#464775] text-white border-transparent" 
-            : "bg-white text-[#464775] border-[#EDEBE9] hover:bg-slate-50"
+            ? "bg-[#18181b] text-white border-transparent" 
+            : "bg-white text-[#18181b] border-[#EDEBE9] hover:bg-slate-50"
           }`}
         >
           {isRightOpen ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}

@@ -22,7 +22,7 @@ export default function ExcelActualizer() {
 
   const router = useRouter();
 
-  // PROTECCIÓN DE RUTA DEL MÓDULO
+  /* 🔒 PROTECCIÓN DE RUTA DEL MÓDULO (Temporalmente comentada para desarrollo local)
   useEffect(() => {
     const checkDelegation = async () => {
       try {
@@ -50,6 +50,7 @@ export default function ExcelActualizer() {
     };
     checkDelegation();
   }, []);
+  */
 
   useEffect(() => {
     const checkMobile = () => {
@@ -136,7 +137,7 @@ export default function ExcelActualizer() {
               </button>
               <button
                 onClick={handleConfirmExit}
-                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#5B5FC7] rounded hover:bg-[#4F52B2] transition-all shadow-md"
+                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#18181b] rounded hover:bg-[#09090b] transition-all shadow-md"
               >
                 Confirm and return
               </button>

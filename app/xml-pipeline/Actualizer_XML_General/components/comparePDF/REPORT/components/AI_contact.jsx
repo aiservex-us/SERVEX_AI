@@ -9,21 +9,23 @@ import {
   Check, Settings, HelpCircle, Zap, SendHorizonal,
   Brain, Shield, Activity, Cpu, BarChart2, Trash2, RefreshCw, Search, BrainCircuit, CheckCircle2,
   Download, User, X, ChevronRight, UploadCloud, Table, CheckCheck, FileCode2, Paperclip, AlertCircle,
-  Layers, Box, Tag, Sliders, Palette
+  Layers, Box, Tag, Palette
 } from 'lucide-react';
 import CatalogProcessConsole from '@/app/cet-ai-engine/components/CatalogProcessConsole.jsx';
+import AiCatalogIngestionReport from '@/app/cet-ai-engine/components/AiCatalogIngestionReport.jsx';
+import AlysaWordmark from './AlysaWordmark.jsx';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
   { id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4, category: 'Export Data From CET or Client' },
   { id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4, category: 'Export Data From CET or Client' },
-  
+
   { id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML', phase: 1, category: 'Step 1: Data Ingestion' },
   { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2, category: 'Step 1: Data Ingestion' },
-  
+
   { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3, category: 'Step 2: XML ETL Engine' },
-  
+
   { id: 'prices', icon: BrainCircuit, label: '/listPriceChanges', desc: 'List Price Changes', phase: 4, category: 'Step 3: Audit & Reporting' },
   { id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard', phase: 4, category: 'Step 3: Audit & Reporting' },
   { id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Summary', phase: 4, category: 'Step 3: Audit & Reporting' },
@@ -31,26 +33,264 @@ const SLASH_COMMANDS = [
   { id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum', phase: 4, category: 'Step 3: Audit & Reporting' }
 ];
 
+// Cache en memoria para evitar re-parsear el mismo XML con DOMParser más de una vez
+const xmlMatrixCache = new Map();
+
+// Helper determinista para resolver las columnas del Excel generadas a partir del XML
+const extractCatalogMatrixColumns = (xmlText) => {
+  const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
+  if (!xmlText || typeof xmlText !== 'string' || !xmlText.includes('<')) {
+    return { baseHeaders: BASE_HEADERS, commercialColumns: [], allHeaders: BASE_HEADERS };
+  }
+  const cacheKey = `${xmlText.length}_${xmlText.slice(0, 100)}`;
+  if (xmlMatrixCache.has(cacheKey)) {
+    return xmlMatrixCache.get(cacheKey);
+  }
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+    const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+    const featureMap = new Map();
+    for (const f of globalFeatures) {
+      const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+      if (fCode) featureMap.set(fCode, f);
+    }
+    const featureCache = new Map();
+    const getProductFeatureCodes = (pNode) => {
+      const directRefs = Array.from(pNode.getElementsByTagName("FeatureRef")).map(r => r.textContent?.trim()).filter(Boolean);
+      const cacheKey = directRefs.join('|');
+      if (featureCache.has(cacheKey)) return featureCache.get(cacheKey);
+      const resolved = [];
+      const visited = new Set();
+      const traverse = (fCode) => {
+        if (!fCode || visited.has(fCode)) return;
+        visited.add(fCode);
+        resolved.push(fCode);
+        const fNode = featureMap.get(fCode);
+        if (fNode) {
+          const subRefs = Array.from(fNode.getElementsByTagName("FeatureRef"));
+          for (const sub of subRefs) {
+            const subCode = sub.textContent?.trim();
+            if (subCode) traverse(subCode);
+          }
+        }
+      };
+      for (const code of directRefs) traverse(code);
+      featureCache.set(cacheKey, resolved);
+      return resolved;
+    };
+    const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+    const optionMap = new Map();
+    for (let i = 0; i < productsXML.length; i++) {
+      const p = productsXML[i];
+      const featureCodes = getProductFeatureCodes(p);
+      for (const fCode of featureCodes) {
+        const featureNode = featureMap.get(fCode);
+        if (featureNode) {
+          const options = Array.from(featureNode.getElementsByTagName("Option"));
+          for (const opt of options) {
+            const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
+            const optDesc = opt.getElementsByTagName("Description")[0]?.textContent?.trim();
+            const optPriceElem = opt.querySelector("OptionPrice > Value");
+            if (optPriceElem && optCode) {
+              const optPrice = parseFloat(optPriceElem.textContent || "0");
+              const label = optDesc
+                ? (optDesc.toLowerCase().includes(optCode.toLowerCase()) ? optDesc : `${optCode} (${optDesc})`)
+                : optCode;
+              const existing = optionMap.get(optCode);
+              if (!existing) {
+                optionMap.set(optCode, { optCode, label, maxPrice: optPrice, featureCode: fCode });
+              } else {
+                if (optPrice > existing.maxPrice) existing.maxPrice = optPrice;
+                if (!existing.label || existing.label === optCode) existing.label = label;
+              }
+            }
+          }
+        }
+      }
+    }
+    const validColumns = Array.from(optionMap.values()).filter(c => c.maxPrice > 0);
+    const dynamicHeaders = validColumns.map(c => c.label);
+    const result = {
+      baseHeaders: BASE_HEADERS,
+      commercialColumns: validColumns,
+      allHeaders: [...BASE_HEADERS, ...dynamicHeaders]
+    };
+    xmlMatrixCache.set(cacheKey, result);
+    return result;
+  } catch (err) {
+    console.warn("Could not extract matrix columns:", err);
+    return { baseHeaders: BASE_HEADERS, commercialColumns: [], allHeaders: BASE_HEADERS };
+  }
+};
+
+const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw = null) => {
+  const DEFAULT_BASE_COLUMNS = [
+    { code: "Model #", label: "Model #", type: "Identificador SKU", desc: "Código de modelo del producto base" },
+    { code: "List Price", label: "List Price", type: "Precio Base (USD)", desc: "Precio de lista estándar sin recargos" },
+    { code: "Weight", label: "Weight", type: "Especificación", desc: "Peso físico del producto (N/A si no aplica)" },
+    { code: "Classic/ Premium", label: "Classic/ Premium", type: "Clasificación", desc: "Gama o categoría de producto" },
+    { code: "Model Name", label: "Model Name", type: "Descripción", desc: "Nombre y descripción comercial del modelo" }
+  ];
+
+  // 0. FAST PATH ABSOLUTO (0ms): Columnas provistas directamente por el backend
+  if (summary?.base_columns && summary?.commercial_columns) {
+    return {
+      baseColumns: summary.base_columns,
+      commercialColumns: summary.commercial_columns,
+      totalColumns: summary.total_columns || (summary.base_columns.length + summary.commercial_columns.length)
+    };
+  }
+
+  if (summary?.commercial_columns && Array.isArray(summary.commercial_columns)) {
+    return {
+      baseColumns: summary.base_columns || DEFAULT_BASE_COLUMNS,
+      commercialColumns: summary.commercial_columns,
+      totalColumns: (summary.base_columns || DEFAULT_BASE_COLUMNS).length + summary.commercial_columns.length
+    };
+  }
+
+  // 1. PRIORIDAD SECUNDARIA: Si existe csv_raw (almacenado en DB o en memoria tras convertir el XML a Excel)
+  const csvSource = summary?.csv_raw || fallbackCsvRaw;
+  if (csvSource && typeof csvSource === 'string' && csvSource.trim()) {
+    try {
+      const firstLine = csvSource.trim().split(/\r?\n/)[0];
+      const delimiter = firstLine.includes(';') ? ';' : ',';
+      const headers = firstLine.split(delimiter).map(h => h.trim().replace(/^"|"$/g, '')).filter(Boolean);
+
+      if (headers.length > 0) {
+        const baseLabels = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
+        const baseCols = [];
+        const commCols = [];
+
+        headers.forEach((h, idx) => {
+          const matchBase = DEFAULT_BASE_COLUMNS.find(b => b.code.toLowerCase() === h.toLowerCase() || b.label.toLowerCase() === h.toLowerCase());
+          if (matchBase) {
+            baseCols.push(matchBase);
+          } else if (idx < 5 && baseLabels.some(bl => bl.toLowerCase().includes(h.toLowerCase()))) {
+            baseCols.push({
+              code: h,
+              label: h,
+              type: "Campo Base",
+              desc: `Columna estándar #${idx + 1}`
+            });
+          } else {
+            let code = h;
+            let desc = h;
+            const parenMatch = h.match(/^([^(]+)\s*\((.+)\)$/);
+            if (parenMatch) {
+              code = parenMatch[1].trim();
+              desc = parenMatch[2].trim();
+            }
+
+            const matchedOpt = (summary?.commercial_options_list || summary?.price_options_list || [])
+              .find(o => (o.code && o.code.toLowerCase() === code.toLowerCase()) || (o.name && o.name.toLowerCase() === desc.toLowerCase()));
+
+            commCols.push({
+              code: code,
+              label: h,
+              price: matchedOpt?.price || (matchedOpt?.prices ? matchedOpt.prices.join(' / ') : 'Recargo'),
+              featureName: matchedOpt?.feature_name || matchedOpt?.feature_code || 'Opción Comercial Activa'
+            });
+          }
+        });
+
+        const finalBase = baseCols.length > 0 ? baseCols : DEFAULT_BASE_COLUMNS;
+        return {
+          baseColumns: finalBase,
+          commercialColumns: commCols,
+          totalColumns: headers.length
+        };
+      }
+    } catch (e) {
+      console.warn("Error resolviendo columnas desde csv_raw:", e);
+    }
+  }
+
+  // 2. Columnas provistas directamente por el motor backend desde el XML real
+  if (summary?.base_columns && summary?.commercial_columns) {
+    return {
+      baseColumns: summary.base_columns,
+      commercialColumns: summary.commercial_columns,
+      totalColumns: summary.total_columns || (summary.base_columns.length + summary.commercial_columns.length)
+    };
+  }
+
+  if (summary?.commercial_columns && Array.isArray(summary.commercial_columns)) {
+    return {
+      baseColumns: summary.base_columns || DEFAULT_BASE_COLUMNS,
+      commercialColumns: summary.commercial_columns,
+      totalColumns: (summary.base_columns || DEFAULT_BASE_COLUMNS).length + summary.commercial_columns.length
+    };
+  }
+
+  // 3. Parseo en tiempo real del XML nativo
+  const xmlSource = summary?.xml_raw || summary?.XM_CET_import || fallbackXmlRaw;
+  if (xmlSource && typeof xmlSource === 'string' && xmlSource.includes('<')) {
+    const parsed = extractCatalogMatrixColumns(xmlSource);
+    if (parsed && parsed.allHeaders && parsed.allHeaders.length > 0) {
+      const commCols = (parsed.commercialColumns || []).map(c => ({
+        code: c.optCode,
+        label: c.label,
+        price: String(c.maxPrice),
+        featureName: c.featureCode || 'Opción Comercial'
+      }));
+      return {
+        baseColumns: DEFAULT_BASE_COLUMNS,
+        commercialColumns: commCols,
+        totalColumns: DEFAULT_BASE_COLUMNS.length + commCols.length
+      };
+    }
+  }
+
+  // 4. Mapeo de listas de opciones extraídas del XML
+  let commCols = [];
+  if (summary?.commercial_options_list && summary.commercial_options_list.length > 0) {
+    commCols = summary.commercial_options_list.map(opt => ({
+      code: opt.code,
+      label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
+      price: opt.price || (opt.prices ? opt.prices.join(' / ') : '0'),
+      featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
+    }));
+  } else if (summary?.price_options_list && summary.price_options_list.some(p => p.has_upcharge || parseFloat(p.price || 0) > 0)) {
+    commCols = summary.price_options_list
+      .filter(p => p.has_upcharge || parseFloat(p.price || 0) > 0)
+      .map(opt => ({
+        code: opt.code,
+        label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
+        price: opt.price,
+        featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
+      }));
+  }
+
+  // IMPORTANTE: Si el catálogo no tiene recargos, retorna commCols vacío [] (cero recargos, 100% real sin datos ficticios)
+  return {
+    baseColumns: DEFAULT_BASE_COLUMNS,
+    commercialColumns: commCols,
+    totalColumns: DEFAULT_BASE_COLUMNS.length + commCols.length
+  };
+};
+
 const QUICK_PROMPTS = [
-  { 
-    icon: Database, 
-    label: "CET XML Conversion", 
-    q: "How does the AI autonomously convert any CET XML catalog into an import-ready structured matrix without manual effort?" 
+  {
+    icon: Database,
+    label: "CET XML Conversion",
+    q: "How does the AI autonomously convert any CET XML catalog into an import-ready structured matrix without manual effort?"
   },
-  { 
-    icon: Cpu, 
-    label: "Catalog Auto-Update", 
-    q: "How does Alysa automatically update the entire XML catalog once I simply upload my file?" 
+  {
+    icon: Cpu,
+    label: "Catalog Auto-Update",
+    q: "How does Alysa automatically update the entire XML catalog once I simply upload my file?"
   },
-  { 
-    icon: BarChart2, 
-    label: "Compare Discrepancies", 
-    q: "How does the AI audit and reconcile pricing deltas and product codes autonomously in seconds?" 
+  {
+    icon: BarChart2,
+    label: "Compare Discrepancies",
+    q: "How does the AI audit and reconcile pricing deltas and product codes autonomously in seconds?"
   },
-  { 
-    icon: Shield, 
-    label: "Autonomous AI Pipeline", 
-    q: "Explain how the AI compresses weeks of manual engineering into seconds—I only upload the file and Alysa does everything." 
+  {
+    icon: Shield,
+    label: "Autonomous AI Pipeline",
+    q: "Explain how the AI compresses weeks of manual engineering into seconds—I only upload the file and Alysa does everything."
   },
 ];
 
@@ -185,12 +425,12 @@ const AlysaSvgIcon = ({ className = "w-7 h-7 flex-shrink-0", ...props }) => (
     className={className}
     {...props}
   >
-    <rect x="593" y="197" width="153" height="149" rx="32" fill="#35365e" />
-    <rect x="766" y="232" width="106" height="101" rx="22" fill="#7e81b8" />
-    <rect x="740" y="350" width="176" height="174" rx="36" fill="#6264A7" />
+    <rect x="593" y="197" width="153" height="149" rx="32" fill="#27272a" />
+    <rect x="766" y="232" width="106" height="101" rx="22" fill="#a1a1aa" />
+    <rect x="740" y="350" width="176" height="174" rx="36" fill="#18181b" />
     <path
       d="M 353 202 L 340 221 L 223 471 L 72 773 L 69 784 L 72 795 L 88 805 L 258 805 L 269 801 L 278 791 L 440 452 L 445 449 L 527 606 L 389 608 L 383 611 L 375 626 L 371 697 L 377 706 L 567 707 L 581 718 L 621 793 L 629 801 L 640 805 L 840 804 L 847 799 L 852 789 L 849 776 L 702 542 L 590 356 L 506 205 L 491 197 L 365 197 Z"
-      fill="#464775"
+      fill="#18181b"
     />
   </svg>
 );
@@ -318,10 +558,10 @@ marked.use({
   renderer: {
     table(token) {
       const orig = origRenderer.table.call(this, token);
-      return `<div class="my-5 overflow-x-auto rounded-xl border border-[#464775]/15 shadow-sm bg-white/60 backdrop-blur-sm inline-block max-w-full">
+      return `<div class="my-5 overflow-x-auto rounded-xl border border-[#18181b]/15 shadow-sm bg-white/60 backdrop-blur-sm inline-block max-w-full">
         ${orig.replace('<table>', '<table class="text-left text-[13px] text-gray-700">')
-             .replace('<thead>', '<thead class="bg-[#464775]/5 border-b border-[#464775]/15 text-[#464775] font-bold uppercase tracking-wider text-[11px]">')
-             .replace('<tbody>', '<tbody class="divide-y divide-[#464775]/10">')}
+          .replace('<thead>', '<thead class="bg-[#18181b]/5 border-b border-[#18181b]/15 text-[#18181b] font-bold uppercase tracking-wider text-[11px]">')
+          .replace('<tbody>', '<tbody class="divide-y divide-[#18181b]/10">')}
       </div>`;
     },
     tablerow(token) {
@@ -335,9 +575,9 @@ marked.use({
     },
     list(token) {
       const orig = origRenderer.list.call(this, token);
-      const classes = token.ordered 
-        ? 'list-decimal list-outside ml-5 space-y-2.5 my-4 text-gray-700' 
-        : 'list-disc list-outside ml-5 space-y-2.5 my-4 text-gray-700 marker:text-[#6264A7]';
+      const classes = token.ordered
+        ? 'list-decimal list-outside ml-5 space-y-2.5 my-4 text-gray-700'
+        : 'list-disc list-outside ml-5 space-y-2.5 my-4 text-gray-700 marker:text-[#18181b]';
       return orig.replace(/^<(ul|ol)>/, `<$1 class="${classes}">`);
     },
     listitem(token) {
@@ -351,17 +591,17 @@ marked.use({
     heading(token) {
       const orig = origRenderer.heading.call(this, token);
       const sizes = {
-        1: 'text-2xl font-bold mt-7 mb-4 text-[#35365e] tracking-tight',
-        2: 'text-xl font-bold mt-6 mb-3 text-[#464775] tracking-tight border-b border-[#464775]/15 pb-2',
-        3: 'text-lg font-semibold mt-5 mb-3 text-[#464775] tracking-tight',
-        4: 'text-base font-semibold mt-4 mb-2 text-[#6264A7]',
+        1: 'text-2xl font-bold mt-7 mb-4 text-[#27272a] tracking-tight',
+        2: 'text-xl font-bold mt-6 mb-3 text-[#18181b] tracking-tight border-b border-[#18181b]/15 pb-2',
+        3: 'text-lg font-semibold mt-5 mb-3 text-[#18181b] tracking-tight',
+        4: 'text-base font-semibold mt-4 mb-2 text-[#18181b]',
       };
       const cls = sizes[token.depth] || sizes[4];
       return orig.replace(/^<h[1-6]>/, `<h${token.depth} class="${cls}">`);
     },
     codespan(token) {
       const orig = origRenderer.codespan.call(this, token);
-      return orig.replace('<code>', '<code class="px-1.5 py-0.5 rounded-md bg-[#464775]/10 text-[#464775] font-mono text-[12px] font-semibold border border-[#464775]/20 shadow-sm">');
+      return orig.replace('<code>', '<code class="px-1.5 py-0.5 rounded-md bg-[#18181b]/10 text-[#18181b] font-mono text-[12px] font-semibold border border-[#18181b]/20 shadow-sm">');
     },
     code(token) {
       const orig = origRenderer.code.call(this, token);
@@ -373,12 +613,12 @@ marked.use({
     },
     blockquote(token) {
       const orig = origRenderer.blockquote.call(this, token);
-      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-[#464775] bg-gradient-to-r from-[#464775]/5 to-transparent italic py-3 px-5 rounded-r-xl my-5 text-gray-700 shadow-sm">');
+      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-[#18181b] bg-gradient-to-r from-[#18181b]/5 to-transparent italic py-3 px-5 rounded-r-xl my-5 text-gray-700 shadow-sm">');
     }
   }
 });
 
-const BotMessage = ({ text, onCommandSelect }) => {
+const BotMessage = React.memo(({ text, onCommandSelect, isDarkMode = true }) => {
   const processedText = useMemo(() => {
     if (!text) return "";
     let finalStr = text;
@@ -415,15 +655,19 @@ const BotMessage = ({ text, onCommandSelect }) => {
     } else {
       html = marked.parse(String(processedText || ""));
     }
-    
+
     // Inyectar botones interactivos para comandos de barra después del markdown
     const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
-    html = html.replace(COMMANDS_REGEX, '<button class="text-[#464775] hover:text-[#35365e] font-semibold hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none" data-cmd="$1">$1</button>');
+    const btnClass = isDarkMode
+      ? 'text-zinc-100 hover:text-white font-semibold underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none'
+      : 'text-[#18181b] hover:text-[#27272a] font-semibold hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none';
+
+    html = html.replace(COMMANDS_REGEX, `<button class="${btnClass}" data-cmd="$1">$1</button>`);
     html = html.replace(/<code[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/code>/gi, '$1');
     html = html.replace(/<pre[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/pre>/gi, '$1');
     html = html.replace(/<pre[^>]*>\s*<code[^>]*>(\s*<button[^>]*alysa-cmd-btn[^>]*>.*?<\/button>\s*)<\/code>\s*<\/pre>/gi, '$1');
     return html;
-  }, [processedText]);
+  }, [processedText, isDarkMode]);
 
   const handleClick = (e) => {
     const btn = e.target.closest('.alysa-cmd-btn');
@@ -436,14 +680,16 @@ const BotMessage = ({ text, onCommandSelect }) => {
   return (
     <div
       onClick={handleClick}
-      className="text-sm font-sans flex flex-col gap-1 w-full max-w-full overflow-x-auto overflow-y-hidden prose-light"
+      className={`text-sm font-sans flex flex-col gap-1 w-full max-w-full overflow-x-auto overflow-y-hidden ${isDarkMode
+          ? 'text-zinc-100 [&_p]:text-zinc-100 [&_strong]:text-white [&_li]:text-zinc-200 [&_a]:text-blue-400'
+          : 'text-gray-800 [&_p]:text-gray-800 [&_strong]:text-gray-900 [&_li]:text-gray-700 [&_a]:text-blue-600'
+        }`}
       dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );
-};
+});
 
-export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolPanel }) {
-  const [catalogTab, setCatalogTab] = useState("price");
+export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolPanel, isDarkMode = true }) {
   const [selectedAgent] = useState({ agent_name: "Alysa", role: "AI Engine" });
 
   const getInitialPhase = () => {
@@ -467,7 +713,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       try {
         const modName = (typeof window !== 'undefined' && window.location.pathname.split('/')[1]) || 'xml-pipeline';
         const tableName = 'ClientsSERVEX_General_Procces';
-        
+
         const { data } = await supabase
           .from(tableName)
           .select('xml_raw, XM_CET_import, csv_raw, csv_new_raw, xml_actualizer_raw')
@@ -475,23 +721,31 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           .maybeSingle();
 
         if (data) {
+          if (data.csv_raw && String(data.csv_raw).trim()) {
+            setDbCsvRaw(data.csv_raw);
+          }
+          const rawXml = (data.XM_CET_import && String(data.XM_CET_import).trim()) || (data.xml_raw && String(data.xml_raw).trim());
+          if (rawXml) {
+            setDbXmlRaw(rawXml);
+          }
+
           const hasXml = !!((data.xml_raw && String(data.xml_raw).trim()) || (data.XM_CET_import && String(data.XM_CET_import).trim()));
           const hasCsvBase = !!(data.csv_raw && String(data.csv_raw).trim());
           const hasCsvNew = !!(data.csv_new_raw && String(data.csv_new_raw).trim());
           const hasFinalXml = !!(data.xml_actualizer_raw && String(data.xml_actualizer_raw).trim());
 
           if (hasFinalXml) {
-             setUnlockedPhase(4);
-             localStorage.setItem('alysa_phase_' + modName, 4);
+            setUnlockedPhase(4);
+            localStorage.setItem('alysa_phase_' + modName, 4);
           } else if (hasXml && hasCsvBase && hasCsvNew) {
-             setUnlockedPhase(3);
-             localStorage.setItem('alysa_phase_' + modName, 3);
+            setUnlockedPhase(3);
+            localStorage.setItem('alysa_phase_' + modName, 3);
           } else if (hasXml) {
-             setUnlockedPhase(2);
-             localStorage.setItem('alysa_phase_' + modName, 2);
+            setUnlockedPhase(2);
+            localStorage.setItem('alysa_phase_' + modName, 2);
           } else {
-             setUnlockedPhase(1);
-             localStorage.setItem('alysa_phase_' + modName, 1);
+            setUnlockedPhase(1);
+            localStorage.setItem('alysa_phase_' + modName, 1);
           }
         }
       } catch (err) {
@@ -501,11 +755,25 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     checkDbPhase();
   }, []);
 
+  const [dbCsvRaw, setDbCsvRaw] = useState(null);
+  const [dbXmlRaw, setDbXmlRaw] = useState(null);
+
+  // Sincronización en tiempo real al modificarse o generarse la matriz Excel/CSV
+  useEffect(() => {
+    const handleMatrixUpdate = (e) => {
+      const { csvRaw } = e.detail || {};
+      if (csvRaw) {
+        setDbCsvRaw(csvRaw);
+      }
+    };
+    window.addEventListener('catalogMatrixUpdated', handleMatrixUpdate);
+    return () => window.removeEventListener('catalogMatrixUpdated', handleMatrixUpdate);
+  }, []);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [context, setContext] = useState('Servex US');
-  const [charCount, setCharCount] = useState(0);
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState(null);
 
@@ -545,7 +813,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const filteredGuideQuestions = useMemo(() => {
     return AI_GUIDE_QUESTIONS.filter(item => {
       const matchesCat = guideCategory === "all" || item.category === guideCategory;
-      const matchesSearch = !guideSearch.trim() || 
+      const matchesSearch = !guideSearch.trim() ||
         item.q.toLowerCase().includes(guideSearch.toLowerCase()) ||
         item.desc.toLowerCase().includes(guideSearch.toLowerCase()) ||
         item.tag.toLowerCase().includes(guideSearch.toLowerCase());
@@ -570,19 +838,19 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const { step } = e.detail;
       if (step === 'csv_base') {
         setMessages(prev => [
-          ...prev, 
-          { from: 'bot', text: 'XML saved successfully. Base CSV is already registered in the system. Now, please upload the Updated CSV file.', isNew: true, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }, 
+          ...prev,
+          { from: 'bot', text: 'XML saved successfully. Base CSV is already registered in the system. Now, please upload the Updated CSV file.', isNew: true, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
           { from: 'tool', toolId: 'incert_wbs_csv_new' }
         ]);
       } else if (step === 'csv_new') {
         setMessages(prev => [
-          ...prev, 
-          { from: 'bot', text: 'Base CSV saved successfully. Finally, please upload the Updated CSV file.', isNew: true, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }, 
+          ...prev,
+          { from: 'bot', text: 'Base CSV saved successfully. Finally, please upload the Updated CSV file.', isNew: true, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
           { from: 'tool', toolId: 'incert_wbs_csv_new' }
         ]);
       } else if (step === 'done') {
         setMessages(prev => [
-          ...prev, 
+          ...prev,
           { from: 'bot', text: 'All files have been saved successfully. The Ingestion process is complete.', isNew: true, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
         ]);
         updatePhase(3);
@@ -621,7 +889,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     return () => {
       ignoreSpeechRef.current = true;
       if (recognitionRef.current) {
-        try { recognitionRef.current.abort(); } catch (e) {}
+        try { recognitionRef.current.abort(); } catch (e) { }
       }
     };
   }, []);
@@ -630,14 +898,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const toggleRecording = useCallback(() => {
     if (isRecording) {
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch (e) {}
+        try { recognitionRef.current.stop(); } catch (e) { }
       }
       setIsRecording(false);
       if (currentTranscriptRef.current) {
         const polished = formatProfessionalSpeechText(currentTranscriptRef.current);
         currentTranscriptRef.current = polished;
         setInput(polished);
-        setCharCount(polished.length);
       }
       return;
     }
@@ -650,7 +917,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
     try {
       if (recognitionRef.current) {
-        try { recognitionRef.current.abort(); } catch (e) {}
+        try { recognitionRef.current.abort(); } catch (e) { }
       }
 
       const recognition = new SpeechRecognition();
@@ -688,7 +955,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const newText = speechBaseTextRef.current ? (speechBaseTextRef.current + currentSpoken) : currentSpoken;
         currentTranscriptRef.current = newText;
         setInput(newText);
-        setCharCount(newText.length);
         if (inputRef.current) {
           inputRef.current.scrollTop = inputRef.current.scrollHeight;
         }
@@ -708,7 +974,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           const polished = formatProfessionalSpeechText(currentTranscriptRef.current);
           currentTranscriptRef.current = polished;
           setInput(polished);
-          setCharCount(polished.length);
         }
       };
 
@@ -723,12 +988,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const scrollToBottom = useCallback((immediate = false) => {
     if (scrollContainerRef.current) {
       const { scrollHeight, scrollTop, clientHeight } = scrollContainerRef.current;
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
-      
-      if (immediate && !isNearBottom) return;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 250;
+
+      // Si el usuario subió haciendo scroll para leer la información, no interrumpir ni forzar abajo
+      if (!isNearBottom && !immediate) return;
 
       scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
+        top: scrollHeight,
         behavior: immediate ? "auto" : "smooth"
       });
     }
@@ -739,18 +1005,16 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const handleInputChange = (e) => {
     const val = e.target.value;
     setInput(val);
-    setCharCount(val.length);
     currentTranscriptRef.current = val;
     if (val === "/") {
       setShowSlashMenu(true);
-    } else if (!val.startsWith("/")) {
+    } else if (showSlashMenu && !val.startsWith("/")) {
       setShowSlashMenu(false);
     }
   };
 
   const handleCommandSelect = (cmdLabel) => {
     setInput("");
-    setCharCount(0);
     setShowSlashMenu(false);
     setTimeout(() => {
       sendMessage(cmdLabel);
@@ -763,7 +1027,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     speechBaseTextRef.current = "";
     currentTranscriptRef.current = "";
     if (recognitionRef.current) {
-      try { recognitionRef.current.abort(); } catch (e) {}
+      try { recognitionRef.current.abort(); } catch (e) { }
       recognitionRef.current = null;
     }
     setIsRecording(false);
@@ -774,7 +1038,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setMessages(prev => [...prev, { from: "user", text: queryToSend, time: now }]);
     setInput("");
-    setCharCount(0);
     setShowSlashMenu(false);
     setIsLoading(true);
 
@@ -934,7 +1197,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           link.click();
           link.parentNode.removeChild(link);
           window.URL.revokeObjectURL(url);
-          
+
           setMessages(prev => [...prev, { from: "bot", text: "✅ Download started. The file General Process.xml has been saved successfully.", time: nowTime }]);
         }
       } catch (err) {
@@ -948,12 +1211,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     if (queryToSend === '/createAuditor') {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       setMessages(prev => [...prev, { from: "bot", text: "📊 Generating smart audit report and publishing it to the Forum...", time: nowTime }]);
-      
+
       try {
         const modulePrefix = 'api/v1/General_Procces';
         const { data: { user } } = await supabase.auth.getUser();
         const userEmail = user?.email || 'admin@servex-us.com';
-        
+
         const response = await fetch(`${apiURL}/${modulePrefix}/api/v1/agent/create-audit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -963,7 +1226,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (!response.ok) {
           throw new Error('Audit generator response failed');
         }
-        
+
         await response.json();
         setMessages(prev => [...prev, { from: "bot", text: "✅ Audit successfully generated and published to the forum!", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       } catch (err) {
@@ -976,11 +1239,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     if (queryToSend === '/executeProcess') {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       setMessages(prev => [...prev, { from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (General Process). Please wait...", time: nowTime }]);
-      
+
       try {
         const formData = new FormData();
         formData.append('company_name', 'General_Procces');
-        
+
         const response = await fetch(`${apiURL}/api/v1/General_Procces/pipeline/compare-only`, {
           method: 'POST',
           body: formData,
@@ -989,7 +1252,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (!response.ok) {
           throw new Error('Comparison engine response failed');
         }
-        
+
         await response.json();
         setMessages(prev => [...prev, { from: "bot", text: "✅ ETL process completed successfully! The catalog has been restructured and compared. You can now review the audit in 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
         setTimeout(() => { sendMessage('/listPriceChanges'); }, 1500);
@@ -1136,6 +1399,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       ]);
 
       // ── PASO 2: Ingesta y análisis estructural en el motor de memoria ──
+      const fileText = await file.text().catch(() => '');
+      if (fileText) setDbXmlRaw(fileText);
+
       const formData = new FormData();
       formData.append('company_name', context || 'LESRO');
       formData.append('xml_file', file);
@@ -1154,6 +1420,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }
 
       const data = await res.json();
+      if (fileText) data.xml_raw = fileText;
+      if (dbCsvRaw) data.csv_raw = dbCsvRaw;
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       if (unlockedPhase < 2) updatePhase(2);
@@ -1265,9 +1533,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const renderInputCard = (isCentered = false) => {
     return (
       <div
-        className={`w-full ${
-          isCentered ? 'max-w-[760px] mx-auto shadow-[0_12px_40px_-6px_rgba(70,71,117,0.14),0_2px_10px_-2px_rgba(70,71,117,0.06)]' : 'max-w-[1000px] mx-auto shadow-sm'
-        } bg-white/80 backdrop-blur-xl border border-white/70 rounded-2xl relative focus-within:border-[#464775]/50 focus-within:ring-4 focus-within:ring-[#464775]/10 transition-all duration-300`}
+        className={`w-full ${isCentered
+          ? (isDarkMode ? 'max-w-[760px] mx-auto shadow-[0_12px_40px_-6px_rgba(0,0,0,0.65),inset_0_1px_0_0_rgba(255,255,255,0.14)]' : 'max-w-[760px] mx-auto shadow-[0_12px_40px_-6px_rgba(0,0,0,0.08),0_2px_10px_-2px_rgba(0,0,0,0.04)]')
+          : (isDarkMode ? 'max-w-[1000px] mx-auto shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)]' : 'max-w-[1000px] mx-auto shadow-md')
+          } ${isDarkMode
+            ? 'bg-[#09090b]/55 border-white/[0.12] text-white focus-within:border-white/35 focus-within:bg-[#09090b]/70 focus-within:ring-4 focus-within:ring-white/[0.06]'
+            : 'bg-white/80 border-slate-200/80 text-gray-800 focus-within:border-[#18181b]/50 focus-within:ring-4 focus-within:ring-[#18181b]/10'
+          } backdrop-blur-2xl border rounded-2xl relative transition-all duration-300`}
       >
         {/* Menú de Comandos Slash flotante sobre el Input */}
         <AnimatePresence>
@@ -1277,9 +1549,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.98 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-full bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-[0_12px_40px_rgba(70,71,117,0.12)] z-50 overflow-hidden"
+              className={`absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-full ${isDarkMode ? 'bg-[#09090b]/80 border-white/[0.12] shadow-[0_16px_40px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.1)]' : 'bg-white/95 border-slate-200/90 shadow-[0_12px_40px_rgba(0,0,0,0.06)]'} backdrop-blur-2xl border rounded-2xl z-50 overflow-hidden`}
             >
-              <div className="max-h-[280px] overflow-y-auto custom-scrollbar p-2">
+              <div className={`max-h-[280px] overflow-y-auto ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'custom-scrollbar'} p-2`}>
                 {Object.entries(
                   SLASH_COMMANDS.filter(cmd => cmd.phase <= unlockedPhase).reduce((acc, cmd) => {
                     const cat = cmd.category || 'Other Commands';
@@ -1291,17 +1563,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   <div key={category} className="mb-1.5 last:mb-0">
                     <button
                       onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
-                      className="w-full flex items-center justify-between px-2.5 py-1.5 hover:bg-slate-50 transition-colors rounded-lg text-left"
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'} transition-colors rounded-lg text-left`}
                     >
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      <span className={`text-[10px] font-bold ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} uppercase tracking-wider`}>
                         {category}
                       </span>
-                      <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${expandedCategory === category ? 'rotate-180' : ''}`} />
+                      <ChevronDown size={14} className={`${isDarkMode ? 'text-zinc-400' : 'text-slate-400'} transition-transform duration-200 ${expandedCategory === category ? 'rotate-180' : ''}`} />
                     </button>
-                    
+
                     <AnimatePresence>
                       {expandedCategory === category && (
-                        <motion.div 
+                        <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -1313,14 +1585,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                               <button
                                 key={cmd.id}
                                 onClick={() => handleCommandSelect(cmd.label)}
-                                className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-[#464775]/5 hover:text-[#464775] transition-colors text-left group"
+                                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg ${isDarkMode ? 'hover:bg-white/10 hover:text-white' : 'hover:bg-[#18181b]/5 hover:text-[#18181b]'} transition-colors text-left group`}
                               >
-                                <div className="text-slate-400 group-hover:text-[#464775] transition-colors flex-shrink-0">
+                                <div className={`${isDarkMode ? 'text-zinc-400 group-hover:text-white' : 'text-slate-400 group-hover:text-[#18181b]'} transition-colors flex-shrink-0`}>
                                   <cmd.icon size={13} strokeWidth={2} />
                                 </div>
                                 <div className="flex flex-col overflow-hidden">
-                                  <span className="text-[11.5px] font-semibold text-slate-700 group-hover:text-[#464775] truncate transition-colors">{cmd.label}</span>
-                                  <span className="text-[9.5px] text-slate-400 group-hover:text-slate-500 truncate transition-colors">{cmd.desc}</span>
+                                  <span className={`text-[11.5px] font-semibold ${isDarkMode ? 'text-zinc-200 group-hover:text-white' : 'text-slate-700 group-hover:text-[#18181b]'} truncate transition-colors`}>{cmd.label}</span>
+                                  <span className={`text-[9.5px] ${isDarkMode ? 'text-zinc-500 group-hover:text-zinc-400' : 'text-slate-400 group-hover:text-slate-500'} truncate transition-colors`}>{cmd.desc}</span>
                                 </div>
                               </button>
                             ))}
@@ -1336,31 +1608,31 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         </AnimatePresence>
 
         {/* Meta row */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#464775]">
-            <Zap size={12} className="text-[#6264A7]" />
+        <div className="flex items-center justify-between px-4 pt-3 pb-1 bg-transparent border-none rounded-t-2xl">
+          <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'}`}>
+            <Zap size={12} className={isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'} />
             <span>Engine v4.10</span>
           </div>
           {isRecording ? (
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#6264A7]/10 border border-[#6264A7]/25 text-[#464775] text-[11px] font-bold tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-[#6264A7] animate-pulse" />
+            <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${isDarkMode ? 'bg-white/15 border border-white/25 text-white' : 'bg-[#18181b]/10 border border-[#18181b]/25 text-[#18181b]'} text-[11px] font-bold tracking-wide`}>
+              <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} animate-pulse`} />
               <span>Audio Mixer Active</span>
             </div>
-          ) : charCount > 0 ? (
-            <span className="text-[10px] font-medium text-gray-500 bg-white/80 border border-gray-200/60 px-2 py-0.5 rounded-md">
-              {charCount} chars
+          ) : input.length > 0 ? (
+            <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-300 bg-white/5 border-white/10' : 'text-gray-500 bg-white/80 border-gray-200/60'} border px-2 py-0.5 rounded-md`}>
+              {input.length} chars
             </span>
           ) : null}
         </div>
 
         {/* Textarea & Icon */}
-        <div className="flex flex-col px-3.5 pt-3 pb-1 w-full">
+        <div className="flex flex-col px-3.5 pt-1.5 pb-1 w-full">
           <div className="flex items-start gap-2.5 w-full">
-            <Sparkles size={16} className={`mt-1 flex-shrink-0 transition-colors ${isRecording ? 'text-[#6264A7] animate-pulse' : 'text-[#464775]/60'}`} />
+            <Sparkles size={16} className={`mt-1 flex-shrink-0 transition-colors ${isRecording ? (isDarkMode ? 'text-white animate-pulse' : 'text-[#18181b] animate-pulse') : (isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/60')}`} />
             <textarea
               ref={inputRef}
               rows={1}
-              className="flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed min-h-[28px] max-h-[140px] overflow-y-auto caret-[#464775] font-sans"
+              className={`flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] ${isDarkMode ? 'text-zinc-100 placeholder-zinc-500 caret-white' : 'text-gray-800 placeholder-gray-400 caret-[#18181b]'} leading-relaxed min-h-[28px] max-h-[140px] overflow-y-auto font-sans`}
               placeholder={isRecording ? "Listening to your voice... Speak now..." : "Actualiza precios (ej: AS1101 a $850 o pega cambios), consulta catálogo, o escribe '/' para comandos…"}
               value={input}
               onChange={handleInputChange}
@@ -1370,22 +1642,22 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
           {/* Efecto Studio Audio Mixer a todo lo ancho del input */}
           {isRecording && (
-            <div className="w-full mt-2.5 mb-1 p-2.5 rounded-xl bg-gradient-to-r from-[#464775]/5 via-[#6264A7]/10 to-[#464775]/5 border border-[#6264A7]/20 shadow-sm animate-fadeIn">
+            <div className={`w-full mt-2.5 mb-1 p-2.5 rounded-xl ${isDarkMode ? 'bg-white/5 border border-white/15' : 'bg-gradient-to-r from-[#18181b]/5 via-[#18181b]/10 to-[#18181b]/5 border border-[#18181b]/20'} shadow-sm animate-fadeIn`}>
               <div className="flex items-center justify-between mb-1.5 px-0.5">
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6264A7] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#464775]"></span>
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} opacity-75`}></span>
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}></span>
                   </span>
-                  <span className="text-[11.5px] font-bold text-[#464775] tracking-tight">
+                  <span className={`text-[11.5px] font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} tracking-tight`}>
                     Studio Audio Mixer
                   </span>
-                  <span className="text-[11px] text-slate-500 hidden sm:inline font-medium">
+                  <span className={`text-[11px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} hidden sm:inline font-medium`}>
                     · Capturing and transcribing speech frequencies live
                   </span>
                 </div>
 
-                <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-[#6264A7]/15 text-[#6264A7] border border-[#6264A7]/20">
+                <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-white/15 text-white border-white/20' : 'bg-[#18181b]/15 text-[#18181b] border border-[#18181b]/20'} border`}>
                   Live Input
                 </span>
               </div>
@@ -1395,7 +1667,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                 {Array.from({ length: 48 }).map((_, idx) => (
                   <span
                     key={idx}
-                    className="flex-1 max-w-[5px] min-w-[2px] rounded-full bg-gradient-to-t from-[#464775] to-[#6264A7]"
+                    className={`flex-1 max-w-[5px] min-w-[2px] rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}
                     style={{
                       animation: `mixer-bar-bounce 0.85s ease-in-out infinite ${(idx * 0.038).toFixed(2)}s`,
                       opacity: 0.55 + (idx % 4) * 0.14
@@ -1426,24 +1698,24 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               disabled={isUploadingXml}
               title="Adjuntar y cargar catálogo XML maestro de CET Designer"
               onClick={() => xmlFileInputRef.current?.click()}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                isUploadingXml
-                  ? 'bg-[#464775]/10 text-[#464775] animate-pulse'
-                  : 'text-gray-400 hover:bg-gray-100 hover:text-[#464775]'
-              }`}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isUploadingXml
+                ? isDarkMode ? 'bg-white/20 text-white animate-pulse' : 'bg-[#18181b]/10 text-[#18181b] animate-pulse'
+                : isDarkMode ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'
+                }`}
             >
-              {isUploadingXml ? <RefreshCw size={16} className="animate-spin text-[#464775]" /> : <Paperclip size={17} />}
+              {isUploadingXml ? <RefreshCw size={16} className={`animate-spin ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`} /> : <Paperclip size={17} />}
             </button>
 
             <button
               type="button"
               title={isRecording ? "Stop Recording (Stop STT)" : "Voice Recording (Speech-to-Text)"}
               onClick={toggleRecording}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                isRecording
-                  ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/25 ring-2 ring-[#6264A7]/50 animate-pulse'
-                  : 'text-gray-400 hover:bg-gray-100 hover:text-[#464775]'
-              }`}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isRecording
+                ? isDarkMode
+                  ? 'bg-white text-zinc-950 shadow-md ring-2 ring-white/50 animate-pulse'
+                  : 'bg-[#18181b] text-white shadow-md shadow-[#18181b]/25 ring-2 ring-[#18181b]/50 animate-pulse'
+                : isDarkMode ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'
+                }`}
             >
               {isRecording ? <MicOff size={17} /> : <Mic size={17} />}
             </button>
@@ -1452,7 +1724,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               type="button"
               title="AI Guide & FAQ"
               onClick={() => setShowAiGuideModal(true)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-[#464775] transition-colors"
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'} transition-colors`}
             >
               <HelpCircle size={17} />
             </button>
@@ -1463,12 +1735,16 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             disabled={!input.trim() || isLoading}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
               ${input.trim() && !isLoading
-                ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/25 hover:bg-[#35365e] hover:-translate-y-px'
-                : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                ? isDarkMode
+                  ? 'bg-white text-zinc-950 shadow-md hover:bg-zinc-200 hover:-translate-y-px font-bold cursor-pointer'
+                  : 'bg-[#18181b] text-white shadow-md shadow-[#18181b]/25 hover:bg-[#27272a] hover:-translate-y-px cursor-pointer'
+                : isDarkMode
+                  ? 'bg-white/10 text-zinc-500 border border-white/10 cursor-not-allowed'
+                  : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
               }`}
           >
             {isLoading ? (
-              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className={`w-3.5 h-3.5 border-2 ${isDarkMode ? 'border-zinc-950/30 border-t-zinc-950' : 'border-white/30 border-t-white'} rounded-full animate-spin`} />
             ) : (
               <>
                 <span>Send</span>
@@ -1495,46 +1771,35 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     >
       {/* Overlay al arrastrar archivo XML */}
       {dragActiveXml && (
-        <div className="absolute inset-0 z-50 bg-[#464775]/25 backdrop-blur-sm border-2 border-dashed border-[#464775] rounded-2xl flex flex-col items-center justify-center pointer-events-none p-6 animate-fadeIn">
-          <UploadCloud size={52} className="text-[#464775] animate-bounce mb-3" />
-          <h3 className="text-base font-bold text-[#464775]">Suelta tu archivo XML maestro de CET Designer aquí</h3>
+        <div className="absolute inset-0 z-50 bg-[#18181b]/25 backdrop-blur-sm border-2 border-dashed border-[#18181b] rounded-2xl flex flex-col items-center justify-center pointer-events-none p-6 animate-fadeIn">
+          <UploadCloud size={52} className="text-[#18181b] animate-bounce mb-3" />
+          <h3 className="text-base font-bold text-[#18181b]">Suelta tu archivo XML maestro de CET Designer aquí</h3>
           <p className="text-xs text-slate-600 mt-1">El catálogo se ingerirá y desestructurará en memoria al instante sin tocar Excel</p>
         </div>
       )}
 
       {/* ── MAIN SCROLLABLE CONTAINER ── */}
-      <main ref={scrollContainerRef} className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">
+      <main
+        ref={scrollContainerRef}
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          transform: 'translateZ(0)',
+          willChange: 'scroll-position'
+        }}
+        className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent"
+      >
         {messages.length === 0 ? (
           /* ── HOME (HERO PRESENTATION & CENTERED CARD) ── */
           <div className="w-full max-w-[840px] mx-auto min-h-full flex flex-col justify-center items-center py-8 px-4">
-            {/* Hero Presentation Header */}
+            {/* Hero Presentation Header: Solo Logo SVG */}
             <motion.div
-              initial={{ opacity: 0, y: 22 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              className="text-center mb-6 w-full flex flex-col items-center"
+              className="text-center mb-8 w-full flex flex-col items-center select-none"
             >
-              <div className="flex justify-center mb-3">
-                <img src="/alysa.png" alt="Alysa Logo" className="h-20 md:h-24 w-auto object-contain drop-shadow-sm" />
-              </div>
-              <h2 className="text-[12px] md:text-[13px] text-gray-400 font-medium tracking-tight">
-                (AI Autonomous Logic &amp; Yield System Architect.)
-              </h2>
-
-              {/* Status Badges */}
-              <div className="flex items-center justify-center gap-2 flex-wrap mt-3.5">
-                <span className="text-[11px] font-semibold text-[#464775] bg-[#464775]/10 border border-[#464775]/20 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-                  <Shield size={12} className="text-[#464775]" />
-                  Root Presenter
-                </span>
-                <span className="text-[11px] font-medium text-slate-600 bg-white/70 border border-slate-200/80 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-                  <Activity size={12} className="text-[#6264A7]" />
-                  Accuracy 99.9%
-                </span>
-                <span className="text-[11px] font-medium text-slate-600 bg-white/70 border border-slate-200/80 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-                  <Zap size={12} className="text-[#6264A7]" />
-                  Real-time Sync
-                </span>
+              <div className="flex items-center justify-center transition-transform duration-300 hover:scale-[1.02]">
+                <AlysaWordmark className="h-16 sm:h-20 md:h-24 w-auto text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.35)]" />
               </div>
             </motion.div>
 
@@ -1560,12 +1825,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   key={label}
                   onClick={() => sendMessage(q)}
                   title={q}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/70 backdrop-blur-md border border-white/80 hover:border-[#464775]/40 hover:bg-white hover:-translate-y-0.5 hover:shadow-sm transition-all duration-200 group text-[12px] text-gray-700 shadow-[0_2px_8px_-2px_rgba(70,71,117,0.06)]"
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl ${isDarkMode ? 'bg-[#09090b]/50 border-white/10 hover:border-white/30 hover:bg-white/[0.08] text-zinc-300 hover:text-white shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-white/70 border-white/80 hover:border-[#18181b]/40 hover:bg-white text-gray-700 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)]'} backdrop-blur-xl border hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group text-[12px] cursor-pointer`}
                 >
-                  <div className="w-5 h-5 rounded-md bg-[#464775]/10 flex items-center justify-center text-[#464775] group-hover:bg-[#464775]/20 transition-colors flex-shrink-0">
+                  <div className={`w-5 h-5 rounded-md ${isDarkMode ? 'bg-white/10 text-white group-hover:bg-white/20' : 'bg-[#18181b]/10 text-[#18181b] group-hover:bg-[#18181b]/20'} flex items-center justify-center transition-colors flex-shrink-0`}>
                     <Icon size={12} />
                   </div>
-                  <span className="font-semibold text-gray-800 whitespace-nowrap">{label}</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'} whitespace-nowrap`}>{label}</span>
                 </button>
               ))}
             </motion.div>
@@ -1574,7 +1839,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.35, duration: 0.5 }}
-              className="text-center mt-6 text-[10.5px] text-gray-400 tracking-wide"
+              className={`text-center mt-6 text-[10.5px] ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'} tracking-wide`}
             >
               © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
             </motion.p>
@@ -1586,17 +1851,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               <AnimatePresence initial={false}>
                 {messages.map((msg, idx) => {
                   const isUser = msg.from === 'user';
+                  const msgKey = msg.id || `msg-${idx}`;
                   return (
                     <motion.div
-                      layout
-                      key={idx}
-                      initial={{ opacity: 0, y: 20, x: isUser ? 20 : -20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+                      key={msgKey}
+                      initial={{ opacity: 0, y: 14, x: isUser ? 12 : -12 }}
+                      animate={{ opacity: 1, y: 0, x: 0 }}
                       transition={{
-                        duration: 0.5,
-                        ease: [0.23, 1, 0.32, 1],
-                        layout: { duration: 0.3, ease: "easeOut" }
+                        duration: 0.35,
+                        ease: [0.23, 1, 0.32, 1]
                       }}
+                      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 80px' }}
                       className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
                       {msg.from === 'tool' ? (
@@ -1611,9 +1876,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           {isUser ? (
                             <motion.div
                               whileHover={{ scale: 1.05, rotate: 5 }}
-                              className="relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10 bg-slate-100 text-slate-600 border border-slate-200"
+                              className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10 ${isDarkMode ? 'bg-white/10 text-white border border-white/20' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}
                             >
-                              <User size={15} className="text-slate-600" />
+                              <User size={15} className={isDarkMode ? 'text-white' : 'text-slate-600'} />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -1625,27 +1890,32 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           )}
 
                           {/* Bubble column */}
-                          <div className={`flex flex-col min-w-0 max-w-[88%] md:max-w-[85%] gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
+                          <div className={`flex flex-col min-w-0 ${msg.uploadSummary || msg.isProcessingConsole ? 'max-w-[96%] md:max-w-[94%]' : 'max-w-[88%] md:max-w-[85%]'} gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
                             <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                               {isUser && (
-                                <span className="text-[12px] font-semibold text-gray-800">
+                                <span className={`text-[12px] font-semibold ${isDarkMode ? 'text-zinc-200' : 'text-gray-800'}`}>
                                   You
                                 </span>
                               )}
-                              <span className="text-[10px] text-gray-400">{msg.time}</span>
+                              <span className={`text-[10px] ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>{msg.time}</span>
                             </div>
 
-                            <motion.div
-                              whileHover={{ y: -1 }}
+                            <div
                               className={`text-[13.5px] leading-relaxed relative break-words min-w-0
                               ${isUser
-                                  ? 'px-4 py-3 rounded-2xl shadow-sm bg-[#464775] text-white rounded-tr-sm border border-[#464775]'
-                                  : 'py-2 text-gray-800 w-full overflow-hidden'
+                                  ? isDarkMode
+                                    ? 'px-4 py-3 rounded-2xl shadow-md bg-zinc-100 text-zinc-950 rounded-tr-sm border border-zinc-200 font-medium'
+                                    : 'px-4 py-3 rounded-2xl shadow-sm bg-[#18181b] text-white rounded-tr-sm border border-[#18181b]'
+                                  : 'w-full space-y-3'
                                 }`}
                             >
                               {msg.from === "bot" ? (
                                 <>
-                                  <BotMessage text={msg.text} onCommandSelect={handleCommandSelect} />
+                                  {msg.text && (
+                                    <div className={`px-4 py-3.5 rounded-2xl shadow-sm backdrop-blur-md rounded-tl-sm w-full ${isDarkMode ? 'bg-[#09090b]/80 border border-white/10 text-zinc-100 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-white/90 border border-slate-200/90 text-gray-800'}`}>
+                                      <BotMessage text={msg.text} onCommandSelect={handleCommandSelect} isDarkMode={isDarkMode} />
+                                    </div>
+                                  )}
 
                                   {/* ── CONSOLA DE PROCESAMIENTO EN TIEMPO REAL ── */}
                                   {msg.isProcessingConsole && (
@@ -1653,314 +1923,37 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                       fileName={msg.processFileName || 'catalogo.xml'}
                                       isCompleted={msg.processCompleted}
                                       summary={msg.processSummary}
+                                      isDarkMode={isDarkMode}
                                     />
                                   )}
 
-                                  {/* ── REPORTE DE INGESTIÓN XML DIRECTO EN EL CHAT ── */}
+                                  {/* ── REPORTE CONVERSACIONAL DE INGESTIÓN XML (PROCESOS GUIADOS POR IA) ── */}
                                   {msg.uploadSummary && (
-                                    <div className="mt-3 border border-[#464775]/25 rounded-2xl overflow-hidden shadow-xs bg-white/95 backdrop-blur-xs">
-                                      <div className="p-3.5 bg-gradient-to-r from-[#464775]/12 via-[#464775]/6 to-transparent border-b border-[#464775]/15 flex flex-wrap items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                          <FileCode2 size={16} className="text-[#464775]" />
-                                          <span className="font-bold text-xs text-[#464775] font-sans">
-                                            Catálogo Maestro: {msg.uploadSummary.catalog_name || msg.uploadSummary.file_name}
-                                          </span>
-                                        </div>
-                                        <span className="px-2 py-0.5 rounded-full bg-[#464775] text-white text-[9.5px] font-mono font-bold shadow-xs">
-                                          {msg.uploadSummary.file_size_kb || 0} KB · Listo en Memoria
-                                        </span>
-                                      </div>
-
-                                      <div className="p-3 bg-white/60 space-y-3">
-                                        {/* 4 Métricas Principales */}
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
-                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                              SKUs Base
-                                            </span>
-                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                              {msg.uploadSummary.total_products?.toLocaleString() || msg.uploadSummary.base_skus || 0}
-                                            </span>
-                                          </div>
-                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
-                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                              Features
-                                            </span>
-                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                              {msg.uploadSummary.total_features?.toLocaleString() || msg.uploadSummary.features_count || 0}
-                                            </span>
-                                          </div>
-                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
-                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                              Opciones
-                                            </span>
-                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                              {msg.uploadSummary.total_options?.toLocaleString() || msg.uploadSummary.options || 0}
-                                            </span>
-                                          </div>
-                                          <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8 ">
-                                            <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                              Integridad
-                                            </span>
-                                            <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                              {msg.uploadSummary.integrity || '100% CET'}
-                                            </span>
-                                          </div>
-                                        </div>
-
-                                        {/* Sección Clasificada de Características y Opciones del Catálogo */}
-                                        {((msg.uploadSummary.price_options_list && msg.uploadSummary.price_options_list.length > 0) ||
-                                          (msg.uploadSummary.physical_components_list && msg.uploadSummary.physical_components_list.length > 0) ||
-                                          (msg.uploadSummary.finishes_list && msg.uploadSummary.finishes_list.length > 0) ||
-                                          (msg.uploadSummary.features_list && msg.uploadSummary.features_list.length > 0)) && (
-                                          <div className="p-3 bg-[#464775]/4 rounded-xl border border-[#464775]/15 space-y-2.5">
-                                            {/* Segmented Tab Controls */}
-                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#464775]/15 pb-2">
-                                              <div className="flex items-center gap-1.5">
-                                                <Layers size={13} className="text-[#464775]" />
-                                                <span className="text-[10.5px] font-bold text-[#464775] uppercase tracking-wider font-sans">
-                                                  Estructura del Catálogo
-                                                </span>
-                                              </div>
-                                              <div className="flex flex-wrap items-center gap-1 bg-[#464775]/10 p-0.5 rounded-lg border border-[#464775]/20">
-                                                <button
-                                              type="button"
-                                              onClick={() => setCatalogTab('price')}
-                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                catalogTab === 'price'
-                                                  ? 'bg-[#464775] text-white shadow-2xs'
-                                                  : 'text-[#464775] hover:bg-[#464775]/10'
-                                              }`}
-                                            >
-                                              <Tag size={11} className={catalogTab === 'price' ? 'text-white' : 'text-[#464775]'} />
-                                              <span>Opciones de Precio</span>
-                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'price' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
-                                                {msg.uploadSummary.total_price_options || msg.uploadSummary.price_options_list?.length || 0}
-                                              </span>
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => setCatalogTab('physical')}
-                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                catalogTab === 'physical'
-                                                  ? 'bg-[#464775] text-white shadow-2xs'
-                                                  : 'text-[#464775] hover:bg-[#464775]/10'
-                                              }`}
-                                            >
-                                              <Sliders size={11} className={catalogTab === 'physical' ? 'text-white' : 'text-[#464775]'} />
-                                              <span>Componentes por Modelo</span>
-                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'physical' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
-                                                {msg.uploadSummary.total_physical_components || msg.uploadSummary.physical_components_list?.length || 0}
-                                              </span>
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => setCatalogTab('finishes')}
-                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                catalogTab === 'finishes'
-                                                  ? 'bg-[#464775] text-white shadow-2xs'
-                                                  : 'text-[#464775] hover:bg-[#464775]/10'
-                                              }`}
-                                            >
-                                              <Palette size={11} className={catalogTab === 'finishes' ? 'text-white' : 'text-[#464775]'} />
-                                              <span>Telas y Acabados Base</span>
-                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'finishes' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
-                                                {msg.uploadSummary.total_finishes || msg.uploadSummary.finishes_list?.length || 0}
-                                              </span>
-                                            </button>
-                                              </div>
-                                            </div>
-
-                                            {/* Pestaña: Opciones de Precio */}
-                                            {catalogTab === 'price' && (
-                                              <div>
-                                                <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
-                                                  <strong>Opciones de Precio (&lt;OptionPrice&gt;):</strong> Opciones comerciales que modifican o incrementan el precio final del producto según la configuración elegida.
-                                                </p>
-                                                <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
-                                                  {(msg.uploadSummary.price_options_list && msg.uploadSummary.price_options_list.length > 0
-                                                    ? msg.uploadSummary.price_options_list
-                                                    : msg.uploadSummary.features_list || []
-                                                  ).map((opt, oIdx) => (
-                                                    <span
-                                                      key={oIdx}
-                                                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
-                                                      title={`${opt.code}: ${opt.name} ${opt.price && opt.price !== '0' ? `(+$${opt.price} USD)` : ''} ${opt.feature_name ? `• ${opt.feature_name}` : ''}`}
-                                                    >
-                                                      <strong className="font-mono font-bold text-[#464775]">{opt.code}</strong>
-                                                      <span className="text-[#464775]/80 font-medium truncate max-w-[150px]">{opt.name}</span>
-                                                      {opt.price && opt.price !== '0' ? (
-                                                        <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                          +${opt.price}
-                                                        </span>
-                                                      ) : opt.options_count ? (
-                                                        <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                          {opt.options_count} opts
-                                                        </span>
-                                                      ) : null}
-                                                    </span>
-                                                  ))}
-                                                  {((msg.uploadSummary.total_price_options || 0) > (msg.uploadSummary.price_options_list?.length || 0)) && (
-                                                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
-                                                      +{((msg.uploadSummary.total_price_options || 0) - (msg.uploadSummary.price_options_list?.length || 0)).toLocaleString()} más en el catálogo maestro
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {/* Pestaña: Componentes Físicos por Modelo */}
-                                            {catalogTab === 'physical' && (
-                                              <div>
-                                                <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
-                                                  <strong>Componentes Físicos por Modelo:</strong> Menús de apoyabrazos, patas, bases y accesorios compatibles según la serie o dimensiones específicas de cada mueble.
-                                                </p>
-                                                <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
-                                                  {(msg.uploadSummary.physical_components_list && msg.uploadSummary.physical_components_list.length > 0
-                                                    ? msg.uploadSummary.physical_components_list
-                                                    : msg.uploadSummary.features_list || []
-                                                  ).map((feat, fIdx) => (
-                                                    <span
-                                                      key={fIdx}
-                                                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
-                                                      title={`${feat.code}: ${feat.name} (${feat.options_count} tipos para este modelo)`}
-                                                    >
-                                                      <strong className="font-mono font-bold text-[#464775]">{feat.code}</strong>
-                                                      <span className="text-[#464775]/80 font-medium truncate max-w-[140px]">{feat.name}</span>
-                                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                        {feat.options_count} tipos para este modelo
-                                                      </span>
-                                                    </span>
-                                                  ))}
-                                                  {((msg.uploadSummary.total_physical_components || 0) > (msg.uploadSummary.physical_components_list?.length || 0)) && (
-                                                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
-                                                      +{((msg.uploadSummary.total_physical_components || 0) - (msg.uploadSummary.physical_components_list?.length || 0)).toLocaleString()} más en el catálogo maestro
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            {/* Pestaña: Telas y Acabados Base */}
-                                            {catalogTab === 'finishes' && (
-                                              <div>
-                                                <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
-                                                  <strong>Telas, Colores y Materiales Base:</strong> Colecciones de telas, pinturas y acabados visuales que vienen incluidos a costo estándar ($0).
-                                                </p>
-                                                <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
-                                                  {(msg.uploadSummary.finishes_list && msg.uploadSummary.finishes_list.length > 0
-                                                    ? msg.uploadSummary.finishes_list
-                                                    : msg.uploadSummary.features_list || []
-                                                  ).map((feat, fIdx) => (
-                                                    <span
-                                                      key={fIdx}
-                                                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
-                                                      title={`${feat.code}: ${feat.name} (${feat.options_count} colores/acabados)`}
-                                                    >
-                                                      <strong className="font-mono font-bold text-[#464775]">{feat.code}</strong>
-                                                      <span className="text-[#464775]/80 font-medium truncate max-w-[140px]">{feat.name}</span>
-                                                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                        {feat.options_count} colores/acabados
-                                                      </span>
-                                                    </span>
-                                                  ))}
-                                                  {((msg.uploadSummary.total_finishes || 0) > (msg.uploadSummary.finishes_list?.length || 0)) && (
-                                                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
-                                                      +{((msg.uploadSummary.total_finishes || 0) - (msg.uploadSummary.finishes_list?.length || 0)).toLocaleString()} más en el catálogo maestro
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-
-                                        {/* Ejemplo de Estructura de Producto en el Catálogo */}
-                                        {msg.uploadSummary.sample_product_example && (
-                                          <div className="p-3 bg-white/90 rounded-xl border border-[#464775]/20 shadow-2xs">
-                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#464775]/15 pb-2">
-                                              <div className="flex items-center gap-2">
-                                                <Box size={14} className="text-[#464775]" />
-                                                <span className="text-[10.5px] font-bold text-[#464775] uppercase tracking-wider font-sans">
-                                                  Ejemplo de Producto en Memoria
-                                                </span>
-                                              </div>
-                                              <div className="flex items-center gap-2">
-                                                <span className="px-2 py-0.5 rounded-lg bg-[#464775] text-white text-[10.5px] font-mono font-bold shadow-2xs">
-                                                  SKU: {msg.uploadSummary.sample_product_example.sku}
-                                                </span>
-                                                <span className="px-2 py-0.5 rounded-lg bg-[#464775]/10 text-[#464775] border border-[#464775]/20 text-[10.5px] font-mono font-bold">
-                                                  Precio Base: ${msg.uploadSummary.sample_product_example.base_price || '0'}
-                                                </span>
-                                              </div>
-                                            </div>
-
-                                            <p className="text-[11px] text-[#464775]/85 font-medium mt-2">
-                                              {msg.uploadSummary.sample_product_example.description || 'Producto configurado en CET Designer'}
-                                            </p>
-
-                                            {msg.uploadSummary.sample_product_example.features && msg.uploadSummary.sample_product_example.features.length > 0 && (
-                                              <div className="mt-2.5 space-y-2">
-                                                <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                                  Árbol de Features y Opciones Vinculadas al Producto:
-                                                </span>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                  {msg.uploadSummary.sample_product_example.features.map((feat, featIdx) => (
-                                                    <div
-                                                      key={featIdx}
-                                                      className="p-2 bg-[#464775]/5 rounded-lg border border-[#464775]/15 text-left"
-                                                    >
-                                                      <div className="flex items-center justify-between gap-1 mb-1">
-                                                        <span className="font-mono font-bold text-[10.5px] text-[#464775]">
-                                                          {feat.feature_code}
-                                                        </span>
-                                                        <span className="text-[9px] font-mono text-[#464775]/80 bg-[#464775]/10 px-1.5 py-0.2 rounded font-semibold">
-                                                          {feat.total_options || feat.options?.length || 0} opciones
-                                                        </span>
-                                                      </div>
-                                                      <p className="text-[10px] text-[#464775]/80 font-medium truncate mb-1.5" title={feat.feature_name}>
-                                                        {feat.feature_name}
-                                                      </p>
-                                                      {feat.options && feat.options.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1">
-                                                          {feat.options.map((opt, optIdx) => (
-                                                            <span
-                                                              key={optIdx}
-                                                              className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-white text-[#464775] border border-[#464775]/20 shadow-2xs"
-                                                              title={`${opt.code} - ${opt.description} (${Number(opt.current_price) > 0 ? '+$' + opt.current_price : '+$0'})`}
-                                                            >
-                                                              {opt.code}
-                                                              {Number(opt.current_price) > 0 && (
-                                                                <span className="font-bold ml-1 text-[#464775]">
-                                                                  +${opt.current_price}
-                                                                </span>
-                                                              )}
-                                                            </span>
-                                                          ))}
-                                                        </div>
-                                                      )}
-                                                    </div>
-                                                  ))}
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
+                                    <AiCatalogIngestionReport
+                                      summary={msg.uploadSummary}
+                                      csvRaw={dbCsvRaw || msg.uploadSummary?.csv_raw}
+                                      xmlRaw={dbXmlRaw || msg.uploadSummary?.xml_raw}
+                                      getCatalogExcelColumns={getCatalogExcelColumns}
+                                      onCommandSelect={(cmd) => setInput(cmd)}
+                                      time={msg.time}
+                                      isDarkMode={isDarkMode}
+                                    />
                                   )}
 
                                   {/* ── UPLOADER INLINE CUANDO SE REQUIERE XML ── */}
                                   {msg.needs_upload && (
                                     <div
                                       onClick={() => xmlFileInputRef.current?.click()}
-                                      className="mt-3 p-4 border-2 border-dashed border-[#464775]/40 hover:border-[#464775] rounded-2xl bg-[#464775]/5 hover:bg-[#464775]/10 transition-all text-center cursor-pointer group"
+                                      className={`mt-3 p-4 border-2 border-dashed rounded-2xl backdrop-blur-xl transition-all text-center cursor-pointer group shadow-sm ${isDarkMode
+                                          ? 'border-white/15 hover:border-white/40 bg-[#09090b]/55 hover:bg-[#09090b]/75 text-zinc-200'
+                                          : 'border-slate-300 hover:border-slate-800 bg-white/75 hover:bg-white/90 text-slate-800'
+                                        }`}
                                     >
-                                      <UploadCloud size={28} className="mx-auto text-[#464775] mb-1.5 group-hover:scale-110 transition-transform" />
-                                      <h4 className="text-xs font-bold text-[#464775]">
+                                      <UploadCloud size={28} className={`mx-auto mb-1.5 group-hover:scale-110 transition-transform ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`} />
+                                      <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
                                         Arrastra o haz clic para subir tu catálogo XML maestro
                                       </h4>
-                                      <p className="text-[10.5px] text-slate-500 mt-0.5">
+                                      <p className={`text-[10.5px] mt-0.5 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                                         Formatos soportados: .xml de CET Designer o Catalog Creator. Se montará al instante en memoria.
                                       </p>
                                     </div>
@@ -1968,19 +1961,19 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                   {/* ── STAGING BOARD & XML DIFF PREVIEW ── */}
                                   {msg.staged_result && msg.staged_result.items && msg.staged_result.items.length > 0 && (
-                                    <div className="mt-4 border border-[#464775]/25 rounded-2xl overflow-hidden shadow-xs bg-white/95 backdrop-blur-xs">
-                                      <div className="p-3.5 bg-gradient-to-r from-[#464775]/12 via-[#464775]/6 to-transparent border-b border-[#464775]/15 flex flex-wrap items-center justify-between gap-2">
+                                    <div className={`mt-4 border rounded-2xl overflow-hidden shadow-xs backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-[#09090b]/80 text-zinc-100' : 'border-[#18181b]/25 bg-white/95 text-slate-700'}`}>
+                                      <div className={`p-3.5 border-b flex flex-wrap items-center justify-between gap-2 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-r from-[#18181b]/12 via-[#18181b]/6 to-transparent border-[#18181b]/15'}`}>
                                         <div>
                                           <div className="flex items-center gap-1.5">
-                                            <Table size={14} className="text-[#464775]" />
-                                            <h4 className="text-xs font-bold text-[#464775] uppercase tracking-wider font-sans">
+                                            <Table size={14} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
+                                            <h4 className={`text-xs font-bold uppercase tracking-wider font-sans ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
                                               Surgical Staging & XML Diff Board
                                             </h4>
-                                            <span className="px-2 py-0.5 rounded-full bg-[#464775] text-white text-[9.5px] font-mono font-bold shadow-xs">
+                                            <span className={`px-2 py-0.5 rounded-full text-[9.5px] font-mono font-bold shadow-xs ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'}`}>
                                               {msg.staged_result.items.length} Cambios
                                             </span>
                                           </div>
-                                          <p className="text-[11px] text-[#464775]/75 mt-0.5 font-medium">
+                                          <p className={`text-[11px] mt-0.5 font-medium ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'}`}>
                                             Previsualización en memoria. Confirma para inyectar directamente en el XML maestro.
                                           </p>
                                         </div>
@@ -1988,11 +1981,10 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                         <button
                                           onClick={() => handleCommitStaged(idx, msg.staged_result.items)}
                                           disabled={isCommitting || msg.committed}
-                                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs flex items-center gap-1.5 ${
-                                            msg.committed
-                                              ? 'bg-[#464775]/90 hover:bg-[#464775]'
-                                              : 'bg-[#464775] hover:bg-[#38395f] active:scale-[0.98]'
-                                          } disabled:opacity-60 cursor-pointer`}
+                                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 ${msg.committed
+                                            ? isDarkMode ? 'bg-white/10 text-zinc-400 hover:bg-white/20' : 'bg-[#18181b]/90 hover:bg-[#18181b] text-white'
+                                            : isDarkMode ? 'bg-white text-zinc-950 hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'
+                                            } disabled:opacity-60 cursor-pointer`}
                                         >
                                           {isCommitting ? (
                                             <>
@@ -2001,7 +1993,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                             </>
                                           ) : msg.committed ? (
                                             <>
-                                              <CheckCheck size={13} className="text-purple-200" />
+                                              <CheckCheck size={13} className={isDarkMode ? 'text-zinc-400' : 'text-zinc-300'} />
                                               ¡XML Actualizado!
                                             </>
                                           ) : (
@@ -2013,9 +2005,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                         </button>
                                       </div>
 
-                                      <div className="overflow-x-auto max-h-[380px] scrollbar-thin">
-                                        <table className="w-full text-left text-xs text-slate-700">
-                                          <thead className="bg-[#464775]/5 sticky top-0 z-10 border-b border-[#464775]/15 text-[#464775] font-bold text-[10px] uppercase tracking-wider">
+                                      <div className={`overflow-x-auto max-h-[380px] ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'scrollbar-thin'}`}>
+                                        <table className={`w-full text-left text-xs ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
+                                          <thead className={`${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-[#18181b]/5 border-[#18181b]/15 text-[#18181b]'} sticky top-0 z-10 border-b font-bold text-[10px] uppercase tracking-wider`}>
                                             <tr>
                                               <th className="px-3.5 py-2.5">SKU / Nodo</th>
                                               <th className="px-3.5 py-2.5">Tipo de Nodo</th>
@@ -2026,7 +2018,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                               <th className="px-3.5 py-2.5 text-center">Estado</th>
                                             </tr>
                                           </thead>
-                                          <tbody className="divide-y divide-[#464775]/10">
+                                          <tbody className={`divide-y ${isDarkMode ? 'divide-white/10' : 'divide-[#18181b]/10'}`}>
                                             {msg.staged_result.items.map((item, itemIdx) => {
                                               const isOption = String(item.target_type || item.type || '').toLowerCase().includes('option');
                                               const isMatched = item.status === 'MATCHED' || (!item.status && item.old_price != null);
@@ -2035,55 +2027,54 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                               return (
                                                 <tr
                                                   key={itemIdx}
-                                                  className="transition-colors hover:bg-[#464775]/5"
+                                                  className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-[#18181b]/5'}`}
                                                 >
-                                                  <td className="px-3.5 py-2.5 font-mono font-bold text-[#464775] text-xs">
+                                                  <td className={`px-3.5 py-2.5 font-mono font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} text-xs`}>
                                                     {item.sku}
                                                   </td>
                                                   <td className="px-3.5 py-2.5">
                                                     <span
-                                                      className={`inline-block px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold ${
-                                                        isOption
-                                                          ? 'bg-[#6264A7]/15 text-[#464775] border border-[#6264A7]/25'
-                                                          : 'bg-[#464775]/10 text-[#464775] border border-[#464775]/20'
-                                                      }`}
+                                                      className={`inline-block px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold ${isOption
+                                                        ? isDarkMode ? 'bg-white/15 text-white border border-white/25' : 'bg-[#18181b]/15 text-[#18181b] border border-[#18181b]/25'
+                                                        : isDarkMode ? 'bg-white/10 text-zinc-300 border border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border border-[#18181b]/20'
+                                                        }`}
                                                     >
                                                       {isOption ? '<OptionPrice>' : '<Price>'}
                                                     </span>
                                                   </td>
                                                   <td
-                                                    className="px-3.5 py-2.5 text-[11px] text-[#464775]/80 max-w-[140px] truncate font-medium"
+                                                    className={`px-3.5 py-2.5 text-[11px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} max-w-[140px] truncate font-medium`}
                                                     title={item.matched_option_name || item.option_name || item.option_code || item.option}
                                                   >
                                                     {item.matched_option_name || item.option_name || item.option_code || item.option || 'Precio Base'}
                                                   </td>
-                                                  <td className="px-3.5 py-2.5 text-right font-mono text-[#464775]/60 text-xs">
-                                                    {item.old_price != null ? `$${item.old_price}` : <span className="text-[#464775]/40">—</span>}
+                                                  <td className={`px-3.5 py-2.5 text-right font-mono ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/60'} text-xs`}>
+                                                    {item.old_price != null ? `$${item.old_price}` : <span className={isDarkMode ? 'text-zinc-600' : 'text-[#18181b]/40'}>—</span>}
                                                   </td>
-                                                  <td className="px-3.5 py-2.5 text-right font-mono font-bold text-[#464775] text-xs">
+                                                  <td className={`px-3.5 py-2.5 text-right font-mono font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} text-xs`}>
                                                     ${item.new_price != null ? item.new_price : item.new_value}
                                                   </td>
-                                                  <td className="px-3.5 py-2.5 text-right font-mono font-bold text-xs text-[#464775]">
+                                                  <td className={`px-3.5 py-2.5 text-right font-mono font-bold text-xs ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
                                                     {pct != null ? (
-                                                      <span className="bg-[#464775]/10 px-1.5 py-0.5 rounded text-[#464775]">
+                                                      <span className={`${isDarkMode ? 'bg-white/15 text-white' : 'bg-[#18181b]/10 text-[#18181b]'} px-1.5 py-0.5 rounded`}>
                                                         {isPositive ? `+${pct}%` : `${pct}%`}
                                                       </span>
                                                     ) : (
-                                                      <span className="text-[#464775]/40 font-normal">—</span>
+                                                      <span className={`${isDarkMode ? 'text-zinc-600' : 'text-[#18181b]/40'} font-normal`}>—</span>
                                                     )}
                                                   </td>
                                                   <td className="px-3.5 py-2.5 text-center">
                                                     {isMatched ? (
-                                                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#464775] bg-[#464775]/12 px-2 py-0.5 rounded-full border border-[#464775]/25">
-                                                        <CheckCircle2 size={10} className="text-[#464775]" />
+                                                      <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/12 border-[#18181b]/25'} px-2 py-0.5 rounded-full border`}>
+                                                        <CheckCircle2 size={10} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
                                                         Verificado
                                                       </span>
                                                     ) : (
                                                       <span
-                                                        className="inline-flex items-center gap-1 text-[10px] font-medium text-[#6264A7] bg-[#6264A7]/10 px-2 py-0.5 rounded-full border border-[#6264A7]/20"
+                                                        className={`inline-flex items-center gap-1 text-[10px] font-medium ${isDarkMode ? 'text-zinc-400 bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} px-2 py-0.5 rounded-full border`}
                                                         title={item.reason}
                                                       >
-                                                        <AlertCircle size={10} className="text-[#6264A7]" />
+                                                        <AlertCircle size={10} className={isDarkMode ? 'text-zinc-400' : 'text-[#18181b]'} />
                                                         No en XML
                                                       </span>
                                                     )}
@@ -2095,14 +2086,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                         </table>
                                       </div>
 
-                                      <div className="p-2.5 bg-[#464775]/5 border-t border-[#464775]/15 flex items-center justify-between">
-                                        <span className="text-[10.5px] text-[#464775]/80 font-medium">
-                                          Catálogo: <strong className="text-[#464775]">{context || 'General Process'}</strong>
+                                      <div className={`p-2.5 border-t flex items-center justify-between ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-[#18181b]/5 border-[#18181b]/15'}`}>
+                                        <span className={`text-[10.5px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} font-medium`}>
+                                          Catálogo: <strong className={isDarkMode ? 'text-white' : 'text-[#18181b]'}>{context || 'General Process'}</strong>
                                         </span>
                                         {msg.committed && (
                                           <button
                                             onClick={handleDownloadXml}
-                                            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#464775] hover:bg-[#38395f] text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer"
+                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-[11px] font-bold shadow-xs transition-all cursor-pointer`}
                                           >
                                             <Download size={12} />
                                             Descargar XML Actualizado
@@ -2114,23 +2105,23 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                   {/* ── CARD DIRECTA DE DESCARGA FINAL EN EL CHAT ── */}
                                   {msg.showDownloadCard && (
-                                    <div className="mt-3 p-3.5 bg-[#464775]/6 border border-[#464775]/20 rounded-2xl flex items-center justify-between">
+                                    <div className={`mt-3 p-3.5 border rounded-2xl flex items-center justify-between ${isDarkMode ? 'bg-[#09090b]/65 border-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-[#18181b]/6 border-[#18181b]/20'}`}>
                                       <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-xl bg-[#464775] text-white flex items-center justify-center shadow-xs">
+                                        <div className={`w-8 h-8 rounded-xl ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs`}>
                                           <CheckCheck size={16} />
                                         </div>
                                         <div>
-                                          <h4 className="text-xs font-bold text-[#464775]">
+                                          <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
                                             Catálogo XML Certificado y Actualizado
                                           </h4>
-                                          <p className="text-[10.5px] text-[#464775]/75 font-medium">
+                                          <p className={`text-[10.5px] ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'} font-medium`}>
                                             Listo para importar directamente en CET Designer sin errores de formato.
                                           </p>
                                         </div>
                                       </div>
                                       <button
                                         onClick={handleDownloadXml}
-                                        className="px-3.5 py-1.5 bg-[#464775] hover:bg-[#38395f] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                                        className={`px-3.5 py-1.5 ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer`}
                                       >
                                         <Download size={13} />
                                         Descargar .XML
@@ -2146,21 +2137,21 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                   const isError = msg.uploadStatus === "error";
 
                                   return (
-                                    <div className="space-y-2 text-white min-w-[240px] sm:min-w-[280px]">
+                                    <div className={`space-y-2 ${isDarkMode ? 'text-zinc-950' : 'text-white'} min-w-[240px] sm:min-w-[280px]`}>
                                       <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
-                                          <FileCode2 size={16} className="text-white" />
+                                        <div className={`w-8 h-8 rounded-lg ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/15'} flex items-center justify-center shrink-0`}>
+                                          <FileCode2 size={16} className={isDarkMode ? 'text-zinc-950' : 'text-white'} />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                          <span className="text-[11px] font-medium text-white/80 block leading-tight">
+                                          <span className={`text-[11px] font-medium ${isDarkMode ? 'text-zinc-700' : 'text-white/80'} block leading-tight`}>
                                             Archivo XML adjunto para ingestión:
                                           </span>
                                           <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                                            <span className="font-mono font-bold text-xs bg-white/20 px-2 py-0.5 rounded text-white tracking-wide">
+                                            <span className={`font-mono font-bold text-xs ${isDarkMode ? 'bg-zinc-900/10 text-zinc-950' : 'bg-white/20 text-white'} px-2 py-0.5 rounded tracking-wide`}>
                                               {fnMatch}
                                             </span>
                                             {sizeMatch && (
-                                              <span className="text-[10.5px] font-mono text-white/75">
+                                              <span className={`text-[10.5px] font-mono ${isDarkMode ? 'text-zinc-600' : 'text-white/75'}`}>
                                                 ({sizeMatch} KB)
                                               </span>
                                             )}
@@ -2170,7 +2161,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                       {/* Barra de progreso interactiva */}
                                       <div className="pt-1">
-                                        <div className="w-full bg-white/20 rounded-full h-1.5 overflow-hidden">
+                                        <div className={`w-full ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/20'} rounded-full h-1.5 overflow-hidden`}>
                                           <motion.div
                                             initial={{ width: "25%" }}
                                             animate={{
@@ -2180,36 +2171,35 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                               duration: isUploading ? 1.5 : 0.4,
                                               ease: "easeOut"
                                             }}
-                                            className={`h-full rounded-full ${
-                                              isError
-                                                ? "bg-rose-300"
-                                                : isUploading
-                                                ? "bg-white/80 animate-pulse"
-                                                : "bg-white"
-                                            }`}
+                                            className={`h-full rounded-full ${isError
+                                              ? "bg-rose-500"
+                                              : isUploading
+                                                ? isDarkMode ? "bg-zinc-900/80 animate-pulse" : "bg-white/80 animate-pulse"
+                                                : isDarkMode ? "bg-zinc-950" : "bg-white"
+                                              }`}
                                           />
                                         </div>
-                                        <div className="flex items-center justify-between text-[10px] font-mono text-white/85 mt-1.5">
+                                        <div className={`flex items-center justify-between text-[10px] font-mono ${isDarkMode ? 'text-zinc-800' : 'text-white/85'} mt-1.5`}>
                                           {isUploading ? (
                                             <>
                                               <span className="flex items-center gap-1.5 font-medium">
-                                                <RefreshCw size={10} className="animate-spin text-white" />
+                                                <RefreshCw size={10} className={`animate-spin ${isDarkMode ? 'text-zinc-950' : 'text-white'}`} />
                                                 Subiendo e ingiriendo en memoria...
                                               </span>
                                               <span>80%</span>
                                             </>
                                           ) : isError ? (
                                             <>
-                                              <span className="text-rose-200 font-medium">Error en la carga</span>
+                                              <span className="text-rose-600 font-medium">Error en la carga</span>
                                               <span>Fallo</span>
                                             </>
                                           ) : (
                                             <>
-                                              <span className="flex items-center gap-1 font-semibold text-white">
-                                                <Check size={12} className="text-white" />
+                                              <span className={`flex items-center gap-1 font-semibold ${isDarkMode ? 'text-zinc-950' : 'text-white'}`}>
+                                                <Check size={12} className={isDarkMode ? 'text-zinc-950' : 'text-white'} />
                                                 Archivo cargado e ingerido
                                               </span>
-                                              <span className="font-bold text-white">100%</span>
+                                              <span className={`font-bold ${isDarkMode ? 'text-zinc-950' : 'text-white'}`}>100%</span>
                                             </>
                                           )}
                                         </div>
@@ -2220,7 +2210,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                               ) : (
                                 <p className="whitespace-pre-wrap m-0">{msg.text}</p>
                               )}
-                            </motion.div>
+                            </div>
                           </div>
                         </>
                       )}
@@ -2232,7 +2222,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               {/* Typing indicator */}
               {isLoading && (
                 <motion.div
-                  layout
                   initial={{ opacity: 0, y: 15, x: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
@@ -2244,7 +2233,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   </div>
                   <div className="flex flex-col items-start gap-1">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-[10px] text-gray-400 font-medium">Processing...</span>
+                      <span className={`text-[10px] ${isDarkMode ? 'text-zinc-400' : 'text-gray-400'} font-medium`}>Processing...</span>
                     </div>
                     <div className="flex items-center gap-1.5 py-2.5">
                       {[0, 1, 2].map((i) => (
@@ -2258,7 +2247,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                             ease: "easeInOut",
                             delay: i * 0.15
                           }}
-                          className="w-1.5 h-1.5 rounded-full bg-[#464775]"
+                          className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}
                         />
                       ))}
                     </div>
@@ -2274,9 +2263,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       {/* ── INPUT (DOCKED WHEN CHATTING) ── */}
       {messages.length > 0 && (
-        <footer className="relative z-10 flex-shrink-0 px-5 max-[700px]:px-2.5 py-3 max-[700px]:py-2 pb-4 max-[700px]:pb-2.5 bg-white/40 backdrop-blur-md border-t border-white/50 animate-fadeIn">
+        <footer className="relative z-20 flex-shrink-0 px-5 max-[700px]:px-2.5 pt-1.5 pb-3.5 bg-transparent border-t-0 animate-fadeIn w-full">
           {renderInputCard(false)}
-          <p className="text-center mt-2.5 text-[10px] text-gray-400 tracking-wide">
+          <p className="text-center mt-2 text-[10px] text-gray-400 tracking-wide">
             © 2026 GLYNNE S.A.S. All rights reserved. Creators and developers of Alysa and its underlying processes.
           </p>
         </footer>
@@ -2285,7 +2274,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       {/* ── MODAL DE GUÍA IA (20 PREGUNTAS ORIENTATIVAS) ── */}
       <AnimatePresence>
         {showAiGuideModal && (
-          <div 
+          <div
             onClick={() => setShowAiGuideModal(false)}
             className="fixed inset-0 z-[1000] flex items-center justify-center p-3 md:p-6 backdrop-blur-md bg-transparent"
           >
@@ -2295,24 +2284,36 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-3xl max-h-[85vh] bg-white rounded-2xl shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden text-slate-800"
+              className={`w-full max-w-3xl max-h-[85vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl transition-colors ${isDarkMode
+                  ? "bg-[#09090b]/85 border border-white/15 text-zinc-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-2xl"
+                  : "bg-white border border-slate-200/90 text-slate-800"
+                }`}
             >
               {/* Header del Modal */}
-              <div className="px-5 py-4 bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+              <div className={`px-5 py-4 border-b flex items-center justify-between flex-shrink-0 transition-colors ${isDarkMode
+                  ? "bg-gradient-to-r from-white/[0.04] via-transparent to-white/[0.04] border-white/10"
+                  : "bg-gradient-to-r from-slate-50 via-white to-slate-50 border-slate-100"
+                }`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#464775]/10 border border-[#464775]/20 flex items-center justify-center text-[#464775] shadow-sm">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm transition-colors ${isDarkMode
+                      ? "bg-white/10 border border-white/20 text-white"
+                      : "bg-[#18181b]/10 border border-[#18181b]/20 text-[#18181b]"
+                    }`}>
                     <Sparkles size={18} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-[15px] font-bold text-gray-900 tracking-tight">
+                      <h3 className={`text-[15px] font-bold tracking-tight transition-colors ${isDarkMode ? "text-white" : "text-gray-900"
+                        }`}>
                         AI Guidance & Documentation
                       </h3>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#464775] text-white">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full transition-colors ${isDarkMode ? "bg-white text-zinc-950 shadow-sm" : "bg-[#18181b] text-white"
+                        }`}>
                         20 Questions
                       </span>
                     </div>
-                    <p className="text-[11.5px] text-gray-500 mt-0.5">
+                    <p className={`text-[11.5px] mt-0.5 transition-colors ${isDarkMode ? "text-zinc-400" : "text-gray-500"
+                      }`}>
                       Select a key question to query Alysa Copilot and receive instant architectural guidance.
                     </p>
                   </div>
@@ -2321,27 +2322,37 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                 <button
                   type="button"
                   onClick={() => setShowAiGuideModal(false)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isDarkMode
+                      ? "text-zinc-400 hover:text-white hover:bg-white/10"
+                      : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                    }`}
                 >
                   <X size={18} />
                 </button>
               </div>
 
               {/* Filtro y Búsqueda */}
-              <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between flex-shrink-0">
+              <div className={`px-5 py-3 border-b flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between flex-shrink-0 transition-colors ${isDarkMode
+                  ? "border-white/10 bg-white/[0.02]"
+                  : "border-slate-100 bg-slate-50/50"
+                }`}>
                 <div className="relative flex-1">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDarkMode ? "text-zinc-400" : "text-gray-400"}`} />
                   <input
                     type="text"
                     value={guideSearch}
                     onChange={(e) => setGuideSearch(e.target.value)}
                     placeholder="Filter questions by keyword (XML, audit, margins, CET, etc.)..."
-                    className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-[12.5px] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#464775] focus:ring-2 focus:ring-[#464775]/10 transition-all"
+                    className={`w-full rounded-xl pl-9 pr-3 py-1.5 text-[12.5px] transition-all focus:outline-none ${isDarkMode
+                        ? "bg-white/[0.05] border border-white/15 text-white placeholder-zinc-500 focus:border-white/40 focus:ring-2 focus:ring-white/10"
+                        : "bg-white border border-slate-200 text-gray-800 placeholder-gray-400 focus:border-[#18181b] focus:ring-2 focus:ring-[#18181b]/10"
+                      }`}
                   />
                   {guideSearch && (
                     <button
                       onClick={() => setGuideSearch("")}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-[11px]"
+                      className={`absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] ${isDarkMode ? "text-zinc-400 hover:text-zinc-200" : "text-gray-400 hover:text-gray-600"
+                        }`}
                     >
                       ×
                     </button>
@@ -2359,11 +2370,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                     <button
                       key={cat.id}
                       onClick={() => setGuideCategory(cat.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap ${
-                        guideCategory === cat.id
-                          ? 'bg-[#464775] text-white shadow-sm'
-                          : 'bg-white border border-slate-200 text-gray-600 hover:border-[#464775]/30 hover:text-[#464775]'
-                      }`}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap ${guideCategory === cat.id
+                          ? isDarkMode
+                            ? "bg-white text-zinc-950 shadow-sm"
+                            : "bg-[#18181b] text-white shadow-sm"
+                          : isDarkMode
+                            ? "bg-white/[0.04] border border-white/10 text-zinc-300 hover:border-white/30 hover:text-white"
+                            : "bg-white border border-slate-200 text-gray-600 hover:border-[#18181b]/30 hover:text-[#18181b]"
+                        }`}
                     >
                       {cat.label}
                     </button>
@@ -2374,11 +2388,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               {/* Lista de Preguntas */}
               <div className="flex-1 overflow-y-auto p-4 overscroll-contain">
                 {filteredGuideQuestions.length === 0 ? (
-                  <div className="text-center py-10 text-gray-400">
+                  <div className={`text-center py-10 ${isDarkMode ? "text-zinc-400" : "text-gray-400"}`}>
                     <p className="text-[13px]">No questions found matching &ldquo;{guideSearch}&rdquo;.</p>
                     <button
                       onClick={() => { setGuideSearch(""); setGuideCategory("all"); }}
-                      className="mt-2 text-[12px] text-[#464775] font-semibold underline"
+                      className={`mt-2 text-[12px] font-semibold underline ${isDarkMode ? "text-white" : "text-[#18181b]"
+                        }`}
                     >
                       View all questions
                     </button>
@@ -2393,20 +2408,33 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           setShowAiGuideModal(false);
                           sendMessage(item.q);
                         }}
-                        className="group flex flex-col justify-between p-3.5 rounded-xl bg-white border border-slate-200/90 hover:border-[#464775]/50 hover:bg-[#464775]/[0.03] hover:shadow-md transition-all text-left"
+                        className={`group flex flex-col justify-between p-3.5 rounded-xl transition-all text-left ${isDarkMode
+                            ? "bg-white/[0.03] border border-white/10 hover:border-white/30 hover:bg-white/[0.06] hover:shadow-lg"
+                            : "bg-white border border-slate-200/90 hover:border-[#18181b]/50 hover:bg-[#18181b]/[0.03] hover:shadow-md"
+                          }`}
                       >
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 group-hover:bg-[#464775]/10 group-hover:text-[#464775] transition-colors">
+                            <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md transition-colors ${isDarkMode
+                                ? "bg-white/10 text-zinc-300 group-hover:bg-white/20 group-hover:text-white"
+                                : "bg-slate-100 text-slate-600 group-hover:bg-[#18181b]/10 group-hover:text-[#18181b]"
+                              }`}>
                               {item.category} · {item.tag}
                             </span>
-                            <ChevronRight size={14} className="text-gray-300 group-hover:text-[#464775] group-hover:translate-x-0.5 transition-all" />
+                            <ChevronRight size={14} className={`transition-all ${isDarkMode
+                                ? "text-zinc-500 group-hover:text-white group-hover:translate-x-0.5"
+                                : "text-gray-300 group-hover:text-[#18181b] group-hover:translate-x-0.5"
+                              }`} />
                           </div>
-                          <h4 className="text-[12.5px] font-semibold text-gray-800 group-hover:text-[#464775] leading-snug transition-colors">
+                          <h4 className={`text-[12.5px] font-semibold leading-snug transition-colors ${isDarkMode
+                              ? "text-zinc-100 group-hover:text-white"
+                              : "text-gray-800 group-hover:text-[#18181b]"
+                            }`}>
                             {item.q}
                           </h4>
                         </div>
-                        <p className="text-[11px] text-gray-500 mt-2 line-clamp-2 leading-relaxed">
+                        <p className={`text-[11px] mt-2 line-clamp-2 leading-relaxed transition-colors ${isDarkMode ? "text-zinc-400" : "text-gray-500"
+                          }`}>
                           {item.desc}
                         </p>
                       </button>
@@ -2416,15 +2444,22 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               </div>
 
               {/* Footer del Modal */}
-              <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
-                <span className="text-[11px] text-gray-500 flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-[#6264A7]" />
+              <div className={`px-5 py-3 border-t flex items-center justify-between flex-shrink-0 transition-colors ${isDarkMode
+                  ? "bg-white/[0.02] border-white/10"
+                  : "bg-slate-50 border-slate-100"
+                }`}>
+                <span className={`text-[11px] flex items-center gap-1.5 ${isDarkMode ? "text-zinc-400" : "text-gray-500"
+                  }`}>
+                  <Sparkles size={13} className={isDarkMode ? "text-white" : "text-[#18181b]"} />
                   <span>Click any question to send it directly to the chat.</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowAiGuideModal(false)}
-                  className="px-3.5 py-1.5 rounded-lg border border-gray-300 text-[12px] font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                  className={`px-3.5 py-1.5 rounded-lg border text-[12px] font-medium transition-colors ${isDarkMode
+                      ? "border-white/15 text-zinc-300 hover:bg-white/10 hover:text-white"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                    }`}
                 >
                   Close
                 </button>
@@ -2465,18 +2500,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         .prose-light { font-size: 13.5px; line-height: 1.7; color: #1f2937; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
         .prose-light p  { margin: 0 0 10px; }
         .prose-light p:last-child { margin-bottom: 0; }
-        .prose-light strong { color: #35365e; font-weight: 600; }
-        .prose-light a  { color: #464775; text-decoration: underline; text-underline-offset: 2px; }
+        .prose-light strong { color: #27272a; font-weight: 600; }
+        .prose-light a  { color: #18181b; text-decoration: underline; text-underline-offset: 2px; }
         .prose-light code:has(.alysa-cmd-btn) { background: transparent !important; border: none !important; padding: 0 !important; font-family: inherit !important; }
         .prose-light code {
           font-size: 12px; font-family: 'JetBrains Mono', monospace;
-          background: #464775/10; color: #464775;
+          background: rgba(24, 24, 27, 0.08); color: #18181b;
           padding: 2px 6px; border-radius: 4px;
-          border: 1px solid #464775/20;
+          border: 1px solid rgba(24, 24, 27, 0.15);
         }
         .prose-light pre:has(.alysa-cmd-btn) { background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; }
         .prose-light pre {
-          background: #f8faff; border: 1px solid #e0e7ff;
+          background: #f4f4f5; border: 1px solid #e4e4e7;
           padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0;
         }
         .prose-light pre code { background: transparent; border: none; color: #374151; padding: 0; }
@@ -2484,7 +2519,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         .prose-light ul li { padding-left: 16px; position: relative; margin-bottom: 4px; }
         .prose-light ul li::before {
           content: ''; position: absolute; left: 0; top: 9px;
-          width: 5px; height: 5px; border-radius: 50%; background: #464775;
+          width: 5px; height: 5px; border-radius: 50%; background: #18181b;
         }
         .prose-light ol { padding-left: 20px; margin: 8px 0; }
         .prose-light h1, .prose-light h2, .prose-light h3 {

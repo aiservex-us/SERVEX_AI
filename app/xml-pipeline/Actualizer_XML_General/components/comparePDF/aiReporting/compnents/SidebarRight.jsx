@@ -8,11 +8,11 @@ import { supabase } from '@/app/lib/supabaseClient';
 // --- SUBCOMPONENT: STAT ITEM (SIEMPRE ABIERTO Y COLOR ACTUALIZADO) ---
 const StatItem = ({ icon, label, value, description }) => (
   <div
-    className="bg-white px-3 py-3 rounded-lg shadow-sm border border-[#464775]/20 transition-all"
+    className="bg-white px-3 py-3 rounded-lg shadow-sm border border-[#18181b]/20 transition-all"
   >
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center gap-2">
-        <div className="bg-[#464775]/10 text-[#464775] p-1.5 rounded-md">
+        <div className="bg-[#18181b]/10 text-[#18181b] p-1.5 rounded-md">
           {React.cloneElement(icon, { size: 14 })}
         </div>
         <div className="leading-tight">
@@ -24,7 +24,7 @@ const StatItem = ({ icon, label, value, description }) => (
           </p>
         </div>
       </div>
-      <ChevronRight size={12} className="rotate-90 text-[#464775]/50" />
+      <ChevronRight size={12} className="rotate-90 text-[#18181b]/50" />
     </div>
     
     <div className="opacity-100">
@@ -95,7 +95,7 @@ const SidebarTeams = () => {
 
   if (loading) return (
     <aside className="w-[230px] bg-white border-l flex items-center justify-center h-full">
-      <PH.CircleNotch size={20} className="animate-spin text-[#464775]" />
+      <PH.CircleNotch size={20} className="animate-spin text-[#18181b]" />
     </aside>
   );
 
@@ -105,7 +105,7 @@ const SidebarTeams = () => {
       {/* HEADER */}
       <div className="p-3 bg-white border-b border-[#EDEBE9]">
         <div className="flex items-center gap-2 mb-0.5">
-          <PH.ChartBarHorizontal size={16} weight="fill" className="text-[#464775]" />
+          <PH.ChartBarHorizontal size={16} weight="fill" className="text-[#18181b]" />
           <h2 className="text-[12px] font-bold text-slate-700">Intelligence</h2>
         </div>
         <p className="text-[9px] text-slate-400 font-medium uppercase tracking-tight">{rows.length} Records</p>
@@ -123,15 +123,15 @@ const SidebarTeams = () => {
           <input 
             type="text"
             placeholder="Search..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-md px-2 py-1.5 text-[11px] outline-none focus:border-[#464775]/50 transition-colors"
+            className="w-full bg-slate-50 border border-slate-200 rounded-md px-2 py-1.5 text-[11px] outline-none focus:border-[#18181b]/50 transition-colors"
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
           {filteredResult && (
-            <div className="bg-[#FAF9F8] border border-[#464775]/20 p-2 rounded-md animate-in fade-in duration-200">
+            <div className="bg-[#FAF9F8] border border-[#18181b]/20 p-2 rounded-md animate-in fade-in duration-200">
               <div className="flex items-start gap-1.5">
-                <Package size={12} className="text-[#464775] mt-0.5" />
-                <p className="text-[10px] font-bold text-[#464775] leading-tight truncate">
+                <Package size={12} className="text-[#18181b] mt-0.5" />
+                <p className="text-[10px] font-bold text-[#18181b] leading-tight truncate">
                   {filteredResult.name}
                 </p>
               </div>
@@ -153,22 +153,22 @@ const SidebarTeams = () => {
         {/* 3. TECHNICAL SUPPORT */}
         <section>
           <div className="bg-white border border-slate-200 rounded-[1rem] p-4 shadow-sm flex flex-col items-center text-center">
-            <div className="mb-2 relative bg-[#FAF9F8] w-9 h-9 rounded-xl flex items-center justify-center border border-[#464775]/10">
-              <PH.Headset size={18} weight="duotone" className="text-[#464775]" />
+            <div className="mb-2 relative bg-[#FAF9F8] w-9 h-9 rounded-xl flex items-center justify-center border border-[#18181b]/10">
+              <PH.Headset size={18} weight="duotone" className="text-[#18181b]" />
             </div>
             <h2 className="text-[12px] font-bold text-slate-800 leading-tight">Technical help?</h2>
             <p className="text-slate-400 text-[9px] mt-0.5 mb-3">Personalized assistance.</p>
-            <button className="bg-[#464775] text-white w-full py-2 rounded-lg font-bold text-[9px] flex items-center justify-center gap-1 hover:bg-[#3b3c63] transition-colors shadow-sm">
+            <button className="bg-[#18181b] text-white w-full py-2 rounded-lg font-bold text-[9px] flex items-center justify-center gap-1 hover:bg-[#09090b] transition-colors shadow-sm">
               Contact <ChevronRight size={10} />
             </button>
           </div>
         </section>
 
         {/* 4. MAIN CTA */}
-        <section className="bg-white border border-[#464775]/20 rounded-lg p-3 text-center shadow-sm">
+        <section className="bg-white border border-[#18181b]/20 rounded-lg p-3 text-center shadow-sm">
           <h3 className="text-slate-800 font-bold text-[10px] mb-0.5 uppercase tracking-tight">Servex Copilot</h3>
           <p className="text-slate-400 mb-2 text-[8px]">Scale your creation.</p>
-          <button className="bg-[#F8F9FA] text-[#464775] border border-slate-200 w-full py-1.5 rounded-md font-bold text-[9px] hover:bg-slate-100 transition-colors">
+          <button className="bg-[#F8F9FA] text-[#18181b] border border-slate-200 w-full py-1.5 rounded-md font-bold text-[9px] hover:bg-slate-100 transition-colors">
             Upgrade
           </button>
         </section>

@@ -14,13 +14,13 @@ const HeroSection = () => {
       
       {/* 1. ULTRA-REALISTIC STATIC ABSTRACT GLASS BACKGROUND */}
       <div className="absolute inset-0 z-0 bg-[#fbfbfc] overflow-hidden rounded-2xl md:rounded-3xl">
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#464775]/5 to-[#464775]/10" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/80 via-[#18181b]/5 to-[#18181b]/10" />
 
         <div 
           className="absolute top-[-10%] left-[-5%] w-[450px] h-[500px] rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%] backdrop-blur-[12px] opacity-80"
           style={{ 
             background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 25%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.6) 100%)',
-            boxShadow: 'inset -15px -15px 30px rgba(70, 71, 117, 0.1), inset 15px 15px 30px rgba(255,255,255,1), 0 20px 50px rgba(70,71,117,0.05)'
+            boxShadow: 'inset -15px -15px 30px rgba(24, 24, 27, 0.08), inset 15px 15px 30px rgba(255,255,255,1), 0 20px 50px rgba(24, 24, 27, 0.04)'
           }} 
         />
         
@@ -28,20 +28,20 @@ const HeroSection = () => {
           className="absolute bottom-[-15%] right-[-10%] w-[600px] h-[550px] rounded-[50%_30%_52%_48%_/_40%_60%_40%_60%] backdrop-blur-[16px] opacity-70"
           style={{ 
             background: 'radial-gradient(circle at 25% 25%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.1) 70%, rgba(255,255,255,0.8) 100%)',
-            boxShadow: 'inset -20px -20px 40px rgba(70, 71, 117, 0.15), inset 20px 20px 40px rgba(255,255,255,0.9), 0 30px 60px rgba(70,71,117,0.08)'
+            boxShadow: 'inset -20px -20px 40px rgba(24, 24, 27, 0.1), inset 20px 20px 40px rgba(255,255,255,0.9), 0 30px 60px rgba(24, 24, 27, 0.05)'
           }}
         />
       </div>
 
       <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/30 via-blue-100/15 to-purple-100/15" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/30 via-slate-100/30 to-zinc-200/20" />
       </div>
 
       {/* 3. MAIN CONTENT */}
       <div className="relative z-20 w-full flex flex-col items-center text-center">
         
         {/* AI Assistant Badge */}
-        <div className="inline-flex items-center gap-1.5 bg-[#5B5FC7]/10 border border-[#5B5FC7]/20 text-[#5B5FC7] px-3 py-1 rounded-full mb-4 backdrop-blur-sm">
+        <div className="inline-flex items-center gap-1.5 bg-[#18181b]/5 border border-[#18181b]/15 text-[#18181b] px-3 py-1 rounded-full mb-4 backdrop-blur-sm">
           <FaRobot className="text-[10px]" />
           <span className="text-[9px] md:text-[10px] font-semibold uppercase tracking-wider font-sans">
             Powered by SERVEX_LOGIC_GLYNNE (Universal Multi-Tenant)
@@ -55,7 +55,7 @@ const HeroSection = () => {
         
         {/* Descriptive Text */}
         <p className="text-xs md:text-sm text-[#424242] leading-relaxed max-w-2xl mx-auto mb-8 px-4">
-          Universal multi-tenant engine for <span className="text-black font-semibold">OFDA / CET XML Schema</span> catalog processing. Seamlessly cross-references XML and CSV matrices, executes structural cell audit, and applies price mutations for any manufacturer powered by <span className="text-[#5B5FC7] font-semibold">Alysa SVX Copilot</span>.
+          Universal multi-tenant engine for <span className="text-black font-semibold">OFDA / CET XML Schema</span> catalog processing. Seamlessly cross-references XML and CSV matrices, executes structural cell audit, and applies price mutations for any manufacturer powered by <span className="text-[#18181b] font-semibold">Alysa SVX Copilot</span>.
         </p>
 
         {/* 4. INTEGRATED MODULE CARDS */}
@@ -63,16 +63,16 @@ const HeroSection = () => {
           
           <Link 
             href="/xml-pipeline/Actualizer_XML_General"
-            className="group flex flex-col bg-white/50 backdrop-blur-2xl border border-white/80 rounded-3xl p-6 lg:p-8 hover:bg-white/90 hover:border-indigo-200 hover:shadow-[0_20px_40px_rgba(70,71,117,0.12)] hover:-translate-y-1 transition-all duration-500 ease-out"
+            className="group flex flex-col bg-white/50 backdrop-blur-2xl border border-white/80 rounded-3xl p-6 lg:p-8 hover:bg-white/90 hover:border-zinc-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 ease-out"
           >
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-[#464775] shadow-sm border border-indigo-100 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
+            <div className="w-12 h-12 rounded-2xl bg-zinc-100 flex items-center justify-center text-[#18181b] shadow-sm border border-zinc-200 mb-4 group-hover:scale-105 transition-transform duration-500 ease-out">
               <FileCode size={20} strokeWidth={1.5} />
             </div>
             <h2 className="text-base font-semibold mb-1.5 text-slate-900 tracking-tight">XML General Actualizer</h2>
             <p className="text-xs text-slate-500 leading-relaxed mb-6 flex-grow">
               Universal XML catalog actualizer and ETL pipeline for OFDA / CET schemas across all tenants.
             </p>
-            <div className="flex items-center text-[#464775] text-[10px] font-extrabold tracking-[0.15em] uppercase mt-auto opacity-70 group-hover:opacity-100 transition-opacity duration-500">
+            <div className="flex items-center text-[#18181b] text-[10px] font-extrabold tracking-[0.15em] uppercase mt-auto opacity-70 group-hover:opacity-100 transition-opacity duration-500">
               Access Universal Module 
               <ArrowRight size={14} strokeWidth={2.5} className="ml-2 opacity-0 -translate-x-3 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 ease-out" />
             </div>

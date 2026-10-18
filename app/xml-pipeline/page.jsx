@@ -7,6 +7,7 @@ import MenuInicial from './Actualizer_XML_General/page.jsx';
 
 export default function Home() {
   const router = useRouter();
+  /* 🔒 PROTECCIÓN DE RUTA (Temporalmente comentada para desarrollo local)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,11 +41,12 @@ export default function Home() {
   if (isLoading || !isAuthenticated) {
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center bg-white text-slate-400 select-none">
-        <div className="w-8 h-8 border-2 border-[#464775]/20 border-t-[#464775] rounded-full animate-spin mb-3" />
+        <div className="w-8 h-8 border-2 border-[#18181b]/20 border-t-[#18181b] rounded-full animate-spin mb-3" />
         <span className="text-xs font-medium tracking-wide text-slate-500">Verifying session...</span>
       </div>
     );
   }
+  */
 
   return <MenuInicial />;
 }

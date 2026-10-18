@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { useCatalogData } from './useCatalogData';
 
-const COLORS = ['#6264A7', '#464775', '#8B8CC7', '#C4314B', '#237B4B', '#0078D4'];
+const COLORS = ['#18181b', '#3f3f46', '#71717a', '#a1a1aa', '#27272a', '#52525b'];
 
 const ProfessionalDashboard = () => {
   const { products, loading, catalogStats, metadata } = useCatalogData();
@@ -64,7 +64,7 @@ const ProfessionalDashboard = () => {
   if (loading) {
     return (
       <div className="h-full w-full flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#6264A7] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#18181b] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -78,7 +78,7 @@ const ProfessionalDashboard = () => {
       <nav className="h-14 shrink-0 border-b border-gray-200 px-4">
         <div className="h-full flex justify-between items-center max-w-7xl mx-auto">
           <div className="flex items-center gap-6">
-            <h1 className="text-lg font-bold text-[#6264A7]">
+            <h1 className="text-lg font-bold text-[#18181b]">
               Catalog Intelligence
             </h1>
 
@@ -89,12 +89,12 @@ const ProfessionalDashboard = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`px-3 py-3 text-xs font-medium relative
                     ${activeTab === tab
-                      ? 'text-[#6264A7]'
-                      : 'text-gray-500 hover:text-[#6264A7]'}`}
+                      ? 'text-[#18181b]'
+                      : 'text-gray-500 hover:text-[#18181b]'}`}
                 >
                   {tab}
                   {activeTab === tab && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6264A7]" />
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#18181b]" />
                   )}
                 </button>
               ))}
@@ -110,7 +110,7 @@ const ProfessionalDashboard = () => {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
-          <StatCard title="Total Products" value={products.length} color="#6264A7" />
+          <StatCard title="Total Products" value={products.length} color="#18181b" />
           <StatCard title="Materials" value={metadata.materials} color="#237B4B" />
           <StatCard title="Features" value={metadata.features} color="#C4314B" />
           <StatCard title="Total Value" value={`$${catalogStats.totalValue}`} color="#0078D4" />
@@ -160,9 +160,9 @@ const StatCard = ({ title, value, color }) => (
 );
 
 const InfoBadge = ({ label, value }) => (
-  <div className="px-3 py-1 rounded-md bg-[#6264A7]/10 border border-[#6264A7]/20">
-    <span className="text-[10px] font-bold text-[#6264A7] mr-1">{label}</span>
-    <span className="text-xs font-semibold text-[#464775]">{value}</span>
+  <div className="px-3 py-1 rounded-md bg-[#18181b]/10 border border-[#18181b]/20">
+    <span className="text-[10px] font-bold text-[#18181b] mr-1">{label}</span>
+    <span className="text-xs font-semibold text-[#18181b]">{value}</span>
   </div>
 );
 
@@ -185,7 +185,7 @@ const AreaChartBlock = ({ data }) => (
       <XAxis dataKey="priceRange" fontSize={10} />
       <YAxis fontSize={10} />
       <Tooltip />
-      <Area dataKey="count" stroke="#6264A7" fill="#6264A7" fillOpacity={0.2} />
+      <Area dataKey="count" stroke="#18181b" fill="#18181b" fillOpacity={0.2} />
     </AreaChart>
   </ResponsiveContainer>
 );

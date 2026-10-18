@@ -22,12 +22,12 @@ import {
   Layers,
   Box,
   Tag,
-  Sliders,
   Palette
 } from 'lucide-react';
 import { supabase, getCurrentUser } from '../lib/supabaseClient';
 import MenuLateral from '../xml-pipeline/Actualizer_XML_General/components/menuLateral.jsx';
 import CatalogProcessConsole from './components/CatalogProcessConsole.jsx';
+import AiCatalogIngestionReport from './components/AiCatalogIngestionReport.jsx';
 
 const BACKEND_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -73,6 +73,216 @@ marked.use({
   }
 });
 
+// Helper determinista para resolver las columnas del Excel generadas a partir del XML
+const extractCatalogMatrixColumns = (xmlText) => {
+  const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
+  if (!xmlText) return { baseHeaders: BASE_HEADERS, commercialColumns: [], allHeaders: BASE_HEADERS };
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+    const globalFeatures = Array.from(xmlDoc.getElementsByTagName("Feature"));
+    const featureMap = new Map();
+    for (const f of globalFeatures) {
+      const fCode = f.getElementsByTagName("Code")[0]?.textContent;
+      if (fCode) featureMap.set(fCode, f);
+    }
+    const featureCache = new Map();
+    const getProductFeatureCodes = (pNode) => {
+      const directRefs = Array.from(pNode.getElementsByTagName("FeatureRef")).map(r => r.textContent?.trim()).filter(Boolean);
+      const cacheKey = directRefs.join('|');
+      if (featureCache.has(cacheKey)) return featureCache.get(cacheKey);
+      const resolved = [];
+      const visited = new Set();
+      const traverse = (fCode) => {
+        if (!fCode || visited.has(fCode)) return;
+        visited.add(fCode);
+        resolved.push(fCode);
+        const fNode = featureMap.get(fCode);
+        if (fNode) {
+          const subRefs = Array.from(fNode.getElementsByTagName("FeatureRef"));
+          for (const sub of subRefs) {
+            const subCode = sub.textContent?.trim();
+            if (subCode) traverse(subCode);
+          }
+        }
+      };
+      for (const code of directRefs) traverse(code);
+      featureCache.set(cacheKey, resolved);
+      return resolved;
+    };
+    const productsXML = Array.from(xmlDoc.getElementsByTagName("Product"));
+    const optionMap = new Map();
+    for (let i = 0; i < productsXML.length; i++) {
+      const p = productsXML[i];
+      const featureCodes = getProductFeatureCodes(p);
+      for (const fCode of featureCodes) {
+        const featureNode = featureMap.get(fCode);
+        if (featureNode) {
+          const options = Array.from(featureNode.getElementsByTagName("Option"));
+          for (const opt of options) {
+            const optCode = opt.getElementsByTagName("Code")[0]?.textContent?.trim();
+            const optDesc = opt.getElementsByTagName("Description")[0]?.textContent?.trim();
+            const optPriceElem = opt.querySelector("OptionPrice > Value");
+            if (optPriceElem && optCode) {
+              const optPrice = parseFloat(optPriceElem.textContent || "0");
+              const label = optDesc 
+                ? (optDesc.toLowerCase().includes(optCode.toLowerCase()) ? optDesc : `${optCode} (${optDesc})`)
+                : optCode;
+              const existing = optionMap.get(optCode);
+              if (!existing) {
+                optionMap.set(optCode, { optCode, label, maxPrice: optPrice, featureCode: fCode });
+              } else {
+                if (optPrice > existing.maxPrice) existing.maxPrice = optPrice;
+                if (!existing.label || existing.label === optCode) existing.label = label;
+              }
+            }
+          }
+        }
+      }
+    }
+    const validColumns = Array.from(optionMap.values()).filter(c => c.maxPrice > 0);
+    const dynamicHeaders = validColumns.map(c => c.label);
+    return {
+      baseHeaders: BASE_HEADERS,
+      commercialColumns: validColumns,
+      allHeaders: [...BASE_HEADERS, ...dynamicHeaders]
+    };
+  } catch (err) {
+    console.warn("Could not extract matrix columns:", err);
+    return { baseHeaders: BASE_HEADERS, commercialColumns: [], allHeaders: BASE_HEADERS };
+  }
+};
+
+const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw = null) => {
+  const DEFAULT_BASE_COLUMNS = [
+    { code: "Model #", label: "Model #", type: "Identificador SKU", desc: "Código de modelo del producto base" },
+    { code: "List Price", label: "List Price", type: "Precio Base (USD)", desc: "Precio de lista estándar sin recargos" },
+    { code: "Weight", label: "Weight", type: "Especificación", desc: "Peso físico del producto (N/A si no aplica)" },
+    { code: "Classic/ Premium", label: "Classic/ Premium", type: "Clasificación", desc: "Gama o categoría de producto" },
+    { code: "Model Name", label: "Model Name", type: "Descripción", desc: "Nombre y descripción comercial del modelo" }
+  ];
+
+  // 1. PRIORIDAD MÁXIMA: Si existe csv_raw (almacenado en DB o en memoria tras convertir el XML a Excel)
+  const csvSource = summary?.csv_raw || fallbackCsvRaw;
+  if (csvSource && typeof csvSource === 'string' && csvSource.trim()) {
+    try {
+      const firstLine = csvSource.trim().split(/\r?\n/)[0];
+      const delimiter = firstLine.includes(';') ? ';' : ',';
+      const headers = firstLine.split(delimiter).map(h => h.trim().replace(/^"|"$/g, '')).filter(Boolean);
+
+      if (headers.length > 0) {
+        const baseLabels = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
+        const baseCols = [];
+        const commCols = [];
+
+        headers.forEach((h, idx) => {
+          const matchBase = DEFAULT_BASE_COLUMNS.find(b => b.code.toLowerCase() === h.toLowerCase() || b.label.toLowerCase() === h.toLowerCase());
+          if (matchBase) {
+            baseCols.push(matchBase);
+          } else if (idx < 5 && baseLabels.some(bl => bl.toLowerCase().includes(h.toLowerCase()))) {
+            baseCols.push({
+              code: h,
+              label: h,
+              type: "Campo Base",
+              desc: `Columna estándar #${idx + 1}`
+            });
+          } else {
+            let code = h;
+            let desc = h;
+            const parenMatch = h.match(/^([^(]+)\s*\((.+)\)$/);
+            if (parenMatch) {
+              code = parenMatch[1].trim();
+              desc = parenMatch[2].trim();
+            }
+
+            const matchedOpt = (summary?.commercial_options_list || summary?.price_options_list || [])
+              .find(o => (o.code && o.code.toLowerCase() === code.toLowerCase()) || (o.name && o.name.toLowerCase() === desc.toLowerCase()));
+
+            commCols.push({
+              code: code,
+              label: h,
+              price: matchedOpt?.price || (matchedOpt?.prices ? matchedOpt.prices.join(' / ') : 'Recargo'),
+              featureName: matchedOpt?.feature_name || matchedOpt?.feature_code || 'Opción Comercial Activa'
+            });
+          }
+        });
+
+        const finalBase = baseCols.length > 0 ? baseCols : DEFAULT_BASE_COLUMNS;
+        return {
+          baseColumns: finalBase,
+          commercialColumns: commCols,
+          totalColumns: headers.length
+        };
+      }
+    } catch (e) {
+      console.warn("Error resolviendo columnas desde csv_raw:", e);
+    }
+  }
+
+  // 2. Columnas provistas directamente por el motor backend desde el XML real
+  if (summary?.base_columns && summary?.commercial_columns) {
+    return {
+      baseColumns: summary.base_columns,
+      commercialColumns: summary.commercial_columns,
+      totalColumns: summary.total_columns || (summary.base_columns.length + summary.commercial_columns.length)
+    };
+  }
+
+  if (summary?.commercial_columns && Array.isArray(summary.commercial_columns)) {
+    return {
+      baseColumns: summary.base_columns || DEFAULT_BASE_COLUMNS,
+      commercialColumns: summary.commercial_columns,
+      totalColumns: (summary.base_columns || DEFAULT_BASE_COLUMNS).length + summary.commercial_columns.length
+    };
+  }
+
+  // 3. Parseo en tiempo real del XML nativo
+  const xmlSource = summary?.xml_raw || summary?.XM_CET_import || fallbackXmlRaw;
+  if (xmlSource && typeof xmlSource === 'string' && xmlSource.includes('<')) {
+    const parsed = extractCatalogMatrixColumns(xmlSource);
+    if (parsed && parsed.allHeaders && parsed.allHeaders.length > 0) {
+      const commCols = (parsed.commercialColumns || []).map(c => ({
+        code: c.optCode,
+        label: c.label,
+        price: String(c.maxPrice),
+        featureName: c.featureCode || 'Opción Comercial'
+      }));
+      return {
+        baseColumns: DEFAULT_BASE_COLUMNS,
+        commercialColumns: commCols,
+        totalColumns: DEFAULT_BASE_COLUMNS.length + commCols.length
+      };
+    }
+  }
+
+  // 4. Mapeo de listas de opciones extraídas del XML
+  let commCols = [];
+  if (summary?.commercial_options_list && summary.commercial_options_list.length > 0) {
+    commCols = summary.commercial_options_list.map(opt => ({
+      code: opt.code,
+      label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
+      price: opt.price || (opt.prices ? opt.prices.join(' / ') : '0'),
+      featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
+    }));
+  } else if (summary?.price_options_list && summary.price_options_list.some(p => p.has_upcharge || parseFloat(p.price || 0) > 0)) {
+    commCols = summary.price_options_list
+      .filter(p => p.has_upcharge || parseFloat(p.price || 0) > 0)
+      .map(opt => ({
+        code: opt.code,
+        label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
+        price: opt.price,
+        featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
+      }));
+  }
+
+  // IMPORTANTE: Si el catálogo no tiene recargos, retorna commCols vacío [] (cero recargos, 100% real sin datos ficticios)
+  return {
+    baseColumns: DEFAULT_BASE_COLUMNS,
+    commercialColumns: commCols,
+    totalColumns: DEFAULT_BASE_COLUMNS.length + commCols.length
+  };
+};
+
 export default function CETDirectPipelinePage() {
   const router = useRouter();
 
@@ -86,7 +296,6 @@ export default function CETDirectPipelinePage() {
   const [uploadedXmlSummary, setUploadedXmlSummary] = useState(null);
   const [isUploadingXml, setIsUploadingXml] = useState(false);
   const [dragActiveXml, setDragActiveXml] = useState(false);
-  const [catalogTab, setCatalogTab] = useState('price'); // 'price' | 'physical' | 'finishes'
   const xmlFileInputRef = useRef(null);
 
   // Estados del Chat Integrado
@@ -272,6 +481,27 @@ export default function CETDirectPipelinePage() {
       }
 
       const data = await res.json();
+      try {
+        const xmlText = await file.text();
+        const matrixInfo = extractCatalogMatrixColumns(xmlText);
+        if (matrixInfo && matrixInfo.commercialColumns.length > 0) {
+          data.commercial_columns = matrixInfo.commercialColumns.map(c => ({
+            code: c.optCode,
+            label: c.label,
+            price: String(c.maxPrice),
+            featureName: c.featureCode
+          }));
+          data.commercial_options_list = matrixInfo.commercialColumns.map(c => ({
+            code: c.optCode,
+            name: c.label,
+            price: String(c.maxPrice),
+            prices: [String(c.maxPrice)],
+            feature_code: c.featureCode
+          }));
+        }
+      } catch (parseErr) {
+        console.warn('[-] No se pudo pre-extraer columnas en cliente:', parseErr);
+      }
       setUploadedXmlSummary(data);
 
       // Marcar consola de proceso como completada
@@ -815,298 +1045,16 @@ export default function CETDirectPipelinePage() {
                               />
                             )}
 
-                            {/* ── REPORTE DE INGESTIÓN XML DIRECTO EN EL CHAT ── */}
+                            {/* ── REPORTE CONVERSACIONAL DE INGESTIÓN XML (PROCESOS GUIADOS POR IA) ── */}
                             {m.uploadSummary && (
-                              <div className="mt-3 border border-[#464775]/25 rounded-2xl overflow-hidden shadow-xs bg-white/95 backdrop-blur-xs">
-                                <div className="p-3.5 bg-gradient-to-r from-[#464775]/12 via-[#464775]/6 to-transparent border-b border-[#464775]/15 flex flex-wrap items-center justify-between gap-2">
-                                  <div className="flex items-center gap-2">
-                                    <FileCode2 size={16} className="text-[#464775]" />
-                                    <span className="font-bold text-xs text-[#464775] font-sans">
-                                      Catálogo Maestro: {m.uploadSummary.catalog_name || m.uploadSummary.file_name}
-                                    </span>
-                                  </div>
-                                  <span className="px-2 py-0.5 rounded-full bg-[#464775] text-white text-[9.5px] font-mono font-bold shadow-xs">
-                                    {m.uploadSummary.file_size_kb || 0} KB · Listo en Memoria
-                                  </span>
-                                </div>
-
-                                <div className="p-3 bg-white/60 space-y-3">
-                                  {/* 4 Métricas Principales */}
-                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                                    <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
-                                      <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                        SKUs Base
-                                      </span>
-                                      <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                        {m.uploadSummary.total_products?.toLocaleString() || m.uploadSummary.base_skus || 0}
-                                      </span>
-                                    </div>
-                                    <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
-                                      <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                        Features
-                                      </span>
-                                      <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                        {m.uploadSummary.total_features?.toLocaleString() || m.uploadSummary.features_count || 0}
-                                      </span>
-                                    </div>
-                                    <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8">
-                                      <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                        Opciones
-                                      </span>
-                                      <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                        {m.uploadSummary.total_options?.toLocaleString() || m.uploadSummary.options || 0}
-                                      </span>
-                                    </div>
-                                    <div className="p-2.5 bg-[#464775]/5 border border-[#464775]/15 rounded-xl transition-colors hover:bg-[#464775]/8 ">
-                                      <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                        Integridad
-                                      </span>
-                                      <span className="text-sm font-bold text-[#464775] font-mono block mt-0.5">
-                                        {m.uploadSummary.integrity || '100% CET'}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  {/* Sección Clasificada de Características y Opciones del Catálogo */}
-                                   {((m.uploadSummary.price_options_list && m.uploadSummary.price_options_list.length > 0) ||
-                                     (m.uploadSummary.physical_components_list && m.uploadSummary.physical_components_list.length > 0) ||
-                                     (m.uploadSummary.finishes_list && m.uploadSummary.finishes_list.length > 0) ||
-                                     (m.uploadSummary.features_list && m.uploadSummary.features_list.length > 0)) && (
-                                     <div className="p-3 bg-[#464775]/4 rounded-xl border border-[#464775]/15 space-y-2.5">
-                                       {/* Segmented Tab Controls */}
-                                       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#464775]/15 pb-2">
-                                         <div className="flex items-center gap-1.5">
-                                           <Layers size={13} className="text-[#464775]" />
-                                           <span className="text-[10.5px] font-bold text-[#464775] uppercase tracking-wider font-sans">
-                                             Estructura del Catálogo
-                                           </span>
-                                         </div>
-                                         <div className="flex flex-wrap items-center gap-1 bg-[#464775]/10 p-0.5 rounded-lg border border-[#464775]/20">
-                                           <button
-                                              type="button"
-                                              onClick={() => setCatalogTab('price')}
-                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                catalogTab === 'price'
-                                                  ? 'bg-[#464775] text-white shadow-2xs'
-                                                  : 'text-[#464775] hover:bg-[#464775]/10'
-                                              }`}
-                                            >
-                                              <Tag size={11} className={catalogTab === 'price' ? 'text-white' : 'text-[#464775]'} />
-                                              <span>Opciones de Precio</span>
-                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'price' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
-                                                {m.uploadSummary.total_price_options || m.uploadSummary.price_options_list?.length || 0}
-                                              </span>
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => setCatalogTab('physical')}
-                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                catalogTab === 'physical'
-                                                  ? 'bg-[#464775] text-white shadow-2xs'
-                                                  : 'text-[#464775] hover:bg-[#464775]/10'
-                                              }`}
-                                            >
-                                              <Sliders size={11} className={catalogTab === 'physical' ? 'text-white' : 'text-[#464775]'} />
-                                              <span>Componentes por Modelo</span>
-                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'physical' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
-                                                {m.uploadSummary.total_physical_components || m.uploadSummary.physical_components_list?.length || 0}
-                                              </span>
-                                            </button>
-                                            <button
-                                              type="button"
-                                              onClick={() => setCatalogTab('finishes')}
-                                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                                                catalogTab === 'finishes'
-                                                  ? 'bg-[#464775] text-white shadow-2xs'
-                                                  : 'text-[#464775] hover:bg-[#464775]/10'
-                                              }`}
-                                            >
-                                              <Palette size={11} className={catalogTab === 'finishes' ? 'text-white' : 'text-[#464775]'} />
-                                              <span>Telas y Acabados Base</span>
-                                              <span className={`px-1.5 py-0.2 rounded-full font-mono text-[9px] ${catalogTab === 'finishes' ? 'bg-white/20 text-white' : 'bg-[#464775]/10 text-[#464775]'}`}>
-                                                {m.uploadSummary.total_finishes || m.uploadSummary.finishes_list?.length || 0}
-                                              </span>
-                                            </button>
-                                         </div>
-                                       </div>
-
-                                       {/* Pestaña: Opciones de Precio */}
-                                       {catalogTab === 'price' && (
-                                         <div>
-                                           <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
-                                             <strong>Opciones de Precio (&lt;OptionPrice&gt;):</strong> Opciones comerciales que modifican o incrementan el precio final del producto según la configuración elegida.
-                                           </p>
-                                           <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
-                                             {(m.uploadSummary.price_options_list && m.uploadSummary.price_options_list.length > 0
-                                               ? m.uploadSummary.price_options_list
-                                               : m.uploadSummary.features_list || []
-                                             ).map((opt, oIdx) => (
-                                               <span
-                                                 key={oIdx}
-                                                 className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
-                                                 title={`${opt.code}: ${opt.name} ${opt.price && opt.price !== '0' ? `(+$${opt.price} USD)` : ''} ${opt.feature_name ? `• ${opt.feature_name}` : ''}`}
-                                               >
-                                                 <strong className="font-mono font-bold text-[#464775]">{opt.code}</strong>
-                                                 <span className="text-[#464775]/80 font-medium truncate max-w-[150px]">{opt.name}</span>
-                                                 {opt.price && opt.price !== '0' ? (
-                                                   <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                     +${opt.price}
-                                                   </span>
-                                                 ) : opt.options_count ? (
-                                                   <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                     {opt.options_count} opts
-                                                   </span>
-                                                 ) : null}
-                                               </span>
-                                             ))}
-                                             {((m.uploadSummary.total_price_options || 0) > (m.uploadSummary.price_options_list?.length || 0)) && (
-                                               <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
-                                                 +{((m.uploadSummary.total_price_options || 0) - (m.uploadSummary.price_options_list?.length || 0)).toLocaleString()} más en el catálogo maestro
-                                               </span>
-                                             )}
-                                           </div>
-                                         </div>
-                                       )}
-
-                                       {/* Pestaña: Componentes Físicos por Modelo */}
-                                       {catalogTab === 'physical' && (
-                                         <div>
-                                           <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
-                                             <strong>Componentes Físicos por Modelo:</strong> Menús de apoyabrazos, patas, bases y accesorios compatibles según la serie o dimensiones específicas de cada mueble.
-                                           </p>
-                                           <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
-                                             {(m.uploadSummary.physical_components_list && m.uploadSummary.physical_components_list.length > 0
-                                               ? m.uploadSummary.physical_components_list
-                                               : m.uploadSummary.features_list || []
-                                             ).map((feat, fIdx) => (
-                                               <span
-                                                 key={fIdx}
-                                                 className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
-                                                 title={`${feat.code}: ${feat.name} (${feat.options_count} tipos para este modelo)`}
-                                               >
-                                                 <strong className="font-mono font-bold text-[#464775]">{feat.code}</strong>
-                                                 <span className="text-[#464775]/80 font-medium truncate max-w-[140px]">{feat.name}</span>
-                                                 <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                   {feat.options_count} tipos para este modelo
-                                                 </span>
-                                               </span>
-                                             ))}
-                                             {((m.uploadSummary.total_physical_components || 0) > (m.uploadSummary.physical_components_list?.length || 0)) && (
-                                               <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
-                                                 +{((m.uploadSummary.total_physical_components || 0) - (m.uploadSummary.physical_components_list?.length || 0)).toLocaleString()} más en el catálogo maestro
-                                               </span>
-                                             )}
-                                           </div>
-                                         </div>
-                                       )}
-
-                                       {/* Pestaña: Telas y Acabados Base */}
-                                       {catalogTab === 'finishes' && (
-                                         <div>
-                                           <p className="text-[10.5px] text-[#464775]/80 font-medium mb-2">
-                                             <strong>Telas, Colores y Materiales Base:</strong> Colecciones de telas, pinturas y acabados visuales que vienen incluidos a costo estándar ($0).
-                                           </p>
-                                           <div className="flex flex-wrap gap-1.5 max-h-[160px] overflow-y-auto scrollbar-thin pr-1">
-                                             {(m.uploadSummary.finishes_list && m.uploadSummary.finishes_list.length > 0
-                                               ? m.uploadSummary.finishes_list
-                                               : m.uploadSummary.features_list || []
-                                             ).map((feat, fIdx) => (
-                                               <span
-                                                 key={fIdx}
-                                                 className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/90 border border-[#464775]/15 text-[#464775] text-[10.5px] shadow-2xs hover:border-[#464775]/35 transition-colors"
-                                                 title={`${feat.code}: ${feat.name} (${feat.options_count} colores/acabados)`}
-                                               >
-                                                 <strong className="font-mono font-bold text-[#464775]">{feat.code}</strong>
-                                                 <span className="text-[#464775]/80 font-medium truncate max-w-[140px]">{feat.name}</span>
-                                                 <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#464775]/10 text-[#464775] font-semibold">
-                                                   {feat.options_count} colores/acabados
-                                                 </span>
-                                               </span>
-                                             ))}
-                                             {((m.uploadSummary.total_finishes || 0) > (m.uploadSummary.finishes_list?.length || 0)) && (
-                                               <span className="inline-flex items-center px-2 py-1 rounded-lg bg-[#464775]/10 text-[#464775] text-[10px] font-mono font-medium">
-                                                 +{((m.uploadSummary.total_finishes || 0) - (m.uploadSummary.finishes_list?.length || 0)).toLocaleString()} más en el catálogo maestro
-                                               </span>
-                                             )}
-                                           </div>
-                                         </div>
-                                       )}
-                                     </div>
-                                   )}
-
-                                   {/* Ejemplo de Estructura de Producto en el Catálogo */}
-                                  {m.uploadSummary.sample_product_example && (
-                                    <div className="p-3 bg-white/90 rounded-xl border border-[#464775]/20 shadow-2xs">
-                                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#464775]/15 pb-2">
-                                        <div className="flex items-center gap-2">
-                                          <Box size={14} className="text-[#464775]" />
-                                          <span className="text-[10.5px] font-bold text-[#464775] uppercase tracking-wider font-sans">
-                                            Ejemplo de Producto en Memoria
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                          <span className="px-2 py-0.5 rounded-lg bg-[#464775] text-white text-[10.5px] font-mono font-bold shadow-2xs">
-                                            SKU: {m.uploadSummary.sample_product_example.sku}
-                                          </span>
-                                          <span className="px-2 py-0.5 rounded-lg bg-[#464775]/10 text-[#464775] border border-[#464775]/20 text-[10.5px] font-mono font-bold">
-                                            Precio Base: ${m.uploadSummary.sample_product_example.base_price || '0'}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      <p className="text-[11px] text-[#464775]/85 font-medium mt-2">
-                                        {m.uploadSummary.sample_product_example.description || 'Producto configurado en CET Designer'}
-                                      </p>
-
-                                      {m.uploadSummary.sample_product_example.features && m.uploadSummary.sample_product_example.features.length > 0 && (
-                                        <div className="mt-2.5 space-y-2">
-                                          <span className="text-[9.5px] font-bold text-[#464775]/70 uppercase tracking-wider block font-sans">
-                                            Árbol de Features y Opciones Vinculadas al Producto:
-                                          </span>
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            {m.uploadSummary.sample_product_example.features.map((feat, featIdx) => (
-                                              <div
-                                                key={featIdx}
-                                                className="p-2 bg-[#464775]/5 rounded-lg border border-[#464775]/15 text-left"
-                                              >
-                                                <div className="flex items-center justify-between gap-1 mb-1">
-                                                  <span className="font-mono font-bold text-[10.5px] text-[#464775]">
-                                                    {feat.feature_code}
-                                                  </span>
-                                                  <span className="text-[9px] font-mono text-[#464775]/80 bg-[#464775]/10 px-1.5 py-0.2 rounded font-semibold">
-                                                    {feat.total_options || feat.options?.length || 0} opciones
-                                                  </span>
-                                                </div>
-                                                <p className="text-[10px] text-[#464775]/80 font-medium truncate mb-1.5" title={feat.feature_name}>
-                                                  {feat.feature_name}
-                                                </p>
-                                                {feat.options && feat.options.length > 0 && (
-                                                  <div className="flex flex-wrap gap-1">
-                                                    {feat.options.map((opt, optIdx) => (
-                                                      <span
-                                                        key={optIdx}
-                                                        className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-white text-[#464775] border border-[#464775]/20 shadow-2xs"
-                                                        title={`${opt.code} - ${opt.description} (${Number(opt.current_price) > 0 ? '+$' + opt.current_price : '+$0'})`}
-                                                      >
-                                                        {opt.code}
-                                                        {Number(opt.current_price) > 0 && (
-                                                          <span className="font-bold ml-1 text-[#464775]">
-                                                            +${opt.current_price}
-                                                          </span>
-                                                        )}
-                                                      </span>
-                                                    ))}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
+                              <AiCatalogIngestionReport
+                                summary={m.uploadSummary}
+                                csvRaw={m.uploadSummary?.csv_raw}
+                                xmlRaw={m.uploadSummary?.xml_raw}
+                                getCatalogExcelColumns={getCatalogExcelColumns}
+                                onCommandSelect={(cmd) => setInputMessage(cmd)}
+                                time={m.time}
+                              />
                             )}
 
                             {/* ── STAGING & XML DIFF BOARD DIRECTO EN EL CHAT ── */}

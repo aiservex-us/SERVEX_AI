@@ -78,13 +78,13 @@ const ConfigXML = ({ externalSearchSKU }) => {
         return config.basePrice + Object.values(config.selections).reduce((a, b) => a + b.price, 0);
     };
 
-    if (loadingXML) return <div className="p-10 text-[10px] font-bold text-[#464775]">LOADING PIM...</div>;
+    if (loadingXML) return <div className="p-10 text-[10px] font-bold text-[#18181b]">LOADING PIM...</div>;
 
     return (
         <div className="flex-grow h-full bg-[#F9F9F9] flex flex-col shadow-2xl overflow-hidden">
             <div className="p-4 bg-white border-b shrink-0" ref={dropdownRef}>
                 <div className="relative">
-                    <div className="flex items-center bg-[#F3F2F1] rounded px-3 border-b-2 border-transparent focus-within:border-[#464775] transition-all">
+                    <div className="flex items-center bg-[#F3F2F1] rounded px-3 border-b-2 border-transparent focus-within:border-[#18181b] transition-all">
                         <FiSearch className="text-gray-400" size={14} />
                         <input type="text" placeholder="AÑADIR SKU..." className="w-full p-2.5 bg-transparent outline-none text-[11px] font-bold uppercase"
                             value={selectedSKU} onChange={(e) => { setSelectedSKU(e.target.value.toUpperCase()); setShowDropdown(true); }} />
@@ -92,7 +92,7 @@ const ConfigXML = ({ externalSearchSKU }) => {
                     {showDropdown && selectedSKU && (
                         <div className="absolute w-full mt-1 bg-white shadow-2xl rounded border z-50 max-h-60 overflow-auto border-[#EDEBE9]">
                             {products.filter(p => p.includes(selectedSKU)).slice(0, 8).map(p => (
-                                <div key={p} onClick={() => handleSearch(p)} className="p-3 hover:bg-[#F3F2F1] cursor-pointer text-[10px] font-black border-b last:border-none text-[#464775]">
+                                <div key={p} onClick={() => handleSearch(p)} className="p-3 hover:bg-[#F3F2F1] cursor-pointer text-[10px] font-black border-b last:border-none text-[#18181b]">
                                     {p}
                                 </div>
                             ))}
@@ -106,8 +106,8 @@ const ConfigXML = ({ externalSearchSKU }) => {
                     selectedConfigs.map((config, pIdx) => (
                         <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} key={pIdx} className="bg-white border border-[#EDEBE9] rounded-lg shadow-sm overflow-hidden">
                             <div onClick={() => setExpandedIndex(expandedIndex === pIdx ? null : pIdx)}
-                                className={`p-3 flex justify-between items-center cursor-pointer transition-colors ${expandedIndex === pIdx ? 'bg-[#464775] text-white' : 'hover:bg-gray-50'}`}>
-                                <div><p className="text-[10px] font-black leading-none">{config.sku}</p><p className={`text-[9px] mt-1 font-bold ${expandedIndex === pIdx ? 'text-white/70' : 'text-[#464775]'}`}>${calculateProductTotal(config).toLocaleString()}</p></div>
+                                className={`p-3 flex justify-between items-center cursor-pointer transition-colors ${expandedIndex === pIdx ? 'bg-[#18181b] text-white' : 'hover:bg-gray-50'}`}>
+                                <div><p className="text-[10px] font-black leading-none">{config.sku}</p><p className={`text-[9px] mt-1 font-bold ${expandedIndex === pIdx ? 'text-white/70' : 'text-[#18181b]'}`}>${calculateProductTotal(config).toLocaleString()}</p></div>
                                 <button onClick={(e) => { e.stopPropagation(); setSelectedConfigs(prev => prev.filter((_, i) => i !== pIdx)); }} className="p-1 hover:bg-black/10 rounded"><FiX size={12} /></button>
                             </div>
                             {expandedIndex === pIdx && (
@@ -121,8 +121,8 @@ const ConfigXML = ({ externalSearchSKU }) => {
                                                         const nc = [...selectedConfigs];
                                                         nc[pIdx].selections[feat.id] = opt;
                                                         setSelectedConfigs(nc);
-                                                    }} className={`p-2.5 text-left text-[9px] rounded border transition-all flex justify-between items-center ${config.selections[feat.id]?.code === opt.code ? 'border-[#464775] bg-[#F3F2F1] font-bold shadow-sm' : 'border-[#F0F0F0] hover:bg-gray-50'}`}>
-                                                        <span className="pr-2">{opt.desc}</span><span className="text-[#464775] font-black">+$ {opt.price}</span>
+                                                    }} className={`p-2.5 text-left text-[9px] rounded border transition-all flex justify-between items-center ${config.selections[feat.id]?.code === opt.code ? 'border-[#18181b] bg-[#F3F2F1] font-bold shadow-sm' : 'border-[#F0F0F0] hover:bg-gray-50'}`}>
+                                                        <span className="pr-2">{opt.desc}</span><span className="text-[#18181b] font-black">+$ {opt.price}</span>
                                                     </button>
                                                 ))}
                                             </div>
@@ -134,8 +134,8 @@ const ConfigXML = ({ externalSearchSKU }) => {
                     ))
                 ) : (
                     <div className="h-full flex flex-col items-center justify-center opacity-30 text-center p-10">
-                        <FiShield size={40} className="mb-4 text-[#464775]" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#464775]">Empty PIM Panel</p>
+                        <FiShield size={40} className="mb-4 text-[#18181b]" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#18181b]">Empty PIM Panel</p>
                     </div>
                 )}
             </div>

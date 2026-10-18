@@ -6,17 +6,17 @@ import { ChevronRight, Cpu, Microscope, Play, Info, BarChart2 } from 'lucide-rea
 
 // --- SUBCOMPONENTE: STAT ITEM CON ESTILO NEGATIVO ---
 const StatItem = ({ icon, label, description, onClick, isActive }) => (
-  <div className={`px-2.5 py-3 rounded-lg shadow-sm border transition-all ${isActive ? 'border-[#464775] bg-[#f8f8fd]' : 'border-[#464775]/20 bg-[#FFF]'}`}>
+  <div className={`px-2.5 py-3 rounded-lg shadow-sm border transition-all ${isActive ? 'border-[#18181b] bg-[#f4f4f5]' : 'border-[#18181b]/20 bg-[#FFF]'}`}>
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center gap-2">
-        <div className="text-[#464775]">
+        <div className="text-[#18181b]">
           {React.cloneElement(icon, { size: 16 })}
         </div>
-        <span className="text-[11px] font-bold text-[#464775]">
+        <span className="text-[11px] font-bold text-[#18181b]">
           {label}
         </span>
       </div>
-      <ChevronRight size={12} className={`rotate-90 transition-colors ${isActive ? 'text-[#464775]' : 'text-[#464775]/50'}`} />
+      <ChevronRight size={12} className={`rotate-90 transition-colors ${isActive ? 'text-[#18181b]' : 'text-[#18181b]/50'}`} />
     </div>
     
     <div className="opacity-100">
@@ -29,8 +29,8 @@ const StatItem = ({ icon, label, description, onClick, isActive }) => (
         onClick={onClick}
         className={`w-full mt-3 text-[9px] font-bold py-1.5 rounded flex items-center justify-center gap-1 transition-all shadow-sm border ${
           isActive 
-            ? 'bg-white text-[#464775] border-[#464775]' // Estilo Negativo
-            : 'bg-[#464775] text-white border-transparent hover:bg-[#3b3c63]' // Estilo Default
+            ? 'bg-white text-[#18181b] border-[#18181b]' // Estilo Negativo
+            : 'bg-[#18181b] text-white border-transparent hover:bg-[#09090b]' // Estilo Default
         }`}
       >
         <Play size={10} fill="currentColor" /> {isActive ? "ACTIVE MODE" : "START MODE"}
@@ -52,7 +52,7 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
   const ModalContent = ({ title }) => (
     <div className="flex flex-col items-center justify-center h-full text-[#605E5C]">
       <PH.AppWindow size={48} weight="thin" />
-      <h2 className="mt-4 font-bold text-[#464775]">{title}</h2>
+      <h2 className="mt-4 font-bold text-[#18181b]">{title}</h2>
       <p className="text-xs opacity-60">Ready to import component from assetsTools</p>
     </div>
   );
@@ -62,7 +62,7 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
       <aside className="w-60 sm:w-56 max-sm:w-[80vw] bg-[#FFFFFF] border-r border-[#EDEBE9] flex flex-col shadow-sm h-full font-sans">
         {/* --- BRANDING --- */}
         <div className="p-4 flex-none flex items-center gap-2 max-sm:p-3">
-          <div className="w-7 h-7 bg-[#464775] rounded-lg flex items-center justify-center text-white shadow-sm">
+          <div className="w-7 h-7 bg-[#18181b] rounded-lg flex items-center justify-center text-white shadow-sm">
             <PH.Sparkle size={18} weight="fill" />
           </div>
           <div>
@@ -85,7 +85,7 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
             <input 
               type="text" 
               placeholder={view === "process" ? "Search manufacturer..." : "Search history..."} 
-              className="w-full bg-[#F3F2F1] border-b border-transparent focus:border-[#464775] rounded-t py-1.5 pl-8 pr-3 text-[12px] max-sm:text-[11px] outline-none transition-all placeholder:text-[#605E5C]"
+              className="w-full bg-[#F3F2F1] border-b border-transparent focus:border-[#18181b] rounded-t py-1.5 pl-8 pr-3 text-[12px] max-sm:text-[11px] outline-none transition-all placeholder:text-[#605E5C]"
             />
           </div>
         </div>
@@ -94,13 +94,13 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
         <div className="flex px-3 gap-1 mt-3 max-sm:px-2">
           <button 
             onClick={() => setView("process")}
-            className={`flex-1 py-1.5 rounded text-[10px] max-sm:text-[9px] font-bold transition-all ${view === "process" ? "bg-[#464775] text-white shadow-sm" : "text-[#605E5C] border border-[#EDEBE9] hover:bg-[#F3F2F1]"}`}
+            className={`flex-1 py-1.5 rounded text-[10px] max-sm:text-[9px] font-bold transition-all ${view === "process" ? "bg-[#18181b] text-white shadow-sm" : "text-[#605E5C] border border-[#EDEBE9] hover:bg-[#F3F2F1]"}`}
           >
             PROCESS
           </button>
           <button 
             onClick={() => setView("history")}
-            className={`flex-1 py-1.5 rounded text-[10px] max-sm:text-[9px] font-bold transition-all ${view === "history" ? "bg-[#464775] text-white shadow-sm" : "text-[#605E5C] border border-[#EDEBE9] hover:bg-[#F3F2F1]"}`}
+            className={`flex-1 py-1.5 rounded text-[10px] max-sm:text-[9px] font-bold transition-all ${view === "history" ? "bg-[#18181b] text-white shadow-sm" : "text-[#605E5C] border border-[#EDEBE9] hover:bg-[#F3F2F1]"}`}
           >
             HISTORY
           </button>
@@ -152,7 +152,7 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
                       <span className="text-[11px] font-bold text-[#242424] truncate pr-2">{item.title}</span>
                       <span className="text-[9px] text-[#605E5C]">{item.date}</span>
                     </div>
-                    <p className="text-[9px] text-[#605E5C] line-clamp-1 italic group-hover:text-[#464775]">{item.preview}</p>
+                    <p className="text-[9px] text-[#605E5C] line-clamp-1 italic group-hover:text-[#18181b]">{item.preview}</p>
                   </div>
                 ))}
               </div>
@@ -165,7 +165,7 @@ const SidebarLeft = ({ setActiveViewport, activeViewport }) => {
           <div className="flex items-center gap-2.5 p-1.5 cursor-pointer hover:bg-[#EDEBE9] rounded-md transition-colors text-[#107C10]">
             <PH.FileXls size={18} weight="fill" /> Export to CET Table
           </div>
-          <div onClick={() => setActiveModal("Upload New PDF")} className="flex items-center gap-2.5 p-1.5 cursor-pointer hover:bg-[#EDEBE9] rounded-md transition-colors text-[#464775]">
+          <div onClick={() => setActiveModal("Upload New PDF")} className="flex items-center gap-2.5 p-1.5 cursor-pointer hover:bg-[#EDEBE9] rounded-md transition-colors text-[#18181b]">
             <PH.UploadSimple size={18} /> New Manufacturer PDF
           </div>
         </div>

@@ -109,9 +109,9 @@ const EJECUTOR_PLAY = ({
           <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
             <div className="flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
+                <div className="absolute inset-0 bg-[#18181b]/10 rounded-full animate-ping"></div>
                 <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
-                  <FiZap className="text-[#5b5fc7] animate-pulse" size={20} />
+                  <FiZap className="text-[#18181b] animate-pulse" size={20} />
                 </div>
               </div>
             </div>
@@ -128,7 +128,7 @@ const EJECUTOR_PLAY = ({
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
+            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#18181b]">
               <Loader2 size={12} className="animate-spin" />
               <span className="uppercase tracking-widest">Synchronizing with General Process...</span>
             </div>
@@ -142,9 +142,9 @@ const EJECUTOR_PLAY = ({
           <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
             <div className="flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-[#464775]/10 rounded-full animate-ping"></div>
+                <div className="absolute inset-0 bg-[#18181b]/10 rounded-full animate-ping"></div>
                 <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
-                  <FiCpu className="text-[#464775] animate-pulse" size={20} />
+                  <FiCpu className="text-[#18181b] animate-pulse" size={20} />
                 </div>
               </div>
             </div>
@@ -161,7 +161,7 @@ const EJECUTOR_PLAY = ({
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#464775]">
+            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#18181b]">
               <Loader2 size={12} className="animate-spin" />
               <span className="uppercase tracking-widest">Processing Cloud Records...</span>
             </div>
@@ -172,7 +172,7 @@ const EJECUTOR_PLAY = ({
       {/* --- ACTION CONTAINER --- */}
       <div className="bg-white border border-[#e0e0e0] rounded-lg p-3 sm:p-4 lg:p-5 shadow-sm flex flex-col h-full gap-3 sm:gap-4">
         <div className="flex items-center gap-2">
-          <div className="text-[#5b5fc7]">
+          <div className="text-[#18181b]">
             <Zap size={12} className="sm:hidden" fill="currentColor" />
             <Zap size={14} className="hidden sm:inline" fill="currentColor" />
           </div>
@@ -184,13 +184,13 @@ const EJECUTOR_PLAY = ({
             <button 
               onClick={ejecutarConConsola}
               disabled={!file || estadoProcessing}
-              className="w-full bg-[#464775] hover:bg-[#4f52b2] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
+              className="w-full bg-[#18181b] hover:bg-[#09090b] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
             >
               {estadoProcessing && showStatusPopup ? <Loader2 size={12} className="animate-spin" /> : <FiZap size={12} />}
               <span className="line-clamp-2">SAVE NEW DATA IN SYSTEM (FIRST STEP)</span>
             </button>
             <div className="px-1 py-1 sm:py-2">
-              <p className="text-[8px] sm:text-[9px] font-bold text-[#5b5fc7] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
+              <p className="text-[8px] sm:text-[9px] font-bold text-[#18181b] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
               <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed">
                 Uploads your General Process catalog data to the cloud database. Sanitizes, validates, and stores pricing information.
               </p>

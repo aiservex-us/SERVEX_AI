@@ -265,7 +265,7 @@ const SVXUnifiedPlatform = () => {
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex-shrink-0  p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
         <div className="flex items-center gap-2">
-          <h2 className="text-xs font-black text-[#464775] uppercase">{currentTenant} Sanitized Viewer</h2>
+          <h2 className="text-xs font-black text-[#18181b] uppercase">{currentTenant} Sanitized Viewer</h2>
           <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
         </div>
       </div>
@@ -273,18 +273,18 @@ const SVXUnifiedPlatform = () => {
         {hasExistingData && !file ? (
           <div className="h-full flex items-center justify-center p-6 bg-gray-50/50">
             <div className="bg-white border border-[#EDEBE9] rounded-xl p-8 max-w-md w-full shadow-lg text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-              <div className="mx-auto w-12 h-12 bg-[#464775]/10 rounded-full flex items-center justify-center text-[#464775]">
-                <Zap size={24} className="fill-[#464775]/10" />
+              <div className="mx-auto w-12 h-12 bg-[#18181b]/10 rounded-full flex items-center justify-center text-[#18181b]">
+                <Zap size={24} className="fill-[#18181b]/10" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#464775] bg-[#464775]/10 inline-block px-2.5 py-1 rounded">Active Catalog Record</h3>
-                <p className="text-[12px] text-gray-600 leading-relaxed font-medium">Stored information was detected in the <code className="font-mono bg-gray-100 px-1 py-0.5 rounded border border-gray-200 text-[#464775]">csv_new_raw</code> column for this tenant. Please review the existing updated Excel/CSV file.</p>
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#18181b] bg-[#18181b]/10 inline-block px-2.5 py-1 rounded">Active Catalog Record</h3>
+                <p className="text-[12px] text-gray-600 leading-relaxed font-medium">Stored information was detected in the <code className="font-mono bg-gray-100 px-1 py-0.5 rounded border border-gray-200 text-[#18181b]">csv_new_raw</code> column for this tenant. Please review the existing updated Excel/CSV file.</p>
               </div>
               <div className="pt-2">
                 <button 
                   onClick={handleIgnoreAndClear}
                   disabled={isClearingBackend}
-                  className="w-full bg-[#464775] hover:bg-[#3b3e7a] text-white font-bold text-[11px] uppercase tracking-wider py-3 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-[#18181b] hover:bg-[#09090b] text-white font-bold text-[11px] uppercase tracking-wider py-3 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isClearingBackend ? <><Loader2 size={14} className="animate-spin" /> Processing Server...</> : "Ignore & Load New CSV"}
                 </button>
@@ -319,7 +319,7 @@ const SVXUnifiedPlatform = () => {
               </table>
             </div>
             <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2.5 flex items-center justify-between text-[11px] font-medium text-gray-600">
-              <div>Showing <span className="font-bold text-[#464775]">{getCurrentRangeLabels().start}</span> to <span className="font-bold text-[#464775]">{getCurrentRangeLabels().end}</span> of <span className="font-bold">{data.length - 1}</span> products.</div>
+              <div>Showing <span className="font-bold text-[#18181b]">{getCurrentRangeLabels().start}</span> to <span className="font-bold text-[#18181b]">{getCurrentRangeLabels().end}</span> of <span className="font-bold">{data.length - 1}</span> products.</div>
               <div className="flex items-center gap-15">
                 <span className="text-[10px] text-gray-400 font-bold uppercase">Page {currentPage} of {getTotalPages()}</span>
                 <div className="flex items-center gap-1.5">
@@ -343,9 +343,9 @@ const SVXUnifiedPlatform = () => {
           <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
             <div className="flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
+                <div className="absolute inset-0 bg-[#18181b]/10 rounded-full animate-ping"></div>
                 <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
-                  <FiDatabase className="text-[#5b5fc7] animate-pulse" size={20} />
+                  <FiDatabase className="text-[#18181b] animate-pulse" size={20} />
                 </div>
               </div>
             </div>
@@ -362,7 +362,7 @@ const SVXUnifiedPlatform = () => {
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
+            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#18181b]">
               <Loader2 size={12} className="animate-spin" />
               <span className="uppercase tracking-widest">Saving to Cloud Database...</span>
             </div>
@@ -384,15 +384,15 @@ const SVXUnifiedPlatform = () => {
       {showTutorial && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-[2px] animate-in fade-in duration-200">
           <div className="bg-white w-[380px] rounded shadow-xl border border-[#d1d1d1] overflow-hidden transform animate-in zoom-in-95 duration-200">
-            <div className="bg-[#464775] px-4 py-2 text-white flex justify-between items-center">
+            <div className="bg-[#18181b] px-4 py-2 text-white flex justify-between items-center">
               <div className="flex items-center gap-2"><Zap size={14} className="text-yellow-400 fill-yellow-400" /><span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization & Sanitize Module</span></div>
               <button onClick={closeTutorial} className="hover:bg-white/20 p-0.5 rounded transition-colors"><X size={16} /></button>
             </div>
             <div className="p-5">
               <h2 className="text-sm font-bold text-[#242424] mb-2">{currentTenant} Catalog Audit</h2>
               <p className="text-[12px] text-[#424242] leading-snug mb-4">Section optimized for the analysis, positional structural cleaning and validation of {currentTenant} catalog updates.</p>
-              <div className="space-y-2"><div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#464775]"><FileText className="text-[#444791] shrink-0" size={16} /><p className="text-[11px] text-[#464775]">Auto-cleanses header corruptions, multi-line row breaking and handles strict null allocations.</p></div></div>
-              <button onClick={closeTutorial} className="w-full mt-5 bg-[#464775] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#3b3e7a] transition-all">Get Started</button>
+              <div className="space-y-2"><div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#18181b]"><FileText className="text-[#27272a] shrink-0" size={16} /><p className="text-[11px] text-[#18181b]">Auto-cleanses header corruptions, multi-line row breaking and handles strict null allocations.</p></div></div>
+              <button onClick={closeTutorial} className="w-full mt-5 bg-[#18181b] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#09090b] transition-all">Get Started</button>
             </div>
           </div>
         </div>
@@ -420,10 +420,10 @@ const SVXUnifiedPlatform = () => {
 
         <div className="col-span-9 flex flex-col h-full min-h-0">
           <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#444791] shadow-sm"><Terminal size={12}/> Console View</div>
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#27272a] shadow-sm"><Terminal size={12}/> Console View</div>
           </nav>
           <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden relative group mt-4">
-            <button onClick={() => setIsMaximized(true)} className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-[#464775] hover:text-white border border-[#EDEBE9] rounded shadow-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-[10px] font-bold"><FiMaximize2 size={12} /> EXPAND VIEW</button>
+            <button onClick={() => setIsMaximized(true)} className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-[#18181b] hover:text-white border border-[#EDEBE9] rounded shadow-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-[10px] font-bold"><FiMaximize2 size={12} /> EXPAND VIEW</button>
             {renderVisualizerContent()}
           </main>
         </div>
@@ -448,11 +448,11 @@ const SVXUnifiedPlatform = () => {
 const Step = ({ icon, title, desc, active, isLast }) => (
   <div className="flex gap-4 relative">
     <div className="flex flex-col items-center">
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${active ? 'bg-[#464775] border-[#444791] text-white shadow-lg' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>{icon}</div>
-      {!isLast && <div className={`w-[2px] h-10 my-1 ${active ? 'bg-[#444791]' : 'bg-[#EDEBE9]'}`} />}
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${active ? 'bg-[#18181b] border-[#27272a] text-white shadow-lg' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>{icon}</div>
+      {!isLast && <div className={`w-[2px] h-10 my-1 ${active ? 'bg-[#27272a]' : 'bg-[#EDEBE9]'}`} />}
     </div>
     <div className={`pt-1 ${!active && 'opacity-40'}`}>
-      <h4 className="text-[10px] font-black mb-1 text-[#464775] uppercase tracking-wider">{title}</h4>
+      <h4 className="text-[10px] font-black mb-1 text-[#18181b] uppercase tracking-wider">{title}</h4>
       <p className="text-[10px] text-gray-500 font-medium truncate w-32">{desc}</p>
     </div>
   </div>

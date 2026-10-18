@@ -38,19 +38,19 @@ const AgentInfo = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] bg-[#FFF] font-sans">
         <div className="relative mb-6">
-          <div className="w-16 h-16 rounded-full border-4 border-[#EDEBE9] border-t-[#464775] animate-spin" />
+          <div className="w-16 h-16 rounded-full border-4 border-[#EDEBE9] border-t-[#18181b] animate-spin" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <Bot size={18} className="text-[#464775]" />
+            <Bot size={18} className="text-[#18181b]" />
           </div>
         </div>
-        <p className="text-[#464775] font-bold text-[10px] uppercase tracking-[0.25em] animate-pulse">
+        <p className="text-[#18181b] font-bold text-[10px] uppercase tracking-[0.25em] animate-pulse">
           Synchronizing with SVX_AI...
         </p>
         <div className="mt-6 flex gap-1.5">
           {[0, 1, 2, 3, 4].map(i => (
             <div
               key={i}
-              className="w-1.5 h-1.5 rounded-full bg-[#464775]/30"
+              className="w-1.5 h-1.5 rounded-full bg-[#18181b]/30"
               style={{ animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite` }}
             />
           ))}
@@ -68,9 +68,9 @@ const AgentInfo = () => {
         >
           <div className="flex justify-center mb-8">
             <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-[#464775]/10 animate-ping opacity-60" />
+              <div className="absolute inset-0 rounded-full bg-[#18181b]/10 animate-ping opacity-60" />
               <div className="relative bg-[#FAF9F8] w-20 h-20 rounded-full flex items-center justify-center border border-[#EDEBE9] shadow-inner">
-                <Bot size={32} className="text-[#464775]/40" />
+                <Bot size={32} className="text-[#18181b]/40" />
               </div>
             </div>
           </div>
@@ -90,7 +90,7 @@ const AgentInfo = () => {
 
           <button
             onClick={() => window.location.reload()}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#464775] text-white text-[10px] font-bold uppercase tracking-[0.15em] rounded hover:bg-[#3b3c63] active:scale-[0.98] transition-all shadow-sm group"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#18181b] text-white text-[10px] font-bold uppercase tracking-[0.15em] rounded hover:bg-[#09090b] active:scale-[0.98] transition-all shadow-sm group"
           >
             <RefreshCw size={12} className="group-hover:rotate-180 transition-transform duration-500" />
             Update Report
@@ -108,7 +108,7 @@ const AgentInfo = () => {
       >
 
         {/* Header */}
-        <div className="bg-[#464775] p-5 flex items-center justify-between">
+        <div className="bg-[#18181b] p-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-9 h-9 bg-white/10 rounded flex items-center justify-center border border-white/20">
               <Bot size={16} className="text-white" />
@@ -139,7 +139,7 @@ const AgentInfo = () => {
         {/* Meta bar */}
         <div className="px-10 py-3 bg-[#FBFBFB] border-b border-[#EDEBE9] flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <FileText size={10} className="text-[#464775]" />
+            <FileText size={10} className="text-[#18181b]" />
             <span className="text-[9px] font-bold text-[#616161] uppercase tracking-wider">Full Document View</span>
           </div>
           <div className="h-3 w-px bg-[#EDEBE9]" />
@@ -147,38 +147,38 @@ const AgentInfo = () => {
             {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
           <div className="ml-auto flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#464775]" />
-            <span className="text-[9px] font-bold text-[#464775] uppercase tracking-wider">Servex US</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#18181b]" />
+            <span className="text-[9px] font-bold text-[#18181b] uppercase tracking-wider">Servex US</span>
           </div>
         </div>
 
         {/* Cuerpo del Reporte */}
         <div className="p-10 lg:p-16">
                     <div className="prose prose-slate max-w-none
-            prose-headings:text-[#464775] prose-headings:font-bold
-            prose-h2:text-lg prose-h2:border-b prose-h2:border-[#464775]/10 prose-h2:pb-3 prose-h2:mt-8
-            prose-h3:text-[13px] prose-h3:text-[#464775]/90
-            prose-p:text-[#464775]/80 prose-p:leading-relaxed prose-p:text-[12px]
-            prose-strong:text-[#464775] prose-strong:font-bold
-            prose-li:text-[#464775]/80">
+            prose-headings:text-[#18181b] prose-headings:font-bold
+            prose-h2:text-lg prose-h2:border-b prose-h2:border-[#18181b]/10 prose-h2:pb-3 prose-h2:mt-8
+            prose-h3:text-[13px] prose-h3:text-[#18181b]/90
+            prose-p:text-[#18181b]/80 prose-p:leading-relaxed prose-p:text-[12px]
+            prose-strong:text-[#18181b] prose-strong:font-bold
+            prose-li:text-[#18181b]/80">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 table: ({node, ...props}) => (
-                  <div className="my-6 overflow-hidden rounded-xl border border-[#464775]/20 shadow-[0_4px_20px_-4px_rgba(70,71,117,0.1)] transition-shadow duration-300 hover:shadow-[0_8px_30px_-4px_rgba(70,71,117,0.15)]">
-                    <table className="min-w-full divide-y divide-[#464775]/10" {...props} />
+                  <div className="my-6 overflow-hidden rounded-xl border border-[#18181b]/20 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] transition-shadow duration-300 hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)]">
+                    <table className="min-w-full divide-y divide-[#18181b]/10" {...props} />
                   </div>
                 ),
-                thead: ({node, ...props}) => <thead className="bg-gradient-to-r from-[#464775]/10 to-[#464775]/5 backdrop-blur-sm" {...props} />,
+                thead: ({node, ...props}) => <thead className="bg-gradient-to-r from-[#18181b]/10 to-[#18181b]/5 backdrop-blur-sm" {...props} />,
                 th: ({node, ...props}) => (
-                  <th className="px-5 py-4 text-left text-[11px] font-bold text-[#464775] uppercase tracking-widest border-b border-[#464775]/20" {...props} />
+                  <th className="px-5 py-4 text-left text-[11px] font-bold text-[#18181b] uppercase tracking-widest border-b border-[#18181b]/20" {...props} />
                 ),
-                tr: ({node, ...props}) => <tr className="hover:bg-[#464775]/[0.04] transition-all duration-300 group cursor-default" {...props} />,
+                tr: ({node, ...props}) => <tr className="hover:bg-[#18181b]/[0.04] transition-all duration-300 group cursor-default" {...props} />,
                 td: ({node, ...props}) => (
-                  <td className="px-5 py-3 text-[12px] text-[#464775]/80 border-t border-[#464775]/10 transition-colors group-hover:text-[#464775] group-hover:font-medium" {...props} />
+                  <td className="px-5 py-3 text-[12px] text-[#18181b]/80 border-t border-[#18181b]/10 transition-colors group-hover:text-[#18181b] group-hover:font-medium" {...props} />
                 ),
                 blockquote: ({node, ...props}) => (
-                  <div className="bg-gradient-to-r from-[#464775]/10 to-transparent border-l-4 border-[#464775] px-5 py-4 my-6 text-[12px] italic text-[#464775]/90 rounded-r-lg">
+                  <div className="bg-gradient-to-r from-[#18181b]/10 to-transparent border-l-4 border-[#18181b] px-5 py-4 my-6 text-[12px] italic text-[#18181b]/90 rounded-r-lg">
                     {props.children}
                   </div>
                 )
@@ -192,8 +192,8 @@ const AgentInfo = () => {
         {/* Footer */}
         <div className="bg-[#FBFBFB] border-t border-[#EDEBE9] p-5 px-10 flex justify-between items-center text-[9px] text-[#616161] font-bold uppercase tracking-[0.15em]">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 bg-[#464775] rounded-full" />
-            <p>Powered by <span className="text-[#464775]">Servex_AI Core Logic</span></p>
+            <div className="w-1.5 h-1.5 bg-[#18181b] rounded-full" />
+            <p>Powered by <span className="text-[#18181b]">Servex_AI Core Logic</span></p>
           </div>
           <div className="flex gap-6 items-center opacity-60">
             <div className="hidden sm:flex items-center gap-1.5">

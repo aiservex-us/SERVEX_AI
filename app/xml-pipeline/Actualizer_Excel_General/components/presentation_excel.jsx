@@ -28,7 +28,7 @@ const WBmfgAdminHero = () => {
             <div className="absolute top-4 right-4 z-[110]">
               <button 
                 onClick={toggleModal}
-                className="group flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-[#464775]/10 text-slate-500 hover:text-[#464775] transition-all duration-200 shadow-sm"
+                className="group flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-[#18181b]/10 text-slate-500 hover:text-[#18181b] transition-all duration-200 shadow-sm"
                 aria-label="Close"
               >
                 <svg 
@@ -71,8 +71,8 @@ const WBmfgAdminHero = () => {
 
           {/* Hero Content */}
           <div className="flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 mb-5 rounded-full border border-[#464775]/20 bg-[#464775]/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#464775]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#464775] animate-pulse" />
+            <div className="inline-flex items-center gap-2 mb-5 rounded-full border border-[#18181b]/20 bg-[#18181b]/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#18181b]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#18181b] animate-pulse" />
               Data Distribution Center
             </div>
 
@@ -89,11 +89,11 @@ const WBmfgAdminHero = () => {
             <div className="flex flex-col items-center gap-6">
               <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white/60 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-200/80 shadow-xs">
                 <span className="flex items-center gap-2">
-                  <svg className="w-3.5 h-3.5 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  <svg className="w-3.5 h-3.5 text-[#18181b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   1-Click Export
                 </span>
                 <span className="flex items-center gap-2">
-                  <svg className="w-3.5 h-3.5 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  <svg className="w-3.5 h-3.5 text-[#18181b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   Client Verified
                 </span>
               </div>
@@ -112,7 +112,7 @@ const WBmfgAdminHero = () => {
           <div
             className="absolute top-[15%] left-[5%] w-[150px] h-[150px] backdrop-blur-md"
             style={{
-              background: 'linear-gradient(135deg, #46477533, rgba(255,255,255,0.1))',
+              background: 'linear-gradient(135deg, #18181b33, rgba(255,255,255,0.1))',
               transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
               boxShadow: 'inset 0 0 40px rgba(255,255,255,0.4)',
               clipPath: 'polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)'
@@ -121,7 +121,7 @@ const WBmfgAdminHero = () => {
 
           {/* Shape 2 */}
           <div
-            className="absolute top-[20%] left-[20%] w-[170px] h-[170px] bg-gradient-to-br from-[#464775]/80 to-[#32335b]/40 backdrop-blur-xl z-10"
+            className="absolute top-[20%] left-[20%] w-[170px] h-[170px] bg-gradient-to-br from-[#18181b]/80 to-[#09090b]/40 backdrop-blur-xl z-10"
             style={{
               transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
               boxShadow: 'inset 0 0 50px rgba(255,255,255,0.2)',
@@ -133,7 +133,7 @@ const WBmfgAdminHero = () => {
           <div
             className="absolute top-[30%] right-[25%] w-[140px] h-[140px] backdrop-blur-md z-10"
             style={{
-              background: 'linear-gradient(45deg, rgba(255,255,255,0.3), #4647751A)',
+              background: 'linear-gradient(45deg, rgba(255,255,255,0.3), #18181b1a)',
               transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
               boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5)',
               clipPath: 'polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)'
@@ -142,7 +142,7 @@ const WBmfgAdminHero = () => {
         </div>
 
         <div className="relative z-20 rotate-90 pointer-events-none opacity-20 mix-blend-multiply">
-          <span className="text-[#464775] font-black text-[90px] tracking-tighter select-none leading-none">
+          <span className="text-[#18181b] font-black text-[90px] tracking-tighter select-none leading-none">
             General Process Seating
           </span>
         </div>

@@ -81,7 +81,7 @@ const LesroSyncCopilot = () => {
             <div className="p-6 border-b border-[#EDEBE9] bg-white sticky top-0 z-20">
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
-                  <div className="flex items-center gap-2 text-[#464775] mb-1">
+                  <div className="flex items-center gap-2 text-[#18181b] mb-1">
                     <Sparkles size={14} />
                     <span className="text-[11px] font-bold uppercase tracking-wider">
                       Servex US Sync Center
@@ -110,10 +110,10 @@ const LesroSyncCopilot = () => {
                 ].map((step, idx) => (
                   <div
                     key={idx}
-                    className="bg-white p-6 rounded-lg border border-[#EDEBE9] transition-all hover:border-[#464775]/30 hover:shadow-sm flex flex-col items-start group"
+                    className="bg-white p-6 rounded-lg border border-[#EDEBE9] transition-all hover:border-[#18181b]/30 hover:shadow-sm flex flex-col items-start group"
                   >
-                    <div className="mb-4 p-2 bg-[#F5F5F5] rounded-md group-hover:bg-[#464775]/5 transition-colors">
-                      <step.icon size={20} className="text-[#464775]" />
+                    <div className="mb-4 p-2 bg-[#F5F5F5] rounded-md group-hover:bg-[#18181b]/5 transition-colors">
+                      <step.icon size={20} className="text-[#18181b]" />
                     </div>
                     <h3 className="text-[14px] font-semibold text-[#242424] mb-2">
                       {step.title}
@@ -129,11 +129,11 @@ const LesroSyncCopilot = () => {
               <div className="bg-white border border-[#EDEBE9] rounded-xl p-12 flex flex-col items-center text-center shadow-sm max-w-4xl mx-auto">
                 <div
                   className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 transition-all border
-                    ${isSyncing ? 'bg-[#F5F5F5] border-[#464775]/20 shadow-inner' : 'bg-white border-[#EDEBE9] shadow-sm'}`}
+                    ${isSyncing ? 'bg-[#F5F5F5] border-[#18181b]/20 shadow-inner' : 'bg-white border-[#EDEBE9] shadow-sm'}`}
                 >
                   <RefreshCw 
                     size={28} 
-                    className={`${isSyncing ? 'animate-spin text-[#464775]' : 'text-[#616161]'}`} 
+                    className={`${isSyncing ? 'animate-spin text-[#18181b]' : 'text-[#616161]'}`} 
                   />
                 </div>
 
@@ -148,7 +148,7 @@ const LesroSyncCopilot = () => {
                 <button 
                   onClick={handleStartSync} 
                   disabled={isSyncing}
-                  className="w-full sm:w-auto h-11 px-10 bg-[#464775] hover:bg-[#38395d] text-white text-[14px] font-semibold rounded-md shadow-md shadow-[#464775]/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                  className="w-full sm:w-auto h-11 px-10 bg-[#18181b] hover:bg-black text-white text-[14px] font-semibold rounded-md shadow-md shadow-black/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
                 >
                   {isSyncing ? 'Processing Update...' : 'Start Synchronization'}
                   {!isSyncing && <ArrowUpRight size={18} />}
@@ -167,7 +167,7 @@ const LesroSyncCopilot = () => {
       <div className="h-14 bg-white w-full flex items-center justify-between px-6 border-b border-[#EDEBE9] shrink-0 z-30">
         <div className="flex items-center gap-6 h-full">
           <div className="flex items-center gap-3 pr-6 border-r border-[#EDEBE9]">
-            <div className="bg-[#464775] rounded px-1.5 py-1">
+            <div className="bg-[#18181b] rounded px-1.5 py-1">
               <img src="/logo2.png" alt="SVX" className="h-4 w-auto brightness-0 invert" />
             </div>
             <span className="text-[13px] font-bold text-[#242424] tracking-tight">
@@ -182,7 +182,7 @@ const LesroSyncCopilot = () => {
                 onClick={() => setActiveTab(option.id)}
                 className={`flex items-center gap-2 px-5 h-full text-[13px] font-semibold transition-all relative shrink-0
                   ${activeTab === option.id 
-                    ? 'text-[#464775] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#464775]' 
+                    ? 'text-[#18181b] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#18181b]' 
                     : 'text-[#616161] hover:text-[#242424] hover:bg-[#F5F5F5]'
                   }`}
               >
@@ -214,7 +214,7 @@ const LesroSyncCopilot = () => {
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #EDEBE9; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #D1D1E0; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #D4D4D8; }
       `}</style>
     </div>
   );

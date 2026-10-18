@@ -34,7 +34,7 @@ const IndependentLESROVisualizer = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
-      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#464775] mb-4">
+      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2 }} className="text-[#18181b] mb-4">
         <Database size={40} />
       </motion.div>
       <p className="text-slate-600 font-bold">Starting Lesro Price Audit...</p>
@@ -155,7 +155,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
     <div className="w-full h-full flex flex-col bg-[#F3F2F1] text-[#242424] overflow-hidden font-sans">
       <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-[#464775] flex items-center justify-center text-white">
+          <div className="w-8 h-8 rounded bg-[#18181b] flex items-center justify-center text-white">
             <TableIcon size={18} />
           </div>
           <div>
@@ -178,7 +178,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
               setSearchTerm(e.target.value);
               setVisibleCount(20); 
             }}
-            className="pl-9 pr-4 py-1.5 bg-[#F3F2F1] border-transparent focus:bg-white focus:border-[#464775] rounded text-[11px] w-72 transition-all outline-none"
+            className="pl-9 pr-4 py-1.5 bg-[#F3F2F1] border-transparent focus:bg-white focus:border-[#18181b] rounded text-[11px] w-72 transition-all outline-none"
           />
         </div>
       </div>
@@ -186,7 +186,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
       <div className="flex-1 overflow-auto custom-scrollbar bg-white">
         <table className="w-full text-left border-collapse table-fixed min-w-[2200px]">
           <thead className="sticky top-0 z-20 shadow-sm">
-            <tr className="bg-[#FAF9F8] text-[10px] text-[#464775] font-black uppercase tracking-wider border-b border-slate-200">
+            <tr className="bg-[#FAF9F8] text-[10px] text-[#18181b] font-black uppercase tracking-wider border-b border-slate-200">
               <th className="p-3 w-32 sticky left-0 bg-[#FAF9F8] border-r border-slate-200">ID (SKU)</th>
               <th className="p-3 w-64 border-r border-slate-200">Description</th>
               <th className="p-3 w-28 text-center border-r border-slate-200 bg-[#F1F3F9]">Base Price</th>
@@ -206,7 +206,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           <tbody className="text-[11px]">
             {displayData.map((p) => (
               <tr key={p.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors group">
-                <td className="p-3 font-black text-[#464775] sticky left-0 bg-white group-hover:bg-slate-50 border-r border-slate-200">
+                <td className="p-3 font-black text-[#18181b] sticky left-0 bg-white group-hover:bg-slate-50 border-r border-slate-200">
                   {p.sku}
                 </td>
                 <td className="p-3 text-slate-500 border-r border-slate-200 truncate">{p.description}</td>
@@ -252,7 +252,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           <div className="p-6 flex justify-center bg-white">
             <button 
               onClick={handleLoadMore}
-              className="flex items-center gap-2 px-6 py-2 bg-[#464775] text-white rounded-md text-xs font-bold hover:bg-[#3b3c63] transition-all shadow-md"
+              className="flex items-center gap-2 px-6 py-2 bg-[#18181b] text-white rounded-md text-xs font-bold hover:bg-[#09090b] transition-all shadow-md"
             >
               <FiPlusCircle /> Show más (Viendo {displayData.length})
             </button>
@@ -262,7 +262,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
 
       <div className="h-10 bg-white border-t border-slate-200 flex items-center justify-between px-6 text-[10px] text-slate-400 font-bold">
         <div className="flex gap-4 uppercase">
-          <span className="flex items-center gap-1"><FiPackage className="text-[#464775]" /> Dynamic View Mode</span>
+          <span className="flex items-center gap-1"><FiPackage className="text-[#18181b]" /> Dynamic View Mode</span>
           <span className="flex items-center gap-1 text-emerald-500"><FiCheckCircle /> optimized rendering</span>
         </div>
         <span>LESRO_PRICE_MATRIX_V1.5</span>
@@ -272,7 +272,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
         .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #F3F2F1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #C8C6C4; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #464775; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #18181b; }
       `}</style>
     </div>
   );

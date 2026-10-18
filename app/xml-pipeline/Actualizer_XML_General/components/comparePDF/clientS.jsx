@@ -23,7 +23,7 @@ const ClientsBatchManager = () => {
   const itemsPerPage = 15;
 
   const colors = {
-    purple: '#5b5fc7',
+    primary: '#18181b',
     danger: '#d13438',
     bg: 'transparent',
     card: '#ffffff',
@@ -110,7 +110,7 @@ const ClientsBatchManager = () => {
         border: `1px solid ${colors.border}`
       }}>
         <div>
-          <h1 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: colors.purple }}>Data Explorer</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 600, margin: 0, color: colors.primary }}>Data Explorer</h1>
           {selectedIds.length > 0 ? (
             <span style={{ color: colors.danger, fontSize: 13, fontWeight: 600 }}>
               {selectedIds.length} seleccionados
@@ -168,7 +168,7 @@ const ClientsBatchManager = () => {
               <th style={{ ...styles.th, width: 40 }}>
                 <button onClick={toggleSelectAll} style={styles.checkBtn}>
                   {selectedIds.length === filteredRecords.length && filteredRecords.length > 0 
-                    ? <CheckSquare size={18} color={colors.purple} /> 
+                    ? <CheckSquare size={18} color={colors.primary} /> 
                     : <Square size={18} color={colors.subtext} />
                   }
                 </button>
@@ -193,7 +193,7 @@ const ClientsBatchManager = () => {
                   <td style={styles.td}>
                     <button onClick={() => toggleSelectOne(row.id)} style={styles.checkBtn}>
                       {isSelected 
-                        ? <CheckSquare size={18} color={colors.purple} /> 
+                        ? <CheckSquare size={18} color={colors.primary} /> 
                         : <Square size={18} color={colors.subtext} />
                       }
                     </button>

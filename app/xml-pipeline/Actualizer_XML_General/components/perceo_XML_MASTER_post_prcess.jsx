@@ -176,7 +176,7 @@ const WBDDataMatrix = () => {
   if (loading) return (
     <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-4 h-4 border-2 border-[#18181b] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix from WBD Engine...
       </div>
     </div>
@@ -189,7 +189,7 @@ const WBDDataMatrix = () => {
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
       <button 
         onClick={processXML} 
-        className="flex items-center gap-2 px-4 py-2 bg-[#464775] hover:bg-[#2B2C4B] text-white text-xs font-bold rounded shadow-sm transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-[#18181b] hover:bg-[#09090b] text-white text-xs font-bold rounded shadow-sm transition-colors"
       >
         <RefreshCw size={12} /> Retry Loading
       </button>
@@ -200,14 +200,14 @@ const WBDDataMatrix = () => {
     <div className="h-full md:h-[80vh] flex flex-col justify-center items-center bg-transparent relative z-10 p-1 sm:p-2 md:p-4 font-sans antialiased">
       <div className="w-full mx-auto">
         
-        <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#464775]/30 shadow-lg shadow-[#464775]/5 overflow-hidden flex flex-col w-full">
+        <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#18181b]/30 shadow-lg shadow-[#18181b]/5 overflow-hidden flex flex-col w-full">
           
           {/* Operations / Filters Header */}
-          <div className="px-4 py-2.5 border-b border-[#464775]/15 bg-white/40 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+          <div className="px-4 py-2.5 border-b border-[#18181b]/15 bg-white/40 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-2.5">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">XML Results Matrix</span>
-                <span className="text-[9px] font-bold text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full border border-[#464775]/20 select-none">
+                <span className="text-[9px] font-bold text-[#18181b] bg-[#18181b]/10 px-2 py-0.5 rounded-full border border-[#18181b]/20 select-none">
                   XML Schema Engine
                 </span>
               </div>
@@ -217,12 +217,12 @@ const WBDDataMatrix = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2 bg-[#464775]/5 border border-[#464775]/15 rounded-lg px-2.5 py-1 text-[10px] text-slate-600 font-medium select-none">
+              <div className="hidden sm:flex items-center gap-2 bg-[#18181b]/5 border border-[#18181b]/15 rounded-lg px-2.5 py-1 text-[10px] text-slate-600 font-medium select-none">
                 <span>Products: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
-                <span className="text-[#464775]/30">|</span>
+                <span className="text-[#18181b]/30">|</span>
                 <span>Filtered: <strong className="text-slate-800 font-bold">{stats.filtered}</strong></span>
-                <span className="text-[#464775]/30">|</span>
-                <span>Avg Price: <strong className="text-[#464775] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
+                <span className="text-[#18181b]/30">|</span>
+                <span>Avg Price: <strong className="text-[#18181b] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
               </div>
 
               <div className="relative flex items-center">
@@ -232,17 +232,17 @@ const WBDDataMatrix = () => {
                   placeholder="Search matrix..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-white/70 border border-[#464775]/25 rounded-lg pl-7 pr-2.5 py-0.5 text-[10.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#464775] focus:bg-white transition-all w-[160px]"
+                  className="bg-white/70 border border-[#18181b]/25 rounded-lg pl-7 pr-2.5 py-0.5 text-[10.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#18181b] focus:bg-white transition-all w-[160px]"
                 />
               </div>
 
               <button 
                 onClick={processXML}
                 type="button"
-                className="p-1 bg-white/70 border border-[#464775]/25 hover:bg-[#464775]/10 rounded-lg text-[#464775] transition-all shadow-2xs"
+                className="p-1 bg-white/70 border border-[#18181b]/25 hover:bg-[#18181b]/10 rounded-lg text-[#18181b] transition-all shadow-2xs"
                 title="Synchronize and recalculate matrices"
               >
-                <RefreshCw size={12} className={loading ? "animate-spin text-[#464775]" : ""} />
+                <RefreshCw size={12} className={loading ? "animate-spin text-[#18181b]" : ""} />
               </button>
             </div>
           </div>
@@ -250,8 +250,8 @@ const WBDDataMatrix = () => {
           {/* Table Matrix */}
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-16 text-center bg-white/30 backdrop-blur-sm">
-              <div className="w-12 h-12 rounded-xl bg-[#464775]/10 flex items-center justify-center mb-2.5 border border-[#464775]/20">
-                <svg className="w-6 h-6 text-[#464775]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <div className="w-12 h-12 rounded-xl bg-[#18181b]/10 flex items-center justify-center mb-2.5 border border-[#18181b]/20">
+                <svg className="w-6 h-6 text-[#18181b]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
               <h3 className="text-xs font-bold text-slate-800 mb-0.5">No data found</h3>
               <p className="text-[10px] text-slate-500 max-w-xs font-medium">
@@ -261,38 +261,38 @@ const WBDDataMatrix = () => {
           ) : (
             <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-slate-300 max-h-[58vh]">
               <table className="table-fixed border-collapse text-left text-[10px] w-max min-w-full">
-                <thead className="sticky top-0 z-20 bg-[#464775]/10 backdrop-blur-md border-b border-[#464775]/20">
+                <thead className="sticky top-0 z-20 bg-[#18181b]/10 backdrop-blur-md border-b border-[#18181b]/20">
                   <tr>
-                    <th className="w-10 px-2 py-2 text-center text-[9px] font-bold uppercase tracking-wider text-[#464775] bg-[#464775]/10 backdrop-blur-md sticky left-0 z-30 border-r border-b border-[#464775]/20 select-none">
+                    <th className="w-10 px-2 py-2 text-center text-[9px] font-bold uppercase tracking-wider text-[#18181b] bg-[#18181b]/10 backdrop-blur-md sticky left-0 z-30 border-r border-b border-[#18181b]/20 select-none">
                       #
                     </th>
                     {baseHeaders.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[10px] font-bold text-[#464775] bg-[#464775]/10 backdrop-blur-md border-r border-b border-[#464775]/20 min-w-[150px] max-w-[260px] whitespace-nowrap truncate uppercase tracking-wider select-none"
+                        className="px-3 py-2 text-[10px] font-bold text-[#18181b] bg-[#18181b]/10 backdrop-blur-md border-r border-b border-[#18181b]/20 min-w-[150px] max-w-[260px] whitespace-nowrap truncate uppercase tracking-wider select-none"
                       >
                         <div className="flex items-center gap-1">
                           <span>{header}</span>
-                          <Filter size={9} className="text-[#464775] opacity-50" />
+                          <Filter size={9} className="text-[#18181b] opacity-50" />
                         </div>
                       </th>
                     ))}
                     {optionHeaders.map((header) => (
                       <th
                         key={header}
-                        className="px-3 py-2 text-[10px] font-bold text-[#464775] bg-[#464775]/15 border-r border-b border-[#464775]/20 min-w-[150px] max-w-[260px] whitespace-nowrap truncate uppercase tracking-wider select-none"
+                        className="px-3 py-2 text-[10px] font-bold text-[#18181b] bg-[#18181b]/15 border-r border-b border-[#18181b]/20 min-w-[150px] max-w-[260px] whitespace-nowrap truncate uppercase tracking-wider select-none"
                         title={header}
                       >
                         <div className="flex items-center gap-1">
                           <span>{header}</span>
-                          <Filter size={9} className="text-[#464775] opacity-50" />
+                          <Filter size={9} className="text-[#18181b] opacity-50" />
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
 
-                <tbody className="bg-white/60 divide-y divide-[#464775]/10">
+                <tbody className="bg-white/60 divide-y divide-[#18181b]/10">
                   <AnimatePresence initial={false}>
                     {paginatedProducts.map((p, idx) => {
                       const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
@@ -304,44 +304,44 @@ const WBDDataMatrix = () => {
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.15 }}
-                          className="hover:bg-[#464775]/10 transition-colors group"
+                          className="hover:bg-[#18181b]/10 transition-colors group"
                         >
                           {/* Index Column */}
-                          <td className="px-2 py-1.5 text-center text-[9.5px] font-bold text-[#464775] border-r border-[#464775]/10 sticky left-0 z-10 bg-white/90 group-hover:bg-[#464775]/10 border-b border-[#464775]/10 font-mono">
+                          <td className="px-2 py-1.5 text-center text-[9.5px] font-bold text-[#18181b] border-r border-[#18181b]/10 sticky left-0 z-10 bg-white/90 group-hover:bg-[#18181b]/10 border-b border-[#18181b]/10 font-mono">
                             {realIndex}
                           </td>
 
                           {/* SKU */}
-                          <td className="p-0 text-[#464775] border-r border-b border-[#464775]/10 min-w-[150px] max-w-[260px]">
+                          <td className="p-0 text-[#18181b] border-r border-b border-[#18181b]/10 min-w-[150px] max-w-[260px]">
                             <div className="px-3 py-1.5 font-mono text-[10px] font-bold whitespace-nowrap truncate" title={p.sku}>
                               {p.sku}
                             </div>
                           </td>
 
                           {/* Description */}
-                          <td className="p-0 text-slate-800 border-r border-b border-[#464775]/10 min-w-[150px] max-w-[260px]">
+                          <td className="p-0 text-slate-800 border-r border-b border-[#18181b]/10 min-w-[150px] max-w-[260px]">
                             <div className="px-3 py-1.5 font-sans text-[10px] font-medium text-slate-700 whitespace-nowrap truncate" title={p.description}>
                               {p.description}
                             </div>
                           </td>
 
                           {/* Classification */}
-                          <td className="p-0 text-slate-500 border-r border-b border-[#464775]/10 min-w-[150px] max-w-[260px]">
+                          <td className="p-0 text-slate-500 border-r border-b border-[#18181b]/10 min-w-[150px] max-w-[260px]">
                             <div className="px-3 py-1.5 font-mono text-[10px] whitespace-nowrap truncate" title={p.classification}>
                               {p.classification}
                             </div>
                           </td>
 
                           {/* Base Price */}
-                          <td className="p-0 text-slate-800 border-r border-b border-[#464775]/10 min-w-[150px] max-w-[260px]">
-                            <div className="px-3 py-1.5 font-mono text-[10px] font-bold text-[#464775] whitespace-nowrap truncate">
+                          <td className="p-0 text-slate-800 border-r border-b border-[#18181b]/10 min-w-[150px] max-w-[260px]">
+                            <div className="px-3 py-1.5 font-mono text-[10px] font-bold text-[#18181b] whitespace-nowrap truncate">
                               ${p.basePrice.toLocaleString()}
                             </div>
                           </td>
 
                           {/* Dynamic Option Prices */}
                           {optionHeaders.map(oh => (
-                            <td key={oh} className="p-0 text-[#464775] border-r border-b border-[#464775]/10 min-w-[150px] max-w-[260px]">
+                            <td key={oh} className="p-0 text-[#18181b] border-r border-b border-[#18181b]/10 min-w-[150px] max-w-[260px]">
                               <div className="px-3 py-1.5 font-mono text-[10px] font-medium whitespace-nowrap truncate">
                                 {p[oh] !== undefined ? `$${p[oh].toLocaleString()}` : "-"}
                               </div>
@@ -357,10 +357,10 @@ const WBDDataMatrix = () => {
           )}
 
           {/* Footer */}
-          <div className="bg-white/40 backdrop-blur-md px-4 py-2 border-t border-[#464775]/15 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-medium text-slate-600 select-none">
+          <div className="bg-white/40 backdrop-blur-md px-4 py-2 border-t border-[#18181b]/15 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-medium text-slate-600 select-none">
             <div className="flex items-center gap-3">
               <span>Total Columns: <strong className="text-slate-800 font-bold">{baseHeaders.length + optionHeaders.length}</strong></span>
-              <span className="text-[#464775]/30">|</span>
+              <span className="text-[#18181b]/30">|</span>
               <span>Showing <strong className="text-slate-800 font-bold">{filtered.length}</strong> of <strong className="text-slate-800 font-bold">{products.length}</strong> items</span>
             </div>
             
@@ -369,12 +369,12 @@ const WBDDataMatrix = () => {
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="px-2.5 py-0.5 bg-white/80 border border-[#464775]/25 hover:bg-[#464775] hover:text-white rounded-md text-[#464775] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px]"
+                className="px-2.5 py-0.5 bg-white/80 border border-[#18181b]/25 hover:bg-[#18181b] hover:text-white rounded-md text-[#18181b] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px]"
               >
                 Previous
               </button>
               
-              <span className="text-[#464775] font-bold px-1.5 text-[10px]">
+              <span className="text-[#18181b] font-bold px-1.5 text-[10px]">
                 Page {currentPage} of {totalPages}
               </span>
 
@@ -382,7 +382,7 @@ const WBDDataMatrix = () => {
                 type="button"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className="px-2.5 py-0.5 bg-white/80 border border-[#464775]/25 hover:bg-[#464775] hover:text-white rounded-md text-[#464775] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px]"
+                className="px-2.5 py-0.5 bg-white/80 border border-[#18181b]/25 hover:bg-[#18181b] hover:text-white rounded-md text-[#18181b] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px]"
               >
                 Next
               </button>

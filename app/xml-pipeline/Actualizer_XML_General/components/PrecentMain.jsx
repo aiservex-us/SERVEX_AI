@@ -82,16 +82,16 @@ export default function WBAIPanel() {
           <div className="bg-white p-5 rounded-[6px] border border-[#EDEBE9] hover:border-[#D1D1D1] transition-all shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <div className="p-2 bg-[#F3F5F8] rounded-[4px]">
-                <ShieldCheck className="text-[#464775] w-5 h-5" />
+                <ShieldCheck className="text-[#18181b] w-5 h-5" />
               </div>
               <BarChart3 className="text-[#616161] w-4 h-4" />
             </div>
             <h3 className="text-[14px] font-bold text-[#242424] tracking-tight">Confidence Score</h3>
             <div className="flex items-center gap-3 mt-4">
               <div className="flex-1 bg-[#EDEBE9] h-2 rounded-full overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: "98.2%" }} className="h-full bg-[#464775]" />
+                <motion.div initial={{ width: 0 }} animate={{ width: "98.2%" }} className="h-full bg-[#18181b]" />
               </div>
-              <span className="text-[13px] font-bold text-[#464775]">98.2%</span>
+              <span className="text-[13px] font-bold text-[#18181b]">98.2%</span>
             </div>
             <p className="text-[11px] text-[#616161] mt-2 italic text-center font-medium">Attribute detection precision</p>
           </div>
@@ -112,10 +112,10 @@ export default function WBAIPanel() {
           </div>
 
           {/* Card: XML Export */}
-          <div className="bg-[#464775] p-5 rounded-[6px] text-white flex flex-col justify-between relative overflow-hidden shadow-md">
+          <div className="bg-[#18181b] p-5 rounded-[6px] text-white flex flex-col justify-between relative overflow-hidden shadow-md">
             <div className="relative z-10">
               <h3 className="text-[14px] font-bold mb-1 tracking-tight">OFDA Finalization</h3>
-              <p className="text-[11px] text-[#EAEBFA] mb-4 font-normal">Direct export for General Process digital catalogs and CET tools.</p>
+              <p className="text-[11px] text-[#F4F4F5] mb-4 font-normal">Direct export for General Process digital catalogs and CET tools.</p>
             </div>
             <Layers className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10" />
           </div>
@@ -126,7 +126,7 @@ export default function WBAIPanel() {
           <div className="lg:col-span-2 bg-white border border-[#EDEBE9] rounded-[6px] shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
               <h3 className="text-[14px] font-bold flex items-center gap-2 uppercase tracking-widest text-[#242424]">
-                <ArrowRightLeft size={16} className="text-[#464775]" />
+                <ArrowRightLeft size={16} className="text-[#18181b]" />
                 General Process Smart Sync Workflow
               </h3>
             </div>
@@ -150,13 +150,13 @@ export default function WBAIPanel() {
                           key={i}
                           animate={{ x: [0, 100], opacity: [0, 1, 0] }}
                           transition={{ repeat: Infinity, duration: 1.5, delay: i * 0.3 }}
-                          className="w-2 h-2 bg-[#464775] rounded-full"
+                          className="w-2 h-2 bg-[#18181b] rounded-full"
                          />
                        ))}
                     </div>
                   </div>
-                  <div className="mt-4 px-4 py-1.5 bg-[#EAEBFA] rounded-full border border-[#464775]/20">
-                    <span className="text-[10px] font-bold text-[#464775] uppercase tracking-wider">SVX AI: General Process Logic Engine</span>
+                  <div className="mt-4 px-4 py-1.5 bg-[#F4F4F5] rounded-full border border-[#18181b]/20">
+                    <span className="text-[10px] font-bold text-[#18181b] uppercase tracking-wider">SVX AI: General Process Logic Engine</span>
                   </div>
                 </div>
 
@@ -184,10 +184,10 @@ export default function WBAIPanel() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-[11px] font-bold uppercase text-[#616161] tracking-wider">
                     <span>Industrial Specs</span>
-                    <span className="text-[#464775]">Active</span>
+                    <span className="text-[#18181b]">Active</span>
                   </div>
                   <div className="h-1.5 w-full bg-[#F3F5F8] rounded-full overflow-hidden">
-                    <div className="h-full bg-[#464775] w-[92%]" />
+                    <div className="h-full bg-[#18181b] w-[92%]" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -218,17 +218,17 @@ export default function WBAIPanel() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-[13px] text-[#242424] font-medium">New General Process SKUs</div>
-                  <div className="font-bold text-[13px] text-[#464775]">850 SKU</div>
+                  <div className="font-bold text-[13px] text-[#18181b]">850 SKU</div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-[13px] text-[#242424] font-medium">Audit Time Saved</div>
-                  <div className="text-[#464775] font-bold text-[13px] tracking-tight">-12.2 hrs</div>
+                  <div className="text-[#18181b] font-bold text-[13px] tracking-tight">-12.2 hrs</div>
                 </div>
               </div>
             </div>
 
             <div className="bg-slate-50 border border-slate-200 rounded-[6px] p-5">
-              <div className="flex items-center gap-2 mb-2 text-[#464775]">
+              <div className="flex items-center gap-2 mb-2 text-[#18181b]">
                 <RefreshCw size={14} className="animate-spin-slow" />
                 <h4 className="text-[10px] font-bold uppercase tracking-widest">General Process REAL-TIME SYNC</h4>
               </div>
@@ -242,7 +242,7 @@ export default function WBAIPanel() {
               className="w-full bg-white border border-[#EDEBE9] p-4 rounded-[6px] hover:bg-[#FAF9F8] transition-all flex items-center justify-between group shadow-sm"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#F3F5F8] rounded-[4px] group-hover:bg-[#464775] group-hover:text-white transition-colors">
+                <div className="p-2 bg-[#F3F5F8] rounded-[4px] group-hover:bg-[#18181b] group-hover:text-white transition-colors">
                   <BarChart3 size={16} />
                 </div>
                 <span className="text-[13px] font-bold tracking-tight">General Process Data Insights</span>
@@ -259,8 +259,8 @@ export default function WBAIPanel() {
           <strong className="font-bold">Servex US</strong> © 2026 | Catalog Automation for <strong className="font-bold">General Process</strong>
         </p>
         <div className="flex gap-4">
-          <span className="text-[11px] font-bold text-[#464775] cursor-pointer hover:underline">General Process Spec Guide</span>
-          <span className="text-[11px] font-bold text-[#464775] cursor-pointer hover:underline">Technical Support</span>
+          <span className="text-[11px] font-bold text-[#18181b] cursor-pointer hover:underline">General Process Spec Guide</span>
+          <span className="text-[11px] font-bold text-[#18181b] cursor-pointer hover:underline">Technical Support</span>
         </div>
       </footer>
     </div>

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 // Importamos la instancia estándar (Azure)
-import { signInWithAzure, supabase } from '../lib/supabaseClient'; 
+import { signInWithAzure, supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { FaMicrosoft } from 'react-icons/fa';
 import Image from 'next/image';
@@ -38,40 +38,40 @@ export default function LoginPage() {
         className="w-full max-w-5xl h-[80vh] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2"
       >
         <div className="relative hidden md:flex flex-col justify-end p-10 overflow-hidden bg-gradient-to-br from-[#464775]/40 via-[#464775]/10 to-white">
-          
+
           {/* Decorative Floating 3D Glass Coins (Estáticos) */}
           <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center" style={{ perspective: '1200px' }}>
-            <div 
+            <div
               className="absolute top-[15%] left-[5%] w-[180px] h-[180px] rounded-full bg-white/20 backdrop-blur-md border border-white/50"
-              style={{ 
+              style={{
                 transform: 'rotateX(20deg) rotateY(30deg) translateZ(-100px)',
                 boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -2px 2px 0 rgba(255,255,255,0.6), -10px 10px 20px rgba(0,0,0,0.05)'
-              }} 
+              }}
             />
-            <div 
+            <div
               className="absolute top-[20%] left-[20%] w-[200px] h-[200px] rounded-full bg-gradient-to-br from-[#464775]/60 to-[#464775]/20 backdrop-blur-xl border border-white/60 z-10"
-              style={{ 
+              style={{
                 transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
                 boxShadow: 'inset 0 0 30px rgba(255,255,255,0.6), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -4px 4px 0 #d0d0d0, -15px 15px 30px rgba(0,0,0,0.1)'
               }}
             />
-            <div 
+            <div
               className="absolute top-[30%] right-[25%] w-[160px] h-[160px] rounded-full bg-white/30 backdrop-blur-md border border-white/50 z-10"
-              style={{ 
+              style={{
                 transform: 'rotateX(60deg) rotateY(-50deg) translateZ(100px)',
                 boxShadow: 'inset 0 0 15px rgba(255,255,255,0.4), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -10px 10px 15px rgba(0,0,0,0.05)'
               }}
             />
-            <div 
+            <div
               className="absolute bottom-[35%] right-[10%] w-[190px] h-[190px] rounded-full bg-white/40 backdrop-blur-lg border border-white/70"
-              style={{ 
+              style={{
                 transform: 'rotateX(15deg) rotateY(20deg) translateZ(0px)',
                 boxShadow: 'inset 0 0 20px rgba(255,255,255,0.5), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -3px 3px 0 #e0e0e0, -10px 10px 20px rgba(0,0,0,0.05)'
               }}
             />
-            <div 
+            <div
               className="absolute bottom-[20%] left-[25%] w-[180px] h-[180px] rounded-full bg-[#464775]/20 backdrop-blur-xl border border-white/30 blur-[4px]"
-              style={{ 
+              style={{
                 transform: 'rotateX(45deg) rotateY(15deg) translateZ(150px)',
                 boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3)'
               }}

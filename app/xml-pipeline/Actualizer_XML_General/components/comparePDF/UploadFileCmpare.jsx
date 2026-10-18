@@ -128,7 +128,7 @@ const SVXCopilotEnterprise = () => {
             initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="fixed top-4 right-4 z-[9999] flex items-center gap-2 px-3 py-2 rounded-lg shadow-xl border bg-white border-[#EDEBE9] min-w-[240px]"
           >
-            <div className={`p-1.5 rounded-md text-white ${alert.type === 'success' ? 'bg-[#237B4B]' : alert.type === 'error' ? 'bg-[#A4262C]' : alert.type === 'warning' ? 'bg-[#D83B01]' : 'bg-[#464775]'}`}>
+            <div className={`p-1.5 rounded-md text-white ${alert.type === 'success' ? 'bg-[#237B4B]' : alert.type === 'error' ? 'bg-[#A4262C]' : alert.type === 'warning' ? 'bg-[#D83B01]' : 'bg-[#18181b]'}`}>
               {alert.type === 'success' && <FiCheckCircle size={14} />}
               {alert.type === 'error' && <FiXCircle size={14} />}
               {alert.type === 'warning' && <FiAlertTriangle size={14} />}
@@ -149,7 +149,7 @@ const SVXCopilotEnterprise = () => {
           {/* LADO IZQUIERDO */}
           <div className="lg:col-span-3 bg-white border border-[#EDEBE9] rounded-lg overflow-hidden flex flex-col shadow-sm h-full">
               <div className="bg-[#FAF9F8] p-3 border-b border-[#EDEBE9]">
-                <h3 className="text-[10px] font-black text-[#464775] uppercase tracking-wider text-center">Protocolo</h3>
+                <h3 className="text-[10px] font-black text-[#18181b] uppercase tracking-wider text-center">Protocolo</h3>
               </div>
               
               <div className="p-4 flex-grow">
@@ -178,7 +178,7 @@ const SVXCopilotEnterprise = () => {
           <div className="lg:col-span-9 bg-white border border-[#EDEBE9] rounded-lg p-6 shadow-sm flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-sm font-bold">Analysis Console</h2>
-              <BsFileEarmarkArrowUp size={22} className={data.length > 0 ? "text-[#464775]" : "text-[#EDEBE9]"} />
+              <BsFileEarmarkArrowUp size={22} className={data.length > 0 ? "text-[#18181b]" : "text-[#EDEBE9]"} />
             </div>
 
             <AnimatePresence mode="wait">
@@ -187,10 +187,10 @@ const SVXCopilotEnterprise = () => {
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
-                  className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#464775]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}
+                  className={`flex-grow border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all ${isDragging ? "bg-[#F3F2F1] border-[#18181b]" : "bg-[#FAF9F8] border-[#EDEBE9]"}`}
                 >
-                  <FiUploadCloud size={48} className="text-[#464775] mb-4" />
-                  <p className="text-xs font-bold text-[#464775]">Drag and drop the CSV file here</p>
+                  <FiUploadCloud size={48} className="text-[#18181b] mb-4" />
+                  <p className="text-xs font-bold text-[#18181b]">Drag and drop the CSV file here</p>
                   <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-tighter">Native support for SERVEX_AI architecture</p>
                 </div>
               ) : (
@@ -200,7 +200,7 @@ const SVXCopilotEnterprise = () => {
                       <thead className="bg-[#FAF9F8] sticky top-0 z-20">
                         <tr>
                           {data[0].map((h, i) => (
-                            <th key={i} className="p-3 font-black border-b text-[#464775] uppercase whitespace-nowrap">{h}</th>
+                            <th key={i} className="p-3 font-black border-b text-[#18181b] uppercase whitespace-nowrap">{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -238,7 +238,7 @@ const SVXCopilotEnterprise = () => {
                </button>
                <button 
                 onClick={handleAnalyze} disabled={data.length === 0 || isAnalyzing}
-                className={`px-8 py-2 rounded-md text-[10px] font-black shadow-lg flex items-center gap-2 transition-all ${data.length > 0 ? 'bg-[#464775] text-white hover:scale-[1.02] active:scale-95' : 'bg-gray-100 text-gray-400'}`}
+                className={`px-8 py-2 rounded-md text-[10px] font-black shadow-lg flex items-center gap-2 transition-all ${data.length > 0 ? 'bg-[#18181b] text-white hover:scale-[1.02] active:scale-95' : 'bg-gray-100 text-gray-400'}`}
                >
                  {isAnalyzing ? "PROCESSING PIPELINE..." : "EJECUTAR AUDITORÍA"} <FiZap size={12} />
                </button>
@@ -253,13 +253,13 @@ const SVXCopilotEnterprise = () => {
 const Step = ({ icon, title, desc, active, isLast }) => (
   <div className="flex gap-4 relative">
     <div className="flex flex-col items-center">
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${active ? 'bg-[#464775] border-[#464775] text-white' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>
+      <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${active ? 'bg-[#18181b] border-[#18181b] text-white' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>
         {icon}
       </div>
-      {!isLast && <div className={`w-[2px] h-12 my-1 ${active ? 'bg-[#464775]' : 'bg-[#F3F2F1]'}`} />}
+      {!isLast && <div className={`w-[2px] h-12 my-1 ${active ? 'bg-[#18181b]' : 'bg-[#F3F2F1]'}`} />}
     </div>
     <div className={`pt-1 ${!active && 'opacity-40'}`}>
-      <h4 className="text-[11px] font-black leading-none mb-1 text-[#464775] uppercase">{title}</h4>
+      <h4 className="text-[11px] font-black leading-none mb-1 text-[#18181b] uppercase">{title}</h4>
       <p className="text-[10px] text-[#616161] font-medium truncate w-32">{desc}</p>
     </div>
   </div>

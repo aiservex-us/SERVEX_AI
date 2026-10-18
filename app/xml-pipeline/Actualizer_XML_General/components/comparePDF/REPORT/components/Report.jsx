@@ -108,9 +108,9 @@ export default function AuditReportViewer() {
   const optionExtremeAnomalies = filteredOptionPriceChanges.filter(c => !isZeroAnomaly(c) && parseDiffNum(c) >= 100);
 
   const renderSubTable = (title, icon, items, emptyText) => {
-    const badgeBg = 'bg-[#464775]/10 text-[#464775] border-[#464775]/20 font-semibold';
-    const headerText = 'text-[#464775]';
-    const pillStyle = 'bg-[#464775]/10 text-[#464775] border-[#464775]/20 font-semibold';
+    const badgeBg = 'bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20 font-semibold';
+    const headerText = 'text-[#18181b]';
+    const pillStyle = 'bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20 font-semibold';
 
     return (
       <div className="bg-white/40 backdrop-blur-md rounded-xl border border-white/50 shadow-sm overflow-hidden flex flex-col w-full mb-2">
@@ -142,7 +142,7 @@ export default function AuditReportViewer() {
                   <td className="px-4 py-2.5 font-mono font-bold text-slate-700">{c.model_id}</td>
                   <td className="px-4 py-2.5 text-slate-600 text-[11px]">{c.column_name}</td>
                   <td className="px-4 py-2.5 text-slate-400 line-through decoration-slate-300 font-mono">{c.old_value}</td>
-                  <td className="px-4 py-2.5 font-semibold text-[#464775] font-mono">{c.new_value}</td>
+                  <td className="px-4 py-2.5 font-semibold text-[#18181b] font-mono">{c.new_value}</td>
                   <td className="px-4 py-2.5">
                     <span className={`text-[10px] px-2 py-0.5 rounded border ${pillStyle}`}>
                       {c.financial_impact || '0%'}
@@ -173,8 +173,8 @@ export default function AuditReportViewer() {
         {/* Data Map / Information Section */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
           <div className="bg-white/20 backdrop-blur-md p-4 rounded-xl border border-white/40 shadow-sm flex flex-col gap-2 hover:bg-white/35 transition-all relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-             <div className="flex items-center gap-2 text-[#464775]">
+             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#18181b]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+             <div className="flex items-center gap-2 text-[#18181b]">
                 <Zap size={16} />
                 <h3 className="font-semibold text-[13px] tracking-tight">List Price Variations</h3>
              </div>
@@ -183,8 +183,8 @@ export default function AuditReportViewer() {
              </p>
           </div>
           <div className="bg-white/20 backdrop-blur-md p-4 rounded-xl border border-white/40 shadow-sm flex flex-col gap-2 hover:bg-white/35 transition-all relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-             <div className="flex items-center gap-2 text-[#464775]">
+             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#18181b]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+             <div className="flex items-center gap-2 text-[#18181b]">
                 <Database size={16} />
                 <h3 className="font-semibold text-[13px] tracking-tight">Option Price Variations</h3>
              </div>
@@ -193,8 +193,8 @@ export default function AuditReportViewer() {
              </p>
           </div>
           <div className="bg-white/20 backdrop-blur-md p-4 rounded-xl border border-white/40 shadow-sm flex flex-col gap-2 hover:bg-white/35 transition-all relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#5B5FC7]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-             <div className="flex items-center gap-2 text-[#464775]">
+             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#18181b]/10 to-transparent rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+             <div className="flex items-center gap-2 text-[#18181b]">
                 <Activity size={16} />
                 <h3 className="font-semibold text-[13px] tracking-tight">Additions & Deletions</h3>
              </div>
@@ -210,7 +210,7 @@ export default function AuditReportViewer() {
           <div className="bg-white/20 backdrop-blur-md rounded-xl border border-white/40 shadow-sm overflow-hidden flex flex-col w-full">
             <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Zap size={16} className="text-[#5B5FC7]" />
+                <Zap size={16} className="text-[#18181b]" />
                 <h2 className="text-sm font-bold text-[#242424]">List Price Variations ({filteredListPriceChanges.length})</h2>
               </div>
 
@@ -218,37 +218,37 @@ export default function AuditReportViewer() {
               <div className="flex items-center gap-1 bg-white/50 p-1 rounded-lg border border-white/60 text-[11px] font-medium flex-wrap">
                 <button 
                   onClick={() => setListSubTab('all')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'all' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'all' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <Layers size={11} /> All ({filteredListPriceChanges.length})
                 </button>
                 <button 
                   onClick={() => setListSubTab('increases')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'increases' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'increases' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <TrendingUp size={11} /> Increases {'≤'}12% ({listIncreases.length})
                 </button>
                 <button 
                   onClick={() => setListSubTab('decreases')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'decreases' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'decreases' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <TrendingDown size={11} /> Decreases ({listDecreases.length})
                 </button>
                 <button 
                   onClick={() => setListSubTab('zero_anomalies')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'zero_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'zero_anomalies' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <AlertTriangle size={11} /> 0% Anomalies ({listZeroAnomalies.length})
                 </button>
                 <button 
                   onClick={() => setListSubTab('range_anomalies')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'range_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'range_anomalies' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <AlertOctagon size={11} /> Range {'>'}12% ({listRangeAnomalies.length})
                 </button>
                 <button 
                   onClick={() => setListSubTab('extreme_anomalies')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'extreme_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${listSubTab === 'extreme_anomalies' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <ShieldAlert size={11} /> Outliers {'≥'}100% ({listExtremeAnomalies.length})
                 </button>
@@ -263,14 +263,14 @@ export default function AuditReportViewer() {
                    placeholder="Filter List Prices..." 
                    value={searchTerm}
                    onChange={(e) => setSearchTerm(e.target.value)}
-                   className="w-full md:w-1/3 text-xs bg-white/70 border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] transition-all"
+                   className="w-full md:w-1/3 text-xs bg-white/70 border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#18181b] focus:border-[#18181b] transition-all"
                  />
               </div>
 
               {/* Table 1: Increases */}
               {(listSubTab === 'all' || listSubTab === 'increases') && renderSubTable(
                 "Standard Price Increases (≤ 12%)",
-                <TrendingUp size={15} className="text-[#5B5FC7]" />,
+                <TrendingUp size={15} className="text-[#18181b]" />,
                 listIncreases,
                 "No standard price increases recorded (≤ 12%)."
               )}
@@ -278,7 +278,7 @@ export default function AuditReportViewer() {
               {/* Table 2: Decreases */}
               {(listSubTab === 'all' || listSubTab === 'decreases') && renderSubTable(
                 "Price Decreases (< 0%)",
-                <TrendingDown size={15} className="text-[#5B5FC7]" />,
+                <TrendingDown size={15} className="text-[#18181b]" />,
                 listDecreases,
                 "No price decreases recorded."
               )}
@@ -286,7 +286,7 @@ export default function AuditReportViewer() {
               {/* Table 3: Zero Anomalies */}
               {(listSubTab === 'all' || listSubTab === 'zero_anomalies') && renderSubTable(
                 "0% Anomalies & Unchanged ([EMPTY] / 0%)",
-                <AlertTriangle size={15} className="text-[#5B5FC7]" />,
+                <AlertTriangle size={15} className="text-[#18181b]" />,
                 listZeroAnomalies,
                 "No 0% anomalies or empty records found."
               )}
@@ -294,7 +294,7 @@ export default function AuditReportViewer() {
               {/* Table 4: Range Anomalies */}
               {(listSubTab === 'all' || listSubTab === 'range_anomalies') && renderSubTable(
                 "High Range Anomalies (> 12% to < 100%)",
-                <AlertOctagon size={15} className="text-[#5B5FC7]" />,
+                <AlertOctagon size={15} className="text-[#18181b]" />,
                 listRangeAnomalies,
                 "No high range anomalies found (> 12%)."
               )}
@@ -302,7 +302,7 @@ export default function AuditReportViewer() {
               {/* Table 5: Extreme Anomalies */}
               {(listSubTab === 'all' || listSubTab === 'extreme_anomalies') && renderSubTable(
                 "Extreme Outliers & Price Errors (≥ 100%)",
-                <ShieldAlert size={15} className="text-[#5B5FC7]" />,
+                <ShieldAlert size={15} className="text-[#18181b]" />,
                 listExtremeAnomalies,
                 "No extreme outliers or price errors detected (≥ 100%)."
               )}
@@ -313,7 +313,7 @@ export default function AuditReportViewer() {
           <div className="bg-white/20 backdrop-blur-md rounded-xl border border-white/40 shadow-sm overflow-hidden flex flex-col w-full">
             <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Zap size={16} className="text-[#5B5FC7]" />
+                <Zap size={16} className="text-[#18181b]" />
                 <h2 className="text-sm font-bold text-[#242424]">Option Price Variations ({filteredOptionPriceChanges.length})</h2>
               </div>
 
@@ -321,37 +321,37 @@ export default function AuditReportViewer() {
               <div className="flex items-center gap-1 bg-white/50 p-1 rounded-lg border border-white/60 text-[11px] font-medium flex-wrap">
                 <button 
                   onClick={() => setOptionSubTab('all')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'all' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'all' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <Layers size={11} /> All ({filteredOptionPriceChanges.length})
                 </button>
                 <button 
                   onClick={() => setOptionSubTab('increases')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'increases' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'increases' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <TrendingUp size={11} /> Increases {'≤'}12% ({optionIncreases.length})
                 </button>
                 <button 
                   onClick={() => setOptionSubTab('decreases')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'decreases' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'decreases' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <TrendingDown size={11} /> Decreases ({optionDecreases.length})
                 </button>
                 <button 
                   onClick={() => setOptionSubTab('zero_anomalies')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'zero_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'zero_anomalies' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <AlertTriangle size={11} /> 0% Anomalies ({optionZeroAnomalies.length})
                 </button>
                 <button 
                   onClick={() => setOptionSubTab('range_anomalies')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'range_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'range_anomalies' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <AlertOctagon size={11} /> Range {'>'}12% ({optionRangeAnomalies.length})
                 </button>
                 <button 
                   onClick={() => setOptionSubTab('extreme_anomalies')}
-                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'extreme_anomalies' ? 'bg-[#5B5FC7] text-white shadow-sm font-semibold' : 'text-[#464775] hover:bg-white/60'}`}
+                  className={`px-2 py-1 rounded-md transition-all flex items-center gap-1 ${optionSubTab === 'extreme_anomalies' ? 'bg-[#18181b] text-white shadow-sm font-semibold' : 'text-[#18181b] hover:bg-white/60'}`}
                 >
                   <ShieldAlert size={11} /> Outliers {'≥'}100% ({optionExtremeAnomalies.length})
                 </button>
@@ -366,14 +366,14 @@ export default function AuditReportViewer() {
                    placeholder="Filter Option Prices..." 
                    value={searchTerm}
                    onChange={(e) => setSearchTerm(e.target.value)}
-                   className="w-full md:w-1/3 text-xs bg-white/70 border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] transition-all"
+                   className="w-full md:w-1/3 text-xs bg-white/70 border border-slate-200 rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#18181b] focus:border-[#18181b] transition-all"
                  />
               </div>
 
               {/* Table 1: Increases */}
               {(optionSubTab === 'all' || optionSubTab === 'increases') && renderSubTable(
                 "Standard Option Price Increases (≤ 12%)",
-                <TrendingUp size={15} className="text-[#5B5FC7]" />,
+                <TrendingUp size={15} className="text-[#18181b]" />,
                 optionIncreases,
                 "No standard option price increases recorded (≤ 12%)."
               )}
@@ -381,7 +381,7 @@ export default function AuditReportViewer() {
               {/* Table 2: Decreases */}
               {(optionSubTab === 'all' || optionSubTab === 'decreases') && renderSubTable(
                 "Option Price Decreases (< 0%)",
-                <TrendingDown size={15} className="text-[#5B5FC7]" />,
+                <TrendingDown size={15} className="text-[#18181b]" />,
                 optionDecreases,
                 "No option price decreases recorded."
               )}
@@ -389,7 +389,7 @@ export default function AuditReportViewer() {
               {/* Table 3: Zero Anomalies */}
               {(optionSubTab === 'all' || optionSubTab === 'zero_anomalies') && renderSubTable(
                 "0% Option Anomalies & Unchanged ([EMPTY] / 0%)",
-                <AlertTriangle size={15} className="text-[#5B5FC7]" />,
+                <AlertTriangle size={15} className="text-[#18181b]" />,
                 optionZeroAnomalies,
                 "No 0% option anomalies or empty records found."
               )}
@@ -397,7 +397,7 @@ export default function AuditReportViewer() {
               {/* Table 4: Range Anomalies */}
               {(optionSubTab === 'all' || optionSubTab === 'range_anomalies') && renderSubTable(
                 "High Range Option Anomalies (> 12% to < 100%)",
-                <AlertOctagon size={15} className="text-[#5B5FC7]" />,
+                <AlertOctagon size={15} className="text-[#18181b]" />,
                 optionRangeAnomalies,
                 "No high range option anomalies found (> 12%)."
               )}
@@ -405,7 +405,7 @@ export default function AuditReportViewer() {
               {/* Table 5: Extreme Anomalies */}
               {(optionSubTab === 'all' || optionSubTab === 'extreme_anomalies') && renderSubTable(
                 "Extreme Option Outliers & Errors (≥ 100%)",
-                <ShieldAlert size={15} className="text-[#5B5FC7]" />,
+                <ShieldAlert size={15} className="text-[#18181b]" />,
                 optionExtremeAnomalies,
                 "No extreme option outliers detected (≥ 100%)."
               )}
@@ -415,7 +415,7 @@ export default function AuditReportViewer() {
           {/* Contenido: Module 2 - Flujo de Inventario (News vs Deleteds de audit_report_json) */}
           <div className="bg-white/20 backdrop-blur-md rounded-xl border border-white/40 shadow-sm overflow-hidden flex flex-col w-full">
             <div className="px-4 py-3 bg-white/30 backdrop-blur-md border-b border-white/40 flex items-center gap-2">
-              <RefreshCw size={16} className="text-[#5B5FC7]" />
+              <RefreshCw size={16} className="text-[#18181b]" />
               <h2 className="text-sm font-bold text-[#242424]">Additions and Deletions ({ (summaryRaw?.new_models_detected_count || 0) + (summaryRaw?.deleted_models_detected_count || 0) })</h2>
             </div>
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6 bg-transparent">
@@ -423,7 +423,7 @@ export default function AuditReportViewer() {
               {/* Columna New Models */}
               <div className="bg-transparent border border-white/60 rounded-xl shadow-sm overflow-hidden">
                 <div className="bg-transparent px-4 py-3 border-b border-white/30 flex items-center gap-2">
-                  <PlusCircle size={16} className="text-[#464775]" />
+                  <PlusCircle size={16} className="text-[#18181b]" />
                   <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">New Models Detected</span>
                 </div>
                 <div className="p-3 max-h-[400px] overflow-y-auto space-y-1">
@@ -431,7 +431,7 @@ export default function AuditReportViewer() {
                     summaryRaw.new_models_list.map((model, idx) => (
                       <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-transparent border border-transparent hover:border-slate-100 transition-colors">
                         <span className="text-slate-700 font-semibold">{model}</span>
-                        <span className="text-[10px] text-[#464775] bg-[#464775]/10 px-2 py-0.5 rounded-full font-sans font-semibold">New SKU</span>
+                        <span className="text-[10px] text-[#18181b] bg-[#18181b]/10 px-2 py-0.5 rounded-full font-sans font-semibold">New SKU</span>
                       </div>
                     ))
                   ) : (
@@ -476,7 +476,7 @@ export default function AuditReportViewer() {
           {/* Footer del Panel */}
           <div className="bg-transparent px-4 py-2 border border-white/50 rounded-md text-[10px] font-semibold text-[#616161] flex justify-between items-center shadow-sm mt-2">
             <span>TOTAL CHANGES INJECTED IN CURRENT STEP: {changesP.length}</span>
-            <span className="uppercase text-[#5B5FC7] font-bold tracking-wider">
+            <span className="uppercase text-[#18181b] font-bold tracking-wider">
               {reportDataP?.pipeline_metadata?.company_processed || activeRecord?.company_name || 'SERVEX US'}
             </span>
           </div>

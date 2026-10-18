@@ -71,8 +71,8 @@ const WBmfgAdminHero = () => {
 
           {/* Hero Content */}
           <div className="flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 mb-5 rounded-full border border-[#464775]/20 bg-[#464775]/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#464775]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#464775] animate-pulse" />
+            <div className="inline-flex items-center gap-2 mb-5 rounded-full border border-[#18181b]/20 bg-[#18181b]/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#18181b]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#18181b] animate-pulse" />
               Internal Administration Platform
             </div>
 
@@ -90,11 +90,11 @@ const WBmfgAdminHero = () => {
             <div className="flex flex-col items-center gap-6">
               <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white/60 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-200/80 shadow-xs">
                 <span className="flex items-center gap-2">
-                  <svg className="w-3.5 h-3.5 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  <svg className="w-3.5 h-3.5 text-[#18181b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   Data Control
                 </span>
                 <span className="flex items-center gap-2">
-                  <svg className="w-3.5 h-3.5 text-[#464775]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  <svg className="w-3.5 h-3.5 text-[#18181b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   ETL Optimized
                 </span>
               </div>
@@ -120,7 +120,7 @@ const WBmfgAdminHero = () => {
           
           {/* Coin 2: Main center */}
           <div 
-            className="absolute top-[20%] left-[20%] w-[170px] h-[170px] rounded-full bg-gradient-to-br from-[#464775]/60 to-[#464775]/20 backdrop-blur-xl border border-white/60 z-10"
+            className="absolute top-[20%] left-[20%] w-[170px] h-[170px] rounded-full bg-gradient-to-br from-[#18181b]/60 to-[#18181b]/20 backdrop-blur-xl border border-white/60 z-10"
             style={{ 
               transform: 'rotateX(30deg) rotateY(-30deg) translateZ(50px)',
               boxShadow: 'inset 0 0 30px rgba(255,255,255,0.6), -1px 1px 0 #fff, -2px 2px 0 #f0f0f0, -15px 15px 30px rgba(0,0,0,0.1)'
@@ -138,7 +138,7 @@ const WBmfgAdminHero = () => {
         </div>
 
         <div className="relative z-20 rotate-90 pointer-events-none opacity-20 mix-blend-multiply">
-          <span className="text-[#2B2C4B] font-black text-[90px] tracking-tighter select-none leading-none">
+          <span className="text-[#09090b] font-black text-[90px] tracking-tighter select-none leading-none">
             General Process Seating
           </span>
         </div>

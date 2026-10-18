@@ -114,7 +114,7 @@ const LesroPricingFix = () => {
 
   if (!pdfLib) return (
     <div className="flex h-screen w-full items-center justify-center bg-white">
-      <div className="flex items-center gap-3 text-[#464775] font-medium">
+      <div className="flex items-center gap-3 text-[#18181b] font-medium">
         <RefreshCw className="animate-spin" size={20} />
         <span className="text-sm">Initializing Synchronization Engine...</span>
       </div>
@@ -134,7 +134,7 @@ const LesroPricingFix = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <div className="bg-[#F5F5F5] p-1.5 rounded">
-                <Zap size={14} className="text-[#464775] fill-[#464775]" />
+                <Zap size={14} className="text-[#18181b] fill-[#18181b]" />
               </div>
               <span className="text-[#616161] font-semibold uppercase tracking-wider text-[10px]">SVX Intelligence</span>
             </div>
@@ -165,7 +165,7 @@ const LesroPricingFix = () => {
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-white border border-[#EDEBE9] rounded-lg p-6">
               <h3 className="text-sm font-semibold text-[#242424] mb-5 flex items-center gap-2">
-                <Info size={16} className="text-[#464775]" /> Workflow Instructions
+                <Info size={16} className="text-[#18181b]" /> Workflow Instructions
               </h3>
               <div className="space-y-6">
                 {[
@@ -187,7 +187,7 @@ const LesroPricingFix = () => {
             </div>
 
             <div className="bg-[#F5F5F5] p-4 rounded-lg border border-[#EDEBE9] flex gap-3">
-              <AlertCircle size={18} className="text-[#464775] shrink-0" />
+              <AlertCircle size={18} className="text-[#18181b] shrink-0" />
               <p className="text-[11px] text-[#616161] leading-relaxed">
                 <strong className="text-[#242424]">Security Note:</strong> Ensure PDF files are decrypted. Encrypted files will prevent the extraction of SKU metadata.
               </p>
@@ -196,14 +196,14 @@ const LesroPricingFix = () => {
 
           <div className="lg:col-span-8">
             <div className={`relative bg-white border border-[#EDEBE9] rounded-lg p-12 transition-all duration-200 flex flex-col items-center justify-center min-h-[320px]
-              ${loading ? 'bg-[#F5F5F5]' : 'hover:border-[#464775]/30'}`}>
+              ${loading ? 'bg-[#F5F5F5]' : 'hover:border-[#18181b]/30'}`}>
               
               <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 transition-colors
                 ${loading ? 'bg-white' : 'bg-[#F5F5F5]'}`}>
                 {loading ? (
-                  <RefreshCw className="text-[#464775] animate-spin" size={36} />
+                  <RefreshCw className="text-[#18181b] animate-spin" size={36} />
                 ) : (
-                  <FileUp size={36} className="text-[#464775]" />
+                  <FileUp size={36} className="text-[#18181b]" />
                 )}
               </div>
               
@@ -219,7 +219,7 @@ const LesroPricingFix = () => {
                   disabled={loading}
                 />
                 <button className={`px-8 py-2.5 rounded-md font-bold text-[12px] transition-all shadow-sm
-                  ${loading ? 'bg-[#EDEBE9] text-[#616161]' : 'bg-[#464775] text-white hover:bg-[#3b3c63]'}`}>
+                  ${loading ? 'bg-[#EDEBE9] text-[#616161]' : 'bg-[#18181b] text-white hover:bg-[#09090b]'}`}>
                   {loading ? 'PROCESSING DATA...' : 'SELECT PDF FILE'}
                 </button>
               </div>
@@ -228,7 +228,7 @@ const LesroPricingFix = () => {
                 <motion.p 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="mt-6 text-[#464775] font-semibold tracking-wide uppercase text-[10px]"
+                  className="mt-6 text-[#18181b] font-semibold tracking-wide uppercase text-[10px]"
                 >
                   Analyzing Pricing Matrix Structure
                 </motion.p>
@@ -249,10 +249,10 @@ const LesroPricingFix = () => {
               <div className="p-5 border-b border-[#EDEBE9] flex justify-between items-center bg-white">
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2 px-3 py-1 bg-[#F5F5F5] text-[#242424] rounded border border-[#EDEBE9]">
-                    <ShieldCheck size={14} className="text-[#464775]" />
+                    <ShieldCheck size={14} className="text-[#18181b]" />
                     <span className="font-bold uppercase text-[10px]">Verified Data</span>
                   </div>
-                  <span className="font-semibold text-[#464775] text-[13px]">{results.length} Products Found</span>
+                  <span className="font-semibold text-[#18181b] text-[13px]">{results.length} Products Found</span>
                 </div>
                 
                 <div className="flex items-center bg-white border border-[#EDEBE9] rounded-md overflow-hidden">
@@ -282,7 +282,7 @@ const LesroPricingFix = () => {
                     <tr className="bg-[#F5F5F5] border-b border-[#EDEBE9]">
                       <th className="p-4 font-bold text-[#242424] border-r border-[#EDEBE9] w-40">MODEL SKU</th>
                       <th className="p-4 font-bold text-[#242424] border-r border-[#EDEBE9]">DIMENSIONS</th>
-                      <th className="p-4 text-center border-r border-[#EDEBE9] font-bold text-[#464775]">G2 (BASE)</th>
+                      <th className="p-4 text-center border-r border-[#EDEBE9] font-bold text-[#18181b]">G2 (BASE)</th>
                       {['G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','G13'].map(g => (
                         <th key={g} className="p-4 text-center border-r border-[#EDEBE9] font-semibold text-[#616161]">{g}</th>
                       ))}
@@ -292,7 +292,7 @@ const LesroPricingFix = () => {
                   <tbody className="divide-y divide-[#EDEBE9]">
                     {currentResults.map((r, i) => (
                       <tr key={i} className="hover:bg-[#F5F5F5]/40 transition-colors group">
-                        <td className="p-4 font-bold text-[#464775] border-r border-[#EDEBE9] text-[12px]">{r.sku}</td>
+                        <td className="p-4 font-bold text-[#18181b] border-r border-[#EDEBE9] text-[12px]">{r.sku}</td>
                         <td className="p-4 text-[#616161] border-r border-[#EDEBE9]">{r.dims}</td>
                         <td className="p-4 text-center border-r border-[#EDEBE9] font-bold text-[#242424] bg-[#F5F5F5]/20">${r.g2}</td>
                         {[r.g3, r.g4, r.g5, r.g6, r.g7, r.g8, r.g9, r.g10, r.g11, r.g12, r.g13].map((v, idx) => (
@@ -308,7 +308,7 @@ const LesroPricingFix = () => {
               </div>
               
               <div className="p-4 bg-white border-t border-[#EDEBE9] flex items-center gap-2 text-[#616161]">
-                <Info size={14} className="text-[#464775]" />
+                <Info size={14} className="text-[#18181b]" />
                 <p className="text-[11px]">CSV formatted for direct SVX database injection. No manual sanitization required.</p>
               </div>
             </motion.div>

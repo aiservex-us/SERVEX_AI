@@ -531,9 +531,9 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
             <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
               <div className="flex justify-center">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-[#5b5fc7]/10 rounded-full animate-ping"></div>
+                  <div className="absolute inset-0 bg-[#18181b]/10 rounded-full animate-ping"></div>
                   <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
-                    <DatabaseZap className="text-[#5b5fc7] animate-pulse" size={20} />
+                    <DatabaseZap className="text-[#18181b] animate-pulse" size={20} />
                   </div>
                 </div>
               </div>
@@ -550,7 +550,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                 </p>
               </div>
 
-              <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#5b5fc7]">
+              <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#18181b]">
                 <Loader2 size={12} className="animate-spin" />
                 <span className="uppercase tracking-widest">Saving to Cloud Database...</span>
               </div>
@@ -568,18 +568,18 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
-                      ${dragActive ? 'border-[#464775] bg-[#464775]/5' : showXmlExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
+                      ${dragActive ? 'border-[#18181b] bg-[#18181b]/5' : showXmlExistingNotice ? 'border-[#18181b]/40 bg-[#18181b]/5 hover:bg-[#18181b]/10' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
                   >
                     {readingXml ? (
-                      <RefreshCw className="mx-auto mb-1.5 text-[#464775] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-1.5 text-[#18181b] animate-spin" size={20} />
                     ) : checkingExisting ? (
                       <RefreshCw className="mx-auto mb-1.5 text-gray-400 animate-spin" size={20} />
                     ) : showXmlExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-1.5 text-[#464775]" size={20} />
+                      <DatabaseZap className="mx-auto mb-1.5 text-[#18181b]" size={20} />
                     ) : (
-                      <UploadCloud className={`mx-auto mb-1.5 ${dragActive ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
+                      <UploadCloud className={`mx-auto mb-1.5 ${dragActive ? 'text-[#18181b]' : 'text-gray-400'}`} size={20} />
                     )}
-                    <p className={`text-xs sm:text-sm font-bold mt-1.5 ${showXmlExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
+                    <p className={`text-xs sm:text-sm font-bold mt-1.5 ${showXmlExistingNotice ? 'text-[#18181b]' : 'text-[#242424]'}`}>
                       {readingXml
                         ? 'Reading...'
                         : checkingExisting
@@ -588,9 +588,9 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                             ? 'File already exists in DB'
                             : 'Upload XML'}
                     </p>
-                    <p className="text-[9px] sm:text-[10px] text-[#464775] font-bold mt-1 font-mono leading-tight px-1 max-w-full truncate bg-[#464775]/10 py-0.5 rounded">{xmlFileName || "Catalog Creator Catalog"}</p>
+                    <p className="text-[9px] sm:text-[10px] text-[#18181b] font-bold mt-1 font-mono leading-tight px-1 max-w-full truncate bg-[#18181b]/10 py-0.5 rounded">{xmlFileName || "Catalog Creator Catalog"}</p>
                     {showXmlExistingNotice && (
-                      <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
+                      <p className="text-[10px] text-zinc-800 mt-2 font-semibold bg-zinc-100 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
                     )}
                     <input ref={fileInputRef} type="file" accept=".xml" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readXMLFile(file); }} />
                   </div>
@@ -604,18 +604,18 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                     onDrop={handleDropNewCSV}
                     onClick={() => csvNewInputRef.current?.click()}
                     className={`border border-dashed rounded-lg p-3 flex flex-col items-center justify-center text-center transition-all cursor-pointer
-                      ${dragActiveNewCSV ? 'border-[#464775] bg-[#464775]/5' : showNewCsvExistingNotice ? 'border-[#464775]/40 bg-[#464775]/5 hover:bg-[#464775]/10' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
+                      ${dragActiveNewCSV ? 'border-[#18181b] bg-[#18181b]/5' : showNewCsvExistingNotice ? 'border-[#18181b]/40 bg-[#18181b]/5 hover:bg-[#18181b]/10' : 'border-white/40 bg-white/20 backdrop-blur-md hover:bg-white/30'}`}
                   >
                     {readingNewCsv ? (
-                      <RefreshCw className="mx-auto mb-1.5 text-[#464775] animate-spin" size={20} />
+                      <RefreshCw className="mx-auto mb-1.5 text-[#18181b] animate-spin" size={20} />
                     ) : checkingExisting ? (
                       <RefreshCw className="mx-auto mb-1.5 text-gray-400 animate-spin" size={20} />
                     ) : showNewCsvExistingNotice ? (
-                      <DatabaseZap className="mx-auto mb-1.5 text-[#464775]" size={20} />
+                      <DatabaseZap className="mx-auto mb-1.5 text-[#18181b]" size={20} />
                     ) : (
-                      <FileSpreadsheet className={`mx-auto mb-1.5 ${dragActiveNewCSV ? 'text-[#464775]' : 'text-gray-400'}`} size={20} />
+                      <FileSpreadsheet className={`mx-auto mb-1.5 ${dragActiveNewCSV ? 'text-[#18181b]' : 'text-gray-400'}`} size={20} />
                     )}
-                    <p className={`text-xs sm:text-sm font-bold mt-1.5 ${showNewCsvExistingNotice ? 'text-[#464775]' : 'text-[#242424]'}`}>
+                    <p className={`text-xs sm:text-sm font-bold mt-1.5 ${showNewCsvExistingNotice ? 'text-[#18181b]' : 'text-[#242424]'}`}>
                       {readingNewCsv
                         ? 'Reading...'
                         : checkingExisting
@@ -626,7 +626,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 font-medium leading-tight">New catalog to compare</p>
                     {showNewCsvExistingNotice && (
-                      <p className="text-[10px] text-indigo-500 mt-2 font-semibold bg-indigo-50/50 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
+                      <p className="text-[10px] text-zinc-800 mt-2 font-semibold bg-zinc-100 inline-block px-1.5 py-0.5 rounded-full">Click or drop to replace</p>
                     )}
                     <input ref={csvNewInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readNewCSVFile(file); }} />
                   </div>
@@ -636,8 +636,8 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
 
                 {message.type && (
                   <div className={`p-3 rounded-lg flex items-center gap-3 text-xs font-semibold border-l-4
-                    ${message.type === 'success' ? 'bg-[#464775]/10 border-l-[#464775] text-[#464775]' : 'bg-red-50 border-l-red-600 text-red-800'}`}>
-                    {message.type === 'success' ? <CheckCircle2 size={16} className="text-[#464775]" /> : <AlertCircle size={16} />}
+                    ${message.type === 'success' ? 'bg-[#18181b]/10 border-l-[#18181b] text-[#18181b]' : 'bg-red-50 border-l-red-600 text-red-800'}`}>
+                    {message.type === 'success' ? <CheckCircle2 size={16} className="text-[#18181b]" /> : <AlertCircle size={16} />}
                     {message.text}
                   </div>
                 )}

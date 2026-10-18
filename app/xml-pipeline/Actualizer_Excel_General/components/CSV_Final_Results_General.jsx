@@ -146,7 +146,7 @@ const CSVFinalResultsGeneral = () => {
   if (loading) return (
     <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-[#464775] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-4 h-4 border-2 border-[#18181b] border-t-transparent rounded-full animate-spin"></div>
         Retrieving master data matrix from General Process Engine...
       </div>
     </div>
@@ -159,7 +159,7 @@ const CSVFinalResultsGeneral = () => {
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
       <button 
         onClick={processXML} 
-        className="flex items-center gap-2 px-4 py-2 bg-[#464775] hover:bg-[#2B2C4B] text-white text-xs font-bold rounded shadow-sm transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-[#18181b] hover:bg-[#09090b] text-white text-xs font-bold rounded shadow-sm transition-colors"
       >
         <RefreshCw size={12} /> Retry Loading
       </button>
@@ -170,14 +170,14 @@ const CSVFinalResultsGeneral = () => {
     <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent p-2 md:p-4 text-slate-800 font-sans antialiased">
       <div className="w-full mx-auto">
         
-        <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#464775]/10 overflow-hidden flex flex-col w-full">
+        <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-white shadow-2xl shadow-[#18181b]/10 overflow-hidden flex flex-col w-full">
           
           {/* Operations / Filters Header */}
           <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-800">General Process Full XML Matrix</span>
-                <span className="text-[10px] font-bold text-[#464775] bg-[#464775]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#464775]/10 select-none">
+                <span className="text-[10px] font-bold text-[#18181b] bg-[#18181b]/10 px-3 py-1 rounded-full uppercase tracking-widest border border-[#18181b]/10 select-none">
                   Live
                 </span>
               </div>
@@ -200,7 +200,7 @@ const CSVFinalResultsGeneral = () => {
                 placeholder="Search matrix..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#464775] outline-none transition-all w-[180px]"
+                className="bg-white border border-slate-200/60 rounded-sm px-2 py-0.5 text-[11px] text-slate-800 placeholder-[#616161] focus:border-[#18181b] outline-none transition-all w-[180px]"
               />
 
               <button 
@@ -226,8 +226,8 @@ const CSVFinalResultsGeneral = () => {
           {/* Table Matrix */}
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-20 text-center bg-white/40 backdrop-blur-md">
-              <div className="w-16 h-16 rounded-2xl bg-[#464775]/5 flex items-center justify-center mb-4 border border-[#464775]/10 shadow-inner">
-                <svg className="w-8 h-8 text-[#464775]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <div className="w-16 h-16 rounded-2xl bg-[#18181b]/5 flex items-center justify-center mb-4 border border-[#18181b]/10 shadow-inner">
+                <svg className="w-8 h-8 text-[#18181b]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
               <h3 className="text-sm font-bold text-slate-700 mb-1">No data found</h3>
               <p className="text-xs text-slate-500 max-w-sm font-medium">
@@ -239,7 +239,7 @@ const CSVFinalResultsGeneral = () => {
               <table className="table-fixed border-collapse overflow-hidden overflow-hidden text-left text-xs w-max min-w-full">
                 <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#E0E0E0]">
                   <tr>
-                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#464775] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
+                    <th className="w-12 px-2 py-2 text-center text-[10px] font-semibold text-[#18181b] bg-white/80 backdrop-blur-md sticky left-0 z-30 border-r border-b border-slate-100 select-none">
                       Index
                     </th>
                     {optionHeaders.map((header) => (
@@ -249,7 +249,7 @@ const CSVFinalResultsGeneral = () => {
                       >
                         <div className="flex items-center gap-1.5">
                           {header}
-                          <Filter size={8} className="text-[#464775] opacity-40" />
+                          <Filter size={8} className="text-[#18181b] opacity-40" />
                         </div>
                       </th>
                     ))}
@@ -265,7 +265,7 @@ const CSVFinalResultsGeneral = () => {
                         key={p.sku || realIndex}
                         className="hover:bg-slate-50/80 hover:shadow-sm transition-colors duration-75 group"
                       >
-                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#464775] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
+                        <td className="px-2 py-1.5 text-center text-[10px] font-semibold text-[#18181b] border-r border-slate-100 sticky left-0 z-10 bg-white group-hover:bg-slate-50/80 border-b border-slate-50">
                           {realIndex}
                         </td>
 

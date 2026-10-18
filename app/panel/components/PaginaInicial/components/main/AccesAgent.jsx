@@ -135,25 +135,25 @@ const AI_GUIDE_QUESTIONS = [
 ];
 
 const QUICK_PROMPTS = [
-  { 
-    icon: BarChart2, 
-    label: "Company Analysis", 
-    q: "Provide a comprehensive operational analysis of our enterprise tenants, active catalogs, and telemetry status." 
+  {
+    icon: BarChart2,
+    label: "Company Analysis",
+    q: "Provide a comprehensive operational analysis of our enterprise tenants, active catalogs, and telemetry status."
   },
-  { 
-    icon: Shield, 
-    label: "Audit Discrepancies", 
-    q: "Run a discrepancy audit across all catalog pricing lists and flag critical margin variations." 
+  {
+    icon: Shield,
+    label: "Audit Discrepancies",
+    q: "Run a discrepancy audit across all catalog pricing lists and flag critical margin variations."
   },
-  { 
-    icon: Cpu, 
-    label: "Pipeline Execution", 
-    q: "What is the current live status of the XML Pipeline, ingestion batches, and catalog conversions?" 
+  {
+    icon: Cpu,
+    label: "Pipeline Execution",
+    q: "What is the current live status of the XML Pipeline, ingestion batches, and catalog conversions?"
   },
-  { 
-    icon: Activity, 
-    label: "Architecture Specs", 
-    q: "Explain the Servex AI multi-agent architecture and technical engine specifications." 
+  {
+    icon: Activity,
+    label: "Architecture Specs",
+    q: "Explain the Servex AI multi-agent architecture and technical engine specifications."
   },
 ];
 
@@ -391,7 +391,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
   const filteredGuideQuestions = React.useMemo(() => {
     return AI_GUIDE_QUESTIONS.filter(item => {
       const matchesCat = guideCategory === "all" || item.category === guideCategory;
-      const matchesSearch = !guideSearch.trim() || 
+      const matchesSearch = !guideSearch.trim() ||
         item.q.toLowerCase().includes(guideSearch.toLowerCase()) ||
         item.desc.toLowerCase().includes(guideSearch.toLowerCase()) ||
         item.tag.toLowerCase().includes(guideSearch.toLowerCase());
@@ -448,7 +448,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
     return () => {
       ignoreSpeechRef.current = true;
       if (recognitionRef.current) {
-        try { recognitionRef.current.abort(); } catch (e) {}
+        try { recognitionRef.current.abort(); } catch (e) { }
       }
     };
   }, []);
@@ -461,7 +461,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-        } catch (e) {}
+        } catch (e) { }
       }
       setIsRecording(false);
       // Aplicar formateo, puntuación y estandarización corporativa inteligente
@@ -482,7 +482,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
 
     try {
       if (recognitionRef.current) {
-        try { recognitionRef.current.abort(); } catch (e) {}
+        try { recognitionRef.current.abort(); } catch (e) { }
       }
 
       const recognition = new SpeechRecognition();
@@ -556,7 +556,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
     if (scrollContainerRef.current) {
       const { scrollHeight, scrollTop, clientHeight } = scrollContainerRef.current;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
-      
+
       if (immediate && !isNearBottom) return;
 
       scrollContainerRef.current.scrollTo({
@@ -581,7 +581,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
     speechBaseTextRef.current = "";
     currentTranscriptRef.current = "";
     if (recognitionRef.current) {
-      try { recognitionRef.current.abort(); } catch (e) {}
+      try { recognitionRef.current.abort(); } catch (e) { }
       recognitionRef.current = null;
     }
     setIsRecording(false);
@@ -641,9 +641,8 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
   const renderInputCard = (isCentered = false) => {
     return (
       <div
-        className={`w-full ${
-          isCentered ? 'max-w-[760px] mx-auto shadow-[0_12px_40px_-6px_rgba(70,71,117,0.14),0_2px_10px_-2px_rgba(70,71,117,0.06)]' : 'max-w-[1000px] mx-auto shadow-sm'
-        } bg-white/80 backdrop-blur-xl border border-white/70 rounded-2xl relative focus-within:border-[#464775]/50 focus-within:ring-4 focus-within:ring-[#464775]/10 transition-all duration-300`}
+        className={`w-full ${isCentered ? 'max-w-[760px] mx-auto shadow-[0_12px_40px_-6px_rgba(70,71,117,0.14),0_2px_10px_-2px_rgba(70,71,117,0.06)]' : 'max-w-[1000px] mx-auto shadow-sm'
+          } bg-white/80 backdrop-blur-xl border border-white/70 rounded-2xl relative focus-within:border-[#464775]/50 focus-within:ring-4 focus-within:ring-[#464775]/10 transition-all duration-300`}
       >
         {/* Meta row */}
         <div className="flex items-center justify-between px-4 py-2.5 bg-white/40 border-b border-white/50 rounded-t-2xl">
@@ -724,11 +723,10 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
               type="button"
               title={isRecording ? "Stop Recording (Stop STT)" : "Voice Recording (Speech-to-Text)"}
               onClick={toggleRecording}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                isRecording
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isRecording
                   ? 'bg-[#464775] text-white shadow-md shadow-[#464775]/25 ring-2 ring-[#6264A7]/50 animate-pulse'
                   : 'text-gray-400 hover:bg-gray-100 hover:text-[#464775]'
-              }`}
+                }`}
             >
               {isRecording ? <MicOff size={17} /> : <Mic size={17} />}
             </button>
@@ -824,7 +822,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
                 }] : []);
                 try {
                   await fetch(`${apiURL}/api/v1/general_agent/history?user_id=${userId}`, { method: "DELETE" });
-                } catch (e) {}
+                } catch (e) { }
               }}
               className="text-[11px] font-medium text-gray-500 border border-gray-300 px-2.5 py-1 rounded-lg hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
             >
@@ -1035,7 +1033,7 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
       {/* ── MODAL DE GUÍA IA (20 PREGUNTAS ORIENTATIVAS) ── */}
       <AnimatePresence>
         {showAiGuideModal && (
-          <div 
+          <div
             onClick={() => setShowAiGuideModal(false)}
             className="fixed inset-0 z-[1000] flex items-center justify-center p-3 md:p-6 backdrop-blur-md bg-transparent"
           >
@@ -1111,11 +1109,10 @@ export default function TeamsAgentChat({ isFloating = false, onClose, isInitialW
                     <button
                       key={cat.id}
                       onClick={() => setGuideCategory(cat.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap ${
-                        guideCategory === cat.id
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap ${guideCategory === cat.id
                           ? 'bg-[#464775] text-white shadow-sm'
                           : 'bg-white border border-slate-200 text-gray-600 hover:border-[#464775]/30 hover:text-[#464775]'
-                      }`}
+                        }`}
                     >
                       {cat.label}
                     </button>
