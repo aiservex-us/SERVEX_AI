@@ -83,25 +83,34 @@ function generateCsvFromXml(xmlString: string): string {
       }
       
       const createRow = (baseSku: string) => {
-          const row: Record<string, any> = {};
-          computedHeaders.forEach(h => row[h] = "");
+        const row: Record<string, any> = {};
+        DESKS_HEADERS.forEach(h => row[h] = "");
 
-          row["Model #"] = baseSku;
-          row["List Price"] = basePrice;
-          row["Weight"] = weight;
-          row["Classic/ Premium"] = classification;
-          row["Model Name"] = description;
+        row["Model #"] = baseSku;
+        row["List Price"] = basePrice;
+        row["Weight"] = "";
+        row["Classic/ Premium"] = "";
+        row["Model Name"] = description;
 
-          validColumns.forEach(col => {
-            if (productOptionPrices[col.optCode] !== undefined) {
-              row[col.label] = productOptionPrices[col.optCode];
-            } else {
-              row[col.label] = 0;
-            }
+        Object.keys(productOptionPrices).forEach(optCode => {
+          const optClean = optCode.replace(/^-/, '');
+          const matchingHeader = DESKS_HEADERS.find(h => {
+            const hUpper = h.toUpperCase();
+            return hUpper.includes(`(${optCode.toUpperCase()})`) ||
+                   hUpper.includes(`-${optCode.toUpperCase()}`) ||
+                   hUpper.includes(`(${optClean.toUpperCase()})`) ||
+                   hUpper.includes(`-${optClean.toUpperCase()}`);
           });
+          if (matchingHeader) {
+            row[matchingHeader] = productOptionPrices[optCode];
+          } else if (optCode.includes('MB')) {
+            const mbHeader = DESKS_HEADERS.find(h => h.includes("(__MB)"));
+            if (mbHeader) row[mbHeader] = productOptionPrices[optCode];
+          }
+        });
 
-          return row;
-        };
+        return row;
+      };
 
         extracted.push(createRow(sku));
     }
