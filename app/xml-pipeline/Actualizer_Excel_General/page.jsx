@@ -65,11 +65,6 @@ export default function ExcelActualizer() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Al montar/recargar el componente, asegurar que la tabla ClientsSERVEX_General_Procces esté limpia y virgen
-  useEffect(() => {
-    purgeTenantData('General_Procces').catch(() => {});
-  }, []);
-
   // Interceptar recarga (F5, Ctrl+R, Command+R) con captura prioritaria
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -79,12 +74,8 @@ export default function ExcelActualizer() {
         ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R' || e.code === 'KeyR' || e.keyCode === 82));
 
       if (isReload) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
         setExitActionType('reload');
         setShowExitModal(true);
-        return false;
       }
     };
 
@@ -92,20 +83,20 @@ export default function ExcelActualizer() {
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []);
 
-  // Purga garantizada en unload/pagehide SIN activar NUNCA el modal gris de Google Chrome
+  // Bloqueo y validación de recarga del navegador (botón Refrescar ↻ y cierre de pestaña)
   useEffect(() => {
-    const handleBeforeUnload = () => {
+    const handleBeforeUnload = (e) => {
       if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
         return;
       }
-      // NUNCA asignar e.returnValue ni e.preventDefault() para que NUNCA aparezca el diálogo nativo de Google
-      purgeTenantDataBeacon('General_Procces');
+
+      // Detener recarga accidental y solicitar validación obligatoria
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
     };
 
     const handlePageHide = () => {
-      if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
-        return;
-      }
       purgeTenantDataBeacon('General_Procces');
     };
 

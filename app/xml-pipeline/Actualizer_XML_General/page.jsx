@@ -82,11 +82,6 @@ export default function MenuInicial() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Al montar/recargar el componente, asegurar que la tabla ClientsSERVEX_General_Procces esté limpia y virgen
-  useEffect(() => {
-    purgeTenantData('General_Procces').catch(() => {});
-  }, []);
-
   // Interceptar combinaciones de recarga de página (F5, Ctrl+R, Command+R) con captura prioritaria
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -96,12 +91,9 @@ export default function MenuInicial() {
         ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R' || e.code === 'KeyR' || e.keyCode === 82));
 
       if (isReload) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+        // En navegadores que lo permitan, abrir el modal de la plataforma
         setExitActionType('reload');
         setShowExitModal(true);
-        return false;
       }
     };
 
@@ -109,20 +101,21 @@ export default function MenuInicial() {
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []);
 
-  // Purga garantizada en unload/pagehide SIN activar NUNCA el modal gris de Google Chrome
+  // Bloqueo y validación de recarga del navegador (botón Refrescar ↻ y cierre de pestaña)
   useEffect(() => {
-    const handleBeforeUnload = () => {
+    const handleBeforeUnload = (e) => {
       if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
         return;
       }
-      // NUNCA asignar e.returnValue ni e.preventDefault() para que NUNCA aparezca el diálogo nativo de Google
-      purgeTenantDataBeacon('General_Procces');
+
+      // Detener recarga accidental y solicitar validación obligatoria
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
     };
 
     const handlePageHide = () => {
-      if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
-        return;
-      }
+      // Si el usuario confirmó la salida en el navegador o se cierra la pestaña
       purgeTenantDataBeacon('General_Procces');
     };
 
@@ -374,28 +367,18 @@ export default function MenuInicial() {
               </div>
 
               <div className="flex items-center gap-2 sm:gap-2.5 pointer-events-auto">
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent('openAiGuide'))}
-                  title="AI Guide & Documentation"
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
-                >
-                  <Sparkles size={13} className="text-amber-300 group-hover:scale-110 transition-transform" />
-                  <span className="hidden sm:inline">AI Guide</span>
-                </button>
-
-                {/* BOTÓN SALIR AL PANEL */}
+                {/* BOTÓN REINICIAR PROCESO */}
                 <button
                   type="button"
                   onClick={() => {
-                    setExitActionType('exit');
+                    setExitActionType('reload');
                     setShowExitModal(true);
                   }}
-                  title="Salir al panel y descartar proceso"
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-rose-500/20 text-zinc-300 hover:text-rose-200 border border-white/20 hover:border-rose-500/30 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
+                  title="Reiniciar proceso y descartar sesión activa"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
                 >
-                  <LogOut size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                  <span className="hidden sm:inline">Salir</span>
+                  <RotateCcw size={12} className="text-white group-hover:-rotate-90 transition-transform duration-300" />
+                  <span className="hidden sm:inline">Reiniciar</span>
                 </button>
 
                 {isToolsOpen && (

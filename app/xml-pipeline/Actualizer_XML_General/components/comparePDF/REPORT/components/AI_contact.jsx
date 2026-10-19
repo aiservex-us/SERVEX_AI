@@ -1875,6 +1875,22 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const data = await res.json();
       if (fileText) data.xml_raw = fileText;
       if (dbCsvRaw) data.csv_raw = dbCsvRaw;
+
+      // Persistir de inmediato la desestructuración enriquecida en la columna xml_structure_context
+      try {
+        await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .upsert({
+            company_name: 'General_Procces',
+            file_name: file.name,
+            xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
+            xml_structure_context: data
+          }, { onConflict: 'company_name' });
+        console.log('[+] xml_structure_context persistido exitosamente en ClientsSERVEX_General_Procces');
+      } catch (saveContextErr) {
+        console.warn('[-] Advertencia persistiendo xml_structure_context en Supabase:', saveContextErr);
+      }
+
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       if (unlockedPhase < 2) updatePhase(2);

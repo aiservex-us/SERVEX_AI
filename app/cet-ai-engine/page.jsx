@@ -504,6 +504,22 @@ export default function CETDirectPipelinePage() {
       }
       setUploadedXmlSummary(data);
 
+      // Persistir de inmediato la desestructuración enriquecida en la columna xml_structure_context
+      try {
+        const tbl = compToUse === 'General_Procces' ? 'ClientsSERVEX_General_Procces' : `ClientsSERVEX_${compToUse}`;
+        await supabase
+          .from(tbl)
+          .upsert({
+            company_name: compToUse,
+            file_name: file.name,
+            xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
+            xml_structure_context: data
+          }, { onConflict: 'company_name' });
+        console.log(`[+] xml_structure_context persistido exitosamente en ${tbl} (${compToUse})`);
+      } catch (saveContextErr) {
+        console.warn('[-] Advertencia persistiendo xml_structure_context en Supabase:', saveContextErr);
+      }
+
       // Marcar consola de proceso como completada
       setMessages((prev) =>
         prev.map((m) =>

@@ -91,7 +91,7 @@ export default function ExitPipelineModal({
   const isReload = exitType === 'reload';
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
       {/* Fondo oscuro con desenfoque cinematográfico idéntico a deleteData */}
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"
