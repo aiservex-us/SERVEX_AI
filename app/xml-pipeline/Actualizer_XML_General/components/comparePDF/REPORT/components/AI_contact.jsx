@@ -14,6 +14,9 @@ import {
 import CatalogProcessConsole from '@/app/cet-ai-engine/components/CatalogProcessConsole.jsx';
 import AiCatalogIngestionReport from '@/app/cet-ai-engine/components/AiCatalogIngestionReport.jsx';
 import AlysaWordmark from './AlysaWordmark.jsx';
+import ProductInspectionCard from './ProductInspectionCard.jsx';
+import CatalogSummaryCard from './CatalogSummaryCard.jsx';
+import UserStructuredMessage, { parseUserMessage } from './UserStructuredMessage.jsx';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
@@ -618,7 +621,399 @@ marked.use({
   }
 });
 
-const BotMessage = React.memo(({ text, onCommandSelect, isDarkMode = true }) => {
+// Parser inteligente para detectar y estructurar respuestas de filtrado de productos CET Designer
+const parseProductInspection = (text, inspectionReport = null) => {
+  // Fast path: Si el backend ya devolvió el reporte estructurado en JSON
+  if (inspectionReport && Array.isArray(inspectionReport) && inspectionReport.length > 0) {
+    const catMatch = text?.match(/Cat[aá]logo Activo:\s*\**([^\*|\n]+?)\**\s*(?:\||$)/i);
+    const catalog = catMatch ? catMatch[1].trim() : 'XML';
+    const matchCount = text?.match(/Coincidencias Exactas:\s*\**([^\*|\n]+?)\**(?:\s*consultados|\n|$)/i);
+    const matchesStr = matchCount ? matchCount[1].trim() : `${inspectionReport.length} de ${inspectionReport.length}`;
+
+    const products = inspectionReport.map(p => {
+      const options = [];
+      if (p.features && Array.isArray(p.features)) {
+        p.features.forEach(feat => {
+          const fName = feat.feature_name || feat.feature_code || '';
+          const fCode = feat.feature_code || '';
+          const fLabel = fName && fName !== fCode ? `${fCode} (${fName})` : fCode;
+          (feat.options || []).forEach(opt => {
+            let surcharge = opt.current_price !== undefined ? String(opt.current_price) : '0.00';
+            if (!surcharge.startsWith('$')) surcharge = `$${surcharge}`;
+            options.push({
+              feature: fLabel,
+              optionCode: opt.code,
+              description: opt.description,
+              surcharge: surcharge
+            });
+          });
+        });
+      }
+      let price = p.list_price || '';
+      if (price && !price.startsWith('$')) price = `$${price} USD`;
+      return {
+        sku: p.code || p.query_sku,
+        description: p.description,
+        price: price,
+        featuresCount: p.features_count || (p.features ? p.features.length : 0),
+        options
+      };
+    });
+
+    return { catalog, matches: matchesStr, products };
+  }
+
+  if (!text || typeof text !== 'string') return null;
+  const isInspection =
+    text.includes('Filtrado de Productos') ||
+    text.includes('Desglose de Opciones y Recargos') ||
+    (text.includes('Producto:') && (text.includes('Precio Base') || text.includes('Recargo')));
+
+  if (!isInspection) return null;
+
+  try {
+    const catMatch = text.match(/Cat[aá]logo Activo:\s*\**([^\*|\n]+?)\**\s*(?:\||$)/i);
+    const catalog = catMatch ? catMatch[1].trim() : 'XML';
+
+    const matchCount = text.match(/Coincidencias Exactas:\s*\**([^\*|\n]+?)\**(?:\s*consultados|\n|$)/i);
+    const matchesStr = matchCount ? matchCount[1].trim() : '';
+
+    const products = [];
+    const prodBlocks = text.split(/(?:####\s*Producto:|\bProducto:)\s*/i);
+
+    if (prodBlocks.length > 1) {
+      for (let i = 1; i < prodBlocks.length; i++) {
+        const block = prodBlocks[i];
+        const lines = block.split('\n');
+        const sku = lines[0].replace(/[`*]/g, '').trim();
+        const body = lines.slice(1).join('\n');
+
+        const descM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?(?:Descripci[oó]n|Estado)(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
+        const priceM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?Precio Base(?: de Lista)?(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
+        const featCountM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?Total Caracter[ií]sticas Vinculadas(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
+
+        const options = [];
+        const bodyLines = body.split('\n');
+        for (const line of bodyLines) {
+          const trimmed = line.trim();
+          if (
+            trimmed.startsWith('|') &&
+            !trimmed.toLowerCase().includes('| feature') &&
+            !trimmed.includes(':---') &&
+            !trimmed.includes('---|')
+          ) {
+            const parts = trimmed.split('|').slice(1, -1).map(p => p.replace(/[`*]/g, '').trim());
+            if (parts.length >= 4) {
+              options.push({
+                feature: parts[0],
+                optionCode: parts[1],
+                description: parts[2],
+                surcharge: parts[3]
+              });
+            }
+          } else if (trimmed.includes('\t') && !trimmed.toLowerCase().includes('feature\t')) {
+            const parts = trimmed.split('\t').map(p => p.replace(/[`*]/g, '').trim()).filter(Boolean);
+            if (parts.length >= 4) {
+              options.push({
+                feature: parts[0],
+                optionCode: parts[1],
+                description: parts[2],
+                surcharge: parts[3]
+              });
+            }
+          } else if (!trimmed.startsWith('|') && !trimmed.toLowerCase().startsWith('feature') && !trimmed.startsWith('#') && !trimmed.startsWith('-')) {
+            const parts = trimmed.split(/\s{2,}/).map(p => p.replace(/[`*]/g, '').trim()).filter(Boolean);
+            if (parts.length >= 4) {
+              options.push({
+                feature: parts[0],
+                optionCode: parts[1],
+                description: parts[2],
+                surcharge: parts[3]
+              });
+            }
+          }
+        }
+
+        products.push({
+          sku,
+          description: descM ? descM[1].replace(/[`*]/g, '').trim() : '',
+          price: priceM ? priceM[1].replace(/[`*]/g, '').trim() : '',
+          featuresCount: featCountM ? featCountM[1].replace(/[`*]/g, '').trim() : '',
+          options
+        });
+      }
+    }
+
+    return products.length > 0 ? { catalog, matches: matchesStr, products } : null;
+  } catch {
+    return null;
+  }
+};
+
+// Parser inteligente para detectar y estructurar resúmenes de catálogo y características con recargo
+const parseCatalogSummary = (text, catalogData = null) => {
+  // Fast path: Si el backend envió catalog_data estructurado
+  if (catalogData && typeof catalogData === 'object' && catalogData.features) {
+    const catalog = catalogData.company || catalogData.catalog || 'Catálogo XML';
+    const pricelists = (catalogData.pricelists && catalogData.pricelists.length > 0)
+      ? catalogData.pricelists.map(pl => ({ code: pl.code, currency: pl.currency || 'USD' }))
+      : [{ code: 'P1', currency: 'USD' }];
+
+    const features = (catalogData.features || []).map(f => {
+      const options = (f.options || [])
+        .filter(o => o.has_upcharge || (o.price && parseFloat(o.price) > 0))
+        .map(o => ({
+          code: o.code,
+          description: o.description,
+          price: o.price ? (String(o.price).startsWith('$') ? String(o.price) : `$${o.price}`) : ''
+        }));
+      return {
+        featureCode: f.feature_code || f.code,
+        description: f.feature_description || f.description || '',
+        options
+      };
+    }).filter(f => f.options.length > 0);
+
+    let examplePrompt = '';
+    let exampleIntro = '';
+    let tipText = '';
+    let note = '';
+    if (text && typeof text === 'string') {
+      const exMatch = text.match(/(?:📋\s*)?Ejemplo(?: listo para copiar)?[\s\S]*?(?=💡\s*Tip|###|$)/i);
+      if (exMatch) {
+        const promptM = exMatch[0].match(/(Hola,\s*por favor[\s\S]*?)(?=\n\s*(?:Solo copia|💡|Tip|$))/i);
+        if (promptM) examplePrompt = promptM[1].trim();
+        const introM = exMatch[0].match(/Si deseas aplicar[\s\S]*?:/i);
+        if (introM) exampleIntro = introM[0].trim();
+      }
+      const tipM = text.match(/(?:💡\s*)?Tip(?: amigable)?[\s\S]*$/i);
+      if (tipM) tipText = tipM[0].replace(/^(?:💡\s*)?Tip(?: amigable)?\s*/i, '').trim();
+      const noteM = text.match(/Nota:\s*([^\n]+(?:\n(?!📋|💡|✨)[^\n]+)*)/i);
+      if (noteM) note = noteM[1].trim();
+    }
+
+    return {
+      catalog,
+      pricelists,
+      features,
+      note,
+      exampleIntro,
+      examplePrompt,
+      tipText
+    };
+  }
+
+  if (!text || typeof text !== 'string') return null;
+
+  const isSummary =
+    (text.includes('Resumen') && (text.includes('catálogo') || text.includes('catalogo'))) ||
+    text.includes('Características con recargo') ||
+    text.includes('Caracteristicas con recargo') ||
+    text.includes('up‑charge') ||
+    text.includes('up-charge') ||
+    (text.includes('Lista de precios activa') && (text.includes('Código de característica') || text.includes('Codigo de caracteristica')));
+
+  if (!isSummary) return null;
+
+  try {
+    const catM = text.match(/cat[aá]logo\s+([A-Za-z0-9_\-]+)/i) || text.match(/cat[aá]logo\s*[`*]+([A-Za-z0-9_\-]+)[`*]+/i);
+    const catalog = catM ? catM[1].trim() : 'Catálogo XML';
+
+    const pricelists = [];
+    const plBlockM = text.match(/Lista(?:s)? de precios activa(?:s)?[\s\S]*?(?=✨|Características|Caracteristicas|Código de característica|Codigo de caracteristica|$)/i);
+    if (plBlockM) {
+      const plLines = plBlockM[0].split('\n');
+      for (const line of plLines) {
+        const trimmed = line.trim();
+        if (trimmed.includes('\t') && !trimmed.toLowerCase().includes('moneda')) {
+          const parts = trimmed.split('\t').map(p => p.trim());
+          if (parts.length >= 2) {
+            pricelists.push({ code: parts[0], currency: parts[1] });
+          }
+        } else if (trimmed.includes('|') && !trimmed.toLowerCase().includes('moneda') && !trimmed.includes('---')) {
+          const parts = trimmed.split('|').slice(1, -1).map(p => p.trim());
+          if (parts.length >= 2) {
+            pricelists.push({ code: parts[0], currency: parts[1] });
+          }
+        } else if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+          const m = trimmed.match(/[•\-]\s*[`*]*([A-Za-z0-9_\-]+)[`*]*\s*(?:[—–-]\s*Moneda:\s*[`*]*([A-Za-z0-9_\-]+)[`*]*)?/i);
+          if (m && m[1] && !m[1].toLowerCase().includes('lista')) {
+            pricelists.push({ code: m[1], currency: m[2] || 'USD' });
+          }
+        }
+      }
+    }
+    if (pricelists.length === 0) {
+      pricelists.push({ code: 'P1', currency: 'USD' });
+    }
+
+    const features = [];
+    let featSection = '';
+    const featSectionM = text.match(/(?:Caracter[ií]sticas con recargo[\s\S]*?)(?=📋\s*Ejemplo|💡\s*Tip|###|$)/i);
+    if (featSectionM) {
+      featSection = featSectionM[0];
+    } else {
+      featSection = text;
+    }
+
+    let note = '';
+    const noteM = featSection.match(/Nota:\s*([^\n]+(?:\n(?!📋|💡|✨)[^\n]+)*)/i);
+    if (noteM) {
+      note = noteM[1].trim();
+    }
+
+    const lines = featSection.split('\n');
+    let inTable = false;
+    let currentFeature = null;
+
+    const parseOptionsInto = (feat, rawStr) => {
+      const optLines = rawStr.split(/(?:<br\s*\/?>|\n)/);
+      for (const ol of optLines) {
+        const cleanOl = ol.trim();
+        if (!cleanOl) continue;
+        const optM = cleanOl.match(/[•\-*]?\s*([A-Za-z0-9_\-]+)\s*[—–-]\s*([^\–—\-]+?)\s*[—–-]\s*(\$?\d+(?:\.\d{2})?(?:\s*USD)?)/i);
+        if (optM) {
+          let price = optM[3].trim();
+          if (!price.startsWith('$')) price = `$${price}`;
+          feat.options.push({
+            code: optM[1].trim(),
+            description: optM[2].trim(),
+            price: price
+          });
+        } else {
+          const simpleM = cleanOl.match(/[•\-*]?\s*([^\–—\-]+)/);
+          if (simpleM && simpleM[1].trim()) {
+            feat.options.push({
+              code: '',
+              description: simpleM[1].trim(),
+              price: ''
+            });
+          }
+        }
+      }
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      if (trimmed.toLowerCase().includes('código de característica') || trimmed.toLowerCase().includes('codigo de caracteristica')) {
+        inTable = true;
+        continue;
+      }
+      if (!inTable) continue;
+      if (trimmed.toLowerCase().startsWith('nota:') || trimmed.startsWith('📋') || trimmed.startsWith('💡')) {
+        inTable = false;
+        break;
+      }
+
+      if (trimmed.includes('\t')) {
+        const parts = trimmed.split('\t').map(p => p.trim());
+        if (parts.length >= 2) {
+          const fCode = parts[0];
+          const fDesc = parts[1];
+          const optStr = parts[2] || '';
+
+          currentFeature = {
+            featureCode: fCode,
+            description: fDesc,
+            options: []
+          };
+          features.push(currentFeature);
+
+          if (optStr) {
+            parseOptionsInto(currentFeature, optStr);
+          }
+        }
+      } else if (trimmed.startsWith('|') && !trimmed.includes('---')) {
+        const parts = trimmed.split('|').slice(1, -1).map(p => p.trim());
+        if (parts.length >= 2) {
+          const fCode = parts[0].replace(/[`*]/g, '');
+          const fDesc = parts[1].replace(/[`*]/g, '');
+          const optStr = parts[2] ? parts[2].replace(/[`*]/g, '') : '';
+
+          currentFeature = {
+            featureCode: fCode,
+            description: fDesc,
+            options: []
+          };
+          features.push(currentFeature);
+
+          if (optStr) {
+            parseOptionsInto(currentFeature, optStr);
+          }
+        }
+      } else if (currentFeature && (trimmed.startsWith('•') || trimmed.startsWith('-') || trimmed.startsWith('*'))) {
+        parseOptionsInto(currentFeature, trimmed);
+      }
+    }
+
+    let examplePrompt = '';
+    let exampleIntro = '';
+    const exMatch = text.match(/(?:📋\s*)?Ejemplo(?: listo para copiar)?[\s\S]*?(?=💡\s*Tip|###|$)/i);
+    if (exMatch) {
+      const exBlock = exMatch[0];
+      const promptM = exBlock.match(/(Hola,\s*por favor[\s\S]*?)(?=\n\s*(?:Solo copia|💡|Tip|$))/i);
+      if (promptM) {
+        examplePrompt = promptM[1].trim();
+      }
+      const introM = exBlock.match(/Si deseas aplicar[\s\S]*?:/i);
+      if (introM) {
+        exampleIntro = introM[0].trim();
+      }
+    }
+
+    let tipText = '';
+    const tipM = text.match(/(?:💡\s*)?Tip(?: amigable)?[\s\S]*$/i);
+    if (tipM) {
+      tipText = tipM[0].replace(/^(?:💡\s*)?Tip(?: amigable)?\s*/i, '').trim();
+    }
+
+    return {
+      catalog,
+      pricelists,
+      features,
+      note,
+      exampleIntro,
+      examplePrompt,
+      tipText
+    };
+  } catch {
+    return null;
+  }
+};
+
+const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandSelect, isDarkMode = true }) => {
+  // 1. Detectar si el texto corresponde a una ficha técnica / inspección de producto
+  const productInspection = useMemo(() => {
+    return parseProductInspection(text, inspectionReport);
+  }, [text, inspectionReport]);
+
+  if (productInspection) {
+    return (
+      <ProductInspectionCard
+        data={productInspection}
+        onCommandSelect={onCommandSelect}
+        isDarkMode={isDarkMode}
+      />
+    );
+  }
+
+  // 2. Detectar si el texto corresponde a un resumen de catálogo / características con recargo
+  const catalogSummary = useMemo(() => {
+    return parseCatalogSummary(text, catalogData);
+  }, [text, catalogData]);
+
+  if (catalogSummary) {
+    return (
+      <CatalogSummaryCard
+        data={catalogSummary}
+        onCommandSelect={onCommandSelect}
+        isDarkMode={isDarkMode}
+      />
+    );
+  }
+
   const processedText = useMemo(() => {
     if (!text) return "";
     let finalStr = text;
@@ -637,6 +1032,12 @@ const BotMessage = React.memo(({ text, onCommandSelect, isDarkMode = true }) => 
             newText.push('|' + cols.map(() => '---|').join(''));
           } else {
             newText.push(mdRow);
+          }
+        } else if (inTable && (line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*'))) {
+          // Continuación de celda en la fila anterior (ej. lista de viñetas en la última columna)
+          if (newText.length > 0) {
+            const lastIdx = newText.length - 1;
+            newText[lastIdx] = newText[lastIdx].replace(/\s*\|\s*$/, ' <br> ' + line.trim() + ' |');
           }
         } else {
           inTable = false;
@@ -680,9 +1081,47 @@ const BotMessage = React.memo(({ text, onCommandSelect, isDarkMode = true }) => 
   return (
     <div
       onClick={handleClick}
-      className={`text-sm font-sans flex flex-col gap-1 w-full max-w-full overflow-x-auto overflow-y-hidden ${isDarkMode
-          ? 'text-zinc-100 [&_p]:text-zinc-100 [&_strong]:text-white [&_li]:text-zinc-200 [&_a]:text-blue-400'
-          : 'text-gray-800 [&_p]:text-gray-800 [&_strong]:text-gray-900 [&_li]:text-gray-700 [&_a]:text-blue-600'
+      className={`text-sm font-sans flex flex-col gap-2 w-full max-w-full overflow-x-auto overflow-y-hidden ${isDarkMode
+          ? `text-zinc-100 
+             [&_p]:text-zinc-100 [&_p]:leading-relaxed [&_p]:my-1.5
+             [&_strong]:text-white [&_strong]:font-bold
+             [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-white [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:tracking-tight
+             [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-white [&_h2]:mt-3.5 [&_h2]:mb-2 [&_h2]:tracking-tight
+             [&_h3]:text-[14px] [&_h3]:font-bold [&_h3]:text-zinc-100 [&_h3]:mt-3 [&_h3]:mb-1.5 [&_h3]:tracking-tight
+             [&_h4]:text-[13px] [&_h4]:font-semibold [&_h4]:text-zinc-200 [&_h4]:mt-2.5 [&_h4]:mb-1
+             [&_ul]:my-2 [&_ul]:space-y-1 [&_ul]:pl-5 [&_ul]:list-disc
+             [&_ol]:my-2 [&_ol]:space-y-1 [&_ol]:pl-5 [&_ol]:list-decimal
+             [&_li]:text-zinc-200 [&_li]:text-[13px] [&_li]:leading-relaxed
+             [&_a]:text-blue-400 [&_a]:underline hover:[&_a]:text-blue-300
+             [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:bg-white/10 [&_code]:text-white [&_code]:border [&_code]:border-white/15
+             [&_pre]:bg-[#09090b]/80 [&_pre]:border [&_pre]:border-white/10 [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:my-2.5 [&_pre]:overflow-x-auto
+             [&_hr]:border-white/10 [&_hr]:my-3
+             [&_table]:w-full [&_table]:border-collapse [&_table]:my-3.5 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10 [&_table]:bg-[#09090b]/60 [&_table]:backdrop-blur-md [&_table]:shadow-md
+             [&_thead]:bg-white/[0.06] [&_thead]:border-b [&_thead]:border-white/10
+             [&_th]:px-3.5 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-zinc-300 [&_th]:border-b [&_th]:border-white/10
+             [&_td]:px-3.5 [&_td]:py-2.5 [&_td]:text-xs [&_td]:text-zinc-300 [&_td]:border-b [&_td]:border-white/[0.05]
+             [&_tr:last-child_td]:border-b-0
+             [&_tbody_tr]:transition-colors hover:[&_tbody_tr]:bg-white/[0.04]`
+          : `text-gray-800
+             [&_p]:text-gray-800 [&_p]:leading-relaxed [&_p]:my-1.5
+             [&_strong]:text-gray-900 [&_strong]:font-bold
+             [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mt-4 [&_h1]:mb-2
+             [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-3.5 [&_h2]:mb-2
+             [&_h3]:text-[14px] [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:mt-3 [&_h3]:mb-1.5
+             [&_h4]:text-[13px] [&_h4]:font-semibold [&_h4]:text-gray-900 [&_h4]:mt-2.5 [&_h4]:mb-1
+             [&_ul]:my-2 [&_ul]:space-y-1 [&_ul]:pl-5 [&_ul]:list-disc
+             [&_ol]:my-2 [&_ol]:space-y-1 [&_ol]:pl-5 [&_ol]:list-decimal
+             [&_li]:text-gray-700 [&_li]:text-[13px] [&_li]:leading-relaxed
+             [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-700
+             [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:bg-slate-100 [&_code]:text-slate-900 [&_code]:border [&_code]:border-slate-200
+             [&_pre]:bg-slate-100 [&_pre]:border [&_pre]:border-slate-200 [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:my-2.5 [&_pre]:overflow-x-auto
+             [&_hr]:border-slate-200 [&_hr]:my-3
+             [&_table]:w-full [&_table]:border-collapse [&_table]:my-3.5 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-slate-200 [&_table]:bg-white [&_table]:shadow-sm
+             [&_thead]:bg-slate-50 [&_thead]:border-b [&_thead]:border-slate-200
+             [&_th]:px-3.5 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-slate-700 [&_th]:border-b [&_th]:border-slate-200
+             [&_td]:px-3.5 [&_td]:py-2.5 [&_td]:text-xs [&_td]:text-slate-700 [&_td]:border-b [&_td]:border-slate-100
+             [&_tr:last-child_td]:border-b-0
+             [&_tbody_tr]:transition-colors hover:[&_tbody_tr]:bg-slate-50`
         }`}
       dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
@@ -1303,6 +1742,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           from: "bot",
           text: data?.reply || "No response received.",
           staged_result: data?.staged_result || null,
+          inspection_report: data?.inspection_report || null,
+          catalog_data: data?.catalog_data || null,
           can_commit: Boolean(data?.can_commit),
           needs_upload: Boolean(data?.needs_upload),
           committed: false,
@@ -1863,6 +2304,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               <AnimatePresence initial={false}>
                 {messages.map((msg, idx) => {
                   const isUser = msg.from === 'user';
+                  const isStructuredUser = isUser && !msg.isXmlUpload && parseUserMessage(msg.text).type !== 'simple';
                   const msgKey = msg.id || `msg-${idx}`;
                   return (
                     <motion.div
@@ -1874,7 +2316,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                         ease: [0.23, 1, 0.32, 1]
                       }}
                       style={msg.toolId ? undefined : { contentVisibility: 'auto', containIntrinsicSize: '0 80px' }}
-                      className={`flex gap-3 items-start min-w-0 ${isUser ? 'flex-row-reverse' : 'w-full'}`}
+                      className={`flex gap-3 items-start min-w-0 ${isUser ? 'justify-end w-full' : 'w-full'}`}
                     >
                       {msg.from === 'tool' ? (
                         <div className="w-full max-w-full min-w-0 my-2 bg-transparent overflow-hidden relative flex justify-center">
@@ -1884,15 +2326,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                         </div>
                       ) : (
                         <>
-                          {/* Avatar */}
-                          {isUser ? (
-                            <motion.div
-                              whileHover={{ scale: 1.05, rotate: 5 }}
-                              className={`relative w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-[9px] font-bold shadow-sm z-10 ${isDarkMode ? 'bg-white/10 text-white border border-white/20' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}
-                            >
-                              <User size={15} className={isDarkMode ? 'text-white' : 'text-slate-600'} />
-                            </motion.div>
-                          ) : (
+                          {/* Avatar: solo para la IA (el usuario no tiene icono) */}
+                          {!isUser && (
                             <motion.div
                               whileHover={{ scale: 1.08 }}
                               className="flex-shrink-0 flex items-center justify-center pt-0.5"
@@ -1902,30 +2337,37 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           )}
 
                           {/* Bubble column */}
-                          <div className={`flex flex-col min-w-0 ${msg.uploadSummary || msg.isProcessingConsole || msg.toolId ? 'w-full' : 'max-w-[88%] md:max-w-[85%]'} gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
-                            <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
-                              {isUser && (
-                                <span className={`text-[12px] font-semibold ${isDarkMode ? 'text-zinc-200' : 'text-gray-800'}`}>
-                                  You
-                                </span>
-                              )}
-                              <span className={`text-[10px] ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>{msg.time}</span>
-                            </div>
+                          <div className={`flex flex-col min-w-0 ${msg.uploadSummary || msg.isProcessingConsole || msg.toolId ? 'w-full' : isUser ? isStructuredUser ? 'w-full max-w-[96%] md:max-w-[85%]' : 'max-w-[85%] md:max-w-[75%]' : 'max-w-[90%] md:max-w-[88%]'} gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
+                            {/* Cabecera de mensaje (solo para la IA; el usuario no tiene ni 'You' ni la hora) */}
+                            {!isUser && msg.time && (
+                              <div className="flex items-baseline gap-2 mb-0.5">
+                                <span className={`text-[10px] ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>{msg.time}</span>
+                              </div>
+                            )}
 
                             <div
-                              className={`text-[13.5px] leading-relaxed relative break-words min-w-0
-                              ${isUser
-                                  ? isDarkMode
-                                    ? 'px-4 py-3 rounded-2xl shadow-md bg-zinc-100 text-zinc-950 rounded-tr-sm border border-zinc-200 font-medium'
-                                    : 'px-4 py-3 rounded-2xl shadow-sm bg-[#18181b] text-white rounded-tr-sm border border-[#18181b]'
+                              className={`text-[13.5px] leading-relaxed relative break-words min-w-0 ${
+                                isUser
+                                  ? isStructuredUser
+                                    ? 'w-full p-0 bg-transparent border-none shadow-none'
+                                    : isDarkMode
+                                      ? 'px-4 py-2.5 rounded-2xl shadow-md bg-zinc-100 text-zinc-950 rounded-tr-sm border border-zinc-200 font-medium'
+                                      : 'px-4 py-2.5 rounded-2xl shadow-sm bg-[#18181b] text-white rounded-tr-sm border border-[#18181b]'
                                   : 'w-full space-y-2'
-                                }`}
+                              }`}
                             >
                               {msg.from === "bot" ? (
                                 <>
+                                  {/* Mensaje de la IA: contenedor transparente sobre el fondo, sin contenedor negro ni bordes */}
                                   {msg.text && (
-                                    <div className={`px-4 py-3 rounded-2xl shadow-sm backdrop-blur-md rounded-tl-sm inline-block max-w-[88%] md:max-w-[85%] ${isDarkMode ? 'bg-[#09090b]/80 border border-white/10 text-zinc-100 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-white/90 border border-slate-200/90 text-gray-800'}`}>
-                                      <BotMessage text={msg.text} onCommandSelect={handleCommandSelect} isDarkMode={isDarkMode} />
+                                    <div className={`w-full bg-transparent border-none shadow-none py-0.5 ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'}`}>
+                                      <BotMessage
+                                        text={msg.text}
+                                        inspectionReport={msg.inspection_report}
+                                        catalogData={msg.catalog_data}
+                                        onCommandSelect={handleCommandSelect}
+                                        isDarkMode={isDarkMode}
+                                      />
                                     </div>
                                   )}
 
@@ -2227,7 +2669,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                   );
                                 })()
                               ) : (
-                                <p className="whitespace-pre-wrap m-0">{msg.text}</p>
+                                <UserStructuredMessage
+                                  text={msg.text}
+                                  isDarkMode={isDarkMode}
+                                  isInsideBubble={!isStructuredUser}
+                                />
                               )}
                             </div>
                           </div>

@@ -114,6 +114,34 @@ const SidebarIcon = ({
   );
 };
 
+// Componente vectorial del logotipo GLYNNE (Ecosistema)
+const GlynneLogo = ({ className = 'w-full h-full text-white', ...props }) => (
+  <svg
+    viewBox="0 0 2048 2048"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    {...props}
+  >
+    <g transform="translate(0,2048) scale(0.1,-0.1)">
+      {/* Marco exterior con ventana interior recortada */}
+      <path d="M2050 10292 l0 -8529 2458 -6 c1351 -4 3231 -11 4177 -17 946 -5 2748 -14 4005 -20 1257 -5 2537 -12 2845 -15 308 -3 1085 -8 1728 -11 l1167 -7 0 8532 0 8531 -727 0 c-648 0 -1775 5 -5358 25 -577 3 -1959 10 -3070 15 -1111 6 -2893 15 -3960 20 -1067 6 -2238 10 -2602 10 l-663 0 0 -8528z m4645 7888 c1644 -9 6108 -31 9610 -48 l1430 -7 3 -7898 2 -7897 -152 0 c-669 1 -5444 23 -7523 35 -1413 8 -3564 17 -4780 20 -1215 3 -2283 8 -2372 11 l-163 6 0 7900 0 7900 1078 -6 c592 -4 1883 -11 2867 -16z" />
+      {/* Letra G */}
+      <path d="M5695 17109 c-328 -31 -621 -112 -900 -249 -260 -126 -477 -282 -685 -490 -424 -425 -707 -987 -805 -1595 -26 -165 -36 -308 -36 -500 0 -359 41 -632 142 -941 211 -649 660 -1212 1241 -1556 731 -432 1717 -466 2501 -85 700 340 1150 891 1324 1623 l28 119 0 583 0 583 -1275 0 -1275 1 0 -479 1 -478 637 -3 637 -2 0 -39 c0 -80 -22 -198 -54 -294 -123 -362 -476 -634 -925 -712 -108 -19 -313 -19 -421 0 -167 29 -348 105 -500 208 -112 77 -302 272 -387 397 -164 244 -260 498 -299 795 -22 165 -14 483 16 645 65 352 206 647 434 902 248 279 544 424 901 441 287 14 559 -61 800 -220 115 -77 304 -261 400 -391 33 -45 63 -81 67 -82 6 0 715 767 800 866 17 20 15 23 -71 120 -427 478 -1032 771 -1721 833 -133 13 -444 12 -575 0z" />
+      {/* Letra L */}
+      <path d="M9065 17008 c-3 -7 -4 -1246 -3 -2753 l3 -2740 1573 -3 1572 -2 0 550 0 550 -945 0 -945 0 -2 2203 -3 2202 -623 3 c-493 2 -624 0 -627 -10z" />
+      {/* Letra Y */}
+      <path d="M12254 17004 c5 -14 766 -1154 1653 -2476 l373 -556 0 -1231 0 -1231 625 0 625 0 0 1233 0 1234 298 444 c794 1184 1732 2589 1732 2594 0 3 -337 5 -748 5 l-749 0 -68 -102 c-73 -109 -891 -1356 -1014 -1545 -40 -62 -74 -113 -76 -113 -2 0 -154 231 -338 513 -185 281 -443 676 -575 877 l-239 365 -753 3 c-679 2 -752 1 -746 -14z" />
+      {/* Letra N superior */}
+      <path d="M3510 8493 c0 -984 -1 -2161 -1 -2618 l-2 -830 599 0 599 0 5 1625 5 1625 49 -75 c27 -41 230 -356 451 -700 423 -657 665 -1034 1244 -1933 l353 -547 601 2 602 3 0 2615 0 2615 -600 0 -600 0 0 -1618 c0 -1073 -3 -1616 -10 -1614 -13 4 -329 492 -1545 2387 -288 448 -530 823 -538 833 -14 16 -56 17 -614 17 l-598 0 0 -1787z" />
+      {/* Letra N inferior */}
+      <path d="M8770 7660 l0 -2620 600 0 600 0 0 1625 c0 914 4 1625 9 1625 4 0 95 -136 202 -302 169 -265 1282 -1997 1735 -2701 l159 -247 600 2 600 3 0 2615 0 2615 -592 2 -593 2 0 -1620 c0 -1486 -1 -1620 -16 -1617 -14 3 -608 920 -1599 2467 -148 232 -321 500 -383 596 l-114 175 -604 0 -604 0 0 -2620z" />
+      {/* Letra E */}
+      <path d="M14055 10272 c-3 -3 -5 -1181 -5 -2619 l0 -2613 1500 0 1500 0 0 525 0 525 -905 0 -905 0 0 525 0 525 870 0 870 0 -2 523 -3 522 -867 3 -868 2 0 520 0 520 904 0 c498 0 906 3 908 8 2 4 2 240 0 524 l-2 517 -1495 -1 c-822 0 -1497 -3 -1500 -6z" />
+    </g>
+  </svg>
+);
+
 export default function MenuLateral({ active, setActive, onExit, isDarkMode = true }) {
   const router = useRouter();
 
@@ -141,9 +169,9 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             type="button"
             onClick={() => window.open('https://axglynne.com', '_blank', 'noopener,noreferrer')}
             title="AXGLYNNE Ecosystem"
-            className={`w-10 h-10 rounded-xl flex items-center justify-center p-1.5 ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-slate-200/50'} transition-all group focus:outline-none`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center p-2 ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-slate-200/50'} transition-all group focus:outline-none`}
           >
-            <img src="/GLYNNE.png" alt="GLYNNE" className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
+            <GlynneLogo className={`w-full h-full ${isDarkMode ? 'text-white' : 'text-zinc-900'} group-hover:scale-105 transition-transform`} />
           </button>
           <div className={`w-6 h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-slate-200/80'} my-2.5`} />
 
