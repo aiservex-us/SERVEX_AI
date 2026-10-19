@@ -6,7 +6,7 @@ import ImportCETXml from '../Actualizer_Excel_General/components/IncertDataExcel
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, getCurrentUser } from '../../lib/supabaseClient.js';
-import { X, AlertCircle, Sparkles, Settings } from 'lucide-react';
+import { X, AlertCircle, Sparkles, Settings, RotateCcw, LogOut } from 'lucide-react';
 import TeamsAgentChat from './components/comparePDF/REPORT/components/AI_contact.jsx';
 import AnimatedChatBackground from './components/AnimatedChatBackground.jsx';
 
@@ -24,12 +24,14 @@ import Compare from './components/comparePDF/UploadFileCmpare.jsx'
 import Responce_ai from './components/comparePDF/REPORT_SUPABASE_AI.jsx'
 import Report from './components/comparePDF/REPORT/dashboard.jsx';
 import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
-import DeleteData from './components/comparePDF/IncertData/components/delete_data';
+import DeleteData, { purgeTenantData, purgeTenantDataBeacon } from './components/comparePDF/IncertData/components/delete_data';
 import CETComparator from '../Actualizer_Excel_General/components/CET_Comparator.jsx';
+import ExitPipelineModal from './components/ExitPipelineModal.jsx';
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
   const [showExitModal, setShowExitModal] = useState(false);
+  const [exitActionType, setExitActionType] = useState('exit'); // 'exit' | 'reload' | 'signout'
   const [isMobileScreen, setIsMobileScreen] = useState(false);
   const isDarkMode = true;
   const router = useRouter();
@@ -63,8 +65,6 @@ export default function MenuInicial() {
   }, [router]);
   */
 
-
-
   useEffect(() => {
     const handleNavigate = (e) => {
       if (e.detail) setActive(e.detail);
@@ -82,11 +82,56 @@ export default function MenuInicial() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Al montar/recargar el componente, asegurar que la tabla ClientsSERVEX_General_Procces esté limpia y virgen
+  useEffect(() => {
+    purgeTenantData('General_Procces').catch(() => {});
+  }, []);
+
+  // Interceptar combinaciones de recarga de página (F5, Ctrl+R, Command+R) con captura prioritaria
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const isReload =
+        e.key === 'F5' ||
+        ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R'));
+
+      if (isReload) {
+        e.preventDefault();
+        e.stopPropagation();
+        setExitActionType('reload');
+        setShowExitModal(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, []);
+
+  // Purga garantizada en unload/pagehide SIN activar el modal por defecto de Google Chrome
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // IMPORTANTE: NO asignar e.returnValue ni e.preventDefault() para evitar el diálogo gris nativo de Google Chrome
+      purgeTenantDataBeacon('General_Procces');
+    };
+
+    const handlePageHide = () => {
+      purgeTenantDataBeacon('General_Procces');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, []);
+
+  // Interceptar navegación por historial del navegador (atrás/adelante)
   useEffect(() => {
     window.history.pushState(null, null, window.location.pathname);
 
     const handlePopState = () => {
       window.history.pushState(null, null, window.location.pathname);
+      setExitActionType('exit');
       setShowExitModal(true);
     };
 
@@ -97,20 +142,16 @@ export default function MenuInicial() {
     };
   }, []);
 
-  const handleConfirmExit = () => {
-    setShowExitModal(false);
-    router.push('/panel');
-  };
-
-  const handleSignOut = async () => {
-    setShowExitModal(false);
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error('Error signing out:', err);
-    }
-    window.location.href = '/';
-  };
+  // Evento global para disparar la salida/recarga desde otros componentes
+  useEffect(() => {
+    const handleTriggerExit = (e) => {
+      const action = e.detail?.action || 'exit';
+      setExitActionType(action);
+      setShowExitModal(true);
+    };
+    window.addEventListener('triggerPipelineExit', handleTriggerExit);
+    return () => window.removeEventListener('triggerPipelineExit', handleTriggerExit);
+  }, []);
 
 
   const [isToolsOpen, setIsToolsOpen] = useState(false);
@@ -211,60 +252,12 @@ export default function MenuInicial() {
   return (
     <div className={`w-full h-screen overflow-hidden ${isDarkMode ? 'bg-[#09090b]' : 'bg-white'} font-sans flex flex-col m-0 p-0 min-h-0 relative transition-colors duration-500`}>
 
-      {showExitModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
-            onClick={() => setShowExitModal(false)}
-          />
-
-          <div className={`relative ${isDarkMode ? 'bg-[#09090b]/90 backdrop-blur-2xl border-white/15 text-zinc-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.1)]' : 'bg-white border-slate-200'} w-[460px] rounded-xl shadow-2xl border animate-in fade-in zoom-in duration-200`}>
-            <div className={`flex items-center justify-between px-6 py-4 border-b ${isDarkMode ? 'border-white/10' : 'border-slate-100'}`}>
-              <span className={`text-[14px] font-bold ${isDarkMode ? 'text-white' : 'text-[#242424]'}`}>Navegación y Sesión</span>
-              <button onClick={() => setShowExitModal(false)} className={`${isDarkMode ? 'text-zinc-400 hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}>
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="px-8 py-6 flex gap-4">
-              <div className={`${isDarkMode ? 'bg-white/10' : 'bg-[#18181b]/10'} p-2.5 h-fit rounded-full shrink-0`}>
-                <AlertCircle size={22} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
-              </div>
-              <div>
-                <p className={`text-[14px] font-bold ${isDarkMode ? 'text-white' : 'text-[#242424]'} mb-1`}>
-                  ¿Deseas cerrar sesión o volver al panel principal?
-                </p>
-                <p className={`text-[13px] ${isDarkMode ? 'text-zinc-400' : 'text-[#616161]'} leading-relaxed`}>
-                  Puedes cerrar tu sesión de forma segura y salir al Home, o regresar al panel de control general sin cerrar sesión.
-                </p>
-              </div>
-            </div>
-
-            <div className={`px-6 py-4 ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-[#F5F5F5] border-slate-100'} flex items-center justify-between gap-2 rounded-b-xl border-t`}>
-              <button
-                onClick={() => setShowExitModal(false)}
-                className={`px-3.5 py-1.5 text-[12px] font-semibold ${isDarkMode ? 'text-zinc-300 bg-white/10 border-white/15 hover:bg-white/15' : 'text-[#242424] bg-white border-[#D1D1D1] hover:bg-[#F0F0F0]'} rounded border transition-all`}
-              >
-                Cancelar
-              </button>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleConfirmExit}
-                  className={`px-3.5 py-1.5 text-[12px] font-semibold ${isDarkMode ? 'text-zinc-200 bg-white/15 hover:bg-white/25' : 'text-slate-700 bg-slate-200 hover:bg-slate-300'} rounded transition-all`}
-                >
-                  Ir al Panel
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#C4314B] hover:bg-[#a8253c] rounded transition-all shadow-sm"
-                >
-                  Cerrar Sesión
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ExitPipelineModal
+        isOpen={showExitModal}
+        onClose={() => setShowExitModal(false)}
+        exitType={exitActionType}
+        currentTenant="General_Procces"
+      />
 
       <main className="w-full h-full p-0 m-0 flex relative overflow-hidden flex-1 min-h-0">
 
@@ -347,7 +340,10 @@ export default function MenuInicial() {
         <MenuLateral
           active={active}
           setActive={handleSidebarSelect}
-          onExit={() => setShowExitModal(true)}
+          onExit={() => {
+            setExitActionType('exit');
+            setShowExitModal(true);
+          }}
           isDarkMode={isDarkMode}
         />
         {/* CONTENEDOR UNIFICADO */}
@@ -359,6 +355,20 @@ export default function MenuInicial() {
                 <span className={`text-[10px] font-bold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} border px-2.5 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-md transition-colors`}>
                   Servex Copilot
                 </span>
+
+                {/* BOTÓN REINICIAR / RECARGAR PROCESO */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExitActionType('reload');
+                    setShowExitModal(true);
+                  }}
+                  title="Reiniciar proceso y purgar datos temporales en Supabase"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-white border border-rose-500/30 hover:border-rose-500/50 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
+                >
+                  <RotateCcw size={12} className="group-hover:-rotate-90 transition-transform duration-300 text-rose-400" />
+                  <span className="hidden sm:inline">Reiniciar Proceso</span>
+                </button>
               </div>
 
               <div className="flex items-center gap-2 sm:gap-2.5 pointer-events-auto">
@@ -370,6 +380,20 @@ export default function MenuInicial() {
                 >
                   <Sparkles size={13} className="text-amber-300 group-hover:scale-110 transition-transform" />
                   <span className="hidden sm:inline">AI Guide</span>
+                </button>
+
+                {/* BOTÓN SALIR AL PANEL */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExitActionType('exit');
+                    setShowExitModal(true);
+                  }}
+                  title="Salir al panel y descartar proceso"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-rose-500/20 text-zinc-300 hover:text-rose-200 border border-white/20 hover:border-rose-500/30 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
+                >
+                  <LogOut size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                  <span className="hidden sm:inline">Salir</span>
                 </button>
 
                 {isToolsOpen && (

@@ -14,6 +14,142 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/app/lib/supabaseClient';
 
+export const purgeTenantDataBeacon = (currentTenant = 'General_Procces') => {
+  if (typeof window === 'undefined') return;
+
+  const payload = JSON.stringify({ tenant: currentTenant });
+
+  // 1. Next.js internal API via sendBeacon
+  try {
+    if (navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon('/api/purge-pipeline', blob);
+    }
+  } catch (_) {}
+
+  // 2. Fetch con keepalive a la API de purga interna
+  try {
+    fetch('/api/purge-pipeline', {
+      method: 'POST',
+      body: payload,
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true
+    }).catch(() => {});
+  } catch (_) {}
+
+  // 3. Purga directa a REST de Supabase con keepalive
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zotgxyupuiifnbuwwjkl.supabase.co';
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_usgTKwhsIpmNIiGa_F4tiw_ah3THCTJ';
+    fetch(`${supabaseUrl}/rest/v1/ClientsSERVEX_General_Procces?id=neq.0`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Prefer': 'return=minimal'
+      },
+      keepalive: true
+    }).catch(() => {});
+  } catch (_) {}
+
+  // 4. Backend clear session con keepalive
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+  try {
+    fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session`, { method: 'POST', keepalive: true }).catch(() => {});
+    fetch(`${backendUrl}/api/v1/${encodeURIComponent(currentTenant)}/clear-session`, { method: 'POST', keepalive: true }).catch(() => {});
+    fetch(`${backendUrl}/api/v1/${encodeURIComponent(currentTenant)}/agent/history`, { method: 'DELETE', keepalive: true }).catch(() => {});
+  } catch (_) {}
+};
+
+export const purgeTenantData = async (currentTenant = 'General_Procces') => {
+  // Disparar purga por beacon en paralelo como reaseguro inmediato
+  purgeTenantDataBeacon(currentTenant);
+
+  // 1. Obtener y eliminar archivos del bucket catalogs-storage si existen
+  try {
+    const { data: record } = await supabase
+      .from('ClientsSERVEX_General_Procces')
+      .select('xml_raw')
+      .eq('company_name', currentTenant)
+      .maybeSingle();
+
+    if (record?.xml_raw && String(record.xml_raw).startsWith('[STORAGE_URL]:')) {
+      const urlStr = String(record.xml_raw).replace('[STORAGE_URL]:', '').trim();
+      const urlParts = urlStr.split('/catalogs-storage/');
+      if (urlParts[1]) {
+        await supabase.storage
+          .from('catalogs-storage')
+          .remove([decodeURIComponent(urlParts[1])]);
+      }
+    }
+
+    const { data: fileList } = await supabase.storage
+      .from('catalogs-storage')
+      .list(currentTenant);
+
+    if (fileList && fileList.length > 0) {
+      const filePaths = fileList.map(f => `${currentTenant}/${f.name}`);
+      await supabase.storage.from('catalogs-storage').remove(filePaths);
+    }
+  } catch (errStorage) {
+    console.warn('[-] Advertencia en limpieza de storage:', errStorage);
+  }
+
+  // 2. Eliminar completamente todos los registros de ClientsSERVEX_General_Procces
+  // para que la base de datos quede 100% vacía tal como en deleteData
+  const { error } = await supabase
+    .from('ClientsSERVEX_General_Procces')
+    .delete()
+    .neq('id', 0);
+
+  try {
+    await supabase
+      .from('ClientsSERVEX_General_Procces')
+      .delete()
+      .eq('company_name', currentTenant);
+  } catch (_) {}
+
+  if (currentTenant && currentTenant !== 'General_Procces') {
+    try {
+      await supabase
+        .from('ClientsSERVEX_' + currentTenant)
+        .delete()
+        .eq('company_name', currentTenant);
+    } catch (_) {}
+  }
+
+  // 3. Invocar endpoint API Next.js interno para asegurar purga server-side
+  try {
+    await fetch('/api/purge-pipeline', {
+      method: 'POST',
+      body: JSON.stringify({ tenant: currentTenant }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (_) {}
+
+  // 4. Limpiar memoria de sesion, historial de chat y contexto del modelo en backend
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+  try {
+    await Promise.allSettled([
+      fetch(backendUrl + '/api/v1/cet-ai-engine/clear-session', { method: 'POST', keepalive: true }),
+      fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/clear-session', { method: 'POST', keepalive: true }),
+      fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/agent/history', { method: 'DELETE', keepalive: true })
+    ]);
+  } catch (beErr) {
+    console.warn('[-] Advertencia limpiando memoria de sesion en backend:', beErr);
+  }
+
+  // 5. Limpiar almacenamiento local para reiniciar conversacion fresca
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.clear();
+      localStorage.removeItem('chat_history_' + currentTenant);
+      localStorage.removeItem('cet_active_messages');
+    } catch (_) {}
+  }
+  if (error) throw error;
+};
+
 const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,69 +175,7 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      // 1. Obtener y eliminar archivos del bucket catalogs-storage si existen
-      const { data: record } = await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw')
-        .eq('company_name', currentTenant)
-        .maybeSingle();
-
-      if (record?.xml_raw && String(record.xml_raw).startsWith('[STORAGE_URL]:')) {
-        const urlStr = String(record.xml_raw).replace('[STORAGE_URL]:', '').trim();
-        const urlParts = urlStr.split('/catalogs-storage/');
-        if (urlParts[1]) {
-          await supabase.storage
-            .from('catalogs-storage')
-            .remove([decodeURIComponent(urlParts[1])]);
-        }
-      }
-
-      const { data: fileList } = await supabase.storage
-        .from('catalogs-storage')
-        .list(currentTenant);
-
-      if (fileList && fileList.length > 0) {
-        const filePaths = fileList.map(f => `${currentTenant}/${f.name}`);
-        await supabase.storage.from('catalogs-storage').remove(filePaths);
-      }
-
-      // 2. Eliminar el registro en la BD principal y de empresa
-      const { error } = await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .delete()
-        .eq('company_name', currentTenant);
-
-      if (currentTenant && currentTenant !== 'General_Procces') {
-        try {
-          await supabase
-            .from('ClientsSERVEX_' + currentTenant)
-            .delete()
-            .eq('company_name', currentTenant);
-        } catch (_) {}
-      }
-
-      // 3. Limpiar memoria de sesion, historial de chat y contexto del modelo en backend
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-      try {
-        await Promise.allSettled([
-          fetch(backendUrl + '/api/v1/cet-ai-engine/clear-session', { method: 'POST' }),
-          fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/clear-session', { method: 'POST' }),
-          fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/agent/history', { method: 'DELETE' })
-        ]);
-      } catch (beErr) {
-        console.warn('[-] Advertencia limpiando memoria de sesion en backend:', beErr);
-      }
-
-      // 4. Limpiar almacenamiento local para reiniciar conversacion fresca
-      if (typeof window !== 'undefined') {
-        try {
-          sessionStorage.clear();
-          localStorage.removeItem('chat_history_' + currentTenant);
-          localStorage.removeItem('cet_active_messages');
-        } catch (_) {}
-      }
-      if (error) throw error;
-      
+      await purgeTenantData(currentTenant);
       setIsModalOpen(false);
       if (onDeleted) onDeleted();
       window.location.href = '/xml-pipeline';

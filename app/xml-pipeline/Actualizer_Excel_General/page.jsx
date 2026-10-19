@@ -14,10 +14,14 @@ import CETComparator from './components/CET_Comparator.jsx';
 import CSVFinalResultsGeneral from './components/CSV_Final_Results_General.jsx';
 
 
+import ExitPipelineModal from '../Actualizer_XML_General/components/ExitPipelineModal.jsx';
+import { purgeTenantData, purgeTenantDataBeacon } from '../Actualizer_XML_General/components/comparePDF/IncertData/components/delete_data';
+
 export default function ExcelActualizer() {
   const [active, setActive] = useState('reporting');
   const [collapsed, setCollapsed] = useState(true);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [exitActionType, setExitActionType] = useState('exit');
   const [isMobileScreen, setIsMobileScreen] = useState(false);
 
   const router = useRouter();
@@ -61,11 +65,55 @@ export default function ExcelActualizer() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Al montar/recargar el componente, asegurar que la tabla ClientsSERVEX_General_Procces esté limpia y virgen
+  useEffect(() => {
+    purgeTenantData('General_Procces').catch(() => {});
+  }, []);
+
+  // Interceptar recarga (F5, Ctrl+R, Command+R) con captura prioritaria
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const isReload =
+        e.key === 'F5' ||
+        ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R'));
+
+      if (isReload) {
+        e.preventDefault();
+        e.stopPropagation();
+        setExitActionType('reload');
+        setShowExitModal(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, []);
+
+  // Purga garantizada en unload/pagehide SIN activar el modal por defecto de Google Chrome
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // IMPORTANTE: NO asignar e.returnValue ni e.preventDefault() para evitar el modal feo por defecto de Google
+      purgeTenantDataBeacon('General_Procces');
+    };
+
+    const handlePageHide = () => {
+      purgeTenantDataBeacon('General_Procces');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, []);
+
   useEffect(() => {
     window.history.pushState(null, null, window.location.pathname);
 
     const handlePopState = () => {
       window.history.pushState(null, null, window.location.pathname);
+      setExitActionType('exit');
       setShowExitModal(true);
     };
 
@@ -75,12 +123,6 @@ export default function ExcelActualizer() {
       window.removeEventListener('popstate', handlePopState);
     };
   }, []);
-
-  const handleConfirmExit = () => {
-    setShowExitModal(false);
-    router.push('/panel');
-  };
-
     
   const renderContent = () => {
     switch (active) {
@@ -99,52 +141,12 @@ export default function ExcelActualizer() {
     <div className="w-full h-screen overflow-hidden bg-white font-sans flex flex-col m-0 p-0 min-h-0 relative">
       <CriticalExcelModal xmlRoute="/xml-pipeline/Actualizer_XML_General" />
 
-      {showExitModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
-            onClick={() => setShowExitModal(false)}
-          />
-
-          <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <span className="text-[14px] font-bold text-[#242424]">Confirm exit</span>
-              <button onClick={() => setShowExitModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="px-8 py-6 flex gap-4">
-              <div className="bg-[#C4314B]/10 p-2 h-fit rounded-full shrink-0">
-                <AlertCircle size={22} className="text-[#C4314B]" />
-              </div>
-              <div>
-                <p className="text-[14px] font-bold text-[#242424] mb-1">
-                  Do you want to return to the main panel?
-                </p>
-                <p className="text-[13px] text-[#616161] leading-relaxed">
-                  You are about to leave the General Process management area. Any temporary changes in this view will be closed.
-                </p>
-              </div>
-            </div>
-
-            <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
-              <button
-                onClick={() => setShowExitModal(false)}
-                className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmExit}
-                className="px-4 py-1.5 text-[12px] font-semibold text-white bg-[#18181b] rounded hover:bg-[#09090b] transition-all shadow-md"
-              >
-                Confirm and return
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ExitPipelineModal
+        isOpen={showExitModal}
+        onClose={() => setShowExitModal(false)}
+        exitType={exitActionType}
+        currentTenant="General_Procces"
+      />
 
       <main className="w-full h-full p-0 m-0 flex relative overflow-hidden flex-1 min-h-0">
         <MenuLateral
