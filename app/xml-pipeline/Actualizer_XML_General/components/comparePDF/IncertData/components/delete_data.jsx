@@ -12,7 +12,7 @@ import {
   FileSpreadsheet, 
   Sparkles 
 } from 'lucide-react';
-import { supabase } from '../../../../../../lib/supabaseClient';
+import { supabase } from '@/app/lib/supabaseClient';
 
 const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);

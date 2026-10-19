@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
-import { supabase } from '../../../../../../lib/supabaseClient';
+import { supabase } from '@/app/lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EJECUTOR_PLAY from './EJECUTOR_PLAY';

@@ -12,7 +12,7 @@ import {
   FileSpreadsheet, 
   Sparkles 
 } from 'lucide-react';
-import { supabase } from '../../../../../../lib/supabaseClient';
+import { supabase } from '@/app/lib/supabaseClient';
 
 const DeleteTenantButton = ({ currentTenant = 'LESRO', onDeleted }) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -69,7 +69,7 @@ const DeleteTenantButton = ({ currentTenant = 'LESRO', onDeleted }) => {
       if (onDeleted) onDeleted();
       window.location.href = '/' + currentTenant;
     } catch (err) {
-      console.error(, err);
+      console.error('Error deleting data:', err);
     } finally {
       setIsDeleting(false);
     }
