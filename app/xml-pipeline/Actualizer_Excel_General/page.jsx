@@ -75,28 +75,37 @@ export default function ExcelActualizer() {
     const handleKeyDown = (e) => {
       const isReload =
         e.key === 'F5' ||
-        ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R'));
+        e.key === 'Refresh' ||
+        ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R' || e.code === 'KeyR' || e.keyCode === 82));
 
       if (isReload) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         setExitActionType('reload');
         setShowExitModal(true);
+        return false;
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    window.addEventListener('keydown', handleKeyDown, { capture: true, passive: false });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []);
 
-  // Purga garantizada en unload/pagehide SIN activar el modal por defecto de Google Chrome
+  // Purga garantizada en unload/pagehide SIN activar NUNCA el modal gris de Google Chrome
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // IMPORTANTE: NO asignar e.returnValue ni e.preventDefault() para evitar el modal feo por defecto de Google
+      if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
+        return;
+      }
+      // NUNCA asignar e.returnValue ni e.preventDefault() para que NUNCA aparezca el diálogo nativo de Google
       purgeTenantDataBeacon('General_Procces');
     };
 
     const handlePageHide = () => {
+      if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
+        return;
+      }
       purgeTenantDataBeacon('General_Procces');
     };
 
@@ -108,17 +117,25 @@ export default function ExcelActualizer() {
     };
   }, []);
 
+  // Bloqueo estricto del botón ATRÁS (←) del navegador e intercepción con Modal Personalizado
   useEffect(() => {
-    window.history.pushState(null, null, window.location.pathname);
+    // Insertamos estado centinela en el historial para interceptar retrocesos
+    window.history.pushState({ isPipelineGuard: true }, '', window.location.href);
 
     const handlePopState = () => {
-      window.history.pushState(null, null, window.location.pathname);
+      if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
+        return;
+      }
+
+      // Bloquear retroceso inmediato re-insertando la URL
+      window.history.pushState({ isPipelineGuard: true }, '', window.location.href);
+
+      // Desplegar nuestro modal idéntico a deleteData
       setExitActionType('exit');
       setShowExitModal(true);
     };
 
     window.addEventListener('popstate', handlePopState);
-
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };

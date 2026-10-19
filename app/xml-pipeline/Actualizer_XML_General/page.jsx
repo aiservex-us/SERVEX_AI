@@ -92,28 +92,37 @@ export default function MenuInicial() {
     const handleKeyDown = (e) => {
       const isReload =
         e.key === 'F5' ||
-        ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R'));
+        e.key === 'Refresh' ||
+        ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R' || e.code === 'KeyR' || e.keyCode === 82));
 
       if (isReload) {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         setExitActionType('reload');
         setShowExitModal(true);
+        return false;
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    window.addEventListener('keydown', handleKeyDown, { capture: true, passive: false });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, []);
 
-  // Purga garantizada en unload/pagehide SIN activar el modal por defecto de Google Chrome
+  // Purga garantizada en unload/pagehide SIN activar NUNCA el modal gris de Google Chrome
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // IMPORTANTE: NO asignar e.returnValue ni e.preventDefault() para evitar el diálogo gris nativo de Google Chrome
+      if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
+        return;
+      }
+      // NUNCA asignar e.returnValue ni e.preventDefault() para que NUNCA aparezca el diálogo nativo de Google
       purgeTenantDataBeacon('General_Procces');
     };
 
     const handlePageHide = () => {
+      if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
+        return;
+      }
       purgeTenantDataBeacon('General_Procces');
     };
 
@@ -125,18 +134,25 @@ export default function MenuInicial() {
     };
   }, []);
 
-  // Interceptar navegación por historial del navegador (atrás/adelante)
+  // Bloqueo estricto del botón ATRÁS (←) del navegador e intercepción con Modal Personalizado
   useEffect(() => {
-    window.history.pushState(null, null, window.location.pathname);
+    // Insertamos estado centinela en el historial para interceptar retrocesos
+    window.history.pushState({ isPipelineGuard: true }, '', window.location.href);
 
     const handlePopState = () => {
-      window.history.pushState(null, null, window.location.pathname);
+      if (typeof window !== 'undefined' && window.__BYPASS_BEFOREUNLOAD__) {
+        return;
+      }
+
+      // Bloquear retroceso inmediato re-insertando la URL
+      window.history.pushState({ isPipelineGuard: true }, '', window.location.href);
+
+      // Desplegar nuestro modal idéntico a deleteData
       setExitActionType('exit');
       setShowExitModal(true);
     };
 
     window.addEventListener('popstate', handlePopState);
-
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
@@ -355,20 +371,6 @@ export default function MenuInicial() {
                 <span className={`text-[10px] font-bold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} border px-2.5 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-md transition-colors`}>
                   Servex Copilot
                 </span>
-
-                {/* BOTÓN REINICIAR / RECARGAR PROCESO */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setExitActionType('reload');
-                    setShowExitModal(true);
-                  }}
-                  title="Reiniciar proceso y purgar datos temporales en Supabase"
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-white border border-rose-500/30 hover:border-rose-500/50 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
-                >
-                  <RotateCcw size={12} className="group-hover:-rotate-90 transition-transform duration-300 text-rose-400" />
-                  <span className="hidden sm:inline">Reiniciar Proceso</span>
-                </button>
               </div>
 
               <div className="flex items-center gap-2 sm:gap-2.5 pointer-events-auto">

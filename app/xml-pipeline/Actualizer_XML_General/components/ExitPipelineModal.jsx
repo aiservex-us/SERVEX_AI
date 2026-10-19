@@ -51,6 +51,10 @@ export default function ExitPipelineModal({
   const handleConfirmAction = async (targetAction) => {
     setIsPurging(true);
     try {
+      if (typeof window !== 'undefined') {
+        window.__BYPASS_BEFOREUNLOAD__ = true;
+      }
+
       // 1. Ejecutar purga de emergencia inmediata vía beacon y vía async directa
       purgeTenantDataBeacon(currentTenant);
       await purgeTenantData(currentTenant);
@@ -68,7 +72,7 @@ export default function ExitPipelineModal({
         } catch (_) {}
         window.location.href = '/';
       } else {
-        router.push('/panel');
+        window.location.href = '/panel';
       }
     } catch (err) {
       console.error('[SERVEX_AI] Error durante la purga en salida/recarga:', err);
@@ -76,7 +80,7 @@ export default function ExitPipelineModal({
       if (targetAction === 'reload') {
         window.location.reload();
       } else {
-        router.push('/panel');
+        window.location.href = '/panel';
       }
     } finally {
       setIsPurging(false);
