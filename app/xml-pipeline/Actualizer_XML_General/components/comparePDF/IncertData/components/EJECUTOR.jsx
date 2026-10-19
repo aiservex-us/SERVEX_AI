@@ -262,29 +262,29 @@ const SVXUnifiedPlatform = () => {
   };
 
   const renderVisualizerContent = () => (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-shrink-0  p-4 border-b border-[#EDEBE9] flex justify-between items-center bg-[#FAF9F8]">
+    <div className="flex flex-col h-full overflow-hidden text-zinc-100">
+      <div className="flex-shrink-0 p-4 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
         <div className="flex items-center gap-2">
-          <h2 className="text-xs font-black text-[#18181b] uppercase">{currentTenant} Sanitized Viewer</h2>
-          <span className="bg-[#237B4B]/10 text-[#237B4B] text-[8px] font-black px-1.5 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
+          <h2 className="text-xs font-black text-zinc-100 uppercase tracking-wider">{currentTenant} Sanitized Viewer</h2>
+          <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[8px] font-black px-2 py-0.5 rounded tracking-wide uppercase">In-Memory Cleansed</span>
         </div>
       </div>
       <div className="flex-grow overflow-auto">
         {hasExistingData && !file ? (
-          <div className="h-full flex items-center justify-center p-6 bg-gray-50/50">
-            <div className="bg-white border border-[#EDEBE9] rounded-xl p-8 max-w-md w-full shadow-lg text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-              <div className="mx-auto w-12 h-12 bg-[#18181b]/10 rounded-full flex items-center justify-center text-[#18181b]">
-                <Zap size={24} className="fill-[#18181b]/10" />
+          <div className="h-full flex items-center justify-center p-6 bg-transparent">
+            <div className="bg-[#09090b]/90 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200 backdrop-blur-xl">
+              <div className="mx-auto w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center justify-center text-amber-400">
+                <Zap size={24} className="fill-amber-400/20" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#18181b] bg-[#18181b]/10 inline-block px-2.5 py-1 rounded">Active Catalog Record</h3>
-                <p className="text-[12px] text-gray-600 leading-relaxed font-medium">Stored information was detected in the <code className="font-mono bg-gray-100 px-1 py-0.5 rounded border border-gray-200 text-[#18181b]">csv_new_raw</code> column for this tenant. Please review the existing updated Excel/CSV file.</p>
+                <h3 className="text-xs font-black uppercase tracking-wider text-amber-300 bg-amber-500/10 border border-amber-500/20 inline-block px-2.5 py-1 rounded-lg">Active Catalog Record</h3>
+                <p className="text-[12px] text-zinc-400 leading-relaxed font-medium">Stored information was detected in the <code className="font-mono bg-white/10 px-1.5 py-0.5 rounded border border-white/10 text-zinc-200">csv_new_raw</code> column for this tenant. Please review the existing updated Excel/CSV file.</p>
               </div>
               <div className="pt-2">
                 <button 
                   onClick={handleIgnoreAndClear}
                   disabled={isClearingBackend}
-                  className="w-full bg-[#18181b] hover:bg-[#09090b] text-white font-bold text-[11px] uppercase tracking-wider py-3 px-4 rounded-lg transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-[11px] uppercase tracking-wider py-3 px-4 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isClearingBackend ? <><Loader2 size={14} className="animate-spin" /> Processing Server...</> : "Ignore & Load New CSV"}
                 </button>
@@ -292,25 +292,25 @@ const SVXUnifiedPlatform = () => {
             </div>
           </div>
         ) : !file ? (
-          <div className="h-full flex flex-col items-center justify-center opacity-40">
-            <DownloadCloud size={40} />
-            <p className="text-[11px] font-bold mt-2">Drop CSV for preview</p>
+          <div className="h-full flex flex-col items-center justify-center opacity-40 text-zinc-400">
+            <DownloadCloud size={40} className="text-zinc-500" />
+            <p className="text-[11px] font-bold mt-2 text-zinc-400">Drop CSV for preview</p>
             <input type="file" accept=".csv" onChange={(e) => processFileSelection(e.target.files[0])} className="hidden" id="main-up" />
-            <label htmlFor="main-up" className="mt-4 px-4 py-2 border rounded text-[10px] font-bold cursor-pointer uppercase">Load File</label>
+            <label htmlFor="main-up" className="mt-4 px-4 py-2 border border-white/15 hover:border-white/30 hover:bg-white/5 rounded-xl text-[10px] font-bold cursor-pointer uppercase transition-all text-zinc-300">Load File</label>
           </div>
         ) : (
           <div className="flex flex-col h-full justify-between">
-            <div className="overflow-auto flex-grow">
-              <table className="w-full text-left text-[10px]">
-                  <thead className="bg-[#FAF9F8] sticky top-0 z-20">
-                    <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black border-b border-[#EDEBE9] uppercase whitespace-nowrap">{h || `Column_${i}`}</th>)}</tr>
+            <div className="overflow-auto flex-grow custom-scrollbar">
+              <table className="w-full text-left text-[10px] text-zinc-300">
+                  <thead className="bg-[#121215] sticky top-0 z-20 border-b border-white/10">
+                    <tr>{data[0]?.map((h, i) => <th key={i} className="p-3 font-black uppercase whitespace-nowrap text-zinc-400 tracking-wider">{h || `Column_${i}`}</th>)}</tr>
                   </thead>
                   <tbody>
                     {getPaginatedData().map((row, ri) => (
-                        <tr key={ri} className="border-b border-[#F3F2F1] hover:bg-gray-50 transition-colors bg-white">
+                        <tr key={ri} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
                           {row.map((cell, ci) => (
-                            <td key={ci} className="p-3 border-r border-[#F3F2F1]">
-                              <span className={cell === null ? 'text-gray-300 italic font-mono' : 'text-gray-600'}>{cell === null ? 'null' : cell}</span>
+                            <td key={ci} className="p-3 border-r border-white/5">
+                              <span className={cell === null ? 'text-zinc-600 italic font-mono' : 'text-zinc-300'}>{cell === null ? 'null' : cell}</span>
                             </td>
                           ))}
                         </tr>
@@ -318,13 +318,13 @@ const SVXUnifiedPlatform = () => {
                   </tbody>
               </table>
             </div>
-            <div className="flex-shrink-0 bg-[#FAF9F8] border-t border-[#EDEBE9] px-4 py-2.5 flex items-center justify-between text-[11px] font-medium text-gray-600">
-              <div>Showing <span className="font-bold text-[#18181b]">{getCurrentRangeLabels().start}</span> to <span className="font-bold text-[#18181b]">{getCurrentRangeLabels().end}</span> of <span className="font-bold">{data.length - 1}</span> products.</div>
-              <div className="flex items-center gap-15">
-                <span className="text-[10px] text-gray-400 font-bold uppercase">Page {currentPage} of {getTotalPages()}</span>
+            <div className="flex-shrink-0 bg-[#09090b]/90 border-t border-white/10 px-4 py-2.5 flex items-center justify-between text-[11px] font-medium text-zinc-400">
+              <div>Showing <span className="font-bold text-zinc-100">{getCurrentRangeLabels().start}</span> to <span className="font-bold text-zinc-100">{getCurrentRangeLabels().end}</span> of <span className="font-bold text-zinc-100">{data.length - 1}</span> products.</div>
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Page {currentPage} of {getTotalPages()}</span>
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 text-[10px] font-bold uppercase transition-all shadow-sm"><FiChevronLeft size={12} /> Previous</button>
-                  <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, getTotalPages()))} disabled={currentPage === getTotalPages()} className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#EDEBE9] bg-white hover:bg-gray-50 disabled:opacity-40 text-[10px] font-bold uppercase transition-all shadow-sm">Next <FiChevronRight size={12} /></button>
+                  <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 text-[10px] font-bold uppercase transition-all text-zinc-300 shadow-sm"><FiChevronLeft size={12} /> Previous</button>
+                  <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, getTotalPages()))} disabled={currentPage === getTotalPages()} className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-30 text-[10px] font-bold uppercase transition-all text-zinc-300 shadow-sm">Next <FiChevronRight size={12} /></button>
                 </div>
               </div>
             </div>
@@ -335,35 +335,35 @@ const SVXUnifiedPlatform = () => {
   );
 
   return (
-    <div className="h-[88vh] bg-[#FDFDFD] p-6 font-sans text-[#242424] max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
+    <div className="h-[88vh] bg-transparent p-6 font-sans text-zinc-100 max-w-[1600px] mx-auto space-y-4 relative overflow-hidden flex flex-col">
       
       {/* --- POPUP PROCESSING DATOS BASE (General Process) --- */}
       {isProcessing && (
-        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-black/75 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
+          <div className="bg-[#09090b]/95 border border-white/10 shadow-2xl rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 backdrop-blur-2xl text-zinc-100 transform animate-in zoom-in-95 duration-200">
             <div className="flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-[#18181b]/10 rounded-full animate-ping"></div>
-                <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
-                  <FiDatabase className="text-[#18181b] animate-pulse" size={20} />
+                <div className="absolute inset-0 bg-white/10 rounded-full animate-ping"></div>
+                <div className="relative bg-white/5 border border-white/10 p-2 sm:p-3 rounded-full shadow-sm">
+                  <FiDatabase className="text-zinc-200 animate-pulse" size={20} />
                 </div>
               </div>
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">System Base Storage</h3>
-              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module ({currentTenant})</p>
+              <h3 className="text-xs sm:text-sm font-bold text-zinc-100 uppercase tracking-wider">System Base Storage</h3>
+              <p className="text-[10px] sm:text-[11px] text-zinc-400 font-medium">Module ({currentTenant})</p>
             </div>
 
-            <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
-              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
-              <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
+            <div className="bg-amber-500/10 border border-amber-500/20 p-2 sm:p-3 rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+              <FiAlertCircle className="text-amber-400 shrink-0 mt-0.5" size={14} />
+              <p className="text-[9px] sm:text-[10px] text-amber-300 leading-tight">
                 <strong>IMPORTANT:</strong> Uploading base {currentTenant} files to Cloud Database. <strong>Do not close</strong> this window or switch sections.
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#18181b]">
-              <Loader2 size={12} className="animate-spin" />
+            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-zinc-300">
+              <Loader2 size={12} className="animate-spin text-white" />
               <span className="uppercase tracking-widest">Saving to Cloud Database...</span>
             </div>
           </div>
@@ -371,28 +371,28 @@ const SVXUnifiedPlatform = () => {
       )}
 
       {alert.show && createPortal(
-        <div className="fixed top-6 right-6 z-[9999] p-4 rounded-lg shadow-2xl border flex items-center gap-3 animate-in slide-in-from-right-5 duration-300 bg-white border-[#EDEBE9] min-w-[300px]">
-          <div className={`w-2 h-full absolute left-0 rounded-l-lg ${alert.type === 'success' ? 'bg-emerald-500' : alert.type === 'error' ? 'bg-rose-500' : 'bg-amber-500'}`} />
-          <div className={`p-2 rounded-full ${alert.type === 'success' ? 'bg-emerald-50' : alert.type === 'error' ? 'bg-rose-50' : 'bg-amber-50'}`}>
-             <Zap size={16} className={alert.type === 'success' ? 'text-emerald-600' : alert.type === 'error' ? 'text-rose-600' : 'text-amber-600'} />
+        <div className="fixed top-6 right-6 z-[9999] p-4 rounded-xl shadow-2xl border flex items-center gap-3 animate-in slide-in-from-right-5 duration-300 bg-[#09090b]/90 border-white/10 backdrop-blur-xl min-w-[300px]">
+          <div className={`w-2 h-full absolute left-0 rounded-l-xl ${alert.type === 'success' ? 'bg-emerald-500' : alert.type === 'error' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+          <div className={`p-2 rounded-full ${alert.type === 'success' ? 'bg-emerald-500/15 text-emerald-400' : alert.type === 'error' ? 'bg-rose-500/15 text-rose-400' : 'bg-amber-500/15 text-amber-400'}`}>
+             <Zap size={16} />
           </div>
-          <p className="text-[11px] font-black text-gray-700 uppercase tracking-wide">{alert.message}</p>
+          <p className="text-[11px] font-black text-zinc-200 uppercase tracking-wide">{alert.message}</p>
         </div>,
         document.body
       )}
 
       {showTutorial && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-[2px] animate-in fade-in duration-200">
-          <div className="bg-white w-[380px] rounded shadow-xl border border-[#d1d1d1] overflow-hidden transform animate-in zoom-in-95 duration-200">
-            <div className="bg-[#18181b] px-4 py-2 text-white flex justify-between items-center">
-              <div className="flex items-center gap-2"><Zap size={14} className="text-yellow-400 fill-yellow-400" /><span className="text-[10px] font-bold uppercase tracking-wider opacity-90">Optimization & Sanitize Module</span></div>
-              <button onClick={closeTutorial} className="hover:bg-white/20 p-0.5 rounded transition-colors"><X size={16} /></button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-md animate-in fade-in duration-200 p-4">
+          <div className="bg-[#09090b] w-[380px] rounded-2xl shadow-2xl border border-white/10 overflow-hidden transform animate-in zoom-in-95 duration-200 text-zinc-100">
+            <div className="bg-white/5 px-4 py-3 border-b border-white/10 text-white flex justify-between items-center">
+              <div className="flex items-center gap-2"><Zap size={14} className="text-amber-400 fill-amber-400" /><span className="text-[10px] font-bold uppercase tracking-wider text-zinc-200">Optimization & Sanitize Module</span></div>
+              <button onClick={closeTutorial} className="hover:bg-white/10 p-1 rounded-lg transition-colors text-zinc-400 hover:text-zinc-100"><X size={16} /></button>
             </div>
             <div className="p-5">
-              <h2 className="text-sm font-bold text-[#242424] mb-2">{currentTenant} Catalog Audit</h2>
-              <p className="text-[12px] text-[#424242] leading-snug mb-4">Section optimized for the analysis, positional structural cleaning and validation of {currentTenant} catalog updates.</p>
-              <div className="space-y-2"><div className="flex gap-3 p-2.5 bg-[#f3f2f1] rounded border-l-2 border-[#18181b]"><FileText className="text-[#27272a] shrink-0" size={16} /><p className="text-[11px] text-[#18181b]">Auto-cleanses header corruptions, multi-line row breaking and handles strict null allocations.</p></div></div>
-              <button onClick={closeTutorial} className="w-full mt-5 bg-[#18181b] text-white py-1.5 rounded text-xs font-semibold hover:bg-[#09090b] transition-all">Get Started</button>
+              <h2 className="text-sm font-bold text-zinc-100 mb-2">{currentTenant} Catalog Audit</h2>
+              <p className="text-[12px] text-zinc-400 leading-snug mb-4">Section optimized for the analysis, positional structural cleaning and validation of {currentTenant} catalog updates.</p>
+              <div className="space-y-2"><div className="flex gap-3 p-2.5 bg-white/5 rounded-xl border-l-2 border-white/40"><FileText className="text-zinc-400 shrink-0" size={16} /><p className="text-[11px] text-zinc-300">Auto-cleanses header corruptions, multi-line row breaking and handles strict null allocations.</p></div></div>
+              <button onClick={closeTutorial} className="w-full mt-5 bg-white text-zinc-950 py-2 rounded-xl text-xs font-bold hover:bg-zinc-200 transition-all shadow-md">Get Started</button>
             </div>
           </div>
         </div>
@@ -401,8 +401,8 @@ const SVXUnifiedPlatform = () => {
 
 
       <div className="grid grid-cols-12 gap-6 flex-grow min-h-0">
-        <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto">
-          <div className="bg-white border border-[#EDEBE9] rounded-lg p-5 shadow-sm">
+        <aside className="col-span-3 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+          <div className="bg-[#09090b]/80 border border-white/10 rounded-2xl p-5 shadow-sm backdrop-blur-xl">
             <div className="space-y-6">
               <Step icon={<FiUploadCloud size={14}/>} title="Data Ingestion" desc={fileName ? "Sanitized Matrix" : "Waiting for CSV"} active={!!file} />
               <Step icon={<Zap size={14}/>} title="Cloud Sync" desc={backendSuccess ? "Stored" : "Pending"} active={backendSuccess} isLast />
@@ -419,24 +419,24 @@ const SVXUnifiedPlatform = () => {
         </aside>
 
         <div className="col-span-9 flex flex-col h-full min-h-0">
-          <nav className="flex bg-[#F3F2F1] p-1 rounded-md gap-1">
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded text-[10px] font-bold bg-white text-[#27272a] shadow-sm"><Terminal size={12}/> Console View</div>
+          <nav className="flex bg-white/5 border border-white/5 p-1 rounded-xl gap-1 w-fit">
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-bold bg-white/10 border border-white/10 text-zinc-100 shadow-sm"><Terminal size={12}/> Console View</div>
           </nav>
-          <main className="flex-1 bg-white border border-[#EDEBE9] rounded-lg shadow-sm flex flex-col min-h-0 overflow-hidden relative group mt-4">
-            <button onClick={() => setIsMaximized(true)} className="absolute top-3 right-3 z-30 p-2 bg-white/90 hover:bg-[#18181b] hover:text-white border border-[#EDEBE9] rounded shadow-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-[10px] font-bold"><FiMaximize2 size={12} /> EXPAND VIEW</button>
+          <main className="flex-1 bg-[#09090b]/80 border border-white/10 rounded-2xl shadow-sm flex flex-col min-h-0 overflow-hidden relative group mt-4 backdrop-blur-xl">
+            <button onClick={() => setIsMaximized(true)} className="absolute top-3 right-3 z-30 p-2 bg-[#09090b]/90 hover:bg-white hover:text-zinc-950 border border-white/15 text-zinc-300 rounded-lg shadow-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-2 text-[10px] font-bold tracking-wider"><FiMaximize2 size={12} /> EXPAND VIEW</button>
             {renderVisualizerContent()}
           </main>
         </div>
       </div>
 
       {isMaximized && createPortal(
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-md p-10 animate-in fade-in duration-300">
-          <div className="bg-white w-[95vw] h-[90vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
-            <div className="flex-shrink-0 bg-[#ffffff] p-4 flex justify-between items-center text-black">
-              <div className="flex items-center gap-3"><Terminal size={18} /><span className="text-sm font-black uppercase tracking-widest">Inspection Mode: CONSOLE.</span></div>
-              <button onClick={() => setIsMaximized(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors"><FiX size={24} /></button>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md p-10 animate-in fade-in duration-300">
+          <div className="bg-[#09090b] border border-white/10 w-[95vw] h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden text-zinc-100">
+            <div className="flex-shrink-0 bg-[#121215] border-b border-white/10 p-4 flex justify-between items-center text-zinc-100">
+              <div className="flex items-center gap-3"><Terminal size={18} /><span className="text-sm font-black uppercase tracking-widest text-zinc-200">Inspection Mode: CONSOLE.</span></div>
+              <button onClick={() => setIsMaximized(false)} className="p-2 hover:bg-white/10 rounded-lg transition-colors text-zinc-400 hover:text-zinc-100"><FiX size={24} /></button>
             </div>
-            <div className="flex-grow overflow-hidden bg-white">{renderVisualizerContent()}</div>
+            <div className="flex-grow overflow-hidden bg-transparent">{renderVisualizerContent()}</div>
           </div>
         </div>,
         document.body
@@ -448,12 +448,12 @@ const SVXUnifiedPlatform = () => {
 const Step = ({ icon, title, desc, active, isLast }) => (
   <div className="flex gap-4 relative">
     <div className="flex flex-col items-center">
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${active ? 'bg-[#18181b] border-[#27272a] text-white shadow-lg' : 'bg-white border-[#EDEBE9] text-gray-300'}`}>{icon}</div>
-      {!isLast && <div className={`w-[2px] h-10 my-1 ${active ? 'bg-[#27272a]' : 'bg-[#EDEBE9]'}`} />}
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-500 ${active ? 'bg-white border-white text-zinc-950 shadow-lg font-bold' : 'bg-white/5 border-white/10 text-zinc-500'}`}>{icon}</div>
+      {!isLast && <div className={`w-[2px] h-10 my-1 ${active ? 'bg-white/40' : 'bg-white/10'}`} />}
     </div>
     <div className={`pt-1 ${!active && 'opacity-40'}`}>
-      <h4 className="text-[10px] font-black mb-1 text-[#18181b] uppercase tracking-wider">{title}</h4>
-      <p className="text-[10px] text-gray-500 font-medium truncate w-32">{desc}</p>
+      <h4 className="text-[10px] font-black mb-1 text-zinc-100 uppercase tracking-wider">{title}</h4>
+      <p className="text-[10px] text-zinc-400 font-medium truncate w-32">{desc}</p>
     </div>
   </div>
 );

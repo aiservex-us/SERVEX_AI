@@ -831,6 +831,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
       }, 100);
+      setTimeout(() => {
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 350);
     };
     window.addEventListener('globalChatMessage', handleGlobalMessage);
 
@@ -1128,11 +1133,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
     if (qLower === '/exportcetcsv') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Opening main Results and CET CSV Export panel...', isNew: true }]);
-        if (typeof onOpenToolPanel === 'function') onOpenToolPanel('xml_results');
+        setMessages(prev => [
+          ...prev, 
+          { 
+            from: 'bot', 
+            text: 'Aquí tienes la tabla y matriz de exportación para clientes (**Export Data Client**):', 
+            toolId: 'xml_results',
+            isNew: true 
+          }
+        ]);
         setIsLoading(false);
-        scrollToBottom(true);
-      }, 500);
+        setTimeout(() => scrollToBottom(true), 150);
+      }, 350);
       return;
     }
 
@@ -1861,12 +1873,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                         duration: 0.35,
                         ease: [0.23, 1, 0.32, 1]
                       }}
-                      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 80px' }}
-                      className={`flex gap-3 items-start ${isUser ? 'flex-row-reverse' : 'w-full'}`}
+                      style={msg.toolId ? undefined : { contentVisibility: 'auto', containIntrinsicSize: '0 80px' }}
+                      className={`flex gap-3 items-start min-w-0 ${isUser ? 'flex-row-reverse' : 'w-full'}`}
                     >
                       {msg.from === 'tool' ? (
-                        <div className="w-full my-3 p-1 bg-transparent overflow-hidden relative flex justify-center">
-                          <div className="w-full h-full overflow-y-auto max-h-[85vh] relative">
+                        <div className="w-full max-w-full min-w-0 my-2 bg-transparent overflow-hidden relative flex justify-center">
+                          <div className="w-full max-w-full min-w-0 h-full relative">
                             {renderTool && renderTool(msg.toolId)}
                           </div>
                         </div>
@@ -1890,7 +1902,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           )}
 
                           {/* Bubble column */}
-                          <div className={`flex flex-col min-w-0 ${msg.uploadSummary || msg.isProcessingConsole ? 'max-w-[96%] md:max-w-[94%]' : 'max-w-[88%] md:max-w-[85%]'} gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
+                          <div className={`flex flex-col min-w-0 ${msg.uploadSummary || msg.isProcessingConsole || msg.toolId ? 'w-full' : 'max-w-[88%] md:max-w-[85%]'} gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
                             <div className={`flex items-baseline gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                               {isUser && (
                                 <span className={`text-[12px] font-semibold ${isDarkMode ? 'text-zinc-200' : 'text-gray-800'}`}>
@@ -1906,14 +1918,21 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                   ? isDarkMode
                                     ? 'px-4 py-3 rounded-2xl shadow-md bg-zinc-100 text-zinc-950 rounded-tr-sm border border-zinc-200 font-medium'
                                     : 'px-4 py-3 rounded-2xl shadow-sm bg-[#18181b] text-white rounded-tr-sm border border-[#18181b]'
-                                  : 'w-full space-y-3'
+                                  : 'w-full space-y-2'
                                 }`}
                             >
                               {msg.from === "bot" ? (
                                 <>
                                   {msg.text && (
-                                    <div className={`px-4 py-3.5 rounded-2xl shadow-sm backdrop-blur-md rounded-tl-sm w-full ${isDarkMode ? 'bg-[#09090b]/80 border border-white/10 text-zinc-100 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-white/90 border border-slate-200/90 text-gray-800'}`}>
+                                    <div className={`px-4 py-3 rounded-2xl shadow-sm backdrop-blur-md rounded-tl-sm inline-block max-w-[88%] md:max-w-[85%] ${isDarkMode ? 'bg-[#09090b]/80 border border-white/10 text-zinc-100 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-white/90 border border-slate-200/90 text-gray-800'}`}>
                                       <BotMessage text={msg.text} onCommandSelect={handleCommandSelect} isDarkMode={isDarkMode} />
+                                    </div>
+                                  )}
+
+                                  {/* ── COMPONENTE / TABLA INLINE EN RESPUESTA DEL BOT ── */}
+                                  {msg.toolId && renderTool && (
+                                    <div className="w-full max-w-full min-w-0 my-1.5 bg-transparent overflow-hidden">
+                                      {renderTool(msg.toolId)}
                                     </div>
                                   )}
 

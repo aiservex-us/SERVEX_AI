@@ -10,25 +10,25 @@ export default function AnimatedChatBackground() {
       <div className="absolute inset-0 w-full h-full">
         <Topography
           key="dark-mode-topo"
-          color="#cbd5e1"
+          color="#71717a"
           lineCount={26}
-          lineWidth={0.6}
+          lineWidth={0.58}
           elevation={0.45}
           foreground={0.05}
           tilt={15}
-          speed={0.25}
+          speed={0.22}
           direction="forward"
-          glow={0.35}
+          glow={0.18}
           depthOfField={0.13}
-          fog={0.35}
+          fog={0.38}
           hoverEffect="light"
           clickEffect="pulse"
           majorLines={false}
           scale={0.95}
           detail={0.57}
           morph={0.22}
-          brightness={1.3}
-          opacity={0.65}
+          brightness={0.95}
+          opacity={0.58}
           mouseStrength={0.45}
           trail={0.94}
           parallax={0.37}
@@ -39,7 +39,7 @@ export default function AnimatedChatBackground() {
       </div>
 
       {/* ── VELO PERIFÉRICO EQUILIBRADO ── */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-transparent via-transparent to-black/25" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-transparent via-transparent to-black/30" />
     </div>
   );
 }

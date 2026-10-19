@@ -120,6 +120,67 @@ export default function MenuInicial() {
     setActive(id);
     setIsToolsOpen(true);
   };
+
+  const handleSidebarSelect = (id) => {
+    setActive(id);
+    setIsToolsOpen(false);
+
+    let botText = '';
+    switch (id) {
+      case 'xml_results':
+        botText = 'Aquí tienes la tabla y matriz de exportación para clientes (**Export Data Client**):';
+        break;
+      case 'dashboard':
+        botText = 'Aquí tienes los resultados de la estructura XML y Diff (**XML Results & Diff**):';
+        break;
+      case 'inbox_updated':
+        botText = 'Aquí tienes el catálogo actual de productos y precios actualizados (**Current Catalog**):';
+        break;
+      case 'reporting':
+        botText = 'Aquí tienes la visión general y arquitectura del proceso (**General Process Overview**):';
+        break;
+      default:
+        botText = `Aquí tienes la sección solicitada (**${id}**):`;
+        break;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('globalChatMessage', {
+        detail: {
+          from: 'bot',
+          text: botText,
+          toolId: id
+        }
+      }));
+    }
+  };
+
+  const renderViewComponent = (id) => {
+    switch (id) {
+      case 'dashboard': return <Dashboard />;
+      case 'incert_delete': return <IncertDelete step="xml" />;
+      case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
+      case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
+      case 'xml_results':
+      case 'exportCETcsv': return <XMLResultsGeneral />;
+      case 'Tasks': return <CatalogParser />;
+      case 'inbox_updated': return <Csvs_updated />;
+      case 'presentation': return <PrecentMain />;
+      case 'report': return <Report />;
+      case 'notifications': return <UploadFileCmpare />;
+      case 'reporting': return <AIReporting />;
+      case 'graphics': return <ViewportGraphics />;
+      case 'compare': return <Compare />;
+      case 'compare_cet':
+      case 'compareCET': return <CETComparator />;
+      case 'AI_reporter': return <Responce_ai />;
+      case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="General_Procces" /></div>;
+      case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
+      default:
+        return <div className="p-6 text-gray-500">View under construction</div>;
+    }
+  };
+
   const renderContent = () => {
     if (active === 'notifications' && isMobileScreen) {
       return (
@@ -133,25 +194,7 @@ export default function MenuInicial() {
       );
     }
 
-    switch (active) {
-      case 'dashboard': return <Dashboard />;
-      case 'incert_delete': return <IncertDelete step="xml" />;
-      case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
-      case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-      case 'xml_results': return <XMLResultsGeneral />;
-      case 'Tasks': return <CatalogParser />;
-      case 'inbox_updated': return <Csvs_updated />;
-      case 'presentation': return <PrecentMain />;
-      case 'report': return <Report />;
-      case 'notifications': return <UploadFileCmpare />;
-      case 'reporting': return <AIReporting />;
-      case 'graphics': return <ViewportGraphics />;
-      case 'compare': return <Compare />;
-      case 'compare_cet': return <CETComparator />;
-      case 'AI_reporter': return <Responce_ai />;
-      default:
-        return <div className="p-6 text-gray-500">View under construction</div>;
-    }
+    return renderViewComponent(active);
   };
 
   /* 🔒 PANTALLA DE CARGA DE SESIÓN (Temporalmente comentada para desarrollo local)
@@ -303,7 +346,7 @@ export default function MenuInicial() {
 
         <MenuLateral
           active={active}
-          setActive={handleSetActive}
+          setActive={handleSidebarSelect}
           onExit={() => setShowExitModal(true)}
           isDarkMode={isDarkMode}
         />
@@ -347,28 +390,14 @@ export default function MenuInicial() {
               <div className={`
                 h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
                 ${isToolsOpen
-                  ? `hidden md:flex md:w-[50%] border-r ${isDarkMode ? 'border-white/10' : 'border-slate-200/60'}`
+                  ? 'hidden md:flex md:w-[50%]'
                   : 'flex w-full'}
               `}>
                 <TeamsAgentChat
                   currentSection={active}
                   onOpenToolPanel={handleSetActive}
                   isDarkMode={isDarkMode}
-                  renderTool={(toolId) => {
-                    switch (toolId) {
-                      case 'incert_delete': return <IncertDelete step="xml" />;
-                      case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
-                      case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
-                      case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="General_Procces" /></div>;
-                      case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
-                      case 'report': return <Report />;
-                      case 'graphics': return <ViewportGraphics />;
-                      case 'AI_reporter': return <Responce_ai />;
-                      case 'exportCETcsv': return <XMLResultsGeneral />;
-                      case 'compareCET': return <CETComparator />;
-                      default: return null;
-                    }
-                  }}
+                  renderTool={(toolId) => renderViewComponent(toolId)}
                 />
               </div>
 

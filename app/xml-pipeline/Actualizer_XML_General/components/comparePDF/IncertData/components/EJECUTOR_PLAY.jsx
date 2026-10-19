@@ -101,35 +101,35 @@ const EJECUTOR_PLAY = ({
   }, [estadoProcessing]);
 
   return (
-    <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 font-sans antialiased text-[#242424]">
+    <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 font-sans antialiased text-zinc-100">
       
       {/* --- POPUP 1: PROCESO UNIFICADO --- */}
       {showStatusPopup && (
-        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-black/75 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
+          <div className="bg-[#09090b]/95 border border-white/10 shadow-2xl rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200 text-zinc-100 backdrop-blur-2xl">
             <div className="flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-[#18181b]/10 rounded-full animate-ping"></div>
-                <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
-                  <FiZap className="text-[#18181b] animate-pulse" size={20} />
+                <div className="absolute inset-0 bg-white/10 rounded-full animate-ping"></div>
+                <div className="relative bg-white/5 border border-white/10 p-2 sm:p-3 rounded-full shadow-sm">
+                  <FiZap className="text-zinc-200 animate-pulse" size={20} />
                 </div>
               </div>
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Update Process Initiated</h3>
-              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Catalog (General Process): {currentDate}</p>
+              <h3 className="text-xs sm:text-sm font-bold text-zinc-100 uppercase tracking-wider">Update Process Initiated</h3>
+              <p className="text-[10px] sm:text-[11px] text-zinc-400 font-medium">Catalog (General Process): {currentDate}</p>
             </div>
 
-            <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
-              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
-              <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
+            <div className="bg-amber-500/10 border border-amber-500/20 p-2 sm:p-3 rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+              <FiAlertCircle className="text-amber-400 shrink-0 mt-0.5" size={14} />
+              <p className="text-[9px] sm:text-[10px] text-amber-300 leading-tight">
                 <strong>IMPORTANT:</strong> The system is synchronizing critical data within SVX. <strong>Do not switch sections</strong> until the output monitor finishes.
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#18181b]">
-              <Loader2 size={12} className="animate-spin" />
+            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-zinc-300">
+              <Loader2 size={12} className="animate-spin text-white" />
               <span className="uppercase tracking-widest">Synchronizing with General Process...</span>
             </div>
           </div>
@@ -138,31 +138,31 @@ const EJECUTOR_PLAY = ({
 
       {/* --- POPUP 2: SEGUNDO PROCESO --- */}
       {showSecondPopup && (
-        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-white/20 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
-          <div className="bg-white border border-gray-200 shadow-2xl rounded-lg sm:rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-black/75 backdrop-blur-md animate-in fade-in duration-300 p-4 sm:p-6">
+          <div className="bg-[#09090b]/95 border border-white/10 shadow-2xl rounded-2xl p-4 sm:p-6 max-w-sm w-full text-center space-y-3 sm:space-y-4 transform animate-in zoom-in-95 duration-200 text-zinc-100 backdrop-blur-2xl">
             <div className="flex justify-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-[#18181b]/10 rounded-full animate-ping"></div>
-                <div className="relative bg-white border border-gray-100 p-2 sm:p-3 rounded-full shadow-sm">
-                  <FiCpu className="text-[#18181b] animate-pulse" size={20} />
+                <div className="absolute inset-0 bg-white/10 rounded-full animate-ping"></div>
+                <div className="relative bg-white/5 border border-white/10 p-2 sm:p-3 rounded-full shadow-sm">
+                  <FiCpu className="text-zinc-200 animate-pulse" size={20} />
                 </div>
               </div>
             </div>
             
             <div className="space-y-1">
-              <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">Secondary Process Initiated</h3>
-              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module (General Process): {currentDate}</p>
+              <h3 className="text-xs sm:text-sm font-bold text-zinc-100 uppercase tracking-wider">Secondary Process Initiated</h3>
+              <p className="text-[10px] sm:text-[11px] text-zinc-400 font-medium">Module (General Process): {currentDate}</p>
             </div>
 
-            <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
-              <FiAlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
-              <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
+            <div className="bg-amber-500/10 border border-amber-500/20 p-2 sm:p-3 rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+              <FiAlertCircle className="text-amber-400 shrink-0 mt-0.5" size={14} />
+              <p className="text-[9px] sm:text-[10px] text-amber-300 leading-tight">
                 <strong>WARNING:</strong> Storing new General Process catalog data. Please wait for the data upload to complete.
               </p>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-[#18181b]">
-              <Loader2 size={12} className="animate-spin" />
+            <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-zinc-300">
+              <Loader2 size={12} className="animate-spin text-white" />
               <span className="uppercase tracking-widest">Processing Cloud Records...</span>
             </div>
           </div>
@@ -170,39 +170,37 @@ const EJECUTOR_PLAY = ({
       )}
 
       {/* --- ACTION CONTAINER --- */}
-      <div className="bg-white border border-[#e0e0e0] rounded-lg p-3 sm:p-4 lg:p-5 shadow-sm flex flex-col h-full gap-3 sm:gap-4">
+      <div className="bg-[#09090b]/80 border border-white/10 rounded-2xl p-3 sm:p-4 lg:p-5 shadow-sm backdrop-blur-xl flex flex-col h-full gap-3 sm:gap-4 text-zinc-100">
         <div className="flex items-center gap-2">
-          <div className="text-[#18181b]">
+          <div className="text-zinc-200">
             <Zap size={12} className="sm:hidden" fill="currentColor" />
             <Zap size={14} className="hidden sm:inline" fill="currentColor" />
           </div>
-          <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#616161]">System Actions (General Process)</h4>
+          <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-zinc-400">System Actions (General Process)</h4>
         </div>
         
         <div className="flex flex-col gap-3 sm:gap-4 flex-1">
-          <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-[#f0f0f0]">
+          <div className="flex flex-col gap-1.5 sm:gap-2 pb-3 sm:pb-4 border-b border-white/10">
             <button 
               onClick={ejecutarConConsola}
               disabled={!file || estadoProcessing}
-              className="w-full bg-[#18181b] hover:bg-[#09090b] disabled:bg-[#f0f0f0] disabled:text-[#bdbdbd] text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded-md font-semibold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1 sm:gap-2 shadow-sm"
+              className="w-full bg-white hover:bg-zinc-200 disabled:bg-white/10 disabled:text-zinc-600 text-zinc-950 py-2 sm:py-2.5 px-3 rounded-xl font-bold text-[10px] sm:text-[11px] transition-all flex items-center justify-center gap-1.5 shadow-sm"
             >
               {estadoProcessing && showStatusPopup ? <Loader2 size={12} className="animate-spin" /> : <FiZap size={12} />}
               <span className="line-clamp-2">SAVE NEW DATA IN SYSTEM (FIRST STEP)</span>
             </button>
             <div className="px-1 py-1 sm:py-2">
-              <p className="text-[8px] sm:text-[9px] font-bold text-[#18181b] mb-0.5 sm:mb-1 uppercase tracking-wide">Process:</p>
-              <p className="text-[8px] sm:text-[9px] text-[#616161] leading-relaxed">
+              <p className="text-[8px] sm:text-[9px] font-bold text-zinc-200 mb-0.5 uppercase tracking-wide">Process:</p>
+              <p className="text-[8px] sm:text-[9px] text-zinc-400 leading-relaxed">
                 Uploads your General Process catalog data to the cloud database. Sanitizes, validates, and stores pricing information.
               </p>
             </div>
           </div>
 
-          {/* Botón removido: La ejecución ahora se hace vía AI Command (/executeProcess) */}
-
           <div className="flex flex-col gap-1.5 sm:gap-2 mt-auto">
             <button 
               onClick={handleFullReset} 
-              className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-[9px] sm:text-[10px] font-medium text-[#616161] hover:text-[#c4314b] hover:bg-[#f5f5f5] border border-[#e0e0e0] rounded-md transition-all flex items-center justify-center gap-1 sm:gap-2"
+              className="w-full py-2 px-3 text-[9px] sm:text-[10px] font-medium text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 border border-white/10 rounded-xl transition-all flex items-center justify-center gap-1.5"
             >
               <FiTrash2 size={12} />
               RESET SYSTEM

@@ -15,21 +15,21 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 
-// Colores corporativos SERVEX (Estilo Teams)
-const PRIMARY = '#18181b'; 
-const BRAND_COLORS = ['#18181b', '#27272a', '#3f3f46', '#52525b', '#71717a', '#a1a1aa'];
+// Colores corporativos SERVEX Dark Theme
+const PRIMARY = '#ffffff'; 
+const BRAND_COLORS = ['#ffffff', '#a1a1aa', '#71717a', '#3f3f46', '#27272a', '#18181b'];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white/95 backdrop-blur-md border border-[#94A3B8] p-3 rounded-xl shadow-lg text-[#1E293B] text-xs font-sans">
-        <p className="font-semibold mb-2 pb-1 border-b border-[#F1F5F9] text-[#18181b]">
+      <div className="bg-[#09090b]/95 backdrop-blur-xl border border-white/15 p-3 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] text-zinc-200 text-xs font-sans">
+        <p className="font-semibold mb-2 pb-1 border-b border-white/10 text-white">
           {label || payload[0]?.payload?.name || 'Data'}
         </p>
         {payload.map((entry, index) => (
           <div key={`item-${index}`} className="flex justify-between gap-6 py-0.5">
             <span style={{ color: entry.color || entry.fill }} className="font-medium">{entry.name || entry.dataKey}:</span>
-            <span className="font-mono text-[#475569]">
+            <span className="font-mono text-zinc-300">
               {typeof entry.value === 'number' && entry.name !== 'Variation %' && entry.name !== 'Quantity'
                 ? `$${entry.value.toLocaleString()}`
                 : entry.value}
@@ -280,17 +280,17 @@ const ViewportGraphics = () => {
 
 
   if (loading) return (
-    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
-      <Cpu size={48} className="animate-pulse text-[#18181b] mb-4" />
-      <p className="text-[#605E5C] text-[13px] font-semibold">Loading catalog metrics...</p>
+    <div className="flex flex-col items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-zinc-400 font-sans">
+      <Cpu size={40} className="animate-pulse text-zinc-200 mb-3" />
+      <p className="text-zinc-400 text-[13px] font-medium">Loading catalog metrics...</p>
     </div>
   );
 
   if (error || !data) return (
     <div className="w-full h-full bg-transparent flex flex-col items-center justify-center p-6">
-      <AlertCircle size={48} className="text-[#18181b] mb-4" />
-      <h3 className="text-[15px] font-semibold text-[#242424] mb-2">Connection Error</h3>
-      <p className="text-[13px] text-[#605E5C] text-center">{error}</p>
+      <AlertCircle size={44} className="text-amber-400 mb-3" />
+      <h3 className="text-[15px] font-semibold text-white mb-1">Connection Error</h3>
+      <p className="text-[13px] text-zinc-400 text-center max-w-sm">{error || "No data available."}</p>
     </div>
   );
 
@@ -317,12 +317,11 @@ const ViewportGraphics = () => {
   const divergingData = [...data.aumentos, ...data.reducciones].map(item => ({
     name: item.name,
     'Variation %': item.varPercent,
-    fill: item.varPercent > 0 ? '#18181b' : '#27272a'
+    fill: item.varPercent > 0 ? '#10b981' : '#f43f5e'
   })).sort((a,b) => b['Variation %'] - a['Variation %']);
 
   // 4. Financial Impact Distribution (BarChart by absChange)
   const impactData = [...data.anomaliesData, ...data.aumentos, ...data.reducciones]
-    // Filter duplicates by name
     .filter((v,i,a)=>a.findIndex(t=>(t.name === v.name))===i)
     .sort((a,b) => b.absChange - a.absChange)
     .slice(0, 10); // Top 10 impacts
@@ -333,7 +332,7 @@ const ViewportGraphics = () => {
     .slice(0, 7); // Top 7 mostly
 
 
-      // 6. Servex Copilot Operational Efficiency (Radar)
+  // 6. Servex Copilot Operational Efficiency (Radar)
   const radarEfficiencyData = [
     { metric: 'Speed', Traditional: 15, ServexCopilot: 99 },
     { metric: 'Accuracy', Traditional: 70, ServexCopilot: 99 },
@@ -351,7 +350,7 @@ const ViewportGraphics = () => {
     { stage: 'Final Storage', Traditional: 48, ServexCopilot: 0.02 },
   ];
 
-    // --- DATOS EXPLICATIVOS DE /listPriceChanges ---
+  // --- DATOS EXPLICATIVOS DE /listPriceChanges ---
   // 3. Price Change Category Breakdown (Explicación de las 5 pestañas de /listPriceChanges)
   const categoryBreakdownData = [
     { category: 'Increases', count: data.aumentos.length, label: 'Price Increases' },
@@ -371,13 +370,13 @@ const ViewportGraphics = () => {
     })).slice(0, 7);
 
   const CardContainer = ({ title, children, explanation, colSpan = 1, summaryNode }) => (
-    <motion.div variants={itemVariants} className={`bg-white border border-[#94A3B8] rounded-xl p-6 flex flex-col lg:col-span-${colSpan} transition-all duration-300 h-[480px]`}>
-      <h3 className="text-[14px] font-semibold text-[#18181b] mb-3 flex items-center gap-2">
-        <div className="w-1.5 h-4 bg-[#18181b] rounded-full"></div>
+    <motion.div variants={itemVariants} className={`bg-[#09090b]/85 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 flex flex-col lg:col-span-${colSpan} shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)] transition-all duration-300 h-[480px]`}>
+      <h3 className="text-[14px] font-bold text-white mb-3 flex items-center gap-2">
+        <div className="w-1.5 h-4 bg-white/70 rounded-full"></div>
         {title}
       </h3>
       {summaryNode && (
-        <div className="mb-4 p-3 border border-[#94A3B8] rounded-lg text-[11px] text-[#475569] max-h-[80px] overflow-y-auto">
+        <div className="mb-4 p-3 bg-white/[0.03] border border-white/10 rounded-xl text-[11px] text-zinc-300 max-h-[80px] overflow-y-auto">
           {summaryNode}
         </div>
       )}
@@ -385,9 +384,9 @@ const ViewportGraphics = () => {
         {children}
       </div>
       {explanation && (
-        <div className="mt-4 pt-3 border-t border-[#94A3B8] shrink-0">
-          <p className="text-[11px] text-[#64748B] leading-snug">
-             <span className="font-semibold text-[#18181b] uppercase tracking-wider text-[10px]">Analysis: </span> 
+        <div className="mt-4 pt-3 border-t border-white/10 shrink-0">
+          <p className="text-[11px] text-zinc-400 leading-snug">
+             <span className="font-semibold text-white uppercase tracking-wider text-[10px]">Analysis: </span> 
              {explanation}
           </p>
         </div>
@@ -405,28 +404,26 @@ const ViewportGraphics = () => {
       <AnimatePresence>
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowDeleteConfirm(false)} className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-            <motion.div initial={{ scale: 0.95, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 10 }} className="relative bg-white rounded-xl shadow-2xl border border-[#94A3B8] w-full max-w-[400px] overflow-hidden">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowDeleteConfirm(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.95, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 10 }} className="relative bg-[#09090b]/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 w-full max-w-[400px] overflow-hidden text-zinc-100">
               <div className="p-8">
-                <div className="flex items-center gap-3 mb-4 text-[#18181b]">
+                <div className="flex items-center gap-3 mb-4 text-amber-400">
                   <AlertCircle size={22} strokeWidth={2.5} />
-                  <h3 className="text-[17px] font-bold tracking-tight text-[#242424]">Clear conversation?</h3>
+                  <h3 className="text-[17px] font-bold tracking-tight text-white">Clear conversation?</h3>
                 </div>
-                <p className="text-[14px] text-[#605E5C] leading-relaxed font-medium">This will delete all messages in this session. This action is permanent.</p>
+                <p className="text-[14px] text-zinc-400 leading-relaxed font-normal">This will delete all messages in this session. This action is permanent.</p>
               </div>
-              <div className="flex gap-2 p-4 bg-[#F5F5F5] justify-end">
-                <button onClick={() => setShowDeleteConfirm(false)} className="px-5 py-2 text-[12px] font-bold text-[#242424] bg-white border border-[#D1D1D1] rounded-md hover:bg-[#F0F0F0] uppercase tracking-wider">Cancel</button>
-                <button onClick={confirmClearChat} className="px-5 py-2 text-[12px] font-bold text-white bg-[#18181b] rounded-md hover:bg-[#18181b] uppercase tracking-wider">Delete all</button>
+              <div className="flex gap-2 p-4 bg-white/[0.02] border-t border-white/10 justify-end">
+                <button onClick={() => setShowDeleteConfirm(false)} className="px-5 py-2 text-[12px] font-bold text-zinc-300 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 uppercase tracking-wider transition-all">Cancel</button>
+                <button onClick={confirmClearChat} className="px-5 py-2 text-[12px] font-bold text-white bg-rose-600 rounded-lg hover:bg-rose-700 uppercase tracking-wider transition-all">Delete all</button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      
-
       {/* Contenedor scrolleable general */}
-      <div className="flex-1 overflow-y-auto pb-[180px] p-6 relative">
+      <div className="flex-1 overflow-y-auto pb-[180px] p-4 sm:p-6 relative custom-scrollbar">
         
         <div className="w-full max-w-6xl mx-auto">
           <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -437,29 +434,29 @@ const ViewportGraphics = () => {
               title="Price Deviation Quadrant" 
               explanation="A matrix plotting original price vs percentage variation. Helps answer: Are huge percentage jumps happening on cheap items (low risk) or expensive ones (high risk)?"
               summaryNode={
-                <div><span className="font-semibold">Outliers plotted:</span> {scatterData.length} models</div>
+                <div><span className="font-semibold text-white">Outliers plotted:</span> {scatterData.length} models</div>
               }
             >
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#94A3B8"/>
-                  <XAxis type="number" dataKey="Original" name="Original Price" tick={{fontSize: 10, fill: '#605E5C'}} tickFormatter={(v)=>`$${v/1000}k`} axisLine={false} tickLine={false}/>
-                  <YAxis type="number" dataKey="Variation %" name="Variation %" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false}/>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)"/>
+                  <XAxis type="number" dataKey="Original" name="Original Price" tick={{fontSize: 10, fill: '#a1a1aa'}} tickFormatter={(v)=>`$${v/1000}k`} axisLine={false} tickLine={false}/>
+                  <YAxis type="number" dataKey="Variation %" name="Variation %" tick={{fontSize: 10, fill: '#a1a1aa'}} axisLine={false} tickLine={false}/>
                   <ZAxis type="number" dataKey="absChange" range={[40, 300]} name="Absolute Change" />
                   <RechartsTooltip cursor={{strokeDasharray: '3 3'}} content={<CustomTooltip />} />
-                  <Scatter name="Deviations" data={scatterData} fill="#18181b" opacity={0.7} />
+                  <Scatter name="Deviations" data={scatterData} fill="#ffffff" opacity={0.8} />
                 </ScatterChart>
               </ResponsiveContainer>
             </CardContainer>
 
-                        {/* 3. Price Change Category Breakdown */}
+            {/* 3. Price Change Category Breakdown */}
             <CardContainer 
               colSpan={1} 
               title="Price Change Category Breakdown" 
               explanation="Visual breakdown of catalog modifications from /listPriceChanges, categorizing updates into Price Increases, Reductions, Anomalies, New Products, and Removed Items."
               summaryNode={
                 <div>
-                  <span className="font-semibold text-[#18181b]">Audit Scope: 5 Key Categories Audited in /listPriceChanges</span>
+                  <span className="font-semibold text-white">Audit Scope: 5 Key Categories Audited in /listPriceChanges</span>
                 </div>
               }
             >
@@ -467,15 +464,15 @@ const ViewportGraphics = () => {
                 <AreaChart data={categoryBreakdownData} margin={{ top: 20, right: 20, left: 0, bottom: 5 }}>
                   <defs>
                     <linearGradient id="monoAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#18181b" stopOpacity={0.7}/>
-                      <stop offset="95%" stopColor="#18181b" stopOpacity={0.05}/>
+                      <stop offset="5%" stopColor="#ffffff" stopOpacity={0.5}/>
+                      <stop offset="95%" stopColor="#ffffff" stopOpacity={0.02}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94A3B8" />
-                  <XAxis dataKey="category" tick={{ fontSize: 10, fill: '#605E5C' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: '#605E5C' }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)" />
+                  <XAxis dataKey="category" tick={{ fontSize: 10, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: '#a1a1aa' }} axisLine={false} tickLine={false} />
                   <RechartsTooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="count" name="Model Count" stroke="#18181b" strokeWidth={3} fillOpacity={1} fill="url(#monoAreaGrad)" dot={{ r: 5, fill: '#18181b', stroke: '#ffffff', strokeWidth: 2 }} />
+                  <Area type="monotone" dataKey="count" name="Model Count" stroke="#ffffff" strokeWidth={2.5} fillOpacity={1} fill="url(#monoAreaGrad)" dot={{ r: 4, fill: '#ffffff', stroke: '#09090b', strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContainer>
@@ -487,57 +484,59 @@ const ViewportGraphics = () => {
               explanation="Direct visual comparison of Base Price vs Adjusted Price for top updated models highlighted in the /listPriceChanges tables."
               summaryNode={
                 <div>
-                  <span className="font-semibold text-[#18181b]">Model Deltas: Base vs Adjusted Price comparison</span>
+                  <span className="font-semibold text-white">Model Deltas: Base vs Adjusted Price comparison</span>
                 </div>
               }
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topVariationsData} margin={{ top: 20, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94A3B8"/>
-                  <XAxis dataKey="name" tick={{fontSize: 10, fill: '#605E5C'}} interval={0} angle={-20} textAnchor="end" height={60} axisLine={false} tickLine={false}/>
-                  <YAxis tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)"/>
+                  <XAxis dataKey="name" tick={{fontSize: 10, fill: '#a1a1aa'}} interval={0} angle={-20} textAnchor="end" height={60} axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fontSize: 10, fill: '#a1a1aa'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
                   <RechartsTooltip content={<CustomTooltip />} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
-                  <Bar dataKey="Base Price" name="Base Price" fill="#CBD5E1" radius={[3, 3, 0, 0]} barSize={18} />
-                  <Bar dataKey="Adjusted Price" name="Adjusted Price" fill="#18181b" radius={[3, 3, 0, 0]} barSize={18} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#a1a1aa' }}/>
+                  <Bar dataKey="Base Price" name="Base Price" fill="#52525b" radius={[3, 3, 0, 0]} barSize={18} />
+                  <Bar dataKey="Adjusted Price" name="Adjusted Price" fill="#ffffff" radius={[3, 3, 0, 0]} barSize={18} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContainer>
-<CardContainer 
+
+            {/* Transition Delta */}
+            <CardContainer 
               colSpan={2} 
               title="Transition Delta" 
               explanation="Side-by-side comparison of Base vs Adjusted Price for top items, overlaid with the Percentage Variation trendline."
               summaryNode={
                 <div className="flex flex-col gap-1">
-                  <span className="font-semibold text-[#18181b]">Top Variation: {transitionData[0]?.name} ({transitionData[0]?.varPercent}%)</span>
+                  <span className="font-semibold text-white">Top Variation: {transitionData[0]?.name} ({transitionData[0]?.varPercent}%)</span>
                 </div>
               }
             >
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={transitionData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid stroke="#94A3B8" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" tick={{fontSize: 10, fill: '#605E5C'}} interval={0} angle={-15} textAnchor="end" height={60} axisLine={false} tickLine={false}/>
-                  <YAxis yAxisId="left" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
-                  <YAxis yAxisId="right" orientation="right" tick={{fontSize: 10, fill: '#605E5C'}} axisLine={false} tickLine={false} />
+                  <CartesianGrid stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{fontSize: 10, fill: '#a1a1aa'}} interval={0} angle={-15} textAnchor="end" height={60} axisLine={false} tickLine={false}/>
+                  <YAxis yAxisId="left" tick={{fontSize: 10, fill: '#a1a1aa'}} axisLine={false} tickLine={false} tickFormatter={(v)=>`$${v/1000}k`}/>
+                  <YAxis yAxisId="right" orientation="right" tick={{fontSize: 10, fill: '#a1a1aa'}} axisLine={false} tickLine={false} />
                   <RechartsTooltip content={<CustomTooltip />} />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
-                  <Bar yAxisId="left" dataKey="original" name="Base Price" fill="#CBD5E1" barSize={20} radius={[2, 2, 0, 0]} />
-                  <Bar yAxisId="left" dataKey="nuevo" name="Adjusted Price" fill="#18181b" barSize={20} radius={[2, 2, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="varPercent" name="Variation %" stroke="#27272a" strokeWidth={3} dot={{r:5, fill:'#27272a', stroke:'#fff', strokeWidth:2}} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#a1a1aa' }}/>
+                  <Bar yAxisId="left" dataKey="original" name="Base Price" fill="#52525b" barSize={20} radius={[2, 2, 0, 0]} />
+                  <Bar yAxisId="left" dataKey="nuevo" name="Adjusted Price" fill="#ffffff" barSize={20} radius={[2, 2, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="varPercent" name="Variation %" stroke="#38bdf8" strokeWidth={2.5} dot={{r:4, fill:'#38bdf8', stroke:'#09090b', strokeWidth:2}} />
                 </ComposedChart>
               </ResponsiveContainer>
             </CardContainer>
 
             {/* Servex Copilot ROI & Time Savings Benchmark Section */}
-            <motion.div variants={itemVariants} className="lg:col-span-2 border border-[#94A3B8] rounded-2xl p-6 flex flex-col gap-4">
-              <div className="flex items-center justify-between border-b border-[#94A3B8] pb-3">
+            <motion.div variants={itemVariants} className="lg:col-span-2 bg-[#09090b]/85 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 flex flex-col gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.08)]">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-2 h-5 bg-[#18181b] rounded-full"></div>
-                  <h2 className="text-[15px] font-bold text-[#18181b] tracking-tight">
+                  <div className="w-2 h-5 bg-white/70 rounded-full"></div>
+                  <h2 className="text-[15px] font-bold text-white tracking-tight">
                     Servex Copilot ROI & Time Savings Analysis
                   </h2>
                 </div>
-                <span className="text-[11px] font-semibold bg-[#18181b]/10 text-[#18181b] px-3 py-1 rounded-full border border-[#18181b]/20">
+                <span className="text-[11px] font-semibold bg-white/10 text-zinc-200 px-3 py-1 rounded-full border border-white/20">
                   Benchmark vs 3-Week Manual Workflow
                 </span>
               </div>
@@ -550,19 +549,19 @@ const ViewportGraphics = () => {
                   explanation="Radar comparison benchmarking Servex Copilot against traditional 3-week manual catalog workflows across key operational dimensions."
                   summaryNode={
                     <div>
-                      <span className="font-semibold text-[#18181b]">Efficiency Score: 98.2% vs 26.0% Traditional</span>
+                      <span className="font-semibold text-white">Efficiency Score: 98.2% vs 26.0% Traditional</span>
                     </div>
                   }
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarEfficiencyData}>
-                      <PolarGrid stroke="#CBD5E1" />
-                      <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10, fill: '#475569' }} />
-                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9, fill: '#64748B' }} />
-                      <Radar name="Traditional (3 Weeks)" dataKey="Traditional" stroke="#94A3B8" fill="#CBD5E1" fillOpacity={0.4} />
-                      <Radar name="Servex Copilot Engine" dataKey="ServexCopilot" stroke="#18181b" fill="#18181b" fillOpacity={0.5} />
+                      <PolarGrid stroke="rgba(255,255,255,0.15)" />
+                      <PolarAngleAxis dataKey="metric" tick={{ fontSize: 10, fill: '#d4d4d8' }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9, fill: '#71717a' }} />
+                      <Radar name="Traditional (3 Weeks)" dataKey="Traditional" stroke="#71717a" fill="#71717a" fillOpacity={0.25} />
+                      <Radar name="Servex Copilot Engine" dataKey="ServexCopilot" stroke="#ffffff" fill="#ffffff" fillOpacity={0.4} />
                       <RechartsTooltip content={<CustomTooltip />} />
-                      <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#475569' }} />
+                      <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#a1a1aa' }} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </CardContainer>
@@ -574,35 +573,34 @@ const ViewportGraphics = () => {
                   explanation="Direct benchmark of execution hours. Traditional manual updates require ~3 weeks (504 hrs), whereas Servex Copilot completes the entire flow in ~12 mins (0.2 hrs), saving 99.8% of delivery time."
                   summaryNode={
                     <div>
-                      <span className="font-semibold text-[#18181b]">Time Saved: 503.8 Hours per Catalog (99.8% Reduction)</span>
+                      <span className="font-semibold text-white">Time Saved: 503.8 Hours per Catalog (99.8% Reduction)</span>
                     </div>
                   }
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={timeSavingsData} margin={{ top: 20, right: 10, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#94A3B8" />
-                      <XAxis dataKey="stage" tick={{ fontSize: 10, fill: '#605E5C' }} interval={0} angle={-20} textAnchor="end" height={60} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 10, fill: '#605E5C' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}h`} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.08)" />
+                      <XAxis dataKey="stage" tick={{ fontSize: 10, fill: '#a1a1aa' }} interval={0} angle={-20} textAnchor="end" height={60} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: '#a1a1aa' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}h`} />
                       <RechartsTooltip content={<CustomTooltip />} />
-                      <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }} />
-                      <Bar dataKey="Traditional" name="Traditional (3 Weeks)" fill="#CBD5E1" radius={[2, 2, 0, 0]} barSize={20} />
-                      <Bar dataKey="ServexCopilot" name="Servex Copilot (Minutes)" fill="#18181b" radius={[2, 2, 0, 0]} barSize={20} />
+                      <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#a1a1aa' }} />
+                      <Bar dataKey="Traditional" name="Traditional (3 Weeks)" fill="#52525b" radius={[2, 2, 0, 0]} barSize={20} />
+                      <Bar dataKey="ServexCopilot" name="Servex Copilot (Minutes)" fill="#ffffff" radius={[2, 2, 0, 0]} barSize={20} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContainer>
               </div>
             </motion.div>
 
-                        
             {/* 1. Catalog Stability Index */}
             <CardContainer 
               colSpan={2} 
               title="Catalog Stability Index" 
               explanation="Gauge showing the proportion of the catalog that remained untouched vs modified. A higher 'Untouched' arc indicates operational stability."
               summaryNode={
-                <div className="grid grid-cols-2 gap-2">
-                  <div><span className="font-semibold">Untouched:</span> {gaugeData[0].value}</div>
-                  <div><span className="font-semibold">Modified:</span> {gaugeData[1].value}</div>
+                <div className="grid grid-cols-2 gap-2 text-zinc-300">
+                  <div><span className="font-semibold text-white">Untouched:</span> {gaugeData[0].value}</div>
+                  <div><span className="font-semibold text-white">Modified:</span> {gaugeData[1].value}</div>
                 </div>
               }
             >
@@ -612,12 +610,10 @@ const ViewportGraphics = () => {
                     {gaugeData.map((e, i) => <Cell key={`c-${i}`} fill={BRAND_COLORS[i % BRAND_COLORS.length]} />)}
                   </Pie>
                   <RechartsTooltip content={<CustomTooltip />} />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#605E5C' }}/>
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#a1a1aa' }}/>
                 </PieChart>
               </ResponsiveContainer>
             </CardContainer>
-
-            {/* 2. Transition Delta */}
             
           </motion.div>
         </div>

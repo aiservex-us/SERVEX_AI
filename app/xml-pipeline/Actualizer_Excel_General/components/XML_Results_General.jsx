@@ -388,225 +388,210 @@ const DynamicDataMatrix = () => {
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center h-[80vh] min-h-[80vh] bg-transparent text-xs font-semibold text-slate-500 font-sans">
+    <div className="flex items-center justify-center py-6 bg-transparent text-xs font-semibold text-zinc-400 font-sans">
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-[#18181b] border-t-transparent rounded-full animate-spin"></div>
+        <RefreshCw size={13} className="animate-spin text-zinc-300" />
         Retrieving master data matrix from Engine...
       </div>
     </div>
   );
 
   if (error) return (
-    <div className="flex h-[80vh] min-h-[80vh] w-full flex-col items-center justify-center bg-transparent p-12 text-center font-sans">
-      <AlertCircle className="text-red-500 mb-3" size={36} />
-      <h3 className="text-sm font-bold text-slate-800 mb-1">Engine Synchronization Error</h3>
-      <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
+    <div className="flex w-full flex-col items-center justify-center bg-transparent py-5 text-center font-sans">
+      <AlertCircle className="text-rose-400 mb-1.5" size={22} />
+      <h3 className="text-xs font-bold text-white mb-0.5">Engine Synchronization Error</h3>
+      <p className="text-[11px] text-zinc-400 max-w-md mb-2">{error}</p>
       <button 
         onClick={processXML} 
-        className="flex items-center gap-2 px-4 py-2 bg-[#18181b] hover:bg-[#09090b] text-white text-xs font-bold rounded shadow-sm transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold rounded-lg border border-white/15 transition-all cursor-pointer"
       >
-        <RefreshCw size={12} /> Retry Loading
+        <RefreshCw size={11} /> Retry Loading
       </button>
     </div>
   );
 
   return (
-    <div className="h-[80vh] min-h-[80vh] flex flex-col justify-center items-center bg-transparent p-2 md:p-4 font-sans antialiased">
-      <div className="w-full mx-auto">
-        
-        <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-[#18181b]/30 shadow-lg shadow-[#18181b]/5 overflow-hidden flex flex-col w-full">
-          
-          {/* Operations / Filters Header */}
-          <div className="px-4 py-2.5 border-b border-[#18181b]/15 bg-white/40 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">Export Data Client Matrix</span>
-                {isExportingFull && (
-                  <span className="text-[9px] font-bold text-zinc-800 bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse select-none">
-                    <RefreshCw size={9} className="animate-spin text-zinc-800" />
-                    Preparing ({products.length} / {totalProductsInXml})
-                  </span>
-                )}
-              </div>
-              <span className="text-[9.5px] text-slate-500 font-medium">
-                Dynamic catalog matrix & client data injection engine
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-              <div className="hidden sm:flex items-center gap-2 bg-[#18181b]/5 border border-[#18181b]/15 rounded-lg px-2.5 py-1 text-[10px] text-slate-600 font-medium select-none">
-                <span>Products: <strong className="text-slate-800 font-bold">{stats.total}</strong></span>
-                <span className="text-[#18181b]/30">|</span>
-                <span>Filtered: <strong className="text-slate-800 font-bold">{stats.filtered}</strong></span>
-                <span className="text-[#18181b]/30">|</span>
-                <span>Avg Price: <strong className="text-[#18181b] font-bold">${stats.avgPrice.toLocaleString()}</strong></span>
-              </div>
-
-              <div className="relative flex items-center flex-1 sm:flex-initial min-w-[120px]">
-                <Search size={12} className="absolute left-2.5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search matrix..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-white/70 border border-[#18181b]/25 rounded-lg pl-7 pr-2.5 py-0.5 text-[10.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#18181b] focus:bg-white transition-all w-full sm:w-[160px]"
-                />
-              </div>
-
-              <button 
-                onClick={processXML}
-                type="button"
-                className="p-1 bg-white/70 border border-[#18181b]/25 hover:bg-[#18181b]/10 rounded-lg text-[#18181b] transition-all shadow-2xs"
-                title="Synchronize and recalculate matrices"
-              >
-                <RefreshCw size={12} className={loading ? "animate-spin text-[#18181b]" : ""} />
-              </button>
-
-              <button 
-                onClick={() => setShowWarningModal(true)}
-                type="button"
-                className="p-1 bg-[#18181b] hover:bg-black text-white rounded-lg transition-all flex items-center justify-center shadow-2xs"
-                title="Export current view to Excel"
-              >
-                <Download size={12} />
-              </button>
-            </div>
-          </div>
-
-          {/* Table Matrix */}
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-16 text-center bg-white/30 backdrop-blur-sm">
-              <div className="w-12 h-12 rounded-xl bg-[#18181b]/10 flex items-center justify-center mb-2.5 border border-[#18181b]/20">
-                <svg className="w-6 h-6 text-[#18181b]/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              </div>
-              <h3 className="text-xs font-bold text-slate-800 mb-0.5">No data found</h3>
-              <p className="text-[10px] text-slate-500 max-w-xs font-medium">
-                We couldn't find any records matching your current filter criteria.
-              </p>
-            </div>
-          ) : (
-            <div className="w-full overflow-x-auto relative scrollbar-thin scrollbar-thumb-slate-300 max-h-[58vh]">
-              <table className="table-fixed border-collapse text-left text-[10px] w-max min-w-[2000px]">
-                <thead className="sticky top-0 z-20 bg-[#18181b]/10 backdrop-blur-md border-b border-[#18181b]/20">
-                  <tr>
-                    <th className="w-10 px-2 py-2 text-center text-[9px] font-bold uppercase tracking-wider text-[#18181b] bg-[#18181b]/10 backdrop-blur-md sticky left-0 z-30 border-r border-b border-[#18181b]/20 select-none">
-                      #
-                    </th>
-                    {matrixHeaders.map((header, i) => (
-                      <th
-                        key={header + i}
-                        className="px-3 py-2 text-[10px] font-bold text-[#18181b] bg-[#18181b]/10 backdrop-blur-md border-r border-b border-[#18181b]/20 min-w-[150px] max-w-[260px] whitespace-nowrap truncate uppercase tracking-wider select-none"
-                      >
-                        <div className="flex items-center gap-1">
-                          <span>{header || "(Empty)"}</span>
-                          <Filter size={9} className="text-[#18181b] opacity-50" />
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-
-                <tbody className="bg-white/60 divide-y divide-[#18181b]/10">
-                  {paginatedProducts.map((p, idx) => {
-                    const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
-                    
-                    return (
-                      <tr 
-                        key={`${p["Model #"] || 'prod'}-${realIndex}`}
-                        className="hover:bg-[#18181b]/10 transition-colors group"
-                      >
-                        <td className="px-2 py-1.5 text-center text-[9.5px] font-bold text-[#18181b] border-r border-[#18181b]/10 sticky left-0 z-10 bg-white/90 group-hover:bg-[#18181b]/10 border-b border-[#18181b]/10 font-mono">
-                          {realIndex}
-                        </td>
-
-                        {matrixHeaders.map((header, i) => {
-                          let value = p[header];
-                          if (header === "List Price") value = `$${(p["List Price"] || 0).toLocaleString()}`;
-                          
-                          const isHighlight = header === 'Model #' || header === 'List Price';
-                          return (
-                            <td key={header + i} className="p-0 text-slate-800 border-r border-b border-[#18181b]/10 min-w-[150px] max-w-[260px]">
-                              <div 
-                                className={`px-3 py-1.5 font-sans text-[10px] whitespace-nowrap truncate ${isHighlight ? 'font-bold text-[#18181b] font-mono' : 'font-medium text-slate-700'}`} 
-                                title={value}
-                              >
-                                {value !== undefined && value !== null ? String(value) : ""}
-                              </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+    <div className="w-full max-w-full min-w-0 flex flex-col bg-transparent font-sans antialiased">
+      {/* ── Compact Header Toolbar (Transparent) ── */}
+      <div className="w-full flex flex-wrap items-center justify-between gap-2 py-2 px-1 border-b border-white/10 bg-transparent text-zinc-200">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold text-white tracking-wide uppercase">Export Data Client</span>
+          <span className="text-[9px] font-medium text-zinc-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
+            {stats.filtered} items
+          </span>
+          {isExportingFull && (
+            <span className="text-[9px] font-medium text-white bg-white/10 border border-white/20 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse select-none">
+              <RefreshCw size={8} className="animate-spin text-white" />
+              Preparing ({products.length} / {totalProductsInXml})
+            </span>
           )}
+        </div>
 
-          {/* Footer */}
-          <div className="bg-white/40 backdrop-blur-md px-4 py-2 border-t border-[#18181b]/15 flex flex-col sm:flex-row justify-between items-center gap-2 text-[10px] font-medium text-slate-600 select-none">
-            <div className="flex items-center gap-3">
-              <span>Columns: <strong className="text-slate-800 font-bold">{matrixHeaders.length}</strong></span>
-              <span className="text-[#18181b]/30">|</span>
-              <span>Showing <strong className="text-slate-800 font-bold">{filtered.length}</strong> of <strong className="text-slate-800 font-bold">{products.length}</strong> items</span>
-            </div>
-            
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="px-2.5 py-0.5 bg-white/80 border border-[#18181b]/25 hover:bg-[#18181b] hover:text-white rounded-md text-[#18181b] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px]"
-              >
-                Previous
-              </button>
-              
-              <span className="text-[#18181b] font-bold px-1.5 text-[10px]">
-                Page {currentPage} of {totalPages}
-              </span>
-
-              <button
-                type="button"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className="px-2.5 py-0.5 bg-white/80 border border-[#18181b]/25 hover:bg-[#18181b] hover:text-white rounded-md text-[#18181b] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[10px]"
-              >
-                Next
-              </button>
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center">
+            <Search size={11} className="absolute left-2.5 text-zinc-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-white/5 border border-white/15 rounded-lg pl-7 pr-2.5 py-1 text-[11px] text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all w-[130px] sm:w-[160px]"
+            />
           </div>
+
+          <button 
+            onClick={processXML}
+            type="button"
+            className="p-1.5 bg-white/5 border border-white/10 hover:bg-white/15 rounded-lg text-zinc-300 hover:text-white transition-all cursor-pointer"
+            title="Recalculate matrix"
+          >
+            <RefreshCw size={12} className={loading ? "animate-spin text-white" : ""} />
+          </button>
+
+          <button 
+            onClick={() => setShowWarningModal(true)}
+            type="button"
+            className="px-2.5 py-1 bg-white hover:bg-zinc-200 text-zinc-950 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+            title="Export to Excel"
+          >
+            <Download size={11} />
+            <span>Excel</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Table Area (Transparent Container) ── */}
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-8 text-center bg-transparent">
+          <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center mb-2 border border-white/10">
+            <Search className="w-4 h-4 text-zinc-400" />
+          </div>
+          <h4 className="text-[11px] font-semibold text-zinc-200">No data found in matrix</h4>
+          <p className="text-[10px] text-zinc-500 max-w-xs mt-0.5">
+            No records matched current search filter or catalog XML is empty.
+          </p>
+        </div>
+      ) : (
+        <div className="w-full max-w-full min-w-0 overflow-x-auto relative custom-scrollbar max-h-[380px] rounded-lg border border-white/10 bg-transparent my-1.5">
+          <table className="table-auto border-collapse text-left text-[10px] w-full min-w-[700px] bg-transparent">
+            <thead className="sticky top-0 z-20 bg-zinc-900/80 backdrop-blur-md border-b border-white/10">
+              <tr>
+                <th className="w-9 px-2 py-2 text-center text-[9px] font-bold uppercase tracking-wider text-zinc-400 sticky left-0 z-30 bg-zinc-900/80 border-r border-b border-white/10 select-none">
+                  #
+                </th>
+                {matrixHeaders.map((header, i) => (
+                  <th
+                    key={header + i}
+                    className="px-3 py-2 text-[10px] font-bold text-zinc-300 border-r border-b border-white/10 whitespace-nowrap truncate uppercase tracking-wider select-none bg-transparent"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span>{header || "(Empty)"}</span>
+                      <Filter size={8} className="text-zinc-500" />
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody className="bg-transparent divide-y divide-white/5">
+              {paginatedProducts.map((p, idx) => {
+                const realIndex = (currentPage - 1) * itemsPerPage + idx + 1;
+                
+                return (
+                  <tr 
+                    key={`${p["Model #"] || 'prod'}-${realIndex}`}
+                    className="hover:bg-white/[0.04] transition-colors group bg-transparent"
+                  >
+                    <td className="px-2 py-1.5 text-center text-[9.5px] font-bold text-zinc-400 border-r border-b border-white/5 sticky left-0 z-10 bg-zinc-900/80 group-hover:bg-zinc-800/80 font-mono select-none">
+                      {realIndex}
+                    </td>
+
+                    {matrixHeaders.map((header, i) => {
+                      let value = p[header];
+                      if (header === "List Price") value = `$${(p["List Price"] || 0).toLocaleString()}`;
+                      
+                      const isHighlight = header === 'Model #' || header === 'List Price';
+                      return (
+                        <td key={header + i} className="p-0 border-r border-b border-white/5 bg-transparent">
+                          <div 
+                            className={`px-3 py-1.5 text-[10.5px] whitespace-nowrap truncate ${isHighlight ? 'font-bold text-white font-mono' : 'font-medium text-zinc-300'}`} 
+                            title={value}
+                          >
+                            {value !== undefined && value !== null ? String(value) : ""}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── Compact Transparent Footer ── */}
+      <div className="w-full flex items-center justify-between py-1.5 px-1 bg-transparent border-t border-white/10 text-[10px] font-medium text-zinc-400 select-none">
+        <div className="flex items-center gap-2">
+          <span>Cols: <strong className="text-zinc-200">{matrixHeaders.length}</strong></span>
+          <span className="text-white/20">•</span>
+          <span>Showing <strong className="text-zinc-200">{filtered.length}</strong> of <strong className="text-zinc-200">{products.length}</strong></span>
+        </div>
+        
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            className="px-2 py-0.5 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white rounded text-zinc-300 font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-[10px] cursor-pointer"
+          >
+            Prev
+          </button>
+          
+          <span className="text-zinc-300 font-mono px-1 text-[10px]">
+            {currentPage} / {totalPages}
+          </span>
+
+          <button
+            type="button"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            className="px-2 py-0.5 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white rounded text-zinc-300 font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-[10px] cursor-pointer"
+          >
+            Next
+          </button>
         </div>
       </div>
 
       {/* ── EXCEL SCALABILITY WARNING MODAL ── */}
       {showWarningModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
             onClick={() => setShowWarningModal(false)}
           />
-          <div className="relative bg-white w-[440px] rounded-xl shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <span className="text-[14px] font-bold text-[#242424]">Export Matrix Data</span>
-              <button onClick={() => setShowWarningModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <X size={18} />
+          <div className="relative bg-[#09090b]/95 w-full max-w-md rounded-2xl shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.08)] border border-white/15 animate-in fade-in zoom-in-95 duration-200 overflow-hidden text-zinc-100 font-sans z-10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <span className="text-[14px] font-bold text-white tracking-tight">Export Matrix Data</span>
+              <button onClick={() => setShowWarningModal(false)} className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">
+                <X size={16} />
               </button>
             </div>
-            <div className="px-8 py-6 flex gap-4">
-              <div className="p-2 h-fit rounded-full shrink-0 bg-[#18181b]/10 text-[#18181b]">
-                <Download size={22} className="currentColor" />
+            <div className="px-6 py-6 flex gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white shrink-0 shadow-sm">
+                <Download size={20} />
               </div>
-              <div className="flex-1 mt-1">
-                <p className="text-[13px] text-[#616161] leading-relaxed mb-3">
-                  Exporting dynamic XML catalog data matrix with <strong>{matrixHeaders.length} total columns</strong>.
+              <div className="flex-1">
+                <p className="text-[12.5px] text-zinc-300 leading-relaxed mb-2.5">
+                  Exporting dynamic XML catalog data matrix with <strong className="text-white font-semibold">{matrixHeaders.length} total columns</strong>.
                 </p>
-                <p className="text-[13px] text-[#616161] leading-relaxed">
+                <p className="text-[11.5px] text-zinc-400 leading-relaxed">
                   Select your preferred download format for full multi-tenant compatibility.
                 </p>
               </div>
             </div>
-            <div className="px-6 py-4 bg-[#F5F5F5] flex justify-end gap-2 rounded-b-xl border-t border-slate-100">
-              <button onClick={() => setShowWarningModal(false)} className="px-4 py-1.5 text-[12px] font-semibold text-[#242424] bg-white border border-[#D1D1D1] rounded hover:bg-[#F0F0F0] transition-all">
+            <div className="px-6 py-4 bg-white/[0.02] flex justify-end gap-2.5 rounded-b-2xl border-t border-white/10">
+              <button onClick={() => setShowWarningModal(false)} className="px-4 py-2 text-xs font-semibold text-zinc-300 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all cursor-pointer">
                 Cancel
               </button>
               <button 
@@ -614,7 +599,7 @@ const DynamicDataMatrix = () => {
                   setShowWarningModal(false);
                   exportToCSV();
                 }}
-                className="px-4 py-1.5 text-[12px] font-bold text-white bg-[#18181b] hover:bg-[#09090b] rounded transition-all shadow-sm"
+                className="px-4 py-2 text-xs font-bold text-zinc-950 bg-white hover:bg-zinc-200 rounded-xl transition-all shadow-sm cursor-pointer"
               >
                 Download CSV
               </button>
@@ -623,7 +608,7 @@ const DynamicDataMatrix = () => {
                   setShowWarningModal(false);
                   exportToExcel();
                 }}
-                className="px-4 py-1.5 text-[12px] font-bold text-white bg-[#107C41] hover:bg-[#0B5C30] rounded transition-all shadow-sm"
+                className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.35)] cursor-pointer"
               >
                 Download Excel (.xlsx)
               </button>
