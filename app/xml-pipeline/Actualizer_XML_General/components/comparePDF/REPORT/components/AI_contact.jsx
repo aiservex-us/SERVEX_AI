@@ -1878,13 +1878,19 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       // Persistir de inmediato la desestructuración enriquecida en la columna xml_structure_context
       try {
+        const structureToStore = { ...data };
+        delete structureToStore.xml_raw; // Evitar duplicar el XML crudo masivo dentro de JSONB
+        delete structureToStore.csv_raw;
+        delete structureToStore.products;
+        delete structureToStore.options;
+
         await supabase
           .from('ClientsSERVEX_General_Procces')
           .upsert({
             company_name: 'General_Procces',
             file_name: file.name,
             xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
-            xml_structure_context: data
+            xml_structure_context: structureToStore
           }, { onConflict: 'company_name' });
         console.log('[+] xml_structure_context persistido exitosamente en ClientsSERVEX_General_Procces');
       } catch (saveContextErr) {
