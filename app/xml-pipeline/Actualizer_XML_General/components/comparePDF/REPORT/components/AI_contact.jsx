@@ -16,6 +16,7 @@ import AiCatalogIngestionReport from '@/app/cet-ai-engine/components/AiCatalogIn
 import AlysaWordmark from './AlysaWordmark.jsx';
 import ProductInspectionCard from './ProductInspectionCard.jsx';
 import CatalogSummaryCard from './CatalogSummaryCard.jsx';
+import CatalogAnalyticsCard from './CatalogAnalyticsCard.jsx';
 import UserStructuredMessage, { parseUserMessage } from './UserStructuredMessage.jsx';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
@@ -555,68 +556,68 @@ function formatProfessionalSpeechText(rawText) {
   return result;
 }
 
-// Configuración global del renderizador de Marked para estilos premium corporativos
+// Configuración global del renderizador de Marked para estilos premium corporativos en dark theme
 const origRenderer = new marked.Renderer();
 marked.use({
   renderer: {
     table(token) {
       const orig = origRenderer.table.call(this, token);
-      return `<div class="my-5 overflow-x-auto rounded-xl border border-[#18181b]/15 shadow-sm bg-white/60 backdrop-blur-sm inline-block max-w-full">
-        ${orig.replace('<table>', '<table class="text-left text-[13px] text-gray-700">')
-          .replace('<thead>', '<thead class="bg-[#18181b]/5 border-b border-[#18181b]/15 text-[#18181b] font-bold uppercase tracking-wider text-[11px]">')
-          .replace('<tbody>', '<tbody class="divide-y divide-[#18181b]/10">')}
+      return `<div class="my-4 overflow-x-auto rounded-xl border border-white/10 shadow-lg bg-[#09090b]/70 backdrop-blur-md inline-block max-w-full w-full">
+        ${orig.replace('<table>', '<table class="w-full text-left text-[12.5px] text-zinc-200">')
+          .replace('<thead>', '<thead class="bg-white/[0.06] border-b border-white/10 text-zinc-300 font-bold uppercase tracking-wider text-[11px]">')
+          .replace('<tbody>', '<tbody class="divide-y divide-white/[0.06]">')}
       </div>`;
     },
     tablerow(token) {
       const orig = origRenderer.tablerow.call(this, token);
-      return orig.replace('<tr>', '<tr class="hover:bg-white/80 transition-colors duration-200">');
+      return orig.replace('<tr>', '<tr class="hover:bg-white/[0.04] transition-colors duration-150">');
     },
     tablecell(token) {
       const orig = origRenderer.tablecell.call(this, token);
-      const padding = token.header ? 'px-4 py-3.5' : 'px-4 py-3';
+      const padding = token.header ? 'px-4 py-3' : 'px-4 py-2.5';
       return orig.replace(/^<(th|td)>/, `<$1 class="${padding} whitespace-nowrap">`);
     },
     list(token) {
       const orig = origRenderer.list.call(this, token);
       const classes = token.ordered
-        ? 'list-decimal list-outside ml-5 space-y-2.5 my-4 text-gray-700'
-        : 'list-disc list-outside ml-5 space-y-2.5 my-4 text-gray-700 marker:text-[#18181b]';
+        ? 'list-decimal list-outside ml-5 space-y-2 my-3 text-zinc-200'
+        : 'list-disc list-outside ml-5 space-y-2 my-3 text-zinc-200 marker:text-zinc-400';
       return orig.replace(/^<(ul|ol)>/, `<$1 class="${classes}">`);
     },
     listitem(token) {
       const orig = origRenderer.listitem.call(this, token);
-      return orig.replace(/^<li>/, '<li class="leading-relaxed pl-1">');
+      return orig.replace(/^<li>/, '<li class="leading-relaxed pl-1 text-zinc-200">');
     },
     paragraph(token) {
       const orig = origRenderer.paragraph.call(this, token);
-      return orig.replace(/^<p>/, '<p class="leading-relaxed mb-4 text-gray-700">');
+      return orig.replace(/^<p>/, '<p class="leading-relaxed mb-3 text-zinc-200">');
     },
     heading(token) {
       const orig = origRenderer.heading.call(this, token);
       const sizes = {
-        1: 'text-2xl font-bold mt-7 mb-4 text-[#27272a] tracking-tight',
-        2: 'text-xl font-bold mt-6 mb-3 text-[#18181b] tracking-tight border-b border-[#18181b]/15 pb-2',
-        3: 'text-lg font-semibold mt-5 mb-3 text-[#18181b] tracking-tight',
-        4: 'text-base font-semibold mt-4 mb-2 text-[#18181b]',
+        1: 'text-2xl font-bold mt-6 mb-3 text-white tracking-tight',
+        2: 'text-xl font-bold mt-5 mb-2.5 text-white tracking-tight border-b border-white/10 pb-2',
+        3: 'text-lg font-semibold mt-4 mb-2 text-white tracking-tight',
+        4: 'text-base font-semibold mt-3 mb-1.5 text-zinc-100',
       };
       const cls = sizes[token.depth] || sizes[4];
       return orig.replace(/^<h[1-6]>/, `<h${token.depth} class="${cls}">`);
     },
     codespan(token) {
       const orig = origRenderer.codespan.call(this, token);
-      return orig.replace('<code>', '<code class="px-1.5 py-0.5 rounded-md bg-[#18181b]/10 text-[#18181b] font-mono text-[12px] font-semibold border border-[#18181b]/20 shadow-sm">');
+      return orig.replace('<code>', '<code class="px-1.5 py-0.5 rounded-md bg-white/10 text-white font-mono text-[11.5px] font-semibold border border-white/15 shadow-sm">');
     },
     code(token) {
       const orig = origRenderer.code.call(this, token);
-      return `<div class="my-3 rounded-lg overflow-hidden bg-transparent border-0">
-            <div class="p-1 overflow-x-auto custom-scrollbar">
-              ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[13px] text-slate-700 font-mono leading-relaxed inline-block"><code class="block">')}
+      return `<div class="my-3 rounded-xl overflow-hidden bg-[#09090b]/80 border border-white/10 shadow-md">
+            <div class="p-3 overflow-x-auto custom-scrollbar">
+              ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[12.5px] text-zinc-200 font-mono leading-relaxed inline-block"><code class="block">')}
             </div>
           </div>`;
     },
     blockquote(token) {
       const orig = origRenderer.blockquote.call(this, token);
-      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-[#18181b] bg-gradient-to-r from-[#18181b]/5 to-transparent italic py-3 px-5 rounded-r-xl my-5 text-gray-700 shadow-sm">');
+      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-indigo-500 bg-white/[0.03] italic py-2.5 px-4 rounded-r-xl my-4 text-zinc-300 shadow-sm">');
     }
   }
 });
@@ -983,6 +984,157 @@ const parseCatalogSummary = (text, catalogData = null) => {
   }
 };
 
+// Parser inteligente para detectar y estructurar respuestas analíticas del catálogo CET
+const parseCatalogAnalytics = (text) => {
+  if (!text || typeof text !== 'string') return null;
+
+  const isAnalytics =
+    (text.includes('Total de Modelos') || text.includes('SKU / Modelo') || text.includes('Precio de Lista Base')) &&
+    (text.includes('Primeros') || text.includes('Últimos') || text.includes('Ultimos') || text.includes('Top') || text.includes('Productos del Catálogo') || text.includes('Productos con Precio') || text.includes('Resumen General de Productos') || text.includes('📋'));
+
+  if (!isAnalytics) return null;
+
+  try {
+    // 1. Extraer Título y Empresa
+    let title = "Exploración de Productos del Catálogo";
+    let company = "";
+
+    const titleMatch = text.match(/(?:###\s*)?📋\s*([^\n(]+)(?:\(([^)]+)\))?/i);
+    if (titleMatch) {
+      title = titleMatch[1].replace(/[`*#]/g, '').trim();
+      if (titleMatch[2]) company = titleMatch[2].replace(/[`*#]/g, '').trim();
+    }
+
+    // 2. Extraer KPIs
+    let totalSkus = "";
+    const totalMatch = text.match(/Total de Modelos(?: en Cat[aá]logo)?\s*[*:]+\s*[`*]*([0-9]+(?:\s*[^\n•`*]+)?)/i);
+    if (totalMatch) {
+      totalSkus = totalMatch[1].replace(/[`*]/g, '').trim();
+    }
+
+    let priceRange = "";
+    let minPrice = "";
+    let maxPrice = "";
+    const minM = text.match(/M[ií]nimo\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
+    const maxM = text.match(/M[aá]ximo\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
+    if (minM) minPrice = minM[1].includes('$') ? minM[1] : `$${minM[1]}`;
+    if (maxM) maxPrice = maxM[1].includes('$') ? maxM[1] : `$${maxM[1]}`;
+    if (minPrice && !minPrice.includes('USD')) minPrice += ' USD';
+    if (maxPrice && !maxPrice.includes('USD')) maxPrice += ' USD';
+    if (minPrice && maxPrice) {
+      priceRange = `${minPrice} — ${maxPrice}`;
+    }
+
+    let avgPrice = "";
+    const avgM = text.match(/Precio de Lista Promedio\s*[*:]+\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
+    if (avgM) {
+      avgPrice = avgM[1].includes('$') ? avgM[1] : `$${avgM[1]}`;
+      if (!avgPrice.includes('USD')) avgPrice += ' USD';
+    }
+
+    let filterBadge = "";
+    const filterM = text.match(/Filtro Aplicado\s*[*:]+\s*[`*]*([^\n`*•]+)[`*]*/i);
+    if (filterM) {
+      filterBadge = filterM[1].replace(/[`*]/g, '').trim();
+    }
+
+    // 3. Extraer Productos
+    const products = [];
+    const lines = text.split('\n');
+    let inTable = false;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      if (trimmed.includes('SKU / Modelo') || (trimmed.startsWith('#') && trimmed.includes('SKU'))) {
+        inTable = true;
+        continue;
+      }
+      if (trimmed.includes('---')) continue;
+      if (trimmed.startsWith('💡') || trimmed.toLowerCase().startsWith('nota:')) {
+        inTable = false;
+        continue;
+      }
+
+      if (inTable) {
+        let cols = [];
+        if (trimmed.includes('\t')) {
+          cols = trimmed.split('\t').map(c => c.trim());
+        } else if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+          cols = trimmed.split('|').slice(1, -1).map(c => c.trim());
+        }
+
+        if (cols.length >= 4) {
+          const idx = cols[0].replace(/[`*]/g, '').trim();
+          const sku = cols[1].replace(/[`*]/g, '').trim();
+          const desc = cols[2].replace(/[`*]/g, '').trim();
+          let price = cols[3].replace(/[`*]/g, '').trim();
+          if (price && !price.startsWith('$')) price = `$${price}`;
+          const feat = cols[4] ? cols[4].replace(/[`*]/g, '').trim() : 'Base Estándar';
+
+          if (sku && sku !== 'SKU / Modelo') {
+            products.push({
+              index: idx,
+              sku,
+              description: desc,
+              price,
+              features: feat
+            });
+          }
+        }
+      }
+    }
+
+    // 4. Extraer Tip / Sugerencia
+    let tipText = "";
+    const tipM = text.match(/💡\s*\*?(?:Puedes indicarme[^:\n]*:)?([^\n*]+(?:\n[^\n*]+)*)\*?/i);
+    if (tipM) {
+      tipText = tipM[0].replace(/💡\s*\*?/g, '').replace(/\*?$/g, '').trim();
+    }
+
+    // 5. Sugerencias interactivas
+    const suggestions = [];
+    const isFirstN = title.toLowerCase().includes('primeros') || (filterBadge && filterBadge.toLowerCase().includes('posición 1'));
+    if (isFirstN) {
+      suggestions.push({
+        label: 'Ver siguientes 5',
+        command: 'ver los siguientes 5 productos del catálogo'
+      });
+    }
+    suggestions.push({
+      label: 'Los más caros',
+      command: 'mostrar los 5 productos más caros del catálogo'
+    });
+    suggestions.push({
+      label: 'Los más económicos',
+      command: 'mostrar los 5 productos más económicos del catálogo'
+    });
+    if (products.length > 0 && products[0].sku) {
+      suggestions.push({
+        label: `Opciones de ${products[0].sku}`,
+        command: `consultar opciones del modelo ${products[0].sku}`
+      });
+    }
+
+    return {
+      title,
+      company: company || 'Catálogo XML',
+      totalSkus: totalSkus || `${products.length} SKUs`,
+      priceRange,
+      minPrice,
+      maxPrice,
+      avgPrice,
+      filterBadge: filterBadge || `${products.length} productos mostrados`,
+      products,
+      tipText,
+      suggestions
+    };
+  } catch {
+    return null;
+  }
+};
+
 const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandSelect, isDarkMode = true }) => {
   // 1. Detectar si el texto corresponde a una ficha técnica / inspección de producto
   const productInspection = useMemo(() => {
@@ -1008,6 +1160,21 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
     return (
       <CatalogSummaryCard
         data={catalogSummary}
+        onCommandSelect={onCommandSelect}
+        isDarkMode={isDarkMode}
+      />
+    );
+  }
+
+  // 3. Detectar si el texto corresponde a analítica de catálogo / exploración de productos
+  const catalogAnalytics = useMemo(() => {
+    return parseCatalogAnalytics(text);
+  }, [text]);
+
+  if (catalogAnalytics) {
+    return (
+      <CatalogAnalyticsCard
+        data={catalogAnalytics}
         onCommandSelect={onCommandSelect}
         isDarkMode={isDarkMode}
       />
