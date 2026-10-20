@@ -34,6 +34,28 @@ const DynamicDataMatrix = () => {
 
   const yieldToMainThread = () => new Promise(resolve => setTimeout(resolve, 0));
 
+  const recordTrackingEvent = async (eventType, description, title, details = {}) => {
+    try {
+      const backendUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        process.env.NEXT_PUBLIC_BACKEND_URL ||
+        'https://servex-ai-back.onrender.com';
+      fetch(`${backendUrl}/api/v1/cet-ai-engine/tracking/event`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company_name: 'General_Procces',
+          event_type: eventType,
+          title: title,
+          description: description,
+          actor: 'user',
+          details: details
+        }),
+        keepalive: true
+      }).catch(() => {});
+    } catch (_) {}
+  };
+
   const extractProductRows = (p, featureMap, getProductFeatureCodes, validColumns, computedHeaders) => {
     const sku = p.getElementsByTagName("Code")[0]?.textContent || "";
     const description = p.getElementsByTagName("Description")[0]?.textContent || "";
@@ -237,6 +259,14 @@ const DynamicDataMatrix = () => {
       setLoading(false);
       setCurrentPage(1); 
 
+      // Registrar evento de apertura en seguimiento_client
+      recordTrackingEvent(
+        'OPEN_EXCEL_EXPORT',
+        `El usuario abrió el componente para visualizar y exportar la matriz Excel (${productsXML.length} productos).`,
+        'Apertura de Módulo de Exportación',
+        { total_products: productsXML.length }
+      );
+
       // Sincronizar en segundo plano la matriz completa en csv_raw en la base de datos
       setTimeout(() => {
         loadAllForExport();
@@ -361,6 +391,14 @@ const DynamicDataMatrix = () => {
     const fullProducts = await loadAllForExport();
     if (!fullProducts || fullProducts.length === 0) return;
     
+    // Registrar evento de descarga CSV en seguimiento_client
+    recordTrackingEvent(
+      'DOWNLOAD_CSV',
+      `El usuario descargó la matriz de catálogo en formato CSV (${fullProducts.length} productos).`,
+      'Descarga de Matriz CSV',
+      { total_products: fullProducts.length, format: 'csv' }
+    );
+
     const csv = Papa.unparse(fullProducts, {
       columns: matrixHeaders,
       delimiter: ";"
@@ -380,6 +418,14 @@ const DynamicDataMatrix = () => {
     const fullProducts = await loadAllForExport();
     if (!fullProducts || fullProducts.length === 0) return;
     
+    // Registrar evento de descarga Excel en seguimiento_client
+    recordTrackingEvent(
+      'DOWNLOAD_EXCEL',
+      `El usuario descargó la matriz de catálogo en formato Excel (.xlsx) (${fullProducts.length} productos).`,
+      'Descarga de Matriz Excel',
+      { total_products: fullProducts.length, format: 'xlsx' }
+    );
+
     const worksheet = XLSX.utils.json_to_sheet(fullProducts, { header: matrixHeaders });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");

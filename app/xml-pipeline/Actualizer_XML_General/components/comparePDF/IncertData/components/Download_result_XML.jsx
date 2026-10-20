@@ -35,6 +35,24 @@ const DownloadResultXML = ({ moduleName = 'General_Procces' }) => {
       
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
+
+      // Registrar evento de descarga en seguimiento_client
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://servex-ai-back.onrender.com';
+        fetch(`${backendUrl}/api/v1/cet-ai-engine/tracking/event`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            company_name: moduleName,
+            event_type: 'DOWNLOAD_RESULT_XML',
+            title: 'Descarga de XML Certificado',
+            description: `El usuario descargó el archivo XML actualizado '${moduleName}.xml'.`,
+            actor: 'user',
+            details: { file_name: `${moduleName}.xml` }
+          }),
+          keepalive: true
+        }).catch(() => {});
+      } catch (_) {}
     } catch (err) {
       console.error('Error downloading XML:', err);
       alert('An error occurred while downloading the XML.');
