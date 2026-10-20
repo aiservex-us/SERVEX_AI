@@ -304,7 +304,7 @@ export default function CETDirectPipelinePage() {
       id: 1,
       from: 'bot',
       text:
-        '¡Hola! Puedes arrastrar y soltar tu archivo **.xml maestro de CET Designer** aquí, o indicarme directamente los cambios de precios que deseas aplicar (ej: `AS1101 a $850 y Polyurethane Armpad a $75` o `CLN7110-3-01030-AC a $6200 y Lock a $75`).\n\nEl análisis, la tabla de Staging y la descarga se generarán de forma directa en esta conversación.',
+        '¡Hola! Puedes arrastrar y soltar tu archivo **.xml maestro de CET Designer** aquí, o indicarme directamente los cambios de precios o consultas que deseas realizar sobre el catálogo.\n\nEl análisis en tiempo real, la tabla de Staging y la descarga se generarán de forma directa en esta conversación.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       showInitialUploader: true
     }
@@ -1348,7 +1348,7 @@ export default function CETDirectPipelinePage() {
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Escribe cambios (ej: AS1101 a $850 y Polyurethane Armpad a $75) o pega una lista... [Shift+Enter para nueva línea]"
+                      placeholder="Escribe cambios de precio, consulta productos o features del catálogo... [Shift+Enter para nueva línea]"
                       className="w-full bg-transparent border-0 outline-none resize-none text-[13px] text-slate-800 placeholder-slate-400 px-2 py-1 max-h-[160px] custom-scrollbar"
                     />
 

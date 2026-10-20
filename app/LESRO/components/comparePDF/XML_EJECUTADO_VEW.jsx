@@ -186,7 +186,7 @@ const TeamsOFDAVisualizer = ({ xmlString }) => {
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
           <input 
             type="text"
-            placeholder="Filter by SKU (e.g. AS1101)..."
+            placeholder="Filtrar por SKU o Código..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);

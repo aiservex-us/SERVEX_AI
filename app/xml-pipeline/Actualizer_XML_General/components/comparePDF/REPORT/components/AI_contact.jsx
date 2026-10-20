@@ -2108,7 +2108,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               ref={inputRef}
               rows={1}
               className={`flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] ${isDarkMode ? 'text-zinc-100 placeholder-zinc-500 caret-white' : 'text-gray-800 placeholder-gray-400 caret-[#18181b]'} leading-relaxed min-h-[28px] max-h-[140px] overflow-y-auto font-sans`}
-              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Actualiza precios (ej: AS1101 a $850 o pega cambios), consulta catálogo, o escribe '/' para comandos…"}
+              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Indica cambios de precio, consulta productos o features del catálogo, o escribe '/' para comandos…"}
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
