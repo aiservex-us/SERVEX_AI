@@ -2316,32 +2316,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           )}
         </AnimatePresence>
 
-        {/* Meta row */}
-        <div className="flex items-center justify-between px-4 pt-3 pb-1 bg-transparent border-none rounded-t-2xl">
-          <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'}`}>
-            <Zap size={12} className={isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'} />
-            <span>Engine v4.10</span>
-          </div>
-          {isRecording ? (
-            <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${isDarkMode ? 'bg-white/15 border border-white/25 text-white' : 'bg-[#18181b]/10 border border-[#18181b]/25 text-[#18181b]'} text-[11px] font-bold tracking-wide`}>
-              <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} animate-pulse`} />
-              <span>Audio Mixer Active</span>
-            </div>
-          ) : input.length > 0 ? (
-            <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-300 bg-white/5 border-white/10' : 'text-gray-500 bg-white/80 border-gray-200/60'} border px-2 py-0.5 rounded-md`}>
-              {input.length} chars
-            </span>
-          ) : null}
-        </div>
-
-        {/* Textarea & Icon */}
-        <div className="flex flex-col px-3.5 pt-1.5 pb-1 w-full">
+        {/* Textarea & Icon - Ocupa directamente el espacio superior del input */}
+        <div className="flex flex-col px-4 pt-3.5 pb-1 w-full">
           <div className="flex items-start gap-2.5 w-full">
             <Sparkles size={16} className={`mt-1 flex-shrink-0 transition-colors ${isRecording ? (isDarkMode ? 'text-white animate-pulse' : 'text-[#18181b] animate-pulse') : (isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/60')}`} />
             <textarea
               ref={inputRef}
               rows={1}
-              className={`flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] ${isDarkMode ? 'text-zinc-100 placeholder-zinc-500 caret-white' : 'text-gray-800 placeholder-gray-400 caret-[#18181b]'} leading-relaxed min-h-[28px] max-h-[140px] overflow-y-auto font-sans`}
+              className={`flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] ${isDarkMode ? 'text-zinc-100 placeholder-zinc-500 caret-white' : 'text-gray-800 placeholder-gray-400 caret-[#18181b]'} leading-relaxed min-h-[38px] max-h-[140px] overflow-y-auto font-sans`}
               placeholder={isRecording ? "Listening to your voice... Speak now..." : "Indica cambios de precio, consulta productos o features del catálogo, o escribe '/' para comandos…"}
               value={input}
               onChange={handleInputChange}
@@ -2439,28 +2421,41 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             </button>
           </div>
 
-          <button
-            onClick={() => sendMessage()}
-            disabled={!input.trim() || isLoading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
-              ${input.trim() && !isLoading
-                ? isDarkMode
-                  ? 'bg-white text-zinc-950 shadow-md hover:bg-zinc-200 hover:-translate-y-px font-bold cursor-pointer'
-                  : 'bg-[#18181b] text-white shadow-md shadow-[#18181b]/25 hover:bg-[#27272a] hover:-translate-y-px cursor-pointer'
-                : isDarkMode
-                  ? 'bg-white/10 text-zinc-500 border border-white/10 cursor-not-allowed'
-                  : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-              }`}
-          >
-            {isLoading ? (
-              <div className={`w-3.5 h-3.5 border-2 ${isDarkMode ? 'border-zinc-950/30 border-t-zinc-950' : 'border-white/30 border-t-white'} rounded-full animate-spin`} />
-            ) : (
-              <>
-                <span>Send</span>
-                <SendHorizonal size={14} />
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            {isRecording ? (
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/15 border border-white/25 text-white' : 'bg-[#18181b]/10 border border-[#18181b]/25 text-[#18181b]'} text-[11px] font-bold tracking-wide`}>
+                <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} animate-pulse`} />
+                <span>Audio Mixer Active</span>
+              </div>
+            ) : input.length > 0 ? (
+              <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-300 bg-white/5 border-white/10' : 'text-gray-500 bg-white/80 border-gray-200/60'} border px-2 py-0.5 rounded-md`}>
+                {input.length} chars
+              </span>
+            ) : null}
+
+            <button
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || isLoading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
+                ${input.trim() && !isLoading
+                  ? isDarkMode
+                    ? 'bg-white text-zinc-950 shadow-md hover:bg-zinc-200 hover:-translate-y-px font-bold cursor-pointer'
+                    : 'bg-[#18181b] text-white shadow-md shadow-[#18181b]/25 hover:bg-[#27272a] hover:-translate-y-px cursor-pointer'
+                  : isDarkMode
+                    ? 'bg-white/10 text-zinc-500 border border-white/10 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                }`}
+            >
+              {isLoading ? (
+                <div className={`w-3.5 h-3.5 border-2 ${isDarkMode ? 'border-zinc-950/30 border-t-zinc-950' : 'border-white/30 border-t-white'} rounded-full animate-spin`} />
+              ) : (
+                <>
+                  <span>Send</span>
+                  <SendHorizonal size={14} />
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     );
