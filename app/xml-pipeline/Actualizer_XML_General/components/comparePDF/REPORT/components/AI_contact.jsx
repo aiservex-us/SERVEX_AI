@@ -1890,6 +1890,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }));
       historyPayload.push({ role: "user", content: queryToSend });
 
+      const { data: chatAuth } = await supabase.auth.getUser().catch(() => ({ data: {} }));
+      const chatUserId = chatAuth?.user?.id || null;
+
       const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1898,7 +1901,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           raw_messages: [...messages.filter(msg => msg.text).slice(-15), { from: "user", text: queryToSend, time: now }],
           company_name: context,
           current_section: currentSection,
-          unlocked_phase: unlockedPhase
+          unlocked_phase: unlockedPhase,
+          user_id: chatUserId
         }),
       });
       const data = await res.json();
@@ -2025,6 +2029,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const formData = new FormData();
       formData.append('company_name', context || 'LESRO');
       formData.append('xml_file', file);
+      if (user?.id) {
+        formData.append('user_id', user.id);
+      }
       if (uploadedPublicUrl) {
         formData.append('storage_url', uploadedPublicUrl);
       }
@@ -2051,14 +2058,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         delete structureToStore.products;
         delete structureToStore.options;
 
+        const payloadContext = {
+          company_name: 'General_Procces',
+          file_name: file.name,
+          xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
+          xml_structure_context: structureToStore
+        };
+        if (user?.id) payloadContext.user_id = user.id;
+
         await supabase
           .from('ClientsSERVEX_General_Procces')
-          .upsert({
-            company_name: 'General_Procces',
-            file_name: file.name,
-            xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
-            xml_structure_context: structureToStore
-          }, { onConflict: 'company_name' });
+          .upsert(payloadContext, { onConflict: 'company_name' });
         console.log('[+] xml_structure_context persistido exitosamente en ClientsSERVEX_General_Procces');
       } catch (saveContextErr) {
         console.warn('[-] Advertencia persistiendo xml_structure_context en Supabase:', saveContextErr);
