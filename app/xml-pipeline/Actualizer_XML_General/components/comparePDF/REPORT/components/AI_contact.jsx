@@ -18,6 +18,7 @@ import ProductInspectionCard from './ProductInspectionCard.jsx';
 import CatalogSummaryCard from './CatalogSummaryCard.jsx';
 import CatalogAnalyticsCard from './CatalogAnalyticsCard.jsx';
 import UserStructuredMessage, { parseUserMessage } from './UserStructuredMessage.jsx';
+import { recordClientAction } from '@/app/lib/trackingClient';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
@@ -1738,6 +1739,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
 
     if (qLower === '/exportcetcsv') {
+      recordClientAction({
+        companyName: 'General_Procces',
+        eventType: 'OPEN_XML_MATRIX',
+        title: 'Apertura de Matriz de Catálogo',
+        description: 'El usuario solicitó abrir la tabla y matriz de exportación del catálogo.'
+      });
       setTimeout(() => {
         setMessages(prev => [
           ...prev, 
@@ -1816,6 +1823,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           link.parentNode.removeChild(link);
           window.URL.revokeObjectURL(url);
 
+          recordClientAction({
+            companyName: 'General_Procces',
+            eventType: 'DOWNLOAD_RESULT_XML',
+            title: 'Descarga de Catálogo XML',
+            description: 'El usuario descargó el archivo XML certificado (General Process.xml).'
+          });
+
           setMessages(prev => [...prev, { from: "bot", text: "✅ Download started. The file General Process.xml has been saved successfully.", time: nowTime }]);
         }
       } catch (err) {
@@ -1892,6 +1906,33 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       const { data: chatAuth } = await supabase.auth.getUser().catch(() => ({ data: {} }));
       const chatUserId = chatAuth?.user?.id || null;
+
+      // Asegurar que la fila de sesión existe en Supabase para persistir seguimiento_client y chat
+      try {
+        const checkRow = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('id')
+          .eq('company_name', 'General_Procces')
+          .maybeSingle();
+
+        if (!checkRow?.data?.id) {
+          const initPayload = {
+            company_name: 'General_Procces',
+            seguimiento_client: {
+              company_name: 'General_Procces',
+              created_at: new Date().toISOString(),
+              last_updated: new Date().toISOString(),
+              total_actions: 0,
+              session_summary: 'Sesión iniciada sin acciones registradas aún.',
+              events: []
+            }
+          };
+          if (chatUserId) initPayload.user_id = chatUserId;
+          await supabase
+            .from('ClientsSERVEX_General_Procces')
+            .upsert(initPayload, { onConflict: 'company_name' });
+        }
+      } catch (_) {}
 
       const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/chat`, {
         method: "POST",
@@ -2143,6 +2184,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       const data = await res.json();
 
+      recordClientAction({
+        companyName: 'General_Procces',
+        eventType: 'COMMIT_XML',
+        title: 'Inyección Quirúrgica en XML',
+        description: `El usuario confirmó y aplicó ${data.applied_count || stagedItems.length} cambio(s) directo(s) sobre el catálogo XML.`,
+        details: { applied_count: data.applied_count || stagedItems.length }
+      });
+
       setMessages((prev) =>
         prev.map((msg, i) =>
           i === msgIdx ? { ...msg, committed: true, appliedCount: data.applied_count || stagedItems.length } : msg
@@ -2169,6 +2218,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
   // Descarga directa del XML actualizado
   const handleDownloadXml = () => {
+    recordClientAction({
+      companyName: 'General_Procces',
+      eventType: 'DOWNLOAD_RESULT_XML',
+      title: 'Descarga de Catálogo XML',
+      description: 'El usuario descargó el archivo XML actualizado certificado.'
+    });
     const url = `${apiURL}/api/v1/General_Procces/agent/download-xml?company_name=${encodeURIComponent(context || 'LESRO')}`;
     window.open(url, '_blank');
   };

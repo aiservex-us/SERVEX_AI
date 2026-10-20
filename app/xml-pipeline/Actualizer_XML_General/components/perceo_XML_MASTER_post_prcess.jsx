@@ -11,6 +11,7 @@ import {
   Filter, 
   AlertCircle
 } from 'lucide-react';
+import { recordClientAction } from '@/app/lib/trackingClient';
 
 const WBDDataMatrix = () => {
   const [products, setProducts] = useState([]);
@@ -88,22 +89,13 @@ const WBDDataMatrix = () => {
       setOptionHeaders(dynamicOptionHeaders);
 
       // Registrar evento en seguimiento_client
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://servex-ai-back.onrender.com';
-        fetch(`${backendUrl}/api/v1/cet-ai-engine/tracking/event`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            company_name: 'General_Procces',
-            event_type: 'VIEW_POST_PROCESS_MATRIX',
-            title: 'Visualización de Matriz XML Actualizada',
-            description: `El usuario abrió la vista previa del XML post-proceso (${productsXML.length} productos).`,
-            actor: 'user',
-            details: { total_products: productsXML.length }
-          }),
-          keepalive: true
-        }).catch(() => {});
-      } catch (_) {}
+      recordClientAction({
+        companyName: 'General_Procces',
+        eventType: 'VIEW_POST_PROCESS_MATRIX',
+        title: 'Visualización de Matriz XML Actualizada',
+        description: `El usuario abrió la vista previa del XML post-proceso (${productsXML.length} productos).`,
+        details: { total_products: productsXML.length }
+      });
 
       // Paso 2: Extraer datos de los productos individualmente
 

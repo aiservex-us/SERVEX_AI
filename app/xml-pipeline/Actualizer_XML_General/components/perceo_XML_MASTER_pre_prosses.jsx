@@ -11,6 +11,7 @@ import {
   Filter, 
   AlertCircle
 } from 'lucide-react';
+import { recordClientAction } from '@/app/lib/trackingClient';
 
 const WBDDataMatrix = () => {
   const [products, setProducts] = useState([]);
@@ -115,6 +116,15 @@ const WBDDataMatrix = () => {
       
       setProducts(extracted);
       setCurrentPage(1); // Reiniciar a la primera page tras una recarga exitosa
+
+      // Registrar evento de apertura en seguimiento_client
+      recordClientAction({
+        companyName: 'General_Procces',
+        eventType: 'OPEN_XML_MATRIX',
+        title: 'Apertura de Matriz XML Maestro',
+        description: `El usuario abrió la matriz del catálogo XML para inspección (${extracted.length} productos).`,
+        details: { total_products: extracted.length }
+      });
     } catch (err) {
       console.error("Error processing General Process data matrix:", err);
       setError(err.message || "Error processing catalog information General Process.");

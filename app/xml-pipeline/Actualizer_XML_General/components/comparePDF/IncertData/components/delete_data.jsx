@@ -13,6 +13,7 @@ import {
   Sparkles 
 } from 'lucide-react';
 import { supabase } from '@/app/lib/supabaseClient';
+import { resetClientTracking } from '@/app/lib/trackingClient';
 
 export const purgeTenantDataBeacon = (currentTenant = 'General_Procces') => {
   if (typeof window === 'undefined') return;
@@ -64,6 +65,7 @@ export const purgeTenantDataBeacon = (currentTenant = 'General_Procces') => {
 export const purgeTenantData = async (currentTenant = 'General_Procces') => {
   // Disparar purga por beacon en paralelo como reaseguro inmediato
   purgeTenantDataBeacon(currentTenant);
+  resetClientTracking(currentTenant);
 
   // 1. Obtener y eliminar archivos del bucket catalogs-storage si existen
   try {

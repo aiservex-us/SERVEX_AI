@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import { recordClientAction } from '@/app/lib/trackingClient';
 
 const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
 
@@ -35,25 +36,13 @@ const DynamicDataMatrix = () => {
   const yieldToMainThread = () => new Promise(resolve => setTimeout(resolve, 0));
 
   const recordTrackingEvent = async (eventType, description, title, details = {}) => {
-    try {
-      const backendUrl =
-        process.env.NEXT_PUBLIC_API_URL ||
-        process.env.NEXT_PUBLIC_BACKEND_URL ||
-        'https://servex-ai-back.onrender.com';
-      fetch(`${backendUrl}/api/v1/cet-ai-engine/tracking/event`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company_name: 'General_Procces',
-          event_type: eventType,
-          title: title,
-          description: description,
-          actor: 'user',
-          details: details
-        }),
-        keepalive: true
-      }).catch(() => {});
-    } catch (_) {}
+    recordClientAction({
+      companyName: 'General_Procces',
+      eventType,
+      title,
+      description,
+      details
+    });
   };
 
   const extractProductRows = (p, featureMap, getProductFeatureCodes, validColumns, computedHeaders) => {
