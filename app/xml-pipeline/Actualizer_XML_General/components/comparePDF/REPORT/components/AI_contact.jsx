@@ -1941,6 +1941,10 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const uploadId = `xml-upload-${Date.now()}`;
 
+    // Obtener sesión de usuario al inicio de la función para usarla en todos los pasos
+    const { data: authData } = await supabase.auth.getUser().catch(() => ({ data: {} }));
+    const currentUser = authData?.user;
+
     setMessages((prev) => [
       ...prev,
       {
@@ -1980,8 +1984,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         }
 
         // Persistir referencia ligera en la tabla de Supabase sin saturar postgres
-        const { data: authData } = await supabase.auth.getUser();
-        const user = authData?.user;
         const baseXmlName = (file.name || '').replace(/\.xml$/i, '').trim();
         const payload = {
           company_name: 'General_Procces',
@@ -1990,7 +1992,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           xml_raw: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : '',
           XM_CET_import: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : ''
         };
-        if (user?.id) payload.user_id = user.id;
+        if (currentUser?.id) payload.user_id = currentUser.id;
 
         await supabase
           .from('ClientsSERVEX_General_Procces')
@@ -2029,8 +2031,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const formData = new FormData();
       formData.append('company_name', context || 'LESRO');
       formData.append('xml_file', file);
-      if (user?.id) {
-        formData.append('user_id', user.id);
+      if (currentUser?.id) {
+        formData.append('user_id', currentUser.id);
       }
       if (uploadedPublicUrl) {
         formData.append('storage_url', uploadedPublicUrl);
@@ -2064,7 +2066,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
           xml_structure_context: structureToStore
         };
-        if (user?.id) payloadContext.user_id = user.id;
+        if (currentUser?.id) payloadContext.user_id = currentUser.id;
 
         await supabase
           .from('ClientsSERVEX_General_Procces')
