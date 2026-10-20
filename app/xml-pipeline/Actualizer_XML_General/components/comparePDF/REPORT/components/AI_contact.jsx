@@ -617,7 +617,7 @@ marked.use({
     },
     blockquote(token) {
       const orig = origRenderer.blockquote.call(this, token);
-      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-indigo-500 bg-white/[0.03] italic py-2.5 px-4 rounded-r-xl my-4 text-zinc-300 shadow-sm">');
+      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-white/30 bg-white/[0.03] italic py-2.5 px-4 rounded-r-xl my-4 text-zinc-300 shadow-sm">');
     }
   }
 });

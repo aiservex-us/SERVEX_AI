@@ -204,7 +204,7 @@ export default function UserStructuredMessage({ text, isDarkMode = true, isInsid
                   : 'hover:bg-zinc-900/10 text-zinc-600 hover:text-zinc-950'
               }`}
             >
-              {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+              {copied ? <Check size={13} className={isDarkMode ? 'text-white' : 'text-zinc-900'} /> : <Copy size={13} />}
             </button>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function UserStructuredMessage({ text, isDarkMode = true, isInsid
                         }`}
                       >
                         {copiedSku === item.sku ? (
-                          <Check size={11} className="text-emerald-400" />
+                          <Check size={11} className={isDarkMode ? 'text-white' : 'text-zinc-900'} />
                         ) : (
                           <Copy size={11} />
                         )}
@@ -275,7 +275,7 @@ export default function UserStructuredMessage({ text, isDarkMode = true, isInsid
                   {/* Precio Base */}
                   <td className="py-2.5 px-4">
                     <span className={`font-mono text-xs font-bold ${
-                      isDarkMode ? 'text-emerald-400' : 'text-zinc-950'
+                      isDarkMode ? 'text-white' : 'text-zinc-950'
                     }`}>
                       {item.basePrice}
                     </span>
