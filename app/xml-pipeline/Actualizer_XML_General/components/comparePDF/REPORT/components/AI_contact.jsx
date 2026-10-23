@@ -19,6 +19,7 @@ import CatalogSummaryCard from './CatalogSummaryCard.jsx';
 import CatalogAnalyticsCard from './CatalogAnalyticsCard.jsx';
 import UserStructuredMessage, { parseUserMessage } from './UserStructuredMessage.jsx';
 import { recordClientAction } from '@/app/lib/trackingClient';
+import { saveGeneralProcessChat, loadGeneralProcessChat } from '@/app/lib/chatStorageClient';
 
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
@@ -1323,11 +1324,16 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
         const { data } = await supabase
           .from(tableName)
-          .select('xml_raw, XM_CET_import, csv_raw, csv_new_raw, xml_actualizer_raw')
+          .select('xml_raw, XM_CET_import, csv_raw, csv_new_raw, xml_actualizer_raw, file_name, xml_name')
           .eq('company_name', 'General_Procces')
           .maybeSingle();
 
         if (data) {
+          const fname = data.file_name || data.xml_name;
+          if (fname) {
+            setActiveCatalogName(fname);
+            activeCatalogRef.current = fname;
+          }
           if (data.csv_raw && String(data.csv_raw).trim()) {
             setDbCsvRaw(data.csv_raw);
           }
@@ -1381,6 +1387,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [context, setContext] = useState('Servex US');
+  const [activeCatalogName, setActiveCatalogName] = useState('General Process.xml');
+  const activeCatalogRef = useRef('General Process.xml');
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState(null);
 
@@ -1481,11 +1489,24 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   useEffect(() => {
     const fetchHistory = async () => {
       try {
+        // 1. Cargar directamente desde Supabase 'ClientsSERVEX_General_Procces.general_procces_chat'
+        const { history: dbHistory, catalogName: dbCat } = await loadGeneralProcessChat();
+        if (dbHistory && dbHistory.length > 0) {
+          setMessages(dbHistory);
+          if (dbCat) {
+            setActiveCatalogName(dbCat);
+            activeCatalogRef.current = dbCat;
+          }
+          return;
+        }
+
+        // 2. Si no había en BD o estaba vacía, consultar backend como fallback
         const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/history`).catch(() => null);
         if (!res || !res.ok) return;
         const data = await res.json().catch(() => null);
-        if (data && data.status === "success" && data.history) {
+        if (data && data.status === "success" && data.history && Array.isArray(data.history) && data.history.length > 0) {
           setMessages(data.history);
+          saveGeneralProcessChat(data.history, activeCatalogRef.current || 'General Process.xml');
         }
       } catch (e) {
         // Silenciosamente ignorar si el backend está offline
@@ -1648,7 +1669,21 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     if (!queryToSend || isLoading) return;
 
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setMessages(prev => [...prev, { from: "user", text: queryToSend, time: now }]);
+    const userMsg = {
+      id: `msg-user-${Date.now()}`,
+      from: "user",
+      role: "user",
+      text: queryToSend,
+      content: queryToSend,
+      time: now,
+      timestamp: new Date().toISOString(),
+      catalog: activeCatalogRef.current || 'General Process.xml'
+    };
+    setMessages(prev => {
+      const nextList = [...prev, userMsg];
+      saveGeneralProcessChat(nextList, activeCatalogRef.current || 'General Process.xml');
+      return nextList;
+    });
     setInput("");
     setShowSlashMenu(false);
     setIsLoading(true);
@@ -1948,22 +1983,44 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       });
       const data = await res.json();
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [
-        ...prev,
-        {
-          from: "bot",
-          text: data?.reply || "No response received.",
-          staged_result: data?.staged_result || null,
-          inspection_report: data?.inspection_report || null,
-          catalog_data: data?.catalog_data || null,
-          can_commit: Boolean(data?.can_commit),
-          needs_upload: Boolean(data?.needs_upload),
-          committed: false,
-          time: botTime
-        }
-      ]);
+      const botMsg = {
+        id: `msg-bot-${Date.now()}`,
+        from: "bot",
+        role: "assistant",
+        text: data?.reply || "No response received.",
+        content: data?.reply || "No response received.",
+        staged_result: data?.staged_result || null,
+        inspection_report: data?.inspection_report || null,
+        catalog_data: data?.catalog_data || null,
+        can_commit: Boolean(data?.can_commit),
+        needs_upload: Boolean(data?.needs_upload),
+        committed: false,
+        time: botTime,
+        timestamp: new Date().toISOString(),
+        catalog: activeCatalogRef.current || 'General Process.xml'
+      };
+      setMessages(prev => {
+        const nextList = [...prev, botMsg];
+        saveGeneralProcessChat(nextList, activeCatalogRef.current || 'General Process.xml');
+        return nextList;
+      });
     } catch {
-      setMessages(prev => [...prev, { from: "bot", text: "❌ Connection error.", time: "--:--" }]);
+      const errTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const errMsg = {
+        id: `msg-err-${Date.now()}`,
+        from: "bot",
+        role: "assistant",
+        text: "❌ Connection error.",
+        content: "❌ Connection error.",
+        time: errTime,
+        timestamp: new Date().toISOString(),
+        catalog: activeCatalogRef.current || 'General Process.xml'
+      };
+      setMessages(prev => {
+        const nextList = [...prev, errMsg];
+        saveGeneralProcessChat(nextList, activeCatalogRef.current || 'General Process.xml');
+        return nextList;
+      });
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -1981,24 +2038,32 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     setIsUploadingXml(true);
     const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const uploadId = `xml-upload-${Date.now()}`;
+    activeCatalogRef.current = file.name;
+    setActiveCatalogName(file.name);
 
     // Obtener sesión de usuario al inicio de la función para usarla en todos los pasos
     const { data: authData } = await supabase.auth.getUser().catch(() => ({ data: {} }));
     const currentUser = authData?.user;
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: uploadId,
-        from: 'user',
-        isXmlUpload: true,
-        fileName: file.name,
-        fileSizeKb: (file.size / 1024).toFixed(1),
-        uploadStatus: 'uploading',
-        text: `**Archivo XML adjunto para ingestión:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
-        time: userTime
-      }
-    ]);
+    const uploadUserMsg = {
+      id: uploadId,
+      from: 'user',
+      role: 'user',
+      isXmlUpload: true,
+      fileName: file.name,
+      fileSizeKb: (file.size / 1024).toFixed(1),
+      uploadStatus: 'uploading',
+      text: `**Archivo XML adjunto para ingestión:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
+      content: `Archivo XML adjunto para ingestión: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
+      time: userTime,
+      timestamp: new Date().toISOString(),
+      catalog: file.name
+    };
+    setMessages((prev) => {
+      const nextList = [...prev, uploadUserMsg];
+      saveGeneralProcessChat(nextList, file.name);
+      return nextList;
+    });
 
     try {
       // ── PASO 1: Subida ultrarrápida al bucket de Supabase (catalogs-storage) ──
@@ -2131,16 +2196,22 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       );
 
       // Emitir mensaje enriquecido con el análisis completo
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 2,
-          from: 'bot',
-          text: `**Catálogo XML Maestro Ingerido y Desestructurado en Memoria**\n\nEl archivo \`${file.name}\` fue analizado sin tocar Excel. El catálogo está listo para recibir instrucciones de actualización de precios o consulta de características.`,
-          uploadSummary: data,
-          time: botTime
-        }
-      ]);
+      const catalogIngestMsg = {
+        id: Date.now() + 2,
+        from: 'bot',
+        role: 'assistant',
+        text: `**Catálogo XML Maestro Ingerido y Desestructurado en Memoria**\n\nEl archivo \`${file.name}\` fue analizado sin tocar Excel. El catálogo está listo para recibir instrucciones de actualización de precios o consulta de características.`,
+        content: `Catálogo XML Maestro Ingerido y Desestructurado en Memoria: ${file.name}. Listo para recibir instrucciones.`,
+        uploadSummary: data,
+        time: botTime,
+        timestamp: new Date().toISOString(),
+        catalog: file.name
+      };
+      setMessages((prev) => {
+        const nextList = [...prev, catalogIngestMsg];
+        saveGeneralProcessChat(nextList, file.name);
+        return nextList;
+      });
     } catch (err) {
       console.error('Error subiendo XML:', err);
       // Marcar mensaje de subida con error
@@ -2199,15 +2270,22 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       );
 
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages((prev) => [
-        ...prev,
-        {
-          from: 'bot',
-          text: `🎯 **Inyección Quirúrgica 1-to-1 Completada con Éxito**\n\n• **Nodos Modificados:** **${data.applied_count || stagedItems.length}**\n• **Catálogo Afectado:** \`${context || 'General_Procces'}\`\n• **Integridad XML:** 100% Certificada para CET Designer y Catalog Creator.\n\nEl archivo XML maestro ya contiene los nuevos precios. Puedes descargarlo directamente a continuación:`,
-          showDownloadCard: true,
-          time: botTime
-        }
-      ]);
+      const commitConfirmMsg = {
+        id: `msg-commit-${Date.now()}`,
+        from: 'bot',
+        role: 'assistant',
+        text: `🎯 **Inyección Quirúrgica 1-to-1 Completada con Éxito**\n\n• **Nodos Modificados:** **${data.applied_count || stagedItems.length}**\n• **Catálogo Afectado:** \`${activeCatalogRef.current || context || 'General_Procces'}\`\n• **Integridad XML:** 100% Certificada para CET Designer y Catalog Creator.\n\nEl archivo XML maestro ya contiene los nuevos precios. Puedes descargarlo directamente a continuación:`,
+        content: `Inyección Quirúrgica 1-to-1 Completada con Éxito. Nodos Modificados: ${data.applied_count || stagedItems.length}. Catálogo: ${activeCatalogRef.current || 'General Process'}`,
+        showDownloadCard: true,
+        time: botTime,
+        timestamp: new Date().toISOString(),
+        catalog: activeCatalogRef.current || 'General Process.xml'
+      };
+      setMessages((prev) => {
+        const nextList = [...prev, commitConfirmMsg];
+        saveGeneralProcessChat(nextList, activeCatalogRef.current || 'General Process.xml');
+        return nextList;
+      });
     } catch (err) {
       console.error('Error inyectando en XML:', err);
       alert(`Error al aplicar cambios: ${err.message}`);
@@ -2800,7 +2878,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                       <div className={`p-2.5 border-t flex items-center justify-between ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-[#18181b]/5 border-[#18181b]/15'}`}>
                                         <span className={`text-[10.5px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} font-medium`}>
-                                          Catálogo: <strong className={isDarkMode ? 'text-white' : 'text-[#18181b]'}>{context || 'General Process'}</strong>
+                                          Catálogo: <strong className={isDarkMode ? 'text-white' : 'text-[#18181b]'}>{activeCatalogName || context || 'General Process'}</strong>
                                         </span>
                                         {msg.committed && (
                                           <button
