@@ -809,7 +809,8 @@ const parseCatalogSummary = (text, catalogData = null) => {
   if (!text || typeof text !== 'string') return null;
 
   const isSummary =
-    (text.includes('Resumen') && (text.includes('catálogo') || text.includes('catalogo'))) ||
+    text.includes('Resumen de Catálogo & Listas de Precios') ||
+    text.includes('Resumen de Catalogo & Listas de Precios') ||
     text.includes('Características con recargo') ||
     text.includes('Caracteristicas con recargo') ||
     text.includes('up‑charge') ||
@@ -970,6 +971,10 @@ const parseCatalogSummary = (text, catalogData = null) => {
     const tipM = text.match(/(?:💡\s*)?Tip(?: amigable)?[\s\S]*$/i);
     if (tipM) {
       tipText = tipM[0].replace(/^(?:💡\s*)?Tip(?: amigable)?\s*/i, '').trim();
+    }
+
+    if (!features || features.length === 0) {
+      return null;
     }
 
     return {
