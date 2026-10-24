@@ -17,6 +17,7 @@ import AlysaWordmark from './AlysaWordmark.jsx';
 import ProductInspectionCard from './ProductInspectionCard.jsx';
 import CatalogSummaryCard from './CatalogSummaryCard.jsx';
 import CatalogAnalyticsCard from './CatalogAnalyticsCard.jsx';
+import AiComparisonReportCard from './AiComparisonReportCard.jsx';
 import UserStructuredMessage, { parseUserMessage } from './UserStructuredMessage.jsx';
 import { recordClientAction } from '@/app/lib/trackingClient';
 import { saveGeneralProcessChat, loadGeneralProcessChat } from '@/app/lib/chatStorageClient';
@@ -1945,31 +1946,23 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (unlockedPhase < 4) updatePhase(4);
 
         const hasDifferences = changesCount > 0 || newCount > 0 || deletedCount > 0;
+        const botReplyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        if (hasDifferences) {
-          setMessages(prev => [
-            ...prev,
-            {
-              from: "bot",
-              text: `✅ **Auditoría Comparativa Finalizada con Éxito**\n\nSe han detectado las siguientes diferencias entre el catálogo base (\`csv_raw\`) y el catálogo actualizado (\`csv_new_raw\`):\n\n- 🔄 **Cambios en Celdas / Precios:** ${changesCount}\n- ➕ **Nuevos Productos Agregados:** ${newCount}\n- ➖ **Productos Eliminados (Bajas):** ${deletedCount}\n- 📋 **Modelos Comunes Evaluados:** ${totalEvaluated}\n\n*(Nota: El archivo XML permanece intacto y sin modificar en esta etapa de auditoría).* \n\nPuedes examinar las discrepancias y las métricas visuales ahora mismo:\n- /listPriceChanges — **List Price Changes**\n- /graphicsDashboard — **Graphics Dashboard**`,
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }
-          ]);
+        const summaryText = hasDifferences
+          ? `He completado la **auditoría comparativa matricial** entre el catálogo base (\`csv_raw\`) y el archivo actualizado (\`csv_new_raw\`).\n\nHe identificado **${changesCount} cambios en precios/celdas**, **${newCount} productos nuevos agregados** y **${deletedCount} productos dados de baja** sobre un total de **${totalEvaluated} modelos comunes evaluados**.\n\n*(Nota: El archivo XML maestro permanece 100% intacto y sin modificar).* Puedes revisar las discrepancias celda por celda en la tarjeta interactiva a continuación:`
+          : `He completado la **auditoría comparativa matricial**. Ambas matrices de datos son **100% idénticas** (${totalEvaluated} modelos evaluados). No se detectaron discrepancias de precios ni altas/bajas de productos.`;
 
-          // Ejecutar automáticamente la apertura de List Price Changes
-          setTimeout(() => {
-            sendMessage('/listPriceChanges');
-          }, 1200);
-        } else {
-          setMessages(prev => [
-            ...prev,
-            {
-              from: "bot",
-              text: `✅ **Auditoría Comparativa Finalizada**\n\nNo se detectaron diferencias entre el catálogo base (\`csv_raw\`) y el archivo subido (\`csv_new_raw\`). Ambas matrices de datos son idénticas (${totalEvaluated} modelos evaluados).\n\nPuedes consultar el panel en cualquier momento:\n- /listPriceChanges\n- /graphicsDashboard`,
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }
-          ]);
-        }
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `comparison-audit-${Date.now()}`,
+            from: "bot",
+            role: "assistant",
+            text: summaryText,
+            comparisonReport: resData,
+            time: botReplyTime
+          }
+        ]);
       } catch (err) {
         setMessages(prev => [
           ...prev, 
@@ -2782,6 +2775,15 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                       getCatalogExcelColumns={getCatalogExcelColumns}
                                       onCommandSelect={handleCommandSelect}
                                       time={msg.time}
+                                      isDarkMode={isDarkMode}
+                                    />
+                                  )}
+
+                                  {/* ── REPORTE CONVERSACIONAL DE COMPARACIÓN MATRICIAL (/executeProcess) ── */}
+                                  {msg.comparisonReport && (
+                                    <AiComparisonReportCard
+                                      data={msg.comparisonReport}
+                                      onCommandSelect={handleCommandSelect}
                                       isDarkMode={isDarkMode}
                                     />
                                   )}
