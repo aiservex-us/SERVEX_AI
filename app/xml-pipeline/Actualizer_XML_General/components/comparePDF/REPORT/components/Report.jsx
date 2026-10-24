@@ -26,7 +26,7 @@ export default function AuditReportViewer() {
       // Apuntando de manera precisa a la tabla de la entidad General Process
       const { data } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('id, company_name, audit_report_jsonP, audit_report_json, created_at')
+        .select('id, company_name, audit_report_json, created_at')
         .order('created_at', { ascending: false });
       
       setRecords(data || []);
@@ -38,10 +38,10 @@ export default function AuditReportViewer() {
 
   const activeRecord = records.find(r => r.id === selectedRecordId);
   
-  // Estructura JSON P (Inyección XML)
-  const reportDataP = activeRecord?.audit_report_jsonP;
-  const metricsP = reportDataP?.summary_metrics;
-  const changesP = reportDataP?.xml_injection_manifest || [];
+  // Estructura JSON (Auditoría Ciega / Inyección XML)
+  const reportDataP = activeRecord?.audit_report_json || activeRecord?.audit_report_jsonP;
+  const metricsP = reportDataP?.summary_metrics || reportDataP?.summary;
+  const changesP = reportDataP?.xml_injection_manifest || reportDataP?.detected_changes || [];
 
   const filteredChangesP = changesP.filter(c => 
     (c.model_id || '').toLowerCase().includes(searchTerm.toLowerCase()) || 

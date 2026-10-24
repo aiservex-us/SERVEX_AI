@@ -110,17 +110,30 @@ const DynamicDataMatrix = () => {
       let rawXmlStr = '';
       let existingCsvRaw = '';
 
+      let record = null;
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('XM_CET_import, xml_raw, storage_url, csv_raw')
+        .select('XM_CET_import, xml_raw, csv_raw')
         .eq('company_name', 'General_Procces')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (data) {
-        existingCsvRaw = data.csv_raw || '';
-        rawXmlStr = await resolveXmlContent(data.XM_CET_import || data.xml_raw || data.storage_url);
+        record = data;
+      } else {
+        const { data: fallbackData } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('XM_CET_import, xml_raw, csv_raw')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (fallbackData) record = fallbackData;
+      }
+
+      if (record) {
+        existingCsvRaw = record.csv_raw || '';
+        rawXmlStr = await resolveXmlContent(record.XM_CET_import || record.xml_raw);
       }
 
       // Fallback 1: Si no hay XML pero existe csv_raw en la BD, desglosar e inicializar la matriz al instante
@@ -395,7 +408,7 @@ const DynamicDataMatrix = () => {
         delimiter: ";"
       });
       
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
@@ -434,6 +447,9 @@ const DynamicDataMatrix = () => {
       const fileName = `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.xlsx`;
 
       try {
+        XLSX.writeFile(workbook, fileName);
+      } catch (writeErr) {
+        console.warn('Fallback a manual Blob download:', writeErr);
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         const blob = new Blob([excelBuffer], { 
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
@@ -448,9 +464,6 @@ const DynamicDataMatrix = () => {
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
         }, 150);
-      } catch (blobErr) {
-        console.warn('Fallback a XLSX.writeFile directo:', blobErr);
-        XLSX.writeFile(workbook, fileName);
       }
     } catch (err) {
       console.error('Error al exportar a Excel:', err);

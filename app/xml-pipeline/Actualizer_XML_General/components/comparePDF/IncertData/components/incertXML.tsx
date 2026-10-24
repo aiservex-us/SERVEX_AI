@@ -52,7 +52,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
     try {
       const { data, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw, xml_name, file_name, csv_raw, csv_new_raw, storage_url')
+        .select('xml_raw, xml_name, file_name, csv_raw, csv_new_raw')
         .eq('company_name', companyName)
         .maybeSingle();
 
@@ -62,7 +62,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         setExistingCsv(false);
         setExistingNewCsv(false);
       } else if (data) {
-        const hasXml = (!!(data as any)?.xml_raw && String((data as any)?.xml_raw).trim().length > 0) || !!(data as any)?.storage_url;
+        const hasXml = !!(data as any)?.xml_raw && String((data as any)?.xml_raw).trim().length > 0;
         const hasCsv = !!data.csv_raw &&
           (Array.isArray(data.csv_raw) ? data.csv_raw.length > 0 : String(data.csv_raw).trim().length > 0);
         const hasNewCsv = !!data.csv_new_raw &&

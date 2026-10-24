@@ -15,14 +15,14 @@ export const useCatalogData = () => {
 
       const { data } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw, storage_url')
+        .select('xml_raw')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
       if (data) {
-        const rawXmlText = await resolveXmlContent(data.xml_raw, data.storage_url);
+        const rawXmlText = await resolveXmlContent(data.xml_raw);
         if (rawXmlText) {
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(rawXmlText, "text/xml");

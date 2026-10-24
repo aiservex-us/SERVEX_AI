@@ -1932,7 +1932,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         });
 
         if (!response.ok) {
-          throw new Error('Comparison engine response failed');
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Comparison engine response failed');
         }
 
         const resData = await response.json();
@@ -2156,7 +2157,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           xml_raw: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : fileText,
           XM_CET_import: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : fileText
         };
-        if (uploadedPublicUrl) payload.storage_url = uploadedPublicUrl;
         if (currentUser?.id) payload.user_id = currentUser.id;
 
         await supabase

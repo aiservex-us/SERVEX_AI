@@ -35,14 +35,14 @@ const WBDDataMatrix = () => {
       // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad General Process
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw, storage_url')
+        .select('xml_raw')
         .eq('company_name', 'General_Procces')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (dbError) throw dbError;
-      const rawText = await resolveXmlContent(data?.xml_raw, data?.storage_url);
+      const rawText = await resolveXmlContent(data?.xml_raw);
       if (!rawText) {
         setProducts([]);
         return;
