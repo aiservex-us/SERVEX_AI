@@ -75,17 +75,23 @@ const ViewportGraphics = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const moduleMatch = pathname.match(/^\/([A-Z]+)\//);
-        const moduleName = moduleMatch ? moduleMatch[1] : null;
+        let moduleName = "General_Procces";
+        let tableName = "ClientsSERVEX_General_Procces";
 
-        if (!moduleName) throw new Error("Módulo no identificado en URL.");
-
-        const tableName = moduleName === "LESRO" ? "ClientsSERVEX" : `ClientsSERVEX_${moduleName}`;
+        const moduleMatch = pathname.match(/^\/([A-Z0-9_]+)\//i);
+        if (moduleMatch && moduleMatch[1].toLowerCase() !== "xml-pipeline") {
+          moduleName = moduleMatch[1];
+          tableName = moduleName === "LESRO" ? "ClientsSERVEX" : `ClientsSERVEX_${moduleName}`;
+        }
         
-        const { data: dbData, error: dbError } = await supabase
-          .from(tableName)
-          .select('audit_summary_markdown1')
-          .eq('company_name', moduleName)
+        let query = supabase.from(tableName).select('audit_summary_markdown1');
+        if (moduleName) {
+          query = query.ilike('company_name', moduleName);
+        }
+
+        const { data: dbData, error: dbError } = await query
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (dbError) throw dbError;

@@ -107,17 +107,63 @@ const DynamicDataMatrix = () => {
       setProducts([]);
       setProcessedIndex(0);
 
+      let rawXmlStr = '';
+      let existingCsvRaw = '';
+
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('XM_CET_import, xml_raw')
+        .select('XM_CET_import, xml_raw, storage_url, csv_raw')
         .eq('company_name', 'General_Procces')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (dbError) throw dbError;
-      const rawXmlStr = await resolveXmlContent(data?.XM_CET_import || data?.xml_raw);
+      if (data) {
+        existingCsvRaw = data.csv_raw || '';
+        rawXmlStr = await resolveXmlContent(data.XM_CET_import || data.xml_raw || data.storage_url);
+      }
+
+      // Fallback 1: Si no hay XML pero existe csv_raw en la BD, desglosar e inicializar la matriz al instante
+      if (!rawXmlStr && existingCsvRaw && existingCsvRaw.trim()) {
+        const parsedCsv = Papa.parse(existingCsvRaw.trim(), { header: true, skipEmptyLines: true });
+        if (parsedCsv.data && parsedCsv.data.length > 0) {
+          const headers = parsedCsv.meta.fields || Object.keys(parsedCsv.data[0]);
+          setMatrixHeaders(headers);
+          setProducts(parsedCsv.data);
+          setTotalProductsInXml(parsedCsv.data.length);
+          setProcessedIndex(parsedCsv.data.length);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Fallback 2: Intentar recuperar el XML activo directamente del backend en memoria
       if (!rawXmlStr) {
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://servex-ai-back.onrender.com';
+          const backRes = await fetch(`${backendUrl}/api/v1/General_Procces/agent/download-xml`);
+          if (backRes.ok) {
+            const fetchedXml = await backRes.text();
+            if (fetchedXml && fetchedXml.trim().startsWith('<')) {
+              rawXmlStr = fetchedXml;
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (!rawXmlStr) {
+        if (existingCsvRaw && existingCsvRaw.trim()) {
+          const parsedCsv = Papa.parse(existingCsvRaw.trim(), { header: true, skipEmptyLines: true });
+          if (parsedCsv.data && parsedCsv.data.length > 0) {
+            const headers = parsedCsv.meta.fields || Object.keys(parsedCsv.data[0]);
+            setMatrixHeaders(headers);
+            setProducts(parsedCsv.data);
+            setTotalProductsInXml(parsedCsv.data.length);
+            setProcessedIndex(parsedCsv.data.length);
+            setLoading(false);
+            return;
+          }
+        }
         setProducts([]);
         setMatrixHeaders(BASE_HEADERS);
         setLoading(false);
@@ -234,32 +280,32 @@ const DynamicDataMatrix = () => {
         computedHeaders
       };
 
-      // CARGA DE BÚFER INICIAL (EXACTAMENTE 30 PRODUCTOS = 2 PÁGINAS DE 15)
-      const initialRows = [];
-      const initialCount = Math.min(30, productsXML.length);
-      
-      for (let i = 0; i < initialCount; i++) {
+      // Cargar TODOS los productos en memoria para búsqueda, paginación completa y exportación instantánea
+      const allRows = [];
+      for (let i = 0; i < productsXML.length; i++) {
+        if (i > 0 && i % 300 === 0) {
+          await yieldToMainThread();
+        }
         const rows = extractProductRows(productsXML[i], featureMap, getProductFeatureCodes, validColumns, computedHeaders);
-        initialRows.push(...rows);
+        allRows.push(...rows);
       }
 
-      setProducts(initialRows);
-      setProcessedIndex(initialCount);
+      setProducts(allRows);
+      setTotalProductsInXml(allRows.length);
+      setProcessedIndex(productsXML.length);
       setLoading(false);
       setCurrentPage(1); 
 
       // Registrar evento de apertura en seguimiento_client
       recordTrackingEvent(
         'OPEN_EXCEL_EXPORT',
-        `El usuario abrió el componente para visualizar y exportar la matriz Excel (${productsXML.length} productos).`,
+        `El usuario abrió el componente para visualizar y exportar la matriz Excel (${allRows.length} productos).`,
         'Apertura de Módulo de Exportación',
-        { total_products: productsXML.length }
+        { total_products: allRows.length }
       );
 
       // Sincronizar en segundo plano la matriz completa en csv_raw en la base de datos
-      setTimeout(() => {
-        loadAllForExport();
-      }, 500);
+      syncMatrixCsvToDb(allRows, computedHeaders);
     } catch (err) {
       console.error("Error processing catalog XML data matrix:", err);
       setError(err.message || "Error processing catalog information.");
@@ -291,55 +337,8 @@ const DynamicDataMatrix = () => {
     }
   };
 
-  const loadMoreProductsBuffer = async (countToLoad = 30) => {
-    if (!processedXmlRef.current) return;
-    const { productsXML, featureMap, getProductFeatureCodes, validColumns, computedHeaders } = processedXmlRef.current;
-    
-    if (processedIndex >= productsXML.length) return;
-
-    const nextIndex = Math.min(processedIndex + countToLoad, productsXML.length);
-    const newRows = [];
-
-    for (let i = processedIndex; i < nextIndex; i++) {
-      const rows = extractProductRows(productsXML[i], featureMap, getProductFeatureCodes, validColumns, computedHeaders);
-      newRows.push(...rows);
-    }
-
-    setProducts(prev => [...prev, ...newRows]);
-    setProcessedIndex(nextIndex);
-  };
-
-  // Carga bajo demanda al navegar a páginas posteriores
-  useEffect(() => {
-    const requiredItemCount = (currentPage + 1) * itemsPerPage;
-    if (requiredItemCount >= products.length && processedIndex < totalProductsInXml) {
-      loadMoreProductsBuffer(30);
-    }
-  }, [currentPage, products.length, processedIndex, totalProductsInXml]);
-
   const loadAllForExport = async () => {
-    if (!processedXmlRef.current) return products;
-
-    const { productsXML, featureMap, getProductFeatureCodes, validColumns, computedHeaders } = processedXmlRef.current;
-    let allRows = [...products];
-
-    if (processedIndex < productsXML.length) {
-      setIsExportingFull(true);
-      for (let i = processedIndex; i < productsXML.length; i++) {
-        if (i % 200 === 0) await yieldToMainThread();
-        const rows = extractProductRows(productsXML[i], featureMap, getProductFeatureCodes, validColumns, computedHeaders);
-        allRows.push(...rows);
-      }
-
-      setProducts(allRows);
-      setProcessedIndex(productsXML.length);
-      setIsExportingFull(false);
-    }
-
-    // Almacena automáticamente la matriz convertida en la columna csv_raw
-    syncMatrixCsvToDb(allRows, computedHeaders);
-
-    return allRows;
+    return products;
   };
 
   useEffect(() => {
@@ -376,50 +375,87 @@ const DynamicDataMatrix = () => {
     return { total, filtered: filtered.length, avgPrice };
   }, [products, filtered]);
 
-  const exportToCSV = async () => {
-    const fullProducts = await loadAllForExport();
-    if (!fullProducts || fullProducts.length === 0) return;
-    
-    // Registrar evento de descarga CSV en seguimiento_client
-    recordTrackingEvent(
-      'DOWNLOAD_CSV',
-      `El usuario descargó la matriz de catálogo en formato CSV (${fullProducts.length} productos).`,
-      'Descarga de Matriz CSV',
-      { total_products: fullProducts.length, format: 'csv' }
-    );
+  const exportToCSV = () => {
+    try {
+      const rowsToExport = filtered && filtered.length > 0 ? filtered : products;
+      if (!rowsToExport || rowsToExport.length === 0) {
+        alert("No hay productos disponibles en la matriz para exportar. Asegúrate de haber cargado el catálogo.");
+        return;
+      }
+      
+      recordTrackingEvent(
+        'DOWNLOAD_CSV',
+        `El usuario descargó la matriz de catálogo en formato CSV (${rowsToExport.length} productos).`,
+        'Descarga de Matriz CSV',
+        { total_products: rowsToExport.length, format: 'csv' }
+      );
 
-    const csv = Papa.unparse(fullProducts, {
-      columns: matrixHeaders,
-      delimiter: ";"
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const csv = Papa.unparse(rowsToExport, {
+        columns: matrixHeaders,
+        delimiter: ";"
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 150);
+    } catch (err) {
+      console.error('Error al exportar a CSV:', err);
+      alert('Error al generar el archivo CSV: ' + (err.message || err));
+    }
   };
 
-  const exportToExcel = async () => {
-    const fullProducts = await loadAllForExport();
-    if (!fullProducts || fullProducts.length === 0) return;
-    
-    // Registrar evento de descarga Excel en seguimiento_client
-    recordTrackingEvent(
-      'DOWNLOAD_EXCEL',
-      `El usuario descargó la matriz de catálogo en formato Excel (.xlsx) (${fullProducts.length} productos).`,
-      'Descarga de Matriz Excel',
-      { total_products: fullProducts.length, format: 'xlsx' }
-    );
+  const exportToExcel = () => {
+    try {
+      const rowsToExport = filtered && filtered.length > 0 ? filtered : products;
+      if (!rowsToExport || rowsToExport.length === 0) {
+        alert("No hay productos disponibles en la matriz para exportar. Asegúrate de haber cargado el catálogo.");
+        return;
+      }
+      
+      recordTrackingEvent(
+        'DOWNLOAD_EXCEL',
+        `El usuario descargó la matriz de catálogo en formato Excel (.xlsx) (${rowsToExport.length} productos).`,
+        'Descarga de Matriz Excel',
+        { total_products: rowsToExport.length, format: 'xlsx' }
+      );
 
-    const worksheet = XLSX.utils.json_to_sheet(fullProducts, { header: matrixHeaders });
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
-    
-    XLSX.writeFile(workbook, `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.xlsx`);
+      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: matrixHeaders });
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
+      
+      const fileName = `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+      try {
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        }, 150);
+      } catch (blobErr) {
+        console.warn('Fallback a XLSX.writeFile directo:', blobErr);
+        XLSX.writeFile(workbook, fileName);
+      }
+    } catch (err) {
+      console.error('Error al exportar a Excel:', err);
+      alert('Error al generar el archivo Excel: ' + (err.message || err));
+    }
   };
 
   if (loading) return (
@@ -484,10 +520,20 @@ const DynamicDataMatrix = () => {
           </button>
 
           <button 
-            onClick={() => setShowWarningModal(true)}
+            onClick={exportToCSV}
+            type="button"
+            className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-xs border border-white/15"
+            title="Descargar matriz en formato CSV"
+          >
+            <Download size={11} />
+            <span>CSV</span>
+          </button>
+
+          <button 
+            onClick={exportToExcel}
             type="button"
             className="px-2.5 py-1 bg-white hover:bg-zinc-200 text-zinc-950 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-xs"
-            title="Export to Excel"
+            title="Descargar matriz en formato Excel (.xlsx)"
           >
             <Download size={11} />
             <span>Excel</span>

@@ -1232,7 +1232,7 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
     }
 
     // Inyectar botones interactivos para comandos de barra después del markdown
-    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/g;
+    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|exportExcel|downloadExcel|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/gi;
     const btnClass = isDarkMode
       ? 'text-zinc-100 hover:text-white font-semibold underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none'
       : 'text-[#18181b] hover:text-[#27272a] font-semibold hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none';
@@ -1778,19 +1778,22 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       return;
     }
 
-    if (qLower === '/exportcetcsv') {
+    if (qLower === '/exportcetcsv' || qLower === '/downloadexcel' || qLower === '/exportexcel') {
       recordClientAction({
         companyName: 'General_Procces',
         eventType: 'OPEN_XML_MATRIX',
         title: 'Apertura de Matriz de Catálogo',
         description: 'El usuario solicitó abrir la tabla y matriz de exportación del catálogo.'
       });
+      if (typeof onOpenToolPanel === 'function') {
+        onOpenToolPanel('xml_results');
+      }
       setTimeout(() => {
         setMessages(prev => [
           ...prev, 
           { 
             from: 'bot', 
-            text: 'Aquí tienes la tabla y matriz de exportación para clientes (**Export Data Client**):', 
+            text: 'Aquí tienes la tabla y matriz de exportación para clientes (**Export Data Client**):\nPuedes descargar el catálogo en formato **Excel (.xlsx)** o **CSV** con un solo clic desde la barra superior de la matriz.', 
             toolId: 'xml_results',
             isNew: true 
           }
@@ -1908,9 +1911,16 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       return;
     }
 
-    if (queryToSend === '/executeProcess') {
+    if (qLower === '/executeprocess') {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: "⚙️ Starting ETL engine for cloud catalog processing (General Process). Please wait...", time: nowTime }]);
+      setMessages(prev => [
+        ...prev, 
+        { 
+          from: "bot", 
+          text: "⚙️ **Iniciando auditoría comparativa matricial** (`csv_raw` vs `csv_new_raw`)...\nAnalizando diferencias en catálogo, precios base, opciones, altas y bajas de productos.", 
+          time: nowTime 
+        }
+      ]);
 
       try {
         const formData = new FormData();
@@ -1925,11 +1935,49 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           throw new Error('Comparison engine response failed');
         }
 
-        await response.json();
-        setMessages(prev => [...prev, { from: "bot", text: "✅ ETL process completed successfully! The catalog has been restructured and compared. You can now review the audit in 'List Price Changes'.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-        setTimeout(() => { sendMessage('/listPriceChanges'); }, 1500);
+        const resData = await response.json();
+        const changesCount = resData.changes_detected_count ?? (resData.detected_changes?.length || 0);
+        const newCount = resData.new_models_count ?? (resData.summary?.new_models_detected_count || 0);
+        const deletedCount = resData.deleted_models_count ?? (resData.summary?.deleted_models_detected_count || 0);
+        const totalEvaluated = resData.total_evaluated ?? (resData.summary?.total_common_models_evaluated || 0);
+
+        if (unlockedPhase < 4) updatePhase(4);
+
+        const hasDifferences = changesCount > 0 || newCount > 0 || deletedCount > 0;
+
+        if (hasDifferences) {
+          setMessages(prev => [
+            ...prev,
+            {
+              from: "bot",
+              text: `✅ **Auditoría Comparativa Finalizada con Éxito**\n\nSe han detectado las siguientes diferencias entre el catálogo base (\`csv_raw\`) y el catálogo actualizado (\`csv_new_raw\`):\n\n- 🔄 **Cambios en Celdas / Precios:** ${changesCount}\n- ➕ **Nuevos Productos Agregados:** ${newCount}\n- ➖ **Productos Eliminados (Bajas):** ${deletedCount}\n- 📋 **Modelos Comunes Evaluados:** ${totalEvaluated}\n\n*(Nota: El archivo XML permanece intacto y sin modificar en esta etapa de auditoría).* \n\nPuedes examinar las discrepancias y las métricas visuales ahora mismo:\n- /listPriceChanges — **List Price Changes**\n- /graphicsDashboard — **Graphics Dashboard**`,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+          ]);
+
+          // Ejecutar automáticamente la apertura de List Price Changes
+          setTimeout(() => {
+            sendMessage('/listPriceChanges');
+          }, 1200);
+        } else {
+          setMessages(prev => [
+            ...prev,
+            {
+              from: "bot",
+              text: `✅ **Auditoría Comparativa Finalizada**\n\nNo se detectaron diferencias entre el catálogo base (\`csv_raw\`) y el archivo subido (\`csv_new_raw\`). Ambas matrices de datos son idénticas (${totalEvaluated} modelos evaluados).\n\nPuedes consultar el panel en cualquier momento:\n- /listPriceChanges\n- /graphicsDashboard`,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+          ]);
+        }
       } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: `❌ Error during ETL process execution: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        setMessages(prev => [
+          ...prev, 
+          { 
+            from: "bot", 
+            text: `❌ Error durante la comparación de matrices: ${err.message}`, 
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+          }
+        ]);
       }
       setIsLoading(false);
       return;
@@ -2073,6 +2121,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     });
 
     try {
+      const fileText = await file.text().catch(() => '');
+      if (fileText) setDbXmlRaw(fileText);
+
       // ── PASO 1: Subida ultrarrápida al bucket de Supabase (catalogs-storage) ──
       let uploadedPublicUrl = '';
       try {
@@ -2096,15 +2147,16 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           }
         }
 
-        // Persistir referencia ligera en la tabla de Supabase sin saturar postgres
+        // Persistir referencia en la tabla de Supabase sin saturar postgres
         const baseXmlName = (file.name || '').replace(/\.xml$/i, '').trim();
         const payload = {
           company_name: 'General_Procces',
           file_name: file.name,
           xml_name: baseXmlName,
-          xml_raw: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : '',
-          XM_CET_import: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : ''
+          xml_raw: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : fileText,
+          XM_CET_import: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : fileText
         };
+        if (uploadedPublicUrl) payload.storage_url = uploadedPublicUrl;
         if (currentUser?.id) payload.user_id = currentUser.id;
 
         await supabase
@@ -2138,9 +2190,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       ]);
 
       // ── PASO 2: Ingesta y análisis estructural en el motor de memoria ──
-      const fileText = await file.text().catch(() => '');
-      if (fileText) setDbXmlRaw(fileText);
-
       const formData = new FormData();
       formData.append('company_name', context || 'LESRO');
       formData.append('xml_file', file);
@@ -2731,7 +2780,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                       csvRaw={dbCsvRaw || msg.uploadSummary?.csv_raw}
                                       xmlRaw={dbXmlRaw || msg.uploadSummary?.xml_raw}
                                       getCatalogExcelColumns={getCatalogExcelColumns}
-                                      onCommandSelect={(cmd) => setInput(cmd)}
+                                      onCommandSelect={handleCommandSelect}
                                       time={msg.time}
                                       isDarkMode={isDarkMode}
                                     />
