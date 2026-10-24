@@ -2765,39 +2765,21 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                               Surgical Staging & XML Diff Board
                                             </h4>
                                             <span className={`px-2 py-0.5 rounded-full text-[9.5px] font-mono font-bold shadow-xs ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'}`}>
-                                              {msg.staged_result.items.length} Cambios
+                                              {msg.staged_result.items.length} {msg.staged_result.items.length === 1 ? 'Cambio' : 'Cambios'}
                                             </span>
                                           </div>
                                           <p className={`text-[11px] mt-0.5 font-medium ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'}`}>
-                                            Previsualización en memoria. Confirma para inyectar directamente en el XML maestro.
+                                            Registro estructurado en memoria de los cambios recopilados durante la conversación.
                                           </p>
                                         </div>
 
-                                        <button
-                                          onClick={() => handleCommitStaged(idx, msg.staged_result.items)}
-                                          disabled={isCommitting || msg.committed}
-                                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 ${msg.committed
-                                            ? isDarkMode ? 'bg-white/10 text-zinc-400 hover:bg-white/20' : 'bg-[#18181b]/90 hover:bg-[#18181b] text-white'
-                                            : isDarkMode ? 'bg-white text-zinc-950 hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'
-                                            } disabled:opacity-60 cursor-pointer`}
-                                        >
-                                          {isCommitting ? (
-                                            <>
-                                              <RefreshCw size={12} className="animate-spin" />
-                                              Inyectando...
-                                            </>
-                                          ) : msg.committed ? (
-                                            <>
-                                              <CheckCheck size={13} className={isDarkMode ? 'text-zinc-400' : 'text-zinc-300'} />
-                                              ¡XML Actualizado!
-                                            </>
-                                          ) : (
-                                            <>
-                                              <CheckCircle2 size={13} />
-                                              Aplicar Cambios al XML
-                                            </>
-                                          )}
-                                        </button>
+                                        {/* Estado de recopilación en memoria (Sin inyección al XML) */}
+                                        <div className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border shadow-xs ${
+                                          isDarkMode ? 'bg-white/10 border-white/15 text-zinc-200' : 'bg-[#18181b]/10 border-[#18181b]/15 text-[#18181b]'
+                                        }`}>
+                                          <Layers size={13} className={isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'} />
+                                          <span>Cambios Recopilados</span>
+                                        </div>
                                       </div>
 
                                       <div className={`overflow-x-auto max-h-[380px] ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'scrollbar-thin'}`}>

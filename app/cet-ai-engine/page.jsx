@@ -1091,41 +1091,19 @@ export default function CETDirectPipelinePage() {
                                         Surgical Staging & XML Diff Board
                                       </h4>
                                       <span className="px-2 py-0.5 rounded-full bg-[#464775] text-white text-[9.5px] font-mono font-bold shadow-xs">
-                                        {m.stagedResult.items.length} Cambios
+                                        {m.stagedResult.items.length} {m.stagedResult.items.length === 1 ? 'Cambio' : 'Cambios'}
                                       </span>
                                     </div>
                                     <p className="text-[11px] text-[#464775]/75 mt-0.5 font-medium">
-                                      Previsualización en memoria. Confirma para inyectar directamente en el XML maestro.
+                                      Registro estructurado en memoria de los cambios recopilados durante la conversación.
                                     </p>
                                   </div>
 
-                                  {/* Botón de Inyección Quirúrgica */}
-                                  <button
-                                    onClick={() => handleCommitMessageStaged(m.id, m.stagedResult.items, m.companyName)}
-                                    disabled={isCommitting || m.committed}
-                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs flex items-center gap-1.5 ${
-                                      m.committed
-                                        ? 'bg-[#464775]/90 hover:bg-[#464775]'
-                                        : 'bg-[#464775] hover:bg-[#38395f] active:scale-[0.98]'
-                                    } disabled:opacity-60 cursor-pointer`}
-                                  >
-                                    {isCommitting ? (
-                                      <>
-                                        <RefreshCw size={12} className="animate-spin" />
-                                        Inyectando...
-                                      </>
-                                    ) : m.committed ? (
-                                      <>
-                                        <CheckCheck size={13} className="text-purple-200" />
-                                        ¡XML Actualizado!
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CheckCircle2 size={13} />
-                                        Aplicar Cambios al XML
-                                      </>
-                                    )}
-                                  </button>
+                                  {/* Estado de recopilación en memoria (Sin inyección al XML) */}
+                                  <div className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#464775]/10 border border-[#464775]/15 text-[#464775] flex items-center gap-1.5">
+                                    <Layers size={13} className="text-[#464775]" />
+                                    <span>Cambios Recopilados</span>
+                                  </div>
                                 </div>
 
                                 {/* Tabla Dinámica con Scroll */}
