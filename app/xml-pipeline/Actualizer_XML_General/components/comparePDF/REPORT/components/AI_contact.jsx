@@ -1947,32 +1947,34 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const { data: chatAuth } = await supabase.auth.getUser().catch(() => ({ data: {} }));
       const chatUserId = chatAuth?.user?.id || null;
 
-      // Asegurar que la fila de sesión existe en Supabase para persistir seguimiento_client y chat
-      try {
-        const checkRow = await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .select('id')
-          .eq('company_name', 'General_Procces')
-          .maybeSingle();
-
-        if (!checkRow?.data?.id) {
-          const initPayload = {
-            company_name: 'General_Procces',
-            seguimiento_client: {
-              company_name: 'General_Procces',
-              created_at: new Date().toISOString(),
-              last_updated: new Date().toISOString(),
-              total_actions: 0,
-              session_summary: 'Sesión iniciada sin acciones registradas aún.',
-              events: []
-            }
-          };
-          if (chatUserId) initPayload.user_id = chatUserId;
-          await supabase
+      // Asegurar que la fila de sesión existe en Supabase para persistir seguimiento_client y chat (asíncrono, no bloquea el envío)
+      (async () => {
+        try {
+          const checkRow = await supabase
             .from('ClientsSERVEX_General_Procces')
-            .upsert(initPayload, { onConflict: 'company_name' });
-        }
-      } catch (_) {}
+            .select('id')
+            .eq('company_name', 'General_Procces')
+            .maybeSingle();
+
+          if (!checkRow?.data?.id) {
+            const initPayload = {
+              company_name: 'General_Procces',
+              seguimiento_client: {
+                company_name: 'General_Procces',
+                created_at: new Date().toISOString(),
+                last_updated: new Date().toISOString(),
+                total_actions: 0,
+                session_summary: 'Sesión iniciada sin acciones registradas aún.',
+                events: []
+              }
+            };
+            if (chatUserId) initPayload.user_id = chatUserId;
+            await supabase
+              .from('ClientsSERVEX_General_Procces')
+              .upsert(initPayload, { onConflict: 'company_name' });
+          }
+        } catch (_) {}
+      })();
 
       const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/chat`, {
         method: "POST",
