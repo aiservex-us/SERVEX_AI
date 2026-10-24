@@ -1389,6 +1389,20 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     return () => window.removeEventListener('catalogMatrixUpdated', handleMatrixUpdate);
   }, []);
 
+  const [dbCsvNewRaw, setDbCsvNewRaw] = useState(null);
+
+  // Sincronización en tiempo real al cargarse el CSV actualizado (csv_new_raw)
+  useEffect(() => {
+    const handleCsvNewUpdate = (e) => {
+      const { csvNewRaw } = e.detail || {};
+      if (csvNewRaw) {
+        setDbCsvNewRaw(csvNewRaw);
+      }
+    };
+    window.addEventListener('catalogCsvNewUpdated', handleCsvNewUpdate);
+    return () => window.removeEventListener('catalogCsvNewUpdated', handleCsvNewUpdate);
+  }, []);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -1924,11 +1938,58 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       ]);
 
       try {
+        // 1. Recopilar de múltiples fuentes locales/estado para garantizar 0 fallas ante RLS
+        let csvRawToSend = dbCsvRaw || (typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') : null) || null;
+        let csvNewRawToSend = dbCsvNewRaw || (typeof window !== 'undefined' ? sessionStorage.getItem('csv_new_raw') : null) || null;
+        let xmlRawToSend = dbXmlRaw || null;
+
+        // 2. Si falta alguno, enriquecer desde Supabase con la sesión activa del usuario
+        try {
+          const { data: catData } = await supabase
+            .from('ClientsSERVEX_General_Procces')
+            .select('csv_raw, csv_new_raw, xml_raw, XM_CET_import')
+            .eq('company_name', 'General_Procces')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (catData) {
+            if (!csvNewRawToSend && catData.csv_new_raw) csvNewRawToSend = catData.csv_new_raw;
+            if (!csvRawToSend && catData.csv_raw) csvRawToSend = catData.csv_raw;
+            if (!xmlRawToSend && (catData.xml_raw || catData.XM_CET_import)) {
+              xmlRawToSend = catData.xml_raw || catData.XM_CET_import;
+            }
+          }
+        } catch (dbErr) {
+          console.warn('[-] Advertencia en consulta Supabase previa a comparación:', dbErr);
+        }
+
         const formData = new FormData();
         formData.append('company_name', 'General_Procces');
+        if (csvRawToSend) {
+          formData.append('csv_raw', typeof csvRawToSend === 'string' ? csvRawToSend : JSON.stringify(csvRawToSend));
+        }
+        if (csvNewRawToSend) {
+          formData.append('csv_new_raw', typeof csvNewRawToSend === 'string' ? csvNewRawToSend : JSON.stringify(csvNewRawToSend));
+        }
+        if (xmlRawToSend) {
+          formData.append('xml_raw', typeof xmlRawToSend === 'string' ? xmlRawToSend : JSON.stringify(xmlRawToSend));
+        }
+
+        const headers = {};
+        try {
+          const { data: authData } = await supabase.auth.getSession();
+          if (authData?.session?.access_token) {
+            headers['Authorization'] = `Bearer ${authData.session.access_token}`;
+          }
+          if (authData?.session?.user?.id) {
+            formData.append('user_id', authData.session.user.id);
+          }
+        } catch (_) {}
 
         const response = await fetch(`${apiURL}/api/v1/General_Procces/pipeline/compare-only`, {
           method: 'POST',
+          headers,
           body: formData,
         });
 
@@ -2184,7 +2245,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       // ── PASO 2: Ingesta y análisis estructural en el motor de memoria ──
       const formData = new FormData();
-      formData.append('company_name', context || 'LESRO');
+      formData.append('company_name', 'General_Procces');
       formData.append('xml_file', file);
       if (currentUser?.id) {
         formData.append('user_id', currentUser.id);
@@ -2292,7 +2353,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          company_name: context || 'LESRO',
+          company_name: 'General_Procces',
           staged_items: stagedItems
         })
       });
@@ -2323,7 +2384,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         id: `msg-commit-${Date.now()}`,
         from: 'bot',
         role: 'assistant',
-        text: `🎯 **Inyección Quirúrgica 1-to-1 Completada con Éxito**\n\n• **Nodos Modificados:** **${data.applied_count || stagedItems.length}**\n• **Catálogo Afectado:** \`${activeCatalogRef.current || context || 'General_Procces'}\`\n• **Integridad XML:** 100% Certificada para CET Designer y Catalog Creator.\n\nEl archivo XML maestro ya contiene los nuevos precios. Puedes descargarlo directamente a continuación:`,
+        text: `🎯 **Inyección Quirúrgica 1-to-1 Completada con Éxito**\n\n• **Nodos Modificados:** **${data.applied_count || stagedItems.length}**\n• **Catálogo Afectado:** \`${activeCatalogRef.current || 'General_Procces'}\`\n• **Integridad XML:** 100% Certificada para CET Designer y Catalog Creator.\n\nEl archivo XML maestro ya contiene los nuevos precios. Puedes descargarlo directamente a continuación:`,
         content: `Inyección Quirúrgica 1-to-1 Completada con Éxito. Nodos Modificados: ${data.applied_count || stagedItems.length}. Catálogo: ${activeCatalogRef.current || 'General Process'}`,
         showDownloadCard: true,
         time: botTime,
@@ -2351,7 +2412,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       title: 'Descarga de Catálogo XML',
       description: 'El usuario descargó el archivo XML actualizado certificado.'
     });
-    const url = `${apiURL}/api/v1/General_Procces/agent/download-xml?company_name=${encodeURIComponent(context || 'LESRO')}`;
+    const url = `${apiURL}/api/v1/General_Procces/agent/download-xml?company_name=General_Procces`;
     window.open(url, '_blank');
   };
 

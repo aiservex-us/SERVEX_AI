@@ -111,15 +111,6 @@ export const purgeTenantData = async (currentTenant = 'General_Procces') => {
       .eq('company_name', currentTenant);
   } catch (_) {}
 
-  if (currentTenant && currentTenant !== 'General_Procces') {
-    try {
-      await supabase
-        .from('ClientsSERVEX_' + currentTenant)
-        .delete()
-        .eq('company_name', currentTenant);
-    } catch (_) {}
-  }
-
   // 3. Invocar endpoint API Next.js interno para asegurar purga server-side
   try {
     await fetch('/api/purge-pipeline', {

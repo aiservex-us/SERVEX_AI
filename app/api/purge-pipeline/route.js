@@ -76,16 +76,6 @@ async function handlePurge(req) {
         .eq('company_name', tenant);
     } catch (_) {}
 
-    // Si el tenant tiene tabla específica
-    if (tenant && tenant !== 'General_Procces') {
-      try {
-        await supabase
-          .from(`ClientsSERVEX_${tenant}`)
-          .delete()
-          .neq('id', 0);
-      } catch (_) {}
-    }
-
     // 3. Notificar al backend de Python
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
     try {

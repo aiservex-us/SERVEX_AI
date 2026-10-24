@@ -483,9 +483,31 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         }
       } else if (type === 'csv_base') {
         payload.csv_raw = rawContent;
+        try {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('csv_raw', rawContent);
+            window.dispatchEvent(new CustomEvent('catalogMatrixUpdated', { detail: { csvRaw: rawContent } }));
+          }
+        } catch (_) {}
       } else if (type === 'csv_new') {
         payload.csv_new_raw = rawContent;
         payload.CSV_final = rawContent;
+        try {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('csv_new_raw', rawContent);
+            window.dispatchEvent(new CustomEvent('catalogCsvNewUpdated', { detail: { csvNewRaw: rawContent } }));
+          }
+        } catch (_) {}
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+          const fd = new FormData();
+          fd.append('company_name', 'General_Procces');
+          fd.append('csv_new_raw', rawContent);
+          fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-new`, {
+            method: 'POST',
+            body: fd
+          }).catch(() => {});
+        } catch (_) {}
       }
 
       const { error } = await supabase
