@@ -247,35 +247,25 @@ export default function AiAnomalyReportCard({
         }`}
       >
         {/* Cabecera ejecutiva */}
+        {/* Cabecera ejecutiva */}
         <div className={`p-4 border-b rounded-none ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <div className={`w-6 h-6 rounded-none ${
-                  anomalies.length > 0
-                    ? criticalCount > 0
-                      ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                      : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                    : isDarkMode ? 'bg-white/10 text-white' : 'bg-zinc-900/10 text-zinc-900'
-                } flex items-center justify-center shrink-0`}>
-                  {anomalies.length > 0 ? <ShieldAlert size={13} /> : <ShieldCheck size={13} />}
+                <div className={`w-6 h-6 rounded-none ${isDarkMode ? 'bg-white/10 text-white' : 'bg-zinc-900/10 text-zinc-900'} flex items-center justify-center shrink-0`}>
+                  {anomalies.length > 0 ? <ShieldAlert size={13} className="opacity-90" /> : <ShieldCheck size={13} className="opacity-80" />}
                 </div>
                 <h3 className={`text-[13.5px] font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
                   Detección de Anomalías e Inconsistencias
                 </h3>
-                <span className={`px-2 py-0.5 rounded-none text-[9.5px] font-mono font-bold border ${
-                  anomalies.length === 0
-                    ? isDarkMode
-                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : criticalCount > 0
-                    ? isDarkMode
-                      ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                      : 'bg-rose-50 text-rose-700 border-rose-200'
-                    : isDarkMode
-                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                <span className={`px-2 py-0.5 rounded-none text-[9.5px] font-mono font-bold border inline-flex items-center ${
+                  isDarkMode
+                    ? 'bg-white/10 text-zinc-200 border-white/15'
+                    : 'bg-slate-200 text-slate-800 border-slate-300'
                 }`}>
+                  {criticalCount > 0 && (
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500/80 mr-1.5 shrink-0" />
+                  )}
                   {anomalies.length === 0 ? 'Catálogo 100% Seguro' : `${anomalies.length} Casos Inusuales`}
                 </span>
               </div>
@@ -301,12 +291,12 @@ export default function AiAnomalyReportCard({
           </div>
         </div>
 
-        {/* ── KPIS DE ANOMALÍAS EN ESCALA ARMONIOSA ── */}
+        {/* ── KPIS DE ANOMALÍAS EN ESCALA SOBRIA Y ARMONIOSA ── */}
         <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 p-3.5 border-b rounded-none ${
           isDarkMode ? 'bg-black/20 border-white/10' : 'bg-slate-50 border-slate-200'
         }`}>
           <div className={`p-2.5 rounded-none border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10' : 'bg-white border-slate-200'
+            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
           }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
               Total Inconsistencias
@@ -320,17 +310,16 @@ export default function AiAnomalyReportCard({
           </div>
 
           <div className={`p-2.5 rounded-none border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10' : 'bg-white border-slate-200'
+            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
           }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
               Riesgo Crítico
             </span>
-            <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${
-              criticalCount > 0
-                ? isDarkMode ? 'text-rose-400' : 'text-rose-600'
-                : isDarkMode ? 'text-white' : 'text-zinc-900'
-            }`}>
-              {criticalCount}
+            <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 inline-flex items-center justify-center gap-1.5 ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+              <span>{criticalCount}</span>
+              {criticalCount > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500/80 inline-block" title="Incidencias críticas detectadas" />
+              )}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
               Precios $0 o caídas &gt; 40%
@@ -338,16 +327,12 @@ export default function AiAnomalyReportCard({
           </div>
 
           <div className={`p-2.5 rounded-none border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10' : 'bg-white border-slate-200'
+            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
           }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
               Advertencias
             </span>
-            <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${
-              warningCount > 0
-                ? isDarkMode ? 'text-amber-400' : 'text-amber-600'
-                : isDarkMode ? 'text-white' : 'text-zinc-900'
-            }`}>
+            <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
               {warningCount}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -356,17 +341,13 @@ export default function AiAnomalyReportCard({
           </div>
 
           <div className={`p-2.5 rounded-none border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10' : 'bg-white border-slate-200'
+            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
           }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
               Dictamen de IA
             </span>
             <span className={`text-xs font-mono font-bold mt-1 block uppercase ${
-              anomalies.length === 0
-                ? isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
-                : criticalCount > 0
-                ? isDarkMode ? 'text-rose-400' : 'text-rose-600'
-                : isDarkMode ? 'text-amber-400' : 'text-amber-600'
+              isDarkMode ? 'text-zinc-200' : 'text-zinc-800'
             }`}>
               {anomalies.length === 0 ? 'Confiable' : criticalCount > 0 ? 'Requiere Ajuste' : 'Bajo Revisión'}
             </span>
@@ -410,7 +391,7 @@ export default function AiAnomalyReportCard({
                     : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100 border-transparent'
                 }`}
               >
-                <AlertTriangle size={12} className={criticalCount > 0 ? (isDarkMode ? 'text-rose-400' : 'text-rose-600') : ''} />
+                <AlertTriangle size={12} className={criticalCount > 0 ? 'text-rose-400/80' : 'opacity-70'} />
                 <span>Críticas ({criticalCount})</span>
               </button>
 
@@ -426,7 +407,7 @@ export default function AiAnomalyReportCard({
                     : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100 border-transparent'
                 }`}
               >
-                <AlertCircle size={12} className={warningCount > 0 ? (isDarkMode ? 'text-amber-400' : 'text-amber-600') : ''} />
+                <AlertCircle size={12} className="opacity-70" />
                 <span>Advertencias ({warningCount})</span>
               </button>
             </div>
@@ -453,10 +434,10 @@ export default function AiAnomalyReportCard({
           {anomalies.length === 0 ? (
             <div className={`p-6 text-center rounded-none border ${
               isDarkMode
-                ? 'bg-white/[0.02] border-emerald-500/20 text-zinc-300'
-                : 'bg-emerald-50/50 border-emerald-200 text-slate-700'
+                ? 'bg-white/[0.02] border-white/10 text-zinc-300'
+                : 'bg-slate-50 border-slate-200 text-slate-700'
             }`}>
-              <CheckCircle2 size={28} className="mx-auto mb-2 text-emerald-400 opacity-90" />
+              <CheckCircle2 size={24} className="mx-auto mb-2 text-zinc-300 opacity-80" />
               <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                 Auditoría de Integridad Certificada
               </h4>
@@ -479,25 +460,30 @@ export default function AiAnomalyReportCard({
                     className={`p-3 rounded-none border transition-all ${
                       isCrit
                         ? isDarkMode
-                          ? 'bg-rose-500/[0.04] border-rose-500/25 hover:border-rose-500/40'
-                          : 'bg-rose-50/60 border-rose-200 hover:border-rose-300'
+                          ? 'bg-white/[0.02] border-white/10 hover:border-white/20 border-l-2 border-l-rose-500/60'
+                          : 'bg-white border-slate-200 hover:border-slate-300 border-l-2 border-l-rose-500/70'
                         : isDarkMode
                         ? 'bg-white/[0.02] border-white/10 hover:border-white/20'
                         : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     {/* Header de la tarjeta de anomalía */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2 rounded-none ${isDarkMode ? 'border-white/10' : 'border-slate-100'}">
+                    <div className={`flex flex-wrap items-center justify-between gap-2 border-b pb-2 rounded-none ${
+                      isDarkMode ? 'border-white/10' : 'border-slate-100'
+                    }`}>
                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-none text-[10px] font-mono font-bold uppercase border ${
+                        <span className={`px-2 py-0.5 rounded-none text-[9.5px] font-mono font-bold uppercase border tracking-wider inline-flex items-center ${
                           isCrit
                             ? isDarkMode
-                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                              : 'bg-rose-100 text-rose-800 border-rose-300'
+                              ? 'bg-white/5 text-zinc-200 border-white/15'
+                              : 'bg-slate-100 text-slate-800 border-slate-200'
                             : isDarkMode
-                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                            : 'bg-amber-100 text-amber-800 border-amber-300'
+                            ? 'bg-white/5 text-zinc-400 border-white/10'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}>
+                          {isCrit && (
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500/80 mr-1.5 shrink-0" />
+                          )}
                           {isCrit ? 'Crítica' : 'Advertencia'}
                         </span>
                         <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
@@ -532,18 +518,20 @@ export default function AiAnomalyReportCard({
                     </div>
 
                     {/* Descripción en lenguaje natural */}
-                    <p className={`text-xs mt-2 leading-relaxed ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
+                    <p className={`text-xs mt-2 leading-relaxed ${isDarkMode ? 'text-zinc-400' : 'text-slate-600'}`}>
                       {anom.description}
                     </p>
 
-                    {/* Comparación de valores en píldoras monocromáticas */}
-                    <div className="flex flex-wrap items-center gap-2.5 mt-2.5 pt-2 border-t border-dashed ${isDarkMode ? 'border-white/10' : 'border-slate-100'} text-xs">
+                    {/* Comparación de valores en píldoras sobrias */}
+                    <div className={`flex flex-wrap items-center gap-2.5 mt-2.5 pt-2 border-t border-dashed ${
+                      isDarkMode ? 'border-white/10' : 'border-slate-100'
+                    } text-xs`}>
                       <div className="flex items-center gap-1.5">
                         <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
                           Campo:
                         </span>
                         <span className={`font-mono px-1.5 py-0.5 rounded-none text-xs border ${
-                          isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'
+                          isDarkMode ? 'bg-white/5 border-white/10 text-zinc-300' : 'bg-slate-100 border-slate-200 text-slate-800'
                         }`}>
                           {anom.column_name}
                         </span>
@@ -573,9 +561,13 @@ export default function AiAnomalyReportCard({
                             Variación:
                           </span>
                           <span className={`px-2 py-0.5 rounded-none font-mono text-xs font-bold border ${
-                            anom.pct_change > 0
-                              ? isDarkMode ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' : 'bg-rose-50 text-rose-700 border-rose-200'
-                              : isDarkMode ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-200'
+                            anom.pct_change < 0
+                              ? isDarkMode
+                                ? 'bg-rose-500/10 text-rose-300/90 border-rose-500/20'
+                                : 'bg-rose-50 text-rose-700 border-rose-200'
+                              : isDarkMode
+                              ? 'bg-white/5 text-zinc-200 border-white/10'
+                              : 'bg-slate-100 text-slate-800 border-slate-200'
                           }`}>
                             {anom.pct_change > 0 ? `+${anom.pct_change}%` : `${anom.pct_change}%`}
                           </span>

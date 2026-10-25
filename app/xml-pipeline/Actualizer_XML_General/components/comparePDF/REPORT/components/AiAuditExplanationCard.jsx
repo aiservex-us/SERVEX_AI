@@ -95,7 +95,7 @@ export default function AiAuditExplanationCard({
           <div className={`p-1.5 border rounded-none flex items-center justify-center ${
             isDarkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-zinc-900 border-zinc-900 text-white'
           }`}>
-            <Sparkles size={14} className="animate-pulse" />
+            <Sparkles size={14} className="opacity-90" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -104,8 +104,8 @@ export default function AiAuditExplanationCard({
               </h3>
               <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-medium rounded-none border ${
                 isDarkMode
-                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  ? 'bg-white/10 border-white/15 text-zinc-200'
+                  : 'bg-slate-100 border-slate-300 text-slate-800'
               }`}>
                 AuditSummaryMCP
               </span>
@@ -126,7 +126,7 @@ export default function AiAuditExplanationCard({
             }`}
             title="Copiar texto del dictamen"
           >
-            {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+            {copied ? <Check size={12} className={isDarkMode ? 'text-white' : 'text-zinc-900'} /> : <Copy size={12} />}
             <span>{copied ? 'Copiado' : 'Copiar Dictamen'}</span>
           </button>
         </div>
@@ -149,7 +149,7 @@ export default function AiAuditExplanationCard({
         isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
       }`}>
         <div className="flex items-center gap-1.5">
-          <ShieldCheck size={13} className="text-emerald-400" />
+          <ShieldCheck size={13} className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} />
           <span>Interpretación validada por <strong>Alysa SVX Copilot</strong></span>
         </div>
         <span className="font-mono text-[10.5px]">
