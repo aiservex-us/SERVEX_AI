@@ -41,47 +41,74 @@ function AiCatalogIngestionReport({
   const [expandedCommercial, setExpandedCommercial] = useState(false);
   const [expandedFamilies, setExpandedFamilies] = useState(false);
 
+  const DEFAULT_BASE_COLUMNS = [
+    { code: 'Model #', label: 'Model #', desc: 'Identificador único del producto o SKU', type: 'Alfanumérico' },
+    { code: 'List Price', label: 'List Price', desc: 'Precio de lista base oficial del catálogo', type: 'Moneda USD' },
+    { code: 'Weight', label: 'Weight', desc: 'Peso neto estructural de la unidad', type: 'Decimal' },
+    { code: 'Classic/ Premium', label: 'Classic/ Premium', desc: 'Clasificación de línea y acabado del producto', type: 'Texto' },
+    { code: 'Model Name', label: 'Model Name', desc: 'Descripción o denominación comercial extendida', type: 'Texto' }
+  ];
+
   // 1. Columnas y Matriz generadas determinísticamente a partir del XML
   const { baseColumns, commercialColumns, totalColumns } = useMemo(() => {
-    if (getCatalogExcelColumns && xmlRaw) {
-      const res = getCatalogExcelColumns(xmlRaw);
+    // 0. Fast path: Si el backend ya calculó las columnas determinísticamente desde el XML
+    if (summary?.base_columns && Array.isArray(summary.base_columns)) {
+      const comm = summary.commercial_columns || summary.commercial_features || [];
       return {
-        baseColumns: [
-          { label: 'Model #', desc: 'Identificador único del producto o SKU', type: 'Alfanumérico' },
-          { label: 'List Price', desc: 'Precio de lista base oficial del catálogo', type: 'Moneda USD' },
-          { label: 'Weight', desc: 'Peso neto estructural de la unidad', type: 'Decimal' },
-          { label: 'Classic/ Premium', desc: 'Clasificación de línea y acabado del producto', type: 'Texto' },
-          { label: 'Model Name', desc: 'Descripción o denominación comercial extendida', type: 'Texto' }
-        ],
-        commercialColumns: res.commercialColumns || [],
-        totalColumns: (res.allHeaders || []).length
+        baseColumns: summary.base_columns,
+        commercialColumns: comm,
+        totalColumns: summary.total_columns || (summary.base_columns.length + comm.length)
       };
     }
 
-    // Extracción heurística de respaldo a partir de summary
-    const commCols = (summary?.commercial_features || []).map((f, i) => ({
+    // 1. Si está disponible la función extractora getCatalogExcelColumns
+    if (typeof getCatalogExcelColumns === 'function') {
+      const res = getCatalogExcelColumns(summary, csvRaw, xmlRaw);
+      if (res && (res.baseColumns || res.commercialColumns)) {
+        const base = res.baseColumns || DEFAULT_BASE_COLUMNS;
+        const comm = res.commercialColumns || [];
+        return {
+          baseColumns: base,
+          commercialColumns: comm,
+          totalColumns: typeof res.totalColumns === 'number'
+            ? res.totalColumns
+            : (base.length + comm.length)
+        };
+      }
+    }
+
+    // 2. Extracción heurística de respaldo a partir de summary
+    const commCols = (summary?.commercial_columns || summary?.commercial_features || summary?.commercial_options_list || []).map((f, i) => ({
       code: f.code || `OPC-${i + 1}`,
-      label: f.description || f.name || `Opción ${f.code}`,
+      label: f.label || f.description || f.name || `Opción ${f.code}`,
       price: f.price || '0.00',
-      featureName: f.feature_name || f.code
+      featureName: f.featureName || f.feature_name || f.code
     }));
 
     return {
-      baseColumns: [
-        { label: 'Model #', desc: 'Identificador único del producto o SKU', type: 'Alfanumérico' },
-        { label: 'List Price', desc: 'Precio de lista base oficial del catálogo', type: 'Moneda USD' },
-        { label: 'Weight', desc: 'Peso neto estructural de la unidad', type: 'Decimal' },
-        { label: 'Classic/ Premium', desc: 'Clasificación de línea y acabado del producto', type: 'Texto' },
-        { label: 'Model Name', desc: 'Descripción o denominación comercial extendida', type: 'Texto' }
-      ],
+      baseColumns: DEFAULT_BASE_COLUMNS,
       commercialColumns: commCols,
-      totalColumns: 5 + commCols.length
+      totalColumns: DEFAULT_BASE_COLUMNS.length + commCols.length
     };
-  }, [getCatalogExcelColumns, xmlRaw, summary]);
+  }, [summary, csvRaw, xmlRaw, getCatalogExcelColumns]);
 
   // 2. Familias base incluidas a $0 USD
   const baseFeatures = useMemo(() => {
-    return summary?.base_features || summary?.features || [];
+    if (Array.isArray(summary?.base_families_zero_cost) && summary.base_families_zero_cost.length > 0) {
+      return summary.base_families_zero_cost;
+    }
+    if (Array.isArray(summary?.features_list) && summary.features_list.length > 0) {
+      return summary.features_list;
+    }
+    if (Array.isArray(summary?.base_features) && summary.base_features.length > 0) {
+      return summary.base_features;
+    }
+    const combined = (summary?.physical_components_list || []).concat(summary?.finishes_list || []);
+    if (combined.length > 0) return combined;
+    if (Array.isArray(summary?.features) && summary.features.length > 0) {
+      return summary.features;
+    }
+    return [];
   }, [summary]);
 
   const filteredBaseFeatures = useMemo(() => {
@@ -94,8 +121,16 @@ function AiCatalogIngestionReport({
     );
   }, [baseFeatures, familySearch]);
 
-  const displayedFeatures = expandedFamilies ? filteredBaseFeatures : filteredBaseFeatures.slice(0, 6);
-  const displayedCommercialColumns = expandedCommercial ? commercialColumns : commercialColumns.slice(0, 8);
+  const displayedFeatures = useMemo(() => {
+    if (familySearch.trim()) {
+      return filteredBaseFeatures.slice(0, 50);
+    }
+    return expandedFamilies ? filteredBaseFeatures.slice(0, 50) : filteredBaseFeatures.slice(0, 6);
+  }, [filteredBaseFeatures, expandedFamilies, familySearch]);
+
+  const displayedCommercialColumns = useMemo(() => {
+    return expandedCommercial ? commercialColumns : commercialColumns.slice(0, 8);
+  }, [commercialColumns, expandedCommercial]);
 
   const totalSkus = useMemo(() => {
     const raw =

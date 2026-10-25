@@ -140,25 +140,37 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
     { code: "Model Name", label: "Model Name", type: "Descripción", desc: "Nombre y descripción comercial del modelo" }
   ];
 
+  let safeSummary = (typeof summary === 'object' && summary !== null) ? summary : {};
+  let safeCsvRaw = fallbackCsvRaw;
+  let safeXmlRaw = fallbackXmlRaw;
+
+  if (typeof summary === 'string') {
+    if (summary.trim().startsWith('<')) {
+      safeXmlRaw = summary;
+    } else if (summary.includes(',') || summary.includes(';')) {
+      safeCsvRaw = summary;
+    }
+  }
+
   // 0. FAST PATH ABSOLUTO (0ms): Columnas provistas directamente por el backend
-  if (summary?.base_columns && summary?.commercial_columns) {
+  if (safeSummary?.base_columns && safeSummary?.commercial_columns) {
     return {
-      baseColumns: summary.base_columns,
-      commercialColumns: summary.commercial_columns,
-      totalColumns: summary.total_columns || (summary.base_columns.length + summary.commercial_columns.length)
+      baseColumns: safeSummary.base_columns,
+      commercialColumns: safeSummary.commercial_columns,
+      totalColumns: safeSummary.total_columns || (safeSummary.base_columns.length + safeSummary.commercial_columns.length)
     };
   }
 
-  if (summary?.commercial_columns && Array.isArray(summary.commercial_columns)) {
+  if (safeSummary?.commercial_columns && Array.isArray(safeSummary.commercial_columns)) {
     return {
-      baseColumns: summary.base_columns || DEFAULT_BASE_COLUMNS,
-      commercialColumns: summary.commercial_columns,
-      totalColumns: (summary.base_columns || DEFAULT_BASE_COLUMNS).length + summary.commercial_columns.length
+      baseColumns: safeSummary.base_columns || DEFAULT_BASE_COLUMNS,
+      commercialColumns: safeSummary.commercial_columns,
+      totalColumns: (safeSummary.base_columns || DEFAULT_BASE_COLUMNS).length + safeSummary.commercial_columns.length
     };
   }
 
   // 1. PRIORIDAD SECUNDARIA: Si existe csv_raw (almacenado en DB o en memoria tras convertir el XML a Excel)
-  const csvSource = summary?.csv_raw || fallbackCsvRaw;
+  const csvSource = safeSummary?.csv_raw || safeCsvRaw;
   if (csvSource && typeof csvSource === 'string' && csvSource.trim()) {
     try {
       const firstLine = csvSource.trim().split(/\r?\n/)[0];
@@ -190,7 +202,7 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
               desc = parenMatch[2].trim();
             }
 
-            const matchedOpt = (summary?.commercial_options_list || summary?.price_options_list || [])
+            const matchedOpt = (safeSummary?.commercial_options_list || safeSummary?.price_options_list || [])
               .find(o => (o.code && o.code.toLowerCase() === code.toLowerCase()) || (o.name && o.name.toLowerCase() === desc.toLowerCase()));
 
             commCols.push({
@@ -215,24 +227,24 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
   }
 
   // 2. Columnas provistas directamente por el motor backend desde el XML real
-  if (summary?.base_columns && summary?.commercial_columns) {
+  if (safeSummary?.base_columns && safeSummary?.commercial_columns) {
     return {
-      baseColumns: summary.base_columns,
-      commercialColumns: summary.commercial_columns,
-      totalColumns: summary.total_columns || (summary.base_columns.length + summary.commercial_columns.length)
+      baseColumns: safeSummary.base_columns,
+      commercialColumns: safeSummary.commercial_columns,
+      totalColumns: safeSummary.total_columns || (safeSummary.base_columns.length + safeSummary.commercial_columns.length)
     };
   }
 
-  if (summary?.commercial_columns && Array.isArray(summary.commercial_columns)) {
+  if (safeSummary?.commercial_columns && Array.isArray(safeSummary.commercial_columns)) {
     return {
-      baseColumns: summary.base_columns || DEFAULT_BASE_COLUMNS,
-      commercialColumns: summary.commercial_columns,
-      totalColumns: (summary.base_columns || DEFAULT_BASE_COLUMNS).length + summary.commercial_columns.length
+      baseColumns: safeSummary.base_columns || DEFAULT_BASE_COLUMNS,
+      commercialColumns: safeSummary.commercial_columns,
+      totalColumns: (safeSummary.base_columns || DEFAULT_BASE_COLUMNS).length + safeSummary.commercial_columns.length
     };
   }
 
   // 3. Parseo en tiempo real del XML nativo
-  const xmlSource = summary?.xml_raw || summary?.XM_CET_import || fallbackXmlRaw;
+  const xmlSource = safeSummary?.xml_raw || safeSummary?.XM_CET_import || safeXmlRaw;
   if (xmlSource && typeof xmlSource === 'string' && xmlSource.includes('<')) {
     const parsed = extractCatalogMatrixColumns(xmlSource);
     if (parsed && parsed.allHeaders && parsed.allHeaders.length > 0) {
@@ -252,15 +264,15 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
 
   // 4. Mapeo de listas de opciones extraídas del XML
   let commCols = [];
-  if (summary?.commercial_options_list && summary.commercial_options_list.length > 0) {
-    commCols = summary.commercial_options_list.map(opt => ({
+  if (safeSummary?.commercial_options_list && safeSummary.commercial_options_list.length > 0) {
+    commCols = safeSummary.commercial_options_list.map(opt => ({
       code: opt.code,
       label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
       price: opt.price || (opt.prices ? opt.prices.join(' / ') : '0'),
       featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
     }));
-  } else if (summary?.price_options_list && summary.price_options_list.some(p => p.has_upcharge || parseFloat(p.price || 0) > 0)) {
-    commCols = summary.price_options_list
+  } else if (safeSummary?.price_options_list && safeSummary.price_options_list.some(p => p.has_upcharge || parseFloat(p.price || 0) > 0)) {
+    commCols = safeSummary.price_options_list
       .filter(p => p.has_upcharge || parseFloat(p.price || 0) > 0)
       .map(opt => ({
         code: opt.code,
