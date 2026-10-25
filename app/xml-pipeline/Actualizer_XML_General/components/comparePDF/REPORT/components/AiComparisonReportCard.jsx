@@ -10,20 +10,23 @@ import {
   Search,
   Download,
   CheckCircle2,
-  AlertCircle,
-  FileSpreadsheet,
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  Table
+  Table,
+  Copy,
+  Check
 } from 'lucide-react';
 import Papa from 'papaparse';
 
 /**
- * AiComparisonReportCard
- * Componente interactivo y conversacional que muestra los resultados de la
- * auditoría comparativa matricial (csv_raw vs csv_new_raw) directamente
- * dentro del flujo de chat de Servex AI Copilot.
+ * Componente AiComparisonReportCard
+ * Renderiza de forma ejecutiva, moderna y 100% armónica con la paleta de Servex AI
+ * la auditoría comparativa matricial celda por celda entre catálogos.
+ *
+ * Paleta monocromática de lujo (blanco y negro / escala de grises zinc)
+ * alineada con el resto de la plataforma:
+ * COLOR RESERVADO EXCLUSIVAMENTE PARA LOS PORCENTAJES DE VARIACIÓN (+% / -%).
  */
 export default function AiComparisonReportCard({
   data,
@@ -33,6 +36,7 @@ export default function AiComparisonReportCard({
   const [activeTab, setActiveTab] = useState('changes'); // 'changes' | 'added' | 'deleted'
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [copiedSku, setCopiedSku] = useState(null);
   const itemsPerPage = 6;
 
   if (!data) return null;
@@ -47,6 +51,15 @@ export default function AiComparisonReportCard({
   const changesCount = data.changes_detected_count ?? changes.length;
   const newCount = data.new_models_count ?? (data.summary?.new_models_detected_count || added.length || newModelsList.length);
   const deletedCount = data.deleted_models_count ?? (data.summary?.deleted_models_detected_count || deleted.length || deletedModelsList.length);
+
+  // Copiado interactivo de SKU
+  const handleCopySku = (sku) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && sku) {
+      navigator.clipboard.writeText(sku);
+      setCopiedSku(sku);
+      setTimeout(() => setCopiedSku(null), 1800);
+    }
+  };
 
   // Filtrado de cambios de celdas
   const filteredChanges = useMemo(() => {
@@ -115,280 +128,458 @@ export default function AiComparisonReportCard({
   };
 
   return (
-    <div className={`mt-3 w-full border rounded-2xl overflow-hidden shadow-xl backdrop-blur-xl transition-all ${
-      isDarkMode 
-        ? 'border-white/10 bg-[#09090b]/85 text-zinc-100' 
-        : 'border-slate-200 bg-white/95 text-slate-800'
-    }`}>
-      {/* ── HEADER DE LA TARJETA ── */}
-      <div className={`p-4 border-b flex flex-wrap items-center justify-between gap-3 ${
-        isDarkMode 
-          ? 'bg-gradient-to-r from-white/[0.06] via-transparent to-transparent border-white/10' 
-          : 'bg-gradient-to-r from-slate-100/80 via-transparent to-transparent border-slate-200'
-      }`}>
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-white shrink-0 shadow-sm">
-            <Sliders size={16} />
+    <div className="w-full flex flex-col gap-3 my-2.5 text-left font-sans">
+      {/* ── BARRA SUPERIOR DE CONTEXTO & METADATOS ── */}
+      <div className="flex items-center justify-between flex-wrap gap-2 px-1">
+        <div className="flex items-center gap-2">
+          <div className={`w-6 h-6 rounded-lg ${isDarkMode ? 'bg-white/10 text-white' : 'bg-zinc-900/10 text-zinc-900'} flex items-center justify-center`}>
+            <Sliders size={13} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider font-sans text-white">
-                Auditoría Comparativa Matricial
-              </h4>
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
-                <ShieldCheck size={10} className="inline mr-1" /> XML Intacto
-              </span>
+          <span className={`text-[12px] font-bold tracking-tight ${isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}`}>
+            Auditoría Comparativa Matricial • CET Designer
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+            isDarkMode ? 'bg-white/10 text-zinc-100 border border-white/15' : 'bg-slate-200 text-slate-800'
+          }`}>
+            <ShieldCheck size={11} className="inline mr-1 opacity-70" /> XML Intacto
+          </span>
+        </div>
+      </div>
+
+      {/* ── TARJETA PRINCIPAL GLASSMORPHIC MONOCROMÁTICA ── */}
+      <div
+        className={`w-full rounded-2xl border transition-all overflow-hidden ${
+          isDarkMode
+            ? 'bg-[#09090b]/80 border-white/10 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65),inset_0_1px_0_0_rgba(255,255,255,0.08)]'
+            : 'bg-white border-slate-200 shadow-sm'
+        }`}
+      >
+        {/* Cabecera ejecutiva */}
+        <div className={`p-4 sm:p-5 border-b ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-base sm:text-lg">⚖️</span>
+                <h3 className={`text-base sm:text-lg font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+                  Auditoría Comparativa Matricial
+                </h3>
+              </div>
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                Cotejo celda por celda entre catálogo base original y catálogo actualizado.
+              </p>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-0.5">
-              Cotejo celda por celda entre catálogo base original y catálogo actualizado.
-            </p>
+
+            <button
+              onClick={handleDownloadDiffCsv}
+              disabled={!changes.length}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs ${
+                isDarkMode
+                  ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
+                  : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
+              }`}
+              title="Descargar solo las diferencias detectadas en CSV"
+            >
+              <Download size={13} />
+              <span>Exportar Discrepancias (.csv)</span>
+            </button>
           </div>
         </div>
 
-        <button
-          onClick={handleDownloadDiffCsv}
-          disabled={!changes.length}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-white/10 hover:bg-white/15 border border-white/15 text-zinc-200 hover:text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
-          title="Descargar solo las diferencias detectadas en CSV"
-        >
-          <Download size={12} />
-          <span>Exportar Discrepancias (.csv)</span>
-        </button>
-      </div>
-
-      {/* ── KPIS / CONTADORES MÉTRICOS ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-white/[0.02] border-b border-white/10 text-center">
-        <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-          <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">Precios / Celdas</span>
-          <span className="text-lg font-mono font-bold text-amber-400 mt-0.5 block">{changesCount}</span>
-          <span className="text-[9px] text-zinc-400 font-medium">Modificaciones</span>
-        </div>
-
-        <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-          <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">Nuevos Productos</span>
-          <span className="text-lg font-mono font-bold text-emerald-400 mt-0.5 block">+{newCount}</span>
-          <span className="text-[9px] text-zinc-400 font-medium">Altas de catálogo</span>
-        </div>
-
-        <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-          <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">Descatalogados</span>
-          <span className="text-lg font-mono font-bold text-rose-400 mt-0.5 block">-{deletedCount}</span>
-          <span className="text-[9px] text-zinc-400 font-medium">Bajas de catálogo</span>
-        </div>
-
-        <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-          <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider block">Modelos Evaluados</span>
-          <span className="text-lg font-mono font-bold text-white mt-0.5 block">{totalEvaluated}</span>
-          <span className="text-[9px] text-zinc-400 font-medium">Catálogo común</span>
-        </div>
-      </div>
-
-      {/* ── BARRA DE PESTAÑAS Y BUSCADOR ── */}
-      <div className="px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-white/[0.01]">
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => { setActiveTab('changes'); setCurrentPage(1); }}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'changes'
-                ? 'bg-white text-zinc-950 shadow-xs'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Table size={12} />
-            <span>Discrepancias ({changesCount})</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('added'); setCurrentPage(1); }}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'added'
-                ? 'bg-white text-zinc-950 shadow-xs'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <PlusCircle size={12} className="text-emerald-400" />
-            <span>Altas (+{newCount})</span>
-          </button>
-
-          <button
-            onClick={() => { setActiveTab('deleted'); setCurrentPage(1); }}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'deleted'
-                ? 'bg-white text-zinc-950 shadow-xs'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <MinusCircle size={12} className="text-rose-400" />
-            <span>Bajas (-{deletedCount})</span>
-          </button>
-        </div>
-
-        {activeTab === 'changes' && changes.length > 0 && (
-          <div className="relative flex items-center">
-            <Search size={11} className="absolute left-2.5 text-zinc-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Buscar SKU o columna..."
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="bg-white/5 border border-white/15 rounded-lg pl-7 pr-2.5 py-1 text-[11px] text-white placeholder:text-zinc-500 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all w-[150px] sm:w-[180px]"
-            />
+        {/* ── KPIS / CONTADORES MÉTRICOS MONOCROMÁTICOS ── */}
+        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 border-b ${
+          isDarkMode ? 'bg-black/30 border-white/10' : 'bg-slate-50 border-slate-200'
+        }`}>
+          <div className={`p-3 rounded-xl border text-center ${
+            isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
+          }`}>
+            <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Precios / Celdas
+            </span>
+            <span className={`text-xl sm:text-2xl font-mono font-black mt-1 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+              {changesCount}
+            </span>
+            <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Modificaciones
+            </span>
           </div>
-        )}
-      </div>
 
-      {/* ── CONTENIDO PRINCIPAL: TABLA O LISTAS ── */}
-      <div className="p-3">
-        {activeTab === 'changes' && (
-          <div>
-            {filteredChanges.length === 0 ? (
-              <div className="py-8 text-center text-zinc-400 text-xs">
-                <CheckCircle2 size={24} className="mx-auto text-emerald-400 mb-1.5" />
-                No se detectaron discrepancias en precios ni opciones para este filtro.
-              </div>
-            ) : (
-              <div className="w-full overflow-x-auto rounded-xl border border-white/10">
-                <table className="w-full text-left border-collapse text-[11px] min-w-[500px]">
-                  <thead>
-                    <tr className="bg-white/5 border-b border-white/10 text-zinc-400 uppercase text-[9.5px] font-bold tracking-wider">
-                      <th className="py-2 px-3">Model # (SKU)</th>
-                      <th className="py-2 px-3">Campo / Opción</th>
-                      <th className="py-2 px-3 text-right">Base Anterior</th>
-                      <th className="py-2 px-3 text-right">Nuevo Valor</th>
-                      <th className="py-2 px-3 text-center">Variación</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {paginatedChanges.map((c, idx) => {
-                      const impact = getImpact(c);
-                      const isPositive = impact.startsWith('+');
-                      const isNegative = impact.startsWith('-');
-                      return (
-                        <tr key={`${c.model_id}-${c.column_name}-${idx}`} className="hover:bg-white/[0.03] transition-colors">
-                          <td className="py-2 px-3 font-mono font-bold text-white">
-                            {c.model_id}
-                          </td>
-                          <td className="py-2 px-3 text-zinc-300">
-                            <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-medium">
-                              {c.column_name || c.original_column_name || 'List Price'}
-                            </span>
-                          </td>
-                          <td className="py-2 px-3 font-mono text-zinc-400 text-right">
-                            {formatVal(c.old_value)}
-                          </td>
-                          <td className="py-2 px-3 font-mono font-semibold text-white text-right">
-                            {formatVal(c.new_value)}
-                          </td>
-                          <td className="py-2 px-3 text-center font-mono font-bold">
-                            <span className={`px-2 py-0.5 rounded-full text-[9.5px] inline-flex items-center gap-0.5 ${
-                              isPositive 
-                                ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' 
-                                : isNegative 
-                                ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30' 
-                                : 'bg-white/5 text-zinc-400 border border-white/10'
-                            }`}>
-                              {isPositive && <TrendingUp size={10} />}
-                              {isNegative && <TrendingDown size={10} />}
-                              {impact}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <div className={`p-3 rounded-xl border text-center ${
+            isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
+          }`}>
+            <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Nuevos Productos
+            </span>
+            <span className={`text-xl sm:text-2xl font-mono font-black mt-1 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+              +{newCount}
+            </span>
+            <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Altas de catálogo
+            </span>
+          </div>
 
-            {/* Paginación interna */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between pt-3 text-[10.5px] text-zinc-400 select-none">
-                <span>
-                  Mostrando <strong className="text-zinc-200">{paginatedChanges.length}</strong> de <strong className="text-zinc-200">{filteredChanges.length}</strong> discrepancias
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                    className="p-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    <ChevronLeft size={13} />
-                  </button>
-                  <span className="font-mono text-zinc-200 px-1">
-                    {currentPage} / {totalPages}
-                  </span>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                    className="p-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    <ChevronRight size={13} />
-                  </button>
+          <div className={`p-3 rounded-xl border text-center ${
+            isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
+          }`}>
+            <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Descatalogados
+            </span>
+            <span className={`text-xl sm:text-2xl font-mono font-black mt-1 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+              -{deletedCount}
+            </span>
+            <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Bajas de catálogo
+            </span>
+          </div>
+
+          <div className={`p-3 rounded-xl border text-center ${
+            isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
+          }`}>
+            <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Modelos Evaluados
+            </span>
+            <span className={`text-xl sm:text-2xl font-mono font-black mt-1 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+              {totalEvaluated}
+            </span>
+            <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              Catálogo común
+            </span>
+          </div>
+        </div>
+
+        {/* ── BARRA DE PESTAÑAS Y BUSCADOR MONOCROMÁTICA ── */}
+        <div className={`px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b ${
+          isDarkMode ? 'border-white/10 bg-white/[0.01]' : 'border-slate-200 bg-slate-50/60'
+        }`}>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => { setActiveTab('changes'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'changes'
+                  ? isDarkMode
+                    ? 'bg-white text-zinc-950 shadow-sm'
+                    : 'bg-zinc-900 text-white shadow-sm'
+                  : isDarkMode
+                  ? 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100'
+              }`}
+            >
+              <Table size={13} />
+              <span>Discrepancias ({changesCount})</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('added'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'added'
+                  ? isDarkMode
+                    ? 'bg-white text-zinc-950 shadow-sm'
+                    : 'bg-zinc-900 text-white shadow-sm'
+                  : isDarkMode
+                  ? 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100'
+              }`}
+            >
+              <PlusCircle size={13} />
+              <span>Altas (+{newCount})</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('deleted'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'deleted'
+                  ? isDarkMode
+                    ? 'bg-white text-zinc-950 shadow-sm'
+                    : 'bg-zinc-900 text-white shadow-sm'
+                  : isDarkMode
+                  ? 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100'
+              }`}
+            >
+              <MinusCircle size={13} />
+              <span>Bajas (-{deletedCount})</span>
+            </button>
+          </div>
+
+          {activeTab === 'changes' && changes.length > 0 && (
+            <div className="relative flex items-center">
+              <Search size={12} className={`absolute left-3 pointer-events-none ${isDarkMode ? 'text-zinc-400' : 'text-slate-400'}`} />
+              <input
+                type="text"
+                placeholder="Buscar SKU o columna..."
+                value={searchTerm}
+                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                className={`rounded-xl pl-8 pr-3 py-1.5 text-xs font-medium transition-all w-[160px] sm:w-[190px] border focus:outline-none ${
+                  isDarkMode
+                    ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
+                    : 'bg-slate-100 border-slate-200 text-zinc-900 placeholder:text-slate-400 focus:border-zinc-400 focus:bg-white'
+                }`}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* ── CONTENIDO PRINCIPAL: TABLA O LISTAS ── */}
+        <div>
+          {activeTab === 'changes' && (
+            <div>
+              {filteredChanges.length === 0 ? (
+                <div className={`py-12 text-center text-xs ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  <CheckCircle2 size={24} className="mx-auto mb-2 opacity-60" />
+                  No se detectaron discrepancias en precios ni opciones para este filtro.
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              ) : (
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[540px]">
+                    <thead>
+                      <tr className={`border-b text-[11px] font-bold uppercase tracking-wider select-none ${
+                        isDarkMode
+                          ? 'border-white/10 bg-white/[0.04] text-zinc-400'
+                          : 'border-slate-200 bg-slate-50 text-slate-600'
+                      }`}>
+                        <th className="py-3 px-3.5">Model # (SKU)</th>
+                        <th className="py-3 px-3.5">Campo / Opción</th>
+                        <th className="py-3 px-3.5 text-right">Base Anterior</th>
+                        <th className="py-3 px-3.5 text-right">Nuevo Valor</th>
+                        <th className="py-3 px-3.5 text-center">Variación</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y text-xs ${
+                      isDarkMode ? 'divide-white/[0.06] text-zinc-200' : 'divide-slate-100 text-slate-700'
+                    }`}>
+                      {paginatedChanges.map((c, idx) => {
+                        const impact = getImpact(c);
+                        const isPositive = impact.startsWith('+');
+                        const isNegative = impact.startsWith('-');
+                        return (
+                          <tr
+                            key={`${c.model_id}-${c.column_name}-${idx}`}
+                            className={`transition-colors duration-150 ${
+                              isDarkMode ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'
+                            }`}
+                          >
+                            {/* Model # (SKU) - Badge de alto contraste */}
+                            <td className="py-3 px-3.5 whitespace-nowrap">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`font-mono text-xs sm:text-[13px] font-black px-2.5 py-1 rounded-xl tracking-wider ${
+                                  isDarkMode
+                                    ? 'bg-white text-zinc-950 shadow-sm'
+                                    : 'bg-zinc-900 text-white'
+                                }`}>
+                                  {c.model_id}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopySku(c.model_id)}
+                                  title="Copiar SKU"
+                                  className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                                    isDarkMode
+                                      ? 'text-zinc-500 hover:text-white hover:bg-white/10'
+                                      : 'text-zinc-400 hover:text-zinc-900 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  {copiedSku === c.model_id ? (
+                                    <Check size={11} className={isDarkMode ? 'text-white' : 'text-zinc-900'} />
+                                  ) : (
+                                    <Copy size={11} />
+                                  )}
+                                </button>
+                              </div>
+                            </td>
 
-        {activeTab === 'added' && (
-          <div className="space-y-2">
-            {newCount === 0 ? (
-              <p className="text-xs text-zinc-400 text-center py-6">No se agregaron nuevos modelos en esta versión.</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto custom-scrollbar p-1">
-                {(added.length > 0 ? added : newModelsList).map((item, i) => {
-                  const modelId = typeof item === 'object' ? (item.model_id || item['Model #']) : item;
-                  return (
-                    <div key={i} className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <PlusCircle size={14} className="text-emerald-400 shrink-0" />
-                        <span className="font-mono font-bold text-xs text-white">{modelId}</span>
+                            {/* Campo / Opción - Tag monocromático */}
+                            <td className="py-3 px-3.5">
+                              <span className={`inline-block px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium border ${
+                                isDarkMode
+                                  ? 'bg-white/5 border-white/10 text-zinc-300'
+                                  : 'bg-slate-100 border-slate-200 text-slate-700'
+                              }`}>
+                                {c.column_name || c.original_column_name || 'List Price'}
+                              </span>
+                            </td>
+
+                            {/* Base Anterior - Monocromático atenuado */}
+                            <td className={`py-3 px-3.5 font-mono text-xs text-right ${
+                              isDarkMode ? 'text-zinc-400' : 'text-slate-500'
+                            }`}>
+                              {formatVal(c.old_value)}
+                            </td>
+
+                            {/* Nuevo Valor - Monocromático de alto contraste */}
+                            <td className={`py-3 px-3.5 font-mono font-bold text-xs text-right ${
+                              isDarkMode ? 'text-white' : 'text-zinc-900'
+                            }`}>
+                              {formatVal(c.new_value)}
+                            </td>
+
+                            {/* Variación - ÚNICO ELEMENTO CON COLOR */}
+                            <td className="py-3 px-3.5 text-center">
+                              <span className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold inline-flex items-center gap-1 border shadow-xs ${
+                                isPositive
+                                  ? isDarkMode
+                                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : isNegative
+                                  ? isDarkMode
+                                    ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                                    : 'bg-rose-50 text-rose-700 border-rose-200'
+                                  : isDarkMode
+                                  ? 'bg-white/5 text-zinc-400 border-white/10'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}>
+                                {isPositive && <TrendingUp size={11} />}
+                                {isNegative && <TrendingDown size={11} />}
+                                {impact}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Paginación monocromática */}
+              {totalPages > 1 && (
+                <div className={`flex items-center justify-between px-4 py-3 border-t text-xs select-none ${
+                  isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-500'
+                }`}>
+                  <span>
+                    Mostrando <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{paginatedChanges.length}</strong> de <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{filteredChanges.length}</strong> discrepancias
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                      className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
+                        isDarkMode
+                          ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
+                          : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
+                      }`}
+                    >
+                      <ChevronLeft size={13} />
+                    </button>
+                    <span className={`font-mono px-2 text-xs font-semibold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
+                      {currentPage} / {totalPages}
+                    </span>
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                      className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
+                        isDarkMode
+                          ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
+                          : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
+                      }`}
+                    >
+                      <ChevronRight size={13} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'added' && (
+            <div className="p-4 space-y-2">
+              {newCount === 0 ? (
+                <div className={`text-xs text-center py-8 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  <CheckCircle2 size={22} className="mx-auto mb-1.5 opacity-60" />
+                  No se agregaron nuevos modelos en esta versión.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[260px] overflow-y-auto custom-scrollbar p-1">
+                  {(added.length > 0 ? added : newModelsList).map((item, i) => {
+                    const modelId = typeof item === 'object' ? (item.model_id || item['Model #']) : item;
+                    return (
+                      <div
+                        key={i}
+                        className={`p-3 rounded-xl border flex items-center justify-between ${
+                          isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <PlusCircle size={14} className={isDarkMode ? 'text-zinc-400' : 'text-slate-500'} />
+                          <span className={`font-mono font-black text-xs px-2.5 py-1 rounded-lg ${
+                            isDarkMode ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
+                          }`}>
+                            {modelId}
+                          </span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                          isDarkMode ? 'bg-white/5 text-zinc-300 border-white/10' : 'bg-white text-slate-700 border-slate-200'
+                        }`}>
+                          Nuevo SKU
+                        </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 text-[10px] font-semibold border border-emerald-500/20">
-                        Nuevo SKU
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
-        {activeTab === 'deleted' && (
-          <div className="space-y-2">
-            {deletedCount === 0 ? (
-              <p className="text-xs text-zinc-400 text-center py-6">No se eliminó ningún modelo del catálogo base.</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto custom-scrollbar p-1">
-                {(deleted.length > 0 ? deleted : deletedModelsList).map((item, i) => {
-                  const modelId = typeof item === 'object' ? (item.model_id || item['Model #']) : item;
-                  return (
-                    <div key={i} className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <MinusCircle size={14} className="text-rose-400 shrink-0" />
-                        <span className="font-mono font-bold text-xs text-zinc-300 line-through">{modelId}</span>
+          {activeTab === 'deleted' && (
+            <div className="p-4 space-y-2">
+              {deletedCount === 0 ? (
+                <div className={`text-xs text-center py-8 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                  <CheckCircle2 size={22} className="mx-auto mb-1.5 opacity-60" />
+                  No se eliminó ningún modelo del catálogo base.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[260px] overflow-y-auto custom-scrollbar p-1">
+                  {(deleted.length > 0 ? deleted : deletedModelsList).map((item, i) => {
+                    const modelId = typeof item === 'object' ? (item.model_id || item['Model #']) : item;
+                    return (
+                      <div
+                        key={i}
+                        className={`p-3 rounded-xl border flex items-center justify-between ${
+                          isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <MinusCircle size={14} className={isDarkMode ? 'text-zinc-400' : 'text-slate-500'} />
+                          <span className={`font-mono font-bold text-xs line-through ${
+                            isDarkMode ? 'text-zinc-400' : 'text-slate-500'
+                          }`}>
+                            {modelId}
+                          </span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                          isDarkMode ? 'bg-white/5 text-zinc-400 border-white/10' : 'bg-white text-slate-500 border-slate-200'
+                        }`}>
+                          Descatalogado
+                        </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-300 text-[10px] font-semibold border border-rose-500/20">
-                        Descatalogado
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
-      {/* ── FOOTER DE AYUDA CONVERSACIONAL ── */}
-      <div className="px-4 py-2.5 border-t border-white/10 bg-white/[0.02] flex flex-wrap items-center justify-between gap-2 text-[10.5px] text-zinc-400">
-        <span>
-          ¿Deseas profundizar en las métricas visuales? Usa <button onClick={() => onCommandSelect && onCommandSelect('/graphicsDashboard')} className="font-mono font-bold text-white underline cursor-pointer hover:text-zinc-200">/graphicsDashboard</button>
-        </span>
-        <span className="text-[10px] text-zinc-400">
-          Motor de Cotejo: <strong>SERVEX Deterministic Engine</strong>
-        </span>
+        {/* ── FOOTER DE AYUDA CONVERSACIONAL MONOCROMÁTICO ── */}
+        <div className={`px-4 py-3 border-t flex flex-wrap items-center justify-between gap-2 text-[11px] ${
+          isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
+        }`}>
+          <span>
+            ¿Deseas profundizar en las métricas visuales? Usa{' '}
+            <button
+              onClick={() => onCommandSelect && onCommandSelect('/graphicsDashboard')}
+              className={`font-mono font-bold underline cursor-pointer transition-colors ${
+                isDarkMode ? 'text-white hover:text-zinc-200' : 'text-zinc-900 hover:text-zinc-700'
+              }`}
+            >
+              /graphicsDashboard
+            </button>
+          </span>
+          <span className="text-[10px] font-medium">
+            Motor de Cotejo: <strong className={isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}>SERVEX Deterministic Engine</strong>
+          </span>
+        </div>
       </div>
     </div>
   );
