@@ -555,15 +555,7 @@ export default function AiComparisonReportCard({
           isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
         }`}>
           <span>
-            ¿Deseas profundizar en las métricas visuales? Usa{' '}
-            <button
-              onClick={() => onCommandSelect && onCommandSelect('/graphicsDashboard')}
-              className={`font-mono font-bold underline cursor-pointer transition-colors ${
-                isDarkMode ? 'text-white hover:text-zinc-200' : 'text-zinc-900 hover:text-zinc-700'
-              }`}
-            >
-              /graphicsDashboard
-            </button>
+            Auditoría comparativa matricial completada celda por celda.
           </span>
           <span className="text-[11px] font-medium">
             Motor de Cotejo: <strong className={isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}>SERVEX Deterministic Engine</strong>

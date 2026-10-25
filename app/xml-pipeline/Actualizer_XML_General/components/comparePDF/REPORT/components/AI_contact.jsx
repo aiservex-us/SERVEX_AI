@@ -32,13 +32,7 @@ const SLASH_COMMANDS = [
   { id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML', phase: 1, category: 'Step 1: Data Ingestion' },
   { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2, category: 'Step 1: Data Ingestion' },
 
-  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3, category: 'Step 2: XML ETL Engine' },
-
-  { id: 'prices', icon: BrainCircuit, label: '/listPriceChanges', desc: 'List Price Changes', phase: 4, category: 'Step 3: Audit & Reporting' },
-  { id: 'graphics', icon: BarChart2, label: '/graphicsDashboard', desc: 'Graphics Dashboard', phase: 4, category: 'Step 3: Audit & Reporting' },
-  { id: 'resumen', icon: CheckCircle2, label: '/aiResumen', desc: 'AI Summary', phase: 4, category: 'Step 3: Audit & Reporting' },
-  { id: 'download', icon: Download, label: '/DownloadResultXml', desc: 'Download the processed XML result', phase: 4, category: 'Step 3: Audit & Reporting' },
-  { id: 'audit', icon: BarChart2, label: '/createAuditor', desc: 'Generate full audit report and publish it to the forum', phase: 4, category: 'Step 3: Audit & Reporting' }
+  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3, category: 'Step 2: XML ETL Engine' }
 ];
 
 // Cache en memoria para evitar re-parsear el mismo XML con DOMParser más de una vez
@@ -367,7 +361,7 @@ const AI_GUIDE_QUESTIONS = [
     category: "XML Conversion",
     tag: "Download",
     q: "How do I download the updated, restructured XML result file?",
-    desc: "Execute the /DownloadResultXml command or use direct instant download once the autonomous engine finishes processing."
+    desc: "Use direct instant download from the report cards once the autonomous engine finishes processing."
   },
   {
     category: "XML Conversion",
@@ -385,25 +379,13 @@ const AI_GUIDE_QUESTIONS = [
     category: "AI Comparison",
     tag: "Discrepancies",
     q: "How does Alysa detect and audit list price discrepancies and margins?",
-    desc: "Item-by-item audit engine with instant percentage delta calculation, anomaly flagging, and error margin verification."
-  },
-  {
-    category: "AI Comparison",
-    tag: "List Price Changes",
-    q: "How do I access the detailed List Price Changes audit report?",
-    desc: "Use the /listPriceChanges command or open the side panel for interactive granular inspection with high-precision filtering."
+    desc: "Item-by-item audit engine with instant percentage delta calculation, anomaly flagging, and error margin verification rendered in the chat cards."
   },
   {
     category: "AI Comparison",
     tag: "Tolerances",
     q: "Does the AI classify pricing discrepancies by financial impact or tolerance thresholds?",
     desc: "Predictive risk segmentation separating critical margin variances, minor price index shifts, and structural design updates."
-  },
-  {
-    category: "AI Comparison",
-    tag: "Forum Audit",
-    q: "How does the AI publish the intelligent executive audit report to the Forum?",
-    desc: "Execute /createAuditor to automatically consolidate key business metrics and publish an executive audit post directly to the company forum."
   },
   {
     category: "Autonomous Pipeline",
@@ -415,7 +397,7 @@ const AI_GUIDE_QUESTIONS = [
     category: "Autonomous Pipeline",
     tag: "Slash Commands",
     q: "What slash commands ('/') are available to navigate and control the pipeline?",
-    desc: "Interactive command suite: /importBase, /executeProcess, /compareCET, /listPriceChanges, /graphicsDashboard, and /DownloadResultXml."
+    desc: "Interactive command suite: /importBase, /executeProcess, /compareCET, and /exportCETcsv."
   },
   {
     category: "Autonomous Pipeline",
@@ -1246,7 +1228,7 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
     }
 
     // Inyectar botones interactivos para comandos de barra después del markdown
-    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|exportExcel|downloadExcel|compareCET|importBase|saveCatalog|deleteData|executeProcess|listPriceChanges|graphicsDashboard|aiResumen|DownloadResultXml|createAuditor))\b/gi;
+    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|exportExcel|downloadExcel|compareCET|importBase|saveCatalog|deleteData|executeProcess))\b/gi;
     const btnClass = isDarkMode
       ? 'text-zinc-100 hover:text-white font-semibold underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none'
       : 'text-[#18181b] hover:text-[#27272a] font-semibold hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none';
@@ -1842,104 +1824,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       return;
     }
 
-    if (qLower === '/listpricechanges') {
-      setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Opening the List Price Changes panel...', isNew: true }]);
-        if (onOpenToolPanel) onOpenToolPanel('report');
-        setIsLoading(false);
-        scrollToBottom(true);
-      }, 500);
-      return;
-    }
 
-    if (qLower === '/graphicsdashboard') {
-      setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Loading Graphics Analytics Dashboard...', isNew: true }]);
-        if (onOpenToolPanel) onOpenToolPanel('graphics');
-        setIsLoading(false);
-        scrollToBottom(true);
-      }, 500);
-      return;
-    }
-
-    if (qLower === '/airesumen') {
-      setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Generating AI Summary view...', isNew: true }]);
-        if (onOpenToolPanel) onOpenToolPanel('AI_reporter');
-        setIsLoading(false);
-        scrollToBottom(true);
-      }, 500);
-      return;
-    }
-
-    if (qLower === '/downloadresultxml') {
-      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      try {
-        const { data, error } = await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .select('xml_actualizer_raw')
-          .eq('company_name', 'General_Procces')
-          .single();
-
-        if (error || !data || !data.xml_actualizer_raw) {
-          setMessages(prev => [...prev, { from: "bot", text: "❌ Error: XML file not found in the database for General Process.", time: nowTime }]);
-        } else {
-          const rawXml = data.xml_actualizer_raw;
-          const xmlContent = await resolveStorageContent(rawXml);
-          const blob = new Blob([xmlContent], { type: 'application/xml' });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', 'General Process.xml');
-          document.body.appendChild(link);
-          link.click();
-          link.parentNode.removeChild(link);
-          window.URL.revokeObjectURL(url);
-
-          recordClientAction({
-            companyName: 'General_Procces',
-            eventType: 'DOWNLOAD_RESULT_XML',
-            title: 'Descarga de Catálogo XML',
-            description: 'El usuario descargó el archivo XML certificado (General Process.xml).'
-          });
-
-          setMessages(prev => [...prev, { from: "bot", text: "✅ Download started. The file General Process.xml has been saved successfully.", time: nowTime }]);
-        }
-      } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: "❌ An unexpected error occurred while trying to download the XML.", time: nowTime }]);
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
-
-    if (queryToSend === '/createAuditor') {
-      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setMessages(prev => [...prev, { from: "bot", text: "📊 Generating smart audit report and publishing it to the Forum...", time: nowTime }]);
-
-      try {
-        const modulePrefix = 'api/v1/General_Procces';
-        const { data: { user } } = await supabase.auth.getUser();
-        const userEmail = user?.email || 'admin@servex-us.com';
-
-        const response = await fetch(`${apiURL}/${modulePrefix}/api/v1/agent/create-audit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: userEmail })
-        });
-
-        if (!response.ok) {
-          throw new Error('Audit generator response failed');
-        }
-
-        await response.json();
-        setMessages(prev => [...prev, { from: "bot", text: "✅ Audit successfully generated and published to the forum!", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-      } catch (err) {
-        setMessages(prev => [...prev, { from: "bot", text: `❌ Error generating audit: ${err.message}`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-      }
-      setIsLoading(false);
-      return;
-    }
 
     if (qLower === '/executeprocess') {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -2015,6 +1900,54 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         }
 
         const resData = await response.json();
+
+        // ── PERSISTENCIA GARANTIZADA DE audit_summary_markdown1 EN SUPABASE ──
+        if (resData?.markdown_report_1) {
+          (async () => {
+            try {
+              const { data: authUser } = await supabase.auth.getUser().catch(() => ({ data: {} }));
+              const currentUserId = authUser?.user?.id || null;
+              const persistencePayload = {
+                company_name: 'General_Procces',
+                audit_summary_markdown1: resData.markdown_report_1,
+                audit_report_json: resData
+              };
+              if (currentUserId) persistencePayload.user_id = currentUserId;
+
+              // 1. Intentar actualizar registro existente por company_name
+              const { data: updData } = await supabase
+                .from('ClientsSERVEX_General_Procces')
+                .update(persistencePayload)
+                .ilike('company_name', 'General_Procces')
+                .select('id');
+
+              // 2. Si no había registro previo con ese company_name, buscar el último o hacer upsert
+              if (!updData || updData.length === 0) {
+                const { data: anyRow } = await supabase
+                  .from('ClientsSERVEX_General_Procces')
+                  .select('id')
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+
+                if (anyRow?.id) {
+                  await supabase
+                    .from('ClientsSERVEX_General_Procces')
+                    .update(persistencePayload)
+                    .eq('id', anyRow.id);
+                } else {
+                  await supabase
+                    .from('ClientsSERVEX_General_Procces')
+                    .upsert(persistencePayload, { onConflict: 'company_name' });
+                }
+              }
+              console.log('[+] audit_summary_markdown1 sincronizado con éxito en ClientsSERVEX_General_Procces');
+            } catch (syncErr) {
+              console.warn('[-] Advertencia persistiendo audit_summary_markdown1 desde cliente:', syncErr);
+            }
+          })();
+        }
+
         const changesCount = resData.changes_detected_count ?? (resData.detected_changes?.length || 0);
         const newCount = resData.new_models_count ?? (resData.summary?.new_models_detected_count || 0);
         const deletedCount = resData.deleted_models_count ?? (resData.summary?.deleted_models_detected_count || 0);

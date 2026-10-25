@@ -633,17 +633,7 @@ export default function AiAnomalyReportCard({
         }`}>
           <span>
             {anomalies.length > 0 ? (
-              <>
-                ¿Deseas inspeccionar cada precio celda por celda? Consulta{' '}
-                <button
-                  onClick={() => onCommandSelect && onCommandSelect('/listPriceChanges')}
-                  className={`font-mono font-bold underline cursor-pointer transition-colors ${
-                    isDarkMode ? 'text-white hover:text-zinc-200' : 'text-zinc-900 hover:text-zinc-700'
-                  }`}
-                >
-                  /listPriceChanges
-                </button>
-              </>
+              'Se recomienda revisar las inconsistencias detectadas antes de publicar el catálogo.'
             ) : (
               'El catálogo ha superado todas las pruebas de validación heurística con 100% de consistencia.'
             )}
