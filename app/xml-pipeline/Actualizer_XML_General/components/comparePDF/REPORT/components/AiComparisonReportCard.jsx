@@ -25,7 +25,7 @@ import Papa from 'papaparse';
  * la auditoría comparativa matricial celda por celda entre catálogos.
  *
  * Paleta monocromática de lujo (blanco y negro / escala de grises zinc)
- * alineada con el resto de la plataforma:
+ * con esquinas angulares rectas (sin border-radius):
  * COLOR RESERVADO EXCLUSIVAMENTE PARA LOS PORCENTAJES DE VARIACIÓN (+% / -%).
  */
 export default function AiComparisonReportCard({
@@ -128,11 +128,11 @@ export default function AiComparisonReportCard({
   };
 
   return (
-    <div className="w-full flex flex-col gap-3 my-2.5 text-left font-sans">
+    <div className="w-full flex flex-col gap-3 my-2.5 text-left font-sans rounded-none">
       {/* ── BARRA SUPERIOR DE CONTEXTO & METADATOS ── */}
-      <div className="flex items-center justify-between flex-wrap gap-2 px-1">
+      <div className="flex items-center justify-between flex-wrap gap-2 px-1 rounded-none">
         <div className="flex items-center gap-2">
-          <div className={`w-6 h-6 rounded-lg ${isDarkMode ? 'bg-white/10 text-white' : 'bg-zinc-900/10 text-zinc-900'} flex items-center justify-center`}>
+          <div className={`w-6 h-6 rounded-none ${isDarkMode ? 'bg-white/10 text-white' : 'bg-zinc-900/10 text-zinc-900'} flex items-center justify-center`}>
             <Sliders size={13} />
           </div>
           <span className={`text-[12px] font-bold tracking-tight ${isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}`}>
@@ -141,7 +141,7 @@ export default function AiComparisonReportCard({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+          <span className={`px-2.5 py-0.5 rounded-none text-[10px] font-mono font-bold ${
             isDarkMode ? 'bg-white/10 text-zinc-100 border border-white/15' : 'bg-slate-200 text-slate-800'
           }`}>
             <ShieldCheck size={11} className="inline mr-1 opacity-70" /> XML Intacto
@@ -149,16 +149,16 @@ export default function AiComparisonReportCard({
         </div>
       </div>
 
-      {/* ── TARJETA PRINCIPAL GLASSMORPHIC MONOCROMÁTICA ── */}
+      {/* ── TARJETA PRINCIPAL GLASSMORPHIC MONOCROMÁTICA CON ESQUINAS RECTAS ── */}
       <div
-        className={`w-full rounded-2xl border transition-all overflow-hidden ${
+        className={`w-full rounded-none border transition-all overflow-hidden ${
           isDarkMode
             ? 'bg-[#09090b]/80 border-white/10 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65),inset_0_1px_0_0_rgba(255,255,255,0.08)]'
             : 'bg-white border-slate-200 shadow-sm'
         }`}
       >
         {/* Cabecera ejecutiva */}
-        <div className={`p-4 sm:p-5 border-b ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
+        <div className={`p-4 sm:p-5 border-b rounded-none ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ export default function AiComparisonReportCard({
             <button
               onClick={handleDownloadDiffCsv}
               disabled={!changes.length}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none text-xs font-bold border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs ${
                 isDarkMode
                   ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
                   : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
@@ -188,11 +188,11 @@ export default function AiComparisonReportCard({
           </div>
         </div>
 
-        {/* ── KPIS / CONTADORES MÉTRICOS MONOCROMÁTICOS ── */}
-        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 border-b ${
+        {/* ── KPIS / CONTADORES MÉTRICOS MONOCROMÁTICOS RECTOS ── */}
+        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 border-b rounded-none ${
           isDarkMode ? 'bg-black/30 border-white/10' : 'bg-slate-50 border-slate-200'
         }`}>
-          <div className={`p-3 rounded-xl border text-center ${
+          <div className={`p-3 rounded-none border text-center ${
             isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
           }`}>
             <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -206,7 +206,7 @@ export default function AiComparisonReportCard({
             </span>
           </div>
 
-          <div className={`p-3 rounded-xl border text-center ${
+          <div className={`p-3 rounded-none border text-center ${
             isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
           }`}>
             <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -220,7 +220,7 @@ export default function AiComparisonReportCard({
             </span>
           </div>
 
-          <div className={`p-3 rounded-xl border text-center ${
+          <div className={`p-3 rounded-none border text-center ${
             isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
           }`}>
             <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -234,7 +234,7 @@ export default function AiComparisonReportCard({
             </span>
           </div>
 
-          <div className={`p-3 rounded-xl border text-center ${
+          <div className={`p-3 rounded-none border text-center ${
             isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
           }`}>
             <span className={`text-[10px] uppercase font-bold tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
@@ -249,14 +249,14 @@ export default function AiComparisonReportCard({
           </div>
         </div>
 
-        {/* ── BARRA DE PESTAÑAS Y BUSCADOR MONOCROMÁTICA ── */}
-        <div className={`px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b ${
+        {/* ── BARRA DE PESTAÑAS Y BUSCADOR MONOCROMÁTICA RECTA ── */}
+        <div className={`px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 border-b rounded-none ${
           isDarkMode ? 'border-white/10 bg-white/[0.01]' : 'border-slate-200 bg-slate-50/60'
         }`}>
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => { setActiveTab('changes'); setCurrentPage(1); }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-none text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'changes'
                   ? isDarkMode
                     ? 'bg-white text-zinc-950 shadow-sm'
@@ -272,7 +272,7 @@ export default function AiComparisonReportCard({
 
             <button
               onClick={() => { setActiveTab('added'); setCurrentPage(1); }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-none text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'added'
                   ? isDarkMode
                     ? 'bg-white text-zinc-950 shadow-sm'
@@ -288,7 +288,7 @@ export default function AiComparisonReportCard({
 
             <button
               onClick={() => { setActiveTab('deleted'); setCurrentPage(1); }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-none text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'deleted'
                   ? isDarkMode
                     ? 'bg-white text-zinc-950 shadow-sm'
@@ -311,7 +311,7 @@ export default function AiComparisonReportCard({
                 placeholder="Buscar SKU o columna..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className={`rounded-xl pl-8 pr-3 py-1.5 text-xs font-medium transition-all w-[160px] sm:w-[190px] border focus:outline-none ${
+                className={`rounded-none pl-8 pr-3 py-1.5 text-xs font-medium transition-all w-[160px] sm:w-[190px] border focus:outline-none ${
                   isDarkMode
                     ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
                     : 'bg-slate-100 border-slate-200 text-zinc-900 placeholder:text-slate-400 focus:border-zinc-400 focus:bg-white'
@@ -322,19 +322,19 @@ export default function AiComparisonReportCard({
         </div>
 
         {/* ── CONTENIDO PRINCIPAL: TABLA O LISTAS ── */}
-        <div>
+        <div className="rounded-none">
           {activeTab === 'changes' && (
-            <div>
+            <div className="rounded-none">
               {filteredChanges.length === 0 ? (
-                <div className={`py-12 text-center text-xs ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                <div className={`py-12 text-center text-xs rounded-none ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                   <CheckCircle2 size={24} className="mx-auto mb-2 opacity-60" />
                   No se detectaron discrepancias en precios ni opciones para este filtro.
                 </div>
               ) : (
-                <div className="w-full overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[540px]">
+                <div className="w-full overflow-x-auto rounded-none">
+                  <table className="w-full text-left border-collapse min-w-[540px] rounded-none">
                     <thead>
-                      <tr className={`border-b text-[11px] font-bold uppercase tracking-wider select-none ${
+                      <tr className={`border-b text-[11px] font-bold uppercase tracking-wider select-none rounded-none ${
                         isDarkMode
                           ? 'border-white/10 bg-white/[0.04] text-zinc-400'
                           : 'border-slate-200 bg-slate-50 text-slate-600'
@@ -346,7 +346,7 @@ export default function AiComparisonReportCard({
                         <th className="py-3 px-3.5 text-center">Variación</th>
                       </tr>
                     </thead>
-                    <tbody className={`divide-y text-xs ${
+                    <tbody className={`divide-y text-xs rounded-none ${
                       isDarkMode ? 'divide-white/[0.06] text-zinc-200' : 'divide-slate-100 text-slate-700'
                     }`}>
                       {paginatedChanges.map((c, idx) => {
@@ -356,14 +356,14 @@ export default function AiComparisonReportCard({
                         return (
                           <tr
                             key={`${c.model_id}-${c.column_name}-${idx}`}
-                            className={`transition-colors duration-150 ${
+                            className={`transition-colors duration-150 rounded-none ${
                               isDarkMode ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'
                             }`}
                           >
-                            {/* Model # (SKU) - Badge de alto contraste */}
-                            <td className="py-3 px-3.5 whitespace-nowrap">
+                            {/* Model # (SKU) - Badge de alto contraste con esquinas rectas */}
+                            <td className="py-3 px-3.5 whitespace-nowrap rounded-none">
                               <div className="flex items-center gap-1.5">
-                                <span className={`font-mono text-xs sm:text-[13px] font-black px-2.5 py-1 rounded-xl tracking-wider ${
+                                <span className={`font-mono text-xs sm:text-[13px] font-black px-2.5 py-1 rounded-none tracking-wider ${
                                   isDarkMode
                                     ? 'bg-white text-zinc-950 shadow-sm'
                                     : 'bg-zinc-900 text-white'
@@ -374,7 +374,7 @@ export default function AiComparisonReportCard({
                                   type="button"
                                   onClick={() => handleCopySku(c.model_id)}
                                   title="Copiar SKU"
-                                  className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                                  className={`p-1 rounded-none transition-colors cursor-pointer ${
                                     isDarkMode
                                       ? 'text-zinc-500 hover:text-white hover:bg-white/10'
                                       : 'text-zinc-400 hover:text-zinc-900 hover:bg-slate-200'
@@ -389,9 +389,9 @@ export default function AiComparisonReportCard({
                               </div>
                             </td>
 
-                            {/* Campo / Opción - Tag monocromático */}
-                            <td className="py-3 px-3.5">
-                              <span className={`inline-block px-2 py-0.5 rounded-md text-[10.5px] font-mono font-medium border ${
+                            {/* Campo / Opción - Tag monocromático recto */}
+                            <td className="py-3 px-3.5 rounded-none">
+                              <span className={`inline-block px-2 py-0.5 rounded-none text-[10.5px] font-mono font-medium border ${
                                 isDarkMode
                                   ? 'bg-white/5 border-white/10 text-zinc-300'
                                   : 'bg-slate-100 border-slate-200 text-slate-700'
@@ -401,22 +401,22 @@ export default function AiComparisonReportCard({
                             </td>
 
                             {/* Base Anterior - Monocromático atenuado */}
-                            <td className={`py-3 px-3.5 font-mono text-xs text-right ${
+                            <td className={`py-3 px-3.5 font-mono text-xs text-right rounded-none ${
                               isDarkMode ? 'text-zinc-400' : 'text-slate-500'
                             }`}>
                               {formatVal(c.old_value)}
                             </td>
 
                             {/* Nuevo Valor - Monocromático de alto contraste */}
-                            <td className={`py-3 px-3.5 font-mono font-bold text-xs text-right ${
+                            <td className={`py-3 px-3.5 font-mono font-bold text-xs text-right rounded-none ${
                               isDarkMode ? 'text-white' : 'text-zinc-900'
                             }`}>
                               {formatVal(c.new_value)}
                             </td>
 
-                            {/* Variación - ÚNICO ELEMENTO CON COLOR */}
-                            <td className="py-3 px-3.5 text-center">
-                              <span className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono font-bold inline-flex items-center gap-1 border shadow-xs ${
+                            {/* Variación - ÚNICO ELEMENTO CON COLOR (esquinas rectas) */}
+                            <td className="py-3 px-3.5 text-center rounded-none">
+                              <span className={`px-2.5 py-1 rounded-none text-[10.5px] font-mono font-bold inline-flex items-center gap-1 border shadow-xs ${
                                 isPositive
                                   ? isDarkMode
                                     ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
@@ -442,9 +442,9 @@ export default function AiComparisonReportCard({
                 </div>
               )}
 
-              {/* Paginación monocromática */}
+              {/* Paginación monocromática recta */}
               {totalPages > 1 && (
-                <div className={`flex items-center justify-between px-4 py-3 border-t text-xs select-none ${
+                <div className={`flex items-center justify-between px-4 py-3 border-t text-xs select-none rounded-none ${
                   isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-500'
                 }`}>
                   <span>
@@ -454,7 +454,7 @@ export default function AiComparisonReportCard({
                     <button
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                      className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
+                      className={`p-1.5 rounded-none border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
                         isDarkMode
                           ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
                           : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
@@ -468,7 +468,7 @@ export default function AiComparisonReportCard({
                     <button
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                      className={`p-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
+                      className={`p-1.5 rounded-none border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
                         isDarkMode
                           ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
                           : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
@@ -483,32 +483,32 @@ export default function AiComparisonReportCard({
           )}
 
           {activeTab === 'added' && (
-            <div className="p-4 space-y-2">
+            <div className="p-4 space-y-2 rounded-none">
               {newCount === 0 ? (
-                <div className={`text-xs text-center py-8 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                <div className={`text-xs text-center py-8 rounded-none ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                   <CheckCircle2 size={22} className="mx-auto mb-1.5 opacity-60" />
                   No se agregaron nuevos modelos en esta versión.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[260px] overflow-y-auto custom-scrollbar p-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[260px] overflow-y-auto custom-scrollbar p-1 rounded-none">
                   {(added.length > 0 ? added : newModelsList).map((item, i) => {
                     const modelId = typeof item === 'object' ? (item.model_id || item['Model #']) : item;
                     return (
                       <div
                         key={i}
-                        className={`p-3 rounded-xl border flex items-center justify-between ${
+                        className={`p-3 rounded-none border flex items-center justify-between ${
                           isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-slate-50 border-slate-200'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <PlusCircle size={14} className={isDarkMode ? 'text-zinc-400' : 'text-slate-500'} />
-                          <span className={`font-mono font-black text-xs px-2.5 py-1 rounded-lg ${
+                          <span className={`font-mono font-black text-xs px-2.5 py-1 rounded-none ${
                             isDarkMode ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
                           }`}>
                             {modelId}
                           </span>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                        <span className={`px-2 py-0.5 rounded-none text-[10px] font-semibold border ${
                           isDarkMode ? 'bg-white/5 text-zinc-300 border-white/10' : 'bg-white text-slate-700 border-slate-200'
                         }`}>
                           Nuevo SKU
@@ -522,20 +522,20 @@ export default function AiComparisonReportCard({
           )}
 
           {activeTab === 'deleted' && (
-            <div className="p-4 space-y-2">
+            <div className="p-4 space-y-2 rounded-none">
               {deletedCount === 0 ? (
-                <div className={`text-xs text-center py-8 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                <div className={`text-xs text-center py-8 rounded-none ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                   <CheckCircle2 size={22} className="mx-auto mb-1.5 opacity-60" />
                   No se eliminó ningún modelo del catálogo base.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[260px] overflow-y-auto custom-scrollbar p-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[260px] overflow-y-auto custom-scrollbar p-1 rounded-none">
                   {(deleted.length > 0 ? deleted : deletedModelsList).map((item, i) => {
                     const modelId = typeof item === 'object' ? (item.model_id || item['Model #']) : item;
                     return (
                       <div
                         key={i}
-                        className={`p-3 rounded-xl border flex items-center justify-between ${
+                        className={`p-3 rounded-none border flex items-center justify-between ${
                           isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-slate-50 border-slate-200'
                         }`}
                       >
@@ -547,7 +547,7 @@ export default function AiComparisonReportCard({
                             {modelId}
                           </span>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                        <span className={`px-2 py-0.5 rounded-none text-[10px] font-semibold border ${
                           isDarkMode ? 'bg-white/5 text-zinc-400 border-white/10' : 'bg-white text-slate-500 border-slate-200'
                         }`}>
                           Descatalogado
@@ -561,8 +561,8 @@ export default function AiComparisonReportCard({
           )}
         </div>
 
-        {/* ── FOOTER DE AYUDA CONVERSACIONAL MONOCROMÁTICO ── */}
-        <div className={`px-4 py-3 border-t flex flex-wrap items-center justify-between gap-2 text-[11px] ${
+        {/* ── FOOTER DE AYUDA CONVERSACIONAL MONOCROMÁTICO RECTO ── */}
+        <div className={`px-4 py-3 border-t flex flex-wrap items-center justify-between gap-2 text-[11px] rounded-none ${
           isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
         }`}>
           <span>

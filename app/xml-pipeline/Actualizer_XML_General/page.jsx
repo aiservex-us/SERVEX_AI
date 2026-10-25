@@ -361,7 +361,7 @@ export default function MenuInicial() {
             {/* ── TOP BAR (FLOATING & TRANSPARENT OVER BACKGROUND, NO BOTTOM LINE) ── */}
             <header className="absolute top-0 left-0 right-0 z-30 h-14 flex items-center justify-between px-3 sm:px-6 bg-transparent border-none pointer-events-none w-full">
               <div className="flex items-center gap-2 sm:gap-2.5 pointer-events-auto">
-                <span className={`text-[10px] font-bold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} border px-2.5 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-md transition-colors`}>
+                <span className={`text-[10px] font-bold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} border px-2.5 py-0.5 rounded-none uppercase tracking-wider backdrop-blur-md transition-colors`}>
                   Servex Copilot
                 </span>
               </div>
@@ -375,7 +375,7 @@ export default function MenuInicial() {
                     setShowExitModal(true);
                   }}
                   title="Reiniciar proceso y descartar sesión activa"
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
                 >
                   <RotateCcw size={12} className="text-white group-hover:-rotate-90 transition-transform duration-300" />
                   <span className="hidden sm:inline">Reiniciar</span>
@@ -384,7 +384,7 @@ export default function MenuInicial() {
                 {isToolsOpen && (
                   <button
                     onClick={() => setIsToolsOpen(false)}
-                    className={`flex items-center justify-center p-1.5 rounded-full border ${isDarkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-white border-slate-200 text-slate-400 hover:text-black hover:bg-zinc-100'} backdrop-blur-md transition-all ml-1`}
+                    className={`flex items-center justify-center p-1.5 rounded-none border ${isDarkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-white border-slate-200 text-slate-400 hover:text-black hover:bg-zinc-100'} backdrop-blur-md transition-all ml-1`}
                     title="Close panel"
                   >
                     <X size={16} />

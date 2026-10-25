@@ -565,7 +565,7 @@ marked.use({
   renderer: {
     table(token) {
       const orig = origRenderer.table.call(this, token);
-      return `<div class="my-4 overflow-x-auto rounded-xl border border-white/10 shadow-lg bg-[#09090b]/70 backdrop-blur-md inline-block max-w-full w-full">
+      return `<div class="my-4 overflow-x-auto rounded-none border border-white/10 shadow-lg bg-[#09090b]/70 backdrop-blur-md inline-block max-w-full w-full">
         ${orig.replace('<table>', '<table class="w-full text-left text-[12.5px] text-zinc-200">')
           .replace('<thead>', '<thead class="bg-white/[0.06] border-b border-white/10 text-zinc-300 font-bold uppercase tracking-wider text-[11px]">')
           .replace('<tbody>', '<tbody class="divide-y divide-white/[0.06]">')}
@@ -608,11 +608,11 @@ marked.use({
     },
     codespan(token) {
       const orig = origRenderer.codespan.call(this, token);
-      return orig.replace('<code>', '<code class="px-1.5 py-0.5 rounded-md bg-white/10 text-white font-mono text-[11.5px] font-semibold border border-white/15 shadow-sm">');
+      return orig.replace('<code>', '<code class="px-1.5 py-0.5 rounded-none bg-white/10 text-white font-mono text-[11.5px] font-semibold border border-white/15 shadow-sm">');
     },
     code(token) {
       const orig = origRenderer.code.call(this, token);
-      return `<div class="my-3 rounded-xl overflow-hidden bg-[#09090b]/80 border border-white/10 shadow-md">
+      return `<div class="my-3 rounded-none overflow-hidden bg-[#09090b]/80 border border-white/10 shadow-md">
             <div class="p-3 overflow-x-auto custom-scrollbar">
               ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[12.5px] text-zinc-200 font-mono leading-relaxed inline-block"><code class="block">')}
             </div>
@@ -620,7 +620,7 @@ marked.use({
     },
     blockquote(token) {
       const orig = origRenderer.blockquote.call(this, token);
-      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-white/30 bg-white/[0.03] italic py-2.5 px-4 rounded-r-xl my-4 text-zinc-300 shadow-sm">');
+      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-white/30 bg-white/[0.03] italic py-2.5 px-4 rounded-none my-4 text-zinc-300 shadow-sm">');
     }
   }
 });
@@ -1268,10 +1268,10 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
              [&_ol]:my-2 [&_ol]:space-y-1 [&_ol]:pl-5 [&_ol]:list-decimal
              [&_li]:text-zinc-200 [&_li]:text-[13px] [&_li]:leading-relaxed
              [&_a]:text-blue-400 [&_a]:underline hover:[&_a]:text-blue-300
-             [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:bg-white/10 [&_code]:text-white [&_code]:border [&_code]:border-white/15
-             [&_pre]:bg-[#09090b]/80 [&_pre]:border [&_pre]:border-white/10 [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:my-2.5 [&_pre]:overflow-x-auto
+             [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-none [&_code]:bg-white/10 [&_code]:text-white [&_code]:border [&_code]:border-white/15
+             [&_pre]:bg-[#09090b]/80 [&_pre]:border [&_pre]:border-white/10 [&_pre]:rounded-none [&_pre]:p-3 [&_pre]:my-2.5 [&_pre]:overflow-x-auto
              [&_hr]:border-white/10 [&_hr]:my-3
-             [&_table]:w-full [&_table]:border-collapse [&_table]:my-3.5 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10 [&_table]:bg-[#09090b]/60 [&_table]:backdrop-blur-md [&_table]:shadow-md
+             [&_table]:w-full [&_table]:border-collapse [&_table]:my-3.5 [&_table]:rounded-none [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10 [&_table]:bg-[#09090b]/60 [&_table]:backdrop-blur-md [&_table]:shadow-md
              [&_thead]:bg-white/[0.06] [&_thead]:border-b [&_thead]:border-white/10
              [&_th]:px-3.5 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-zinc-300 [&_th]:border-b [&_th]:border-white/10
              [&_td]:px-3.5 [&_td]:py-2.5 [&_td]:text-xs [&_td]:text-zinc-300 [&_td]:border-b [&_td]:border-white/[0.05]
@@ -1288,10 +1288,10 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
              [&_ol]:my-2 [&_ol]:space-y-1 [&_ol]:pl-5 [&_ol]:list-decimal
              [&_li]:text-gray-700 [&_li]:text-[13px] [&_li]:leading-relaxed
              [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-700
-             [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:bg-slate-100 [&_code]:text-slate-900 [&_code]:border [&_code]:border-slate-200
-             [&_pre]:bg-slate-100 [&_pre]:border [&_pre]:border-slate-200 [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:my-2.5 [&_pre]:overflow-x-auto
+             [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-none [&_code]:bg-slate-100 [&_code]:text-slate-900 [&_code]:border [&_code]:border-slate-200
+             [&_pre]:bg-slate-100 [&_pre]:border [&_pre]:border-slate-200 [&_pre]:rounded-none [&_pre]:p-3 [&_pre]:my-2.5 [&_pre]:overflow-x-auto
              [&_hr]:border-slate-200 [&_hr]:my-3
-             [&_table]:w-full [&_table]:border-collapse [&_table]:my-3.5 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-slate-200 [&_table]:bg-white [&_table]:shadow-sm
+             [&_table]:w-full [&_table]:border-collapse [&_table]:my-3.5 [&_table]:rounded-none [&_table]:overflow-hidden [&_table]:border [&_table]:border-slate-200 [&_table]:bg-white [&_table]:shadow-sm
              [&_thead]:bg-slate-50 [&_thead]:border-b [&_thead]:border-slate-200
              [&_th]:px-3.5 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-slate-700 [&_th]:border-b [&_th]:border-slate-200
              [&_td]:px-3.5 [&_td]:py-2.5 [&_td]:text-xs [&_td]:text-slate-700 [&_td]:border-b [&_td]:border-slate-100
@@ -2436,7 +2436,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           } ${isDarkMode
             ? 'bg-[#09090b]/55 border-white/[0.12] text-white focus-within:border-white/35 focus-within:bg-[#09090b]/70 focus-within:ring-4 focus-within:ring-white/[0.06]'
             : 'bg-white/80 border-slate-200/80 text-gray-800 focus-within:border-[#18181b]/50 focus-within:ring-4 focus-within:ring-[#18181b]/10'
-          } backdrop-blur-2xl border rounded-2xl relative transition-all duration-300`}
+          } backdrop-blur-2xl border rounded-none relative transition-all duration-300`}
       >
         {/* Menú de Comandos Slash flotante sobre el Input */}
         <AnimatePresence>
@@ -2446,7 +2446,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.98 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className={`absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-full ${isDarkMode ? 'bg-[#09090b]/80 border-white/[0.12] shadow-[0_16px_40px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.1)]' : 'bg-white/95 border-slate-200/90 shadow-[0_12px_40px_rgba(0,0,0,0.06)]'} backdrop-blur-2xl border rounded-2xl z-50 overflow-hidden`}
+              className={`absolute bottom-[calc(100%+8px)] left-0 right-0 mx-auto max-w-full ${isDarkMode ? 'bg-[#09090b]/80 border-white/[0.12] shadow-[0_16px_40px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.1)]' : 'bg-white/95 border-slate-200/90 shadow-[0_12px_40px_rgba(0,0,0,0.06)]'} backdrop-blur-2xl border rounded-none z-50 overflow-hidden`}
             >
               <div className={`max-h-[280px] overflow-y-auto ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'custom-scrollbar'} p-2`}>
                 {Object.entries(
@@ -2460,7 +2460,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   <div key={category} className="mb-1.5 last:mb-0">
                     <button
                       onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
-                      className={`w-full flex items-center justify-between px-2.5 py-1.5 ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'} transition-colors rounded-lg text-left`}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-slate-50'} transition-colors rounded-none text-left`}
                     >
                       <span className={`text-[10px] font-bold ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} uppercase tracking-wider`}>
                         {category}
@@ -2482,7 +2482,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                               <button
                                 key={cmd.id}
                                 onClick={() => handleCommandSelect(cmd.label)}
-                                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg ${isDarkMode ? 'hover:bg-white/10 hover:text-white' : 'hover:bg-[#18181b]/5 hover:text-[#18181b]'} transition-colors text-left group`}
+                                className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-none ${isDarkMode ? 'hover:bg-white/10 hover:text-white' : 'hover:bg-[#18181b]/5 hover:text-[#18181b]'} transition-colors text-left group`}
                               >
                                 <div className={`${isDarkMode ? 'text-zinc-400 group-hover:text-white' : 'text-slate-400 group-hover:text-[#18181b]'} transition-colors flex-shrink-0`}>
                                   <cmd.icon size={13} strokeWidth={2} />
@@ -2521,12 +2521,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
           {/* Efecto Studio Audio Mixer a todo lo ancho del input */}
           {isRecording && (
-            <div className={`w-full mt-2.5 mb-1 p-2.5 rounded-xl ${isDarkMode ? 'bg-white/5 border border-white/15' : 'bg-gradient-to-r from-[#18181b]/5 via-[#18181b]/10 to-[#18181b]/5 border border-[#18181b]/20'} shadow-sm animate-fadeIn`}>
+            <div className={`w-full mt-2.5 mb-1 p-2.5 rounded-none ${isDarkMode ? 'bg-white/5 border border-white/15' : 'bg-gradient-to-r from-[#18181b]/5 via-[#18181b]/10 to-[#18181b]/5 border border-[#18181b]/20'} shadow-sm animate-fadeIn`}>
               <div className="flex items-center justify-between mb-1.5 px-0.5">
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} opacity-75`}></span>
-                    <span className={`relative inline-flex rounded-full h-2 w-2 ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}></span>
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} opacity-75`}></span>
+                    <span className={`relative inline-flex rounded-none h-2 w-2 ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}></span>
                   </span>
                   <span className={`text-[11.5px] font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} tracking-tight`}>
                     Studio Audio Mixer
@@ -2536,7 +2536,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   </span>
                 </div>
 
-                <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-white/15 text-white border-white/20' : 'bg-[#18181b]/15 text-[#18181b] border border-[#18181b]/20'} border`}>
+                <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-none ${isDarkMode ? 'bg-white/15 text-white border-white/20' : 'bg-[#18181b]/15 text-[#18181b] border border-[#18181b]/20'} border`}>
                   Live Input
                 </span>
               </div>
@@ -2546,7 +2546,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                 {Array.from({ length: 48 }).map((_, idx) => (
                   <span
                     key={idx}
-                    className={`flex-1 max-w-[5px] min-w-[2px] rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}
+                    className={`flex-1 max-w-[5px] min-w-[2px] rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}
                     style={{
                       animation: `mixer-bar-bounce 0.85s ease-in-out infinite ${(idx * 0.038).toFixed(2)}s`,
                       opacity: 0.55 + (idx % 4) * 0.14
@@ -2577,7 +2577,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               disabled={isUploadingXml}
               title="Adjuntar y cargar catálogo XML maestro de CET Designer"
               onClick={() => xmlFileInputRef.current?.click()}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isUploadingXml
+              className={`w-8 h-8 rounded-none flex items-center justify-center transition-colors ${isUploadingXml
                 ? isDarkMode ? 'bg-white/20 text-white animate-pulse' : 'bg-[#18181b]/10 text-[#18181b] animate-pulse'
                 : isDarkMode ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'
                 }`}
@@ -2589,7 +2589,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               type="button"
               title={isRecording ? "Stop Recording (Stop STT)" : "Voice Recording (Speech-to-Text)"}
               onClick={toggleRecording}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isRecording
+              className={`w-8 h-8 rounded-none flex items-center justify-center transition-all ${isRecording
                 ? isDarkMode
                   ? 'bg-white text-zinc-950 shadow-md ring-2 ring-white/50 animate-pulse'
                   : 'bg-[#18181b] text-white shadow-md shadow-[#18181b]/25 ring-2 ring-[#18181b]/50 animate-pulse'
@@ -2603,7 +2603,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               type="button"
               title="AI Guide & FAQ"
               onClick={() => setShowAiGuideModal(true)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDarkMode ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'} transition-colors`}
+              className={`w-8 h-8 rounded-none flex items-center justify-center ${isDarkMode ? 'text-zinc-400 hover:bg-white/10 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'} transition-colors`}
             >
               <HelpCircle size={17} />
             </button>
@@ -2611,12 +2611,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
           <div className="flex items-center gap-2">
             {isRecording ? (
-              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-white/15 border border-white/25 text-white' : 'bg-[#18181b]/10 border border-[#18181b]/25 text-[#18181b]'} text-[11px] font-bold tracking-wide`}>
-                <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} animate-pulse`} />
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-none ${isDarkMode ? 'bg-white/15 border border-white/25 text-white' : 'bg-[#18181b]/10 border border-[#18181b]/25 text-[#18181b]'} text-[11px] font-bold tracking-wide`}>
+                <span className={`w-2 h-2 rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} animate-pulse`} />
                 <span>Audio Mixer Active</span>
               </div>
             ) : input.length > 0 ? (
-              <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-300 bg-white/5 border-white/10' : 'text-gray-500 bg-white/80 border-gray-200/60'} border px-2 py-0.5 rounded-md`}>
+              <span className={`text-[10px] font-medium ${isDarkMode ? 'text-zinc-300 bg-white/5 border-white/10' : 'text-gray-500 bg-white/80 border-gray-200/60'} border px-2 py-0.5 rounded-none`}>
                 {input.length} chars
               </span>
             ) : null}
@@ -2624,7 +2624,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             <button
               onClick={() => sendMessage()}
               disabled={!input.trim() || isLoading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all duration-200
+              className={`flex items-center gap-2 px-4 py-2 rounded-none text-[12px] font-semibold transition-all duration-200
                 ${input.trim() && !isLoading
                   ? isDarkMode
                     ? 'bg-white text-zinc-950 shadow-md hover:bg-zinc-200 hover:-translate-y-px font-bold cursor-pointer'
@@ -2663,7 +2663,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     >
       {/* Overlay al arrastrar archivo XML */}
       {dragActiveXml && (
-        <div className="absolute inset-0 z-50 bg-[#18181b]/25 backdrop-blur-sm border-2 border-dashed border-[#18181b] rounded-2xl flex flex-col items-center justify-center pointer-events-none p-6 animate-fadeIn">
+        <div className="absolute inset-0 z-50 bg-[#18181b]/25 backdrop-blur-sm border-2 border-dashed border-[#18181b] rounded-none flex flex-col items-center justify-center pointer-events-none p-6 animate-fadeIn">
           <UploadCloud size={52} className="text-[#18181b] animate-bounce mb-3" />
           <h3 className="text-base font-bold text-[#18181b]">Suelta tu archivo XML maestro de CET Designer aquí</h3>
           <p className="text-xs text-slate-600 mt-1">El catálogo se ingerirá y desestructurará en memoria al instante sin tocar Excel</p>
@@ -2717,9 +2717,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   key={label}
                   onClick={() => sendMessage(q)}
                   title={q}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl ${isDarkMode ? 'bg-[#09090b]/50 border-white/10 hover:border-white/30 hover:bg-white/[0.08] text-zinc-300 hover:text-white shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-white/70 border-white/80 hover:border-[#18181b]/40 hover:bg-white text-gray-700 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)]'} backdrop-blur-xl border hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group text-[12px] cursor-pointer`}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-none ${isDarkMode ? 'bg-[#09090b]/50 border-white/10 hover:border-white/30 hover:bg-white/[0.08] text-zinc-300 hover:text-white shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-white/70 border-white/80 hover:border-[#18181b]/40 hover:bg-white text-gray-700 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)]'} backdrop-blur-xl border hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 group text-[12px] cursor-pointer`}
                 >
-                  <div className={`w-5 h-5 rounded-md ${isDarkMode ? 'bg-white/10 text-white group-hover:bg-white/20' : 'bg-[#18181b]/10 text-[#18181b] group-hover:bg-[#18181b]/20'} flex items-center justify-center transition-colors flex-shrink-0`}>
+                  <div className={`w-5 h-5 rounded-none ${isDarkMode ? 'bg-white/10 text-white group-hover:bg-white/20' : 'bg-[#18181b]/10 text-[#18181b] group-hover:bg-[#18181b]/20'} flex items-center justify-center transition-colors flex-shrink-0`}>
                     <Icon size={12} />
                   </div>
                   <span className={`font-semibold ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'} whitespace-nowrap`}>{label}</span>
@@ -2790,8 +2790,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                   ? isStructuredUser
                                     ? 'w-full p-0 bg-transparent border-none shadow-none'
                                     : isDarkMode
-                                      ? 'px-4 py-2.5 rounded-2xl shadow-md bg-zinc-100 text-zinc-950 rounded-tr-sm border border-zinc-200 font-medium'
-                                      : 'px-4 py-2.5 rounded-2xl shadow-sm bg-[#18181b] text-white rounded-tr-sm border border-[#18181b]'
+                                      ? 'px-4 py-2.5 rounded-none shadow-md bg-zinc-100 text-zinc-950 border border-zinc-200 font-medium'
+                                      : 'px-4 py-2.5 rounded-none shadow-sm bg-[#18181b] text-white border border-[#18181b]'
                                   : 'w-full space-y-2'
                               }`}
                             >
@@ -2853,7 +2853,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                   {msg.needs_upload && (
                                     <div
                                       onClick={() => xmlFileInputRef.current?.click()}
-                                      className={`mt-3 p-4 border-2 border-dashed rounded-2xl backdrop-blur-xl transition-all text-center cursor-pointer group shadow-sm ${isDarkMode
+                                      className={`mt-3 p-4 border-2 border-dashed rounded-none backdrop-blur-xl transition-all text-center cursor-pointer group shadow-sm ${isDarkMode
                                           ? 'border-white/15 hover:border-white/40 bg-[#09090b]/55 hover:bg-[#09090b]/75 text-zinc-200'
                                           : 'border-slate-300 hover:border-slate-800 bg-white/75 hover:bg-white/90 text-slate-800'
                                         }`}
@@ -2870,7 +2870,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                   {/* ── STAGING BOARD & XML DIFF PREVIEW ── */}
                                   {msg.staged_result && msg.staged_result.items && msg.staged_result.items.length > 0 && (
-                                    <div className={`mt-4 border rounded-2xl overflow-hidden shadow-xs backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-[#09090b]/80 text-zinc-100' : 'border-[#18181b]/25 bg-white/95 text-slate-700'}`}>
+                                    <div className={`mt-4 border rounded-none overflow-hidden shadow-xs backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-[#09090b]/80 text-zinc-100' : 'border-[#18181b]/25 bg-white/95 text-slate-700'}`}>
                                       <div className={`p-3.5 border-b flex flex-wrap items-center justify-between gap-2 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-r from-[#18181b]/12 via-[#18181b]/6 to-transparent border-[#18181b]/15'}`}>
                                         <div>
                                           <div className="flex items-center gap-1.5">
@@ -2878,7 +2878,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                             <h4 className={`text-xs font-bold uppercase tracking-wider font-sans ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
                                               Surgical Staging & XML Diff Board
                                             </h4>
-                                            <span className={`px-2 py-0.5 rounded-full text-[9.5px] font-mono font-bold shadow-xs ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'}`}>
+                                            <span className={`px-2 py-0.5 rounded-none text-[9.5px] font-mono font-bold shadow-xs ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'}`}>
                                               {msg.staged_result.items.length} {msg.staged_result.items.length === 1 ? 'Cambio' : 'Cambios'}
                                             </span>
                                           </div>
@@ -2888,7 +2888,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                         </div>
 
                                         {/* Estado de recopilación en memoria (Sin inyección al XML) */}
-                                        <div className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border shadow-xs ${
+                                        <div className={`px-3 py-1.5 rounded-none text-xs font-semibold flex items-center gap-1.5 border shadow-xs ${
                                           isDarkMode ? 'bg-white/10 border-white/15 text-zinc-200' : 'bg-[#18181b]/10 border-[#18181b]/15 text-[#18181b]'
                                         }`}>
                                           <Layers size={13} className={isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'} />
@@ -2925,7 +2925,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                                   </td>
                                                   <td className="px-3.5 py-2.5">
                                                     <span
-                                                      className={`inline-block px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold ${isOption
+                                                      className={`inline-block px-1.5 py-0.5 rounded-none text-[9.5px] font-mono font-bold ${isOption
                                                         ? isDarkMode ? 'bg-white/15 text-white border border-white/25' : 'bg-[#18181b]/15 text-[#18181b] border border-[#18181b]/25'
                                                         : isDarkMode ? 'bg-white/10 text-zinc-300 border border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border border-[#18181b]/20'
                                                         }`}
@@ -2947,7 +2947,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                                   </td>
                                                   <td className={`px-3.5 py-2.5 text-right font-mono font-bold text-xs ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
                                                     {pct != null ? (
-                                                      <span className={`${isDarkMode ? 'bg-white/15 text-white' : 'bg-[#18181b]/10 text-[#18181b]'} px-1.5 py-0.5 rounded`}>
+                                                      <span className={`${isDarkMode ? 'bg-white/15 text-white' : 'bg-[#18181b]/10 text-[#18181b]'} px-1.5 py-0.5 rounded-none`}>
                                                         {isPositive ? `+${pct}%` : `${pct}%`}
                                                       </span>
                                                     ) : (
@@ -2956,13 +2956,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                                   </td>
                                                   <td className="px-3.5 py-2.5 text-center">
                                                     {isMatched ? (
-                                                      <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/12 border-[#18181b]/25'} px-2 py-0.5 rounded-full border`}>
+                                                      <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/12 border-[#18181b]/25'} px-2 py-0.5 rounded-none border`}>
                                                         <CheckCircle2 size={10} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
                                                         Verificado
                                                       </span>
                                                     ) : (
                                                       <span
-                                                        className={`inline-flex items-center gap-1 text-[10px] font-medium ${isDarkMode ? 'text-zinc-400 bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} px-2 py-0.5 rounded-full border`}
+                                                        className={`inline-flex items-center gap-1 text-[10px] font-medium ${isDarkMode ? 'text-zinc-400 bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} px-2 py-0.5 rounded-none border`}
                                                         title={item.reason}
                                                       >
                                                         <AlertCircle size={10} className={isDarkMode ? 'text-zinc-400' : 'text-[#18181b]'} />
@@ -2984,7 +2984,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                         {msg.committed && (
                                           <button
                                             onClick={handleDownloadXml}
-                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-[11px] font-bold shadow-xs transition-all cursor-pointer`}
+                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-none ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-[11px] font-bold shadow-xs transition-all cursor-pointer`}
                                           >
                                             <Download size={12} />
                                             Descargar XML Actualizado
@@ -2996,9 +2996,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                   {/* ── CARD DIRECTA DE DESCARGA FINAL EN EL CHAT ── */}
                                   {msg.showDownloadCard && (
-                                    <div className={`mt-3 p-3.5 border rounded-2xl flex items-center justify-between ${isDarkMode ? 'bg-[#09090b]/65 border-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-[#18181b]/6 border-[#18181b]/20'}`}>
+                                    <div className={`mt-3 p-3.5 border rounded-none flex items-center justify-between ${isDarkMode ? 'bg-[#09090b]/65 border-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-[#18181b]/6 border-[#18181b]/20'}`}>
                                       <div className="flex items-center gap-2.5">
-                                        <div className={`w-8 h-8 rounded-xl ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs`}>
+                                        <div className={`w-8 h-8 rounded-none ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs`}>
                                           <CheckCheck size={16} />
                                         </div>
                                         <div>
@@ -3012,7 +3012,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                       </div>
                                       <button
                                         onClick={handleDownloadXml}
-                                        className={`px-3.5 py-1.5 ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer`}
+                                        className={`px-3.5 py-1.5 ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-xs font-bold rounded-none shadow-xs flex items-center gap-1.5 transition-all cursor-pointer`}
                                       >
                                         <Download size={13} />
                                         Descargar .XML
@@ -3030,7 +3030,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                   return (
                                     <div className={`space-y-2 ${isDarkMode ? 'text-zinc-950' : 'text-white'} min-w-[240px] sm:min-w-[280px]`}>
                                       <div className="flex items-center gap-2.5">
-                                        <div className={`w-8 h-8 rounded-lg ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/15'} flex items-center justify-center shrink-0`}>
+                                        <div className={`w-8 h-8 rounded-none ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/15'} flex items-center justify-center shrink-0`}>
                                           <FileCode2 size={16} className={isDarkMode ? 'text-zinc-950' : 'text-white'} />
                                         </div>
                                         <div className="min-w-0 flex-1">
@@ -3038,7 +3038,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                             Archivo XML adjunto para ingestión:
                                           </span>
                                           <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                                            <span className={`font-mono font-bold text-xs ${isDarkMode ? 'bg-zinc-900/10 text-zinc-950' : 'bg-white/20 text-white'} px-2 py-0.5 rounded tracking-wide`}>
+                                            <span className={`font-mono font-bold text-xs ${isDarkMode ? 'bg-zinc-900/10 text-zinc-950' : 'bg-white/20 text-white'} px-2 py-0.5 rounded-none tracking-wide`}>
                                               {fnMatch}
                                             </span>
                                             {sizeMatch && (
@@ -3052,7 +3052,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                       {/* Barra de progreso interactiva */}
                                       <div className="pt-1">
-                                        <div className={`w-full ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/20'} rounded-full h-1.5 overflow-hidden`}>
+                                        <div className={`w-full ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/20'} rounded-none h-1.5 overflow-hidden`}>
                                           <motion.div
                                             initial={{ width: "25%" }}
                                             animate={{
@@ -3062,7 +3062,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                               duration: isUploading ? 1.5 : 0.4,
                                               ease: "easeOut"
                                             }}
-                                            className={`h-full rounded-full ${isError
+                                            className={`h-full rounded-none ${isError
                                               ? "bg-rose-500"
                                               : isUploading
                                                 ? isDarkMode ? "bg-zinc-900/80 animate-pulse" : "bg-white/80 animate-pulse"
@@ -3142,7 +3142,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                             ease: "easeInOut",
                             delay: i * 0.15
                           }}
-                          className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}
+                          className={`w-1.5 h-1.5 rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`}
                         />
                       ))}
                     </div>
@@ -3179,7 +3179,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className={`w-full max-w-3xl max-h-[85vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl transition-colors ${isDarkMode
+              className={`w-full max-w-3xl max-h-[85vh] rounded-none flex flex-col overflow-hidden shadow-2xl transition-colors ${isDarkMode
                   ? "bg-[#09090b]/85 border border-white/15 text-zinc-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-2xl"
                   : "bg-white border border-slate-200/90 text-slate-800"
                 }`}
@@ -3190,7 +3190,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   : "bg-gradient-to-r from-slate-50 via-white to-slate-50 border-slate-100"
                 }`}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-sm transition-colors ${isDarkMode
+                  <div className={`w-9 h-9 rounded-none flex items-center justify-center shadow-sm transition-colors ${isDarkMode
                       ? "bg-white/10 border border-white/20 text-white"
                       : "bg-[#18181b]/10 border border-[#18181b]/20 text-[#18181b]"
                     }`}>
@@ -3202,7 +3202,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                         }`}>
                         AI Guidance & Documentation
                       </h3>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full transition-colors ${isDarkMode ? "bg-white text-zinc-950 shadow-sm" : "bg-[#18181b] text-white"
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-none transition-colors ${isDarkMode ? "bg-white text-zinc-950 shadow-sm" : "bg-[#18181b] text-white"
                         }`}>
                         20 Questions
                       </span>
@@ -3217,7 +3217,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                 <button
                   type="button"
                   onClick={() => setShowAiGuideModal(false)}
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isDarkMode
+                  className={`w-8 h-8 rounded-none flex items-center justify-center transition-colors ${isDarkMode
                       ? "text-zinc-400 hover:text-white hover:bg-white/10"
                       : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"
                     }`}
@@ -3238,7 +3238,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                     value={guideSearch}
                     onChange={(e) => setGuideSearch(e.target.value)}
                     placeholder="Filter questions by keyword (XML, audit, margins, CET, etc.)..."
-                    className={`w-full rounded-xl pl-9 pr-3 py-1.5 text-[12.5px] transition-all focus:outline-none ${isDarkMode
+                    className={`w-full rounded-none pl-9 pr-3 py-1.5 text-[12.5px] transition-all focus:outline-none ${isDarkMode
                         ? "bg-white/[0.05] border border-white/15 text-white placeholder-zinc-500 focus:border-white/40 focus:ring-2 focus:ring-white/10"
                         : "bg-white border border-slate-200 text-gray-800 placeholder-gray-400 focus:border-[#18181b] focus:ring-2 focus:ring-[#18181b]/10"
                       }`}
@@ -3265,7 +3265,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                     <button
                       key={cat.id}
                       onClick={() => setGuideCategory(cat.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap ${guideCategory === cat.id
+                      className={`px-2.5 py-1 rounded-none text-[11px] font-semibold transition-all whitespace-nowrap ${guideCategory === cat.id
                           ? isDarkMode
                             ? "bg-white text-zinc-950 shadow-sm"
                             : "bg-[#18181b] text-white shadow-sm"
@@ -3303,14 +3303,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           setShowAiGuideModal(false);
                           sendMessage(item.q);
                         }}
-                        className={`group flex flex-col justify-between p-3.5 rounded-xl transition-all text-left ${isDarkMode
+                        className={`group flex flex-col justify-between p-3.5 rounded-none transition-all text-left ${isDarkMode
                             ? "bg-white/[0.03] border border-white/10 hover:border-white/30 hover:bg-white/[0.06] hover:shadow-lg"
                             : "bg-white border border-slate-200/90 hover:border-[#18181b]/50 hover:bg-[#18181b]/[0.03] hover:shadow-md"
                           }`}
                       >
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md transition-colors ${isDarkMode
+                            <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-none transition-colors ${isDarkMode
                                 ? "bg-white/10 text-zinc-300 group-hover:bg-white/20 group-hover:text-white"
                                 : "bg-slate-100 text-slate-600 group-hover:bg-[#18181b]/10 group-hover:text-[#18181b]"
                               }`}>
@@ -3351,7 +3351,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                 <button
                   type="button"
                   onClick={() => setShowAiGuideModal(false)}
-                  className={`px-3.5 py-1.5 rounded-lg border text-[12px] font-medium transition-colors ${isDarkMode
+                  className={`px-3.5 py-1.5 rounded-none border text-[12px] font-medium transition-colors ${isDarkMode
                       ? "border-white/15 text-zinc-300 hover:bg-white/10 hover:text-white"
                       : "border-gray-300 text-gray-700 hover:bg-gray-100"
                     }`}
@@ -3401,20 +3401,20 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         .prose-light code {
           font-size: 12px; font-family: 'JetBrains Mono', monospace;
           background: rgba(24, 24, 27, 0.08); color: #18181b;
-          padding: 2px 6px; border-radius: 4px;
+          padding: 2px 6px; border-radius: 0px;
           border: 1px solid rgba(24, 24, 27, 0.15);
         }
         .prose-light pre:has(.alysa-cmd-btn) { background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; box-shadow: none !important; }
         .prose-light pre {
           background: #f4f4f5; border: 1px solid #e4e4e7;
-          padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0;
+          padding: 14px; border-radius: 0px; overflow-x: auto; margin: 10px 0;
         }
         .prose-light pre code { background: transparent; border: none; color: #374151; padding: 0; }
         .prose-light ul { list-style: none; padding: 0; margin: 8px 0; }
         .prose-light ul li { padding-left: 16px; position: relative; margin-bottom: 4px; }
         .prose-light ul li::before {
           content: ''; position: absolute; left: 0; top: 9px;
-          width: 5px; height: 5px; border-radius: 50%; background: #18181b;
+          width: 5px; height: 5px; border-radius: 0px; background: #18181b;
         }
         .prose-light ol { padding-left: 20px; margin: 8px 0; }
         .prose-light h1, .prose-light h2, .prose-light h3 {
@@ -3423,7 +3423,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
         .prose-light table {
           width: 100%; max-width: 100%; border-collapse: collapse; margin: 16px 0;
-          font-size: 12.5px; border-radius: 8px; overflow: hidden;
+          font-size: 12.5px; border-radius: 0px; overflow: hidden;
           box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;
           display: block; overflow-x: auto; white-space: nowrap;
         }

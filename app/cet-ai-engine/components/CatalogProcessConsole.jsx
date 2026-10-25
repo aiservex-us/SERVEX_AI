@@ -173,12 +173,12 @@ function CatalogProcessConsole({
   return (
     <div
       style={{ transform: 'translateZ(0)', contain: 'content' }}
-      className={`mt-3 font-sans text-left text-[13px] md:text-[13.5px] leading-relaxed ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'}`}
+      className={`mt-3 font-sans text-left text-[13px] md:text-[13.5px] leading-relaxed rounded-none ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'}`}
     >
-      {/* ── CONTENEDOR FROSTED GLASS CON EFECTO BLUR OPTIMIZADO ── */}
-      <div className={`p-4 ${isDarkMode ? 'bg-[#09090b]/80 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)] text-zinc-100' : 'bg-white/90 border-slate-200/90 shadow-sm text-gray-800'} backdrop-blur-md rounded-2xl border space-y-3 transition-colors`}>
+      {/* ── CONTENEDOR FROSTED GLASS CON ESQUINAS RECTAS ── */}
+      <div className={`p-4 ${isDarkMode ? 'bg-[#09090b]/80 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)] text-zinc-100' : 'bg-white/90 border-slate-200/90 shadow-sm text-gray-800'} backdrop-blur-md rounded-none border space-y-3 transition-colors`}>
         {/* Encabezado y diagnóstico de ejecución nativa */}
-        <div className="space-y-1">
+        <div className="space-y-1 rounded-none">
           <h4 className={`text-[13.5px] font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'} flex items-center justify-between gap-2`}>
             <span>Pipeline de Desestructuración y Análisis en Memoria</span>
             <span className={`font-mono text-[10.5px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-normal`}>
@@ -188,18 +188,18 @@ function CatalogProcessConsole({
           <p className={`text-[13px] ${isDarkMode ? 'text-zinc-300' : 'text-gray-700'} leading-relaxed`}>
             {!isCompleted ? (
               <>
-                Ejecutando subprocesos MCP para analizar el archivo maestro <code className={`px-1.5 py-0.5 rounded-md ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>{fileName}</code> directamente en memoria RAM (Zero-Excel). A continuación puedes seguir el progreso en vivo:
+                Ejecutando subprocesos MCP para analizar el archivo maestro <code className={`px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>{fileName}</code> directamente en memoria RAM (Zero-Excel). A continuación puedes seguir el progreso en vivo:
               </>
             ) : (
               <>
-                Se completaron con éxito los <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>7 subprocesos MCP</strong> en <strong className={`font-mono ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>{elapsedSeconds}s</strong>. El catálogo <code className={`px-1.5 py-0.5 rounded-md ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>{fileName}</code> quedó desestructurado en memoria con un nivel de integridad certificado al <strong className={`font-semibold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>100% CET</strong>:
+                Se completaron con éxito los <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>7 subprocesos MCP</strong> en <strong className={`font-mono ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>{elapsedSeconds}s</strong>. El catálogo <code className={`px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>{fileName}</code> quedó desestructurado en memoria con un nivel de integridad certificado al <strong className={`font-semibold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>100% CET</strong>:
               </>
             )}
           </p>
         </div>
 
         {/* ── CUERPO DE SUBPROCESOS MCP ── */}
-        <div className={`space-y-1.5 max-h-[320px] overflow-y-auto ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'scrollbar-thumb-slate-300'} scrollbar-thin pr-1 pt-1 border-t ${isDarkMode ? 'border-white/10' : 'border-slate-200/80'}`}>
+        <div className={`space-y-1.5 max-h-[320px] overflow-y-auto rounded-none ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'scrollbar-thumb-slate-300'} scrollbar-thin pr-1 pt-1 border-t ${isDarkMode ? 'border-white/10' : 'border-slate-200/80'}`}>
           {MCP_TOOL_PIPELINE.map((step, idx) => {
             const isDone = isCompleted || idx < effectiveToolIndex;
             const isRunning = !isCompleted && idx === effectiveToolIndex;
@@ -208,7 +208,7 @@ function CatalogProcessConsole({
             return (
               <div
                 key={step.id}
-                className={`rounded-xl border transition-all overflow-hidden shadow-2xs ${
+                className={`rounded-none border transition-all overflow-hidden shadow-2xs ${
                   isRunning
                     ? isDarkMode
                       ? 'bg-white/15 border-white/40'
@@ -225,7 +225,7 @@ function CatalogProcessConsole({
                 {/* Cabecera del Tool Call */}
                 <div
                   onClick={() => toggleToolExpand(idx)}
-                  className="px-3 py-2 flex items-center justify-between gap-2 cursor-pointer select-none"
+                  className="px-3 py-2 flex items-center justify-between gap-2 cursor-pointer select-none rounded-none"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     {isDone ? (
@@ -233,14 +233,14 @@ function CatalogProcessConsole({
                     ) : isRunning ? (
                       <Loader2 size={13} className={`animate-spin ${isDarkMode ? 'text-zinc-200' : 'text-slate-700'} shrink-0`} />
                     ) : (
-                      <div className={`w-3.5 h-3.5 rounded-full border ${isDarkMode ? 'border-zinc-700' : 'border-slate-300'} shrink-0`} />
+                      <div className={`w-3.5 h-3.5 rounded-none border ${isDarkMode ? 'border-zinc-700' : 'border-slate-300'} shrink-0`} />
                     )}
 
                     <span className={`font-mono text-[11px] font-bold ${isDarkMode ? 'text-zinc-100' : 'text-slate-800'} truncate`}>
                       {step.label}
                     </span>
 
-                    <span className={`px-1.5 py-0.2 rounded ${isDarkMode ? 'bg-white/10 text-zinc-300 border-white/15' : 'bg-slate-100 text-slate-800 border-slate-200'} border text-[9px] font-mono font-bold shrink-0`}>
+                    <span className={`px-1.5 py-0.2 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-300 border-white/15' : 'bg-slate-100 text-slate-800 border-slate-200'} border text-[9px] font-mono font-bold shrink-0`}>
                       {step.badge}
                     </span>
                   </div>
@@ -259,8 +259,8 @@ function CatalogProcessConsole({
 
                 {/* Detalle interno expandible */}
                 {isStepExpanded && (
-                  <div className={`px-3 pb-2.5 pt-1 border-t ${isDarkMode ? 'border-white/10 bg-black/40 text-zinc-300' : 'border-slate-100 bg-slate-50/60 text-slate-600'} font-mono text-[10.5px] space-y-1.5`}>
-                    <div className={`p-1.5 rounded-lg ${isDarkMode ? 'bg-black/50 border-white/10 text-zinc-200' : 'bg-white border-slate-200 text-slate-700'} border text-[9.5px] font-mono overflow-x-auto shadow-2xs`}>
+                  <div className={`px-3 pb-2.5 pt-1 border-t rounded-none ${isDarkMode ? 'border-white/10 bg-black/40 text-zinc-300' : 'border-slate-100 bg-slate-50/60 text-slate-600'} font-mono text-[10.5px] space-y-1.5`}>
+                    <div className={`p-1.5 rounded-none ${isDarkMode ? 'bg-black/50 border-white/10 text-zinc-200' : 'bg-white border-slate-200 text-slate-700'} border text-[9.5px] font-mono overflow-x-auto shadow-2xs`}>
                       <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'} select-none`}>{'>'} </span>
                       <span className={`font-semibold ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'}`}>{step.tool}</span>
                       <span className={`${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} block text-[9px] mt-0.5`}>{step.queryText}</span>
@@ -282,7 +282,7 @@ function CatalogProcessConsole({
         </div>
 
         {/* Pie informativo del pipeline */}
-        <div className={`flex flex-wrap items-center justify-between gap-2 pt-1 border-t ${isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200/80 text-slate-500'} text-[9.5px] font-mono`}>
+        <div className={`flex flex-wrap items-center justify-between gap-2 pt-1 border-t rounded-none ${isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200/80 text-slate-500'} text-[9.5px] font-mono`}>
           <div className="flex items-center gap-1.5">
             <span>Pipeline:</span>
             <span className={`font-bold ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'}`}>
@@ -292,7 +292,7 @@ function CatalogProcessConsole({
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`} />
+            <span className={`w-1.5 h-1.5 rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`} />
             <span className={`font-medium ${isDarkMode ? 'text-zinc-300' : 'text-slate-600'}`}>Zero-Excel In-Memory Pipeline</span>
           </div>
         </div>
@@ -301,4 +301,4 @@ function CatalogProcessConsole({
   );
 }
 
-export default React.memo(CatalogProcessConsole);
+export default CatalogProcessConsole;

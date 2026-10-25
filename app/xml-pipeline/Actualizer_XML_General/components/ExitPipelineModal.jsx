@@ -102,7 +102,7 @@ export default function ExitPipelineModal({
       <div 
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-md rounded-2xl bg-[#09090b]/95 border border-white/15 text-zinc-100 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans z-10"
+        className="relative w-full max-w-md rounded-none bg-[#09090b]/95 border border-white/15 text-zinc-100 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.08)] backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans z-10"
       >
         {/* Resplandor superior sutil */}
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-36 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -110,7 +110,7 @@ export default function ExitPipelineModal({
         {/* Header del modal */}
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-sm shrink-0">
+            <div className="w-9 h-9 rounded-none bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-sm shrink-0">
               {isReload ? <RotateCcw size={18} /> : <AlertTriangle size={18} />}
             </div>
             <div>
@@ -118,7 +118,7 @@ export default function ExitPipelineModal({
                 <h2 className="text-[14px] font-bold text-white tracking-tight">
                   {isReload ? 'Reiniciar Proceso y Purgar Datos' : 'Eliminar Proceso y Salir'}
                 </h2>
-                <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-none bg-rose-500/20 text-rose-300 border border-rose-500/30">
                   Irreversible
                 </span>
               </div>
@@ -134,7 +134,7 @@ export default function ExitPipelineModal({
             type="button"
             disabled={isPurging}
             onClick={onClose} 
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 cursor-pointer"
+            className="p-1.5 rounded-none text-zinc-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 cursor-pointer"
             title="Cerrar modal"
           >
             <X size={16} />
@@ -150,11 +150,11 @@ export default function ExitPipelineModal({
           </p>
 
           <p className="text-[12px] text-zinc-300 leading-relaxed">
-            Por optimización del sistema, todo lo realizado hasta el momento en este catálogo será <strong className="text-white font-semibold">eliminado automáticamente</strong> de Supabase. La tabla <code className="text-rose-300 bg-white/5 px-1 py-0.5 rounded text-[11px] font-mono">ClientsSERVEX_General_Procces</code> quedará <strong className="text-white font-semibold">completamente vacía</strong>, tal como al accionar el botón de eliminar proceso.
+            Por optimización del sistema, todo lo realizado hasta el momento en este catálogo será <strong className="text-white font-semibold">eliminado automáticamente</strong> de Supabase. La tabla <code className="text-rose-300 bg-white/5 px-1 py-0.5 rounded-none text-[11px] font-mono">ClientsSERVEX_General_Procces</code> quedará <strong className="text-white font-semibold">completamente vacía</strong>, tal como al accionar el botón de eliminar proceso.
           </p>
 
           {/* Banner de advertencia */}
-          <div className="bg-rose-950/30 border border-rose-500/25 rounded-xl p-3.5 flex items-start gap-3 text-left">
+          <div className="bg-rose-950/30 border border-rose-500/25 rounded-none p-3.5 flex items-start gap-3 text-left">
             <ShieldAlert className="text-rose-400 shrink-0 mt-0.5" size={16} />
             <p className="text-[11.5px] text-rose-200/90 leading-relaxed">
               En la base de datos de Supabase <strong>no quedará guardado nada</strong> de lo que hayas hecho si recargas o sales ahora. Para actualizar o auditar de nuevo, <strong>deberás volver a subir el catálogo XML maestro</strong>.
@@ -162,7 +162,7 @@ export default function ExitPipelineModal({
           </div>
 
           {/* Lista visual de componentes a purgar (idéntico a deleteData) */}
-          <div className="rounded-xl bg-white/[0.02] border border-white/10 p-3.5 space-y-2.5">
+          <div className="rounded-none bg-white/[0.02] border border-white/10 p-3.5 space-y-2.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
               Elementos incluidos en la purga:
             </span>
@@ -187,7 +187,7 @@ export default function ExitPipelineModal({
             type="button"
             disabled={isPurging}
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all cursor-pointer disabled:opacity-40"
+            className="px-4 py-2 text-xs font-semibold text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-none transition-all cursor-pointer disabled:opacity-40"
           >
             Cancelar
           </button>
@@ -199,7 +199,7 @@ export default function ExitPipelineModal({
                   type="button"
                   disabled={isPurging}
                   onClick={() => handleConfirmAction('exit')}
-                  className="px-3.5 py-2 text-xs font-semibold text-zinc-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl transition-all cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+                  className="px-3.5 py-2 text-xs font-semibold text-zinc-300 hover:text-white bg-white/10 hover:bg-white/15 border border-white/10 rounded-none transition-all cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
                 >
                   <LogOut size={13} />
                   <span>Salir al Panel</span>
@@ -208,7 +208,7 @@ export default function ExitPipelineModal({
                   type="button"
                   onClick={() => handleConfirmAction('reload')}
                   disabled={isPurging}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.35)] border border-rose-500/40 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-[0.98]"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 rounded-none shadow-[0_0_20px_rgba(225,29,72,0.35)] border border-rose-500/40 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-[0.98]"
                 >
                   {isPurging ? (
                     <>
@@ -229,7 +229,7 @@ export default function ExitPipelineModal({
                   type="button"
                   disabled={isPurging}
                   onClick={() => handleConfirmAction('signout')}
-                  className="px-3.5 py-2 text-xs font-semibold text-zinc-300 hover:text-rose-200 bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 rounded-xl transition-all cursor-pointer disabled:opacity-40"
+                  className="px-3.5 py-2 text-xs font-semibold text-zinc-300 hover:text-rose-200 bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 rounded-none transition-all cursor-pointer disabled:opacity-40"
                 >
                   Cerrar Sesión
                 </button>
@@ -237,7 +237,7 @@ export default function ExitPipelineModal({
                   type="button"
                   onClick={() => handleConfirmAction('exit')}
                   disabled={isPurging}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.35)] border border-rose-500/40 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-[0.98]"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 rounded-none shadow-[0_0_20px_rgba(225,29,72,0.35)] border border-rose-500/40 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-[0.98]"
                 >
                   {isPurging ? (
                     <>
