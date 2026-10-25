@@ -19,6 +19,7 @@ import CatalogSummaryCard from './CatalogSummaryCard.jsx';
 import CatalogAnalyticsCard from './CatalogAnalyticsCard.jsx';
 import AiComparisonReportCard from './AiComparisonReportCard.jsx';
 import AiAnomalyReportCard from './AiAnomalyReportCard.jsx';
+import AiAuditExplanationCard from './AiAuditExplanationCard.jsx';
 import UserStructuredMessage, { parseUserMessage } from './UserStructuredMessage.jsx';
 import { recordClientAction } from '@/app/lib/trackingClient';
 import { saveGeneralProcessChat, loadGeneralProcessChat } from '@/app/lib/chatStorageClient';
@@ -2800,6 +2801,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                       <AiAnomalyReportCard
                                         data={msg.comparisonReport}
                                         onCommandSelect={handleCommandSelect}
+                                        isDarkMode={isDarkMode}
+                                      />
+                                      <AiAuditExplanationCard
+                                        explanation={msg.comparisonReport.ai_explanation}
+                                        data={msg.comparisonReport}
                                         isDarkMode={isDarkMode}
                                       />
                                     </div>
