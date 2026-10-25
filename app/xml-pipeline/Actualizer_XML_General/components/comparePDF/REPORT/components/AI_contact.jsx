@@ -18,6 +18,7 @@ import ProductInspectionCard from './ProductInspectionCard.jsx';
 import CatalogSummaryCard from './CatalogSummaryCard.jsx';
 import CatalogAnalyticsCard from './CatalogAnalyticsCard.jsx';
 import AiComparisonReportCard from './AiComparisonReportCard.jsx';
+import AiAnomalyReportCard from './AiAnomalyReportCard.jsx';
 import UserStructuredMessage, { parseUserMessage } from './UserStructuredMessage.jsx';
 import { recordClientAction } from '@/app/lib/trackingClient';
 import { saveGeneralProcessChat, loadGeneralProcessChat } from '@/app/lib/chatStorageClient';
@@ -2857,11 +2858,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                   {/* ── REPORTE CONVERSACIONAL DE COMPARACIÓN MATRICIAL (/executeProcess) ── */}
                                   {msg.comparisonReport && (
-                                    <AiComparisonReportCard
-                                      data={msg.comparisonReport}
-                                      onCommandSelect={handleCommandSelect}
-                                      isDarkMode={isDarkMode}
-                                    />
+                                    <div className="space-y-3.5">
+                                      <AiComparisonReportCard
+                                        data={msg.comparisonReport}
+                                        onCommandSelect={handleCommandSelect}
+                                        isDarkMode={isDarkMode}
+                                      />
+                                      <AiAnomalyReportCard
+                                        data={msg.comparisonReport}
+                                        onCommandSelect={handleCommandSelect}
+                                        isDarkMode={isDarkMode}
+                                      />
+                                    </div>
                                   )}
 
                                   {/* ── UPLOADER INLINE CUANDO SE REQUIERE XML ── */}
