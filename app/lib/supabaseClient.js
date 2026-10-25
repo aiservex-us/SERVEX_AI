@@ -149,10 +149,11 @@ export async function saveAuditToSupabase({ audit_content, user }) {
 }
 
 /**
- * Helper transparente para resolver el contenido de archivos XML pesados.
+ * Helper universal y transparente para resolver contenido de archivos pesados (XML, CSV, JSON).
  * Si el contenido inicia con '[STORAGE_URL]:' o 'http://' / 'https://', descargará el archivo del Bucket.
+ * Si es texto crudo, lo retorna intacto (100% retrocompatible).
  */
-export async function resolveXmlContent(contentOrUrl, fallbackUrl) {
+export async function resolveStorageContent(contentOrUrl, fallbackUrl) {
   const target = contentOrUrl || fallbackUrl;
   if (!target) return '';
   const str = String(target).trim();
@@ -164,8 +165,40 @@ export async function resolveXmlContent(contentOrUrl, fallbackUrl) {
         return await res.text();
       }
     } catch (err) {
-      console.warn('⚠️ Error al descargar XML desde Supabase Storage:', err);
+      console.warn('⚠️ Error al descargar archivo desde Supabase Storage:', err);
     }
   }
   return str;
+}
+
+// Alias de retrocompatibilidad exacta
+export const resolveXmlContent = resolveStorageContent;
+
+/**
+ * Sube un archivo, Blob o String al bucket 'catalogs-storage' y retorna la URL pública.
+ * @param {string|Blob|File} content - Contenido a subir.
+ * @param {string} path - Ruta interna (ej: 'csv_matrices/General_Procces/csv_new.csv').
+ * @param {string} mimeType - Tipo MIME (ej: 'text/csv', 'application/xml').
+ * @returns {Promise<string|null>} - URL pública o null si hubo error.
+ */
+export async function uploadToCatalogsStorage(content, path, mimeType = 'text/plain') {
+  try {
+    const fileBody = typeof content === 'string'
+      ? new Blob([content], { type: mimeType })
+      : content;
+    const { error } = await supabase.storage
+      .from('catalogs-storage')
+      .upload(path, fileBody, {
+        upsert: true,
+        contentType: mimeType,
+      });
+    if (error) throw error;
+    const { data: pubData } = supabase.storage
+      .from('catalogs-storage')
+      .getPublicUrl(path);
+    return pubData?.publicUrl || null;
+  } catch (err) {
+    console.error(`❌ Error subiendo archivo a catalogs-storage (${path}):`, err);
+    return null;
+  }
 }

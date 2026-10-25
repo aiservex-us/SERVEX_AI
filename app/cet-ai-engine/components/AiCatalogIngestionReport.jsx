@@ -9,7 +9,6 @@ import {
   Sparkles,
   Download,
   Database,
-  Tag,
   Layers,
   Search,
   ExternalLink,
@@ -38,7 +37,6 @@ function AiCatalogIngestionReport({
   isDarkMode = true
 }) {
   const [familySearch, setFamilySearch] = useState('');
-  const [expandedCommercial, setExpandedCommercial] = useState(false);
   const [expandedFamilies, setExpandedFamilies] = useState(false);
 
   const DEFAULT_BASE_COLUMNS = [
@@ -128,9 +126,6 @@ function AiCatalogIngestionReport({
     return expandedFamilies ? filteredBaseFeatures.slice(0, 50) : filteredBaseFeatures.slice(0, 6);
   }, [filteredBaseFeatures, expandedFamilies, familySearch]);
 
-  const displayedCommercialColumns = useMemo(() => {
-    return expandedCommercial ? commercialColumns : commercialColumns.slice(0, 8);
-  }, [commercialColumns, expandedCommercial]);
 
   const totalSkus = useMemo(() => {
     const raw =
@@ -267,85 +262,8 @@ function AiCatalogIngestionReport({
             </span>
           </div>
 
-          {/* Opciones Comerciales Dinámicas (Recargos) con Cards Originales */}
-          <div className="space-y-1.5 rounded-none">
-            <div className="flex items-center justify-between text-[10px]">
-              <div className={`flex items-center gap-1 font-bold ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'} uppercase tracking-wider`}>
-                <Tag size={12} className={isDarkMode ? 'text-zinc-300' : 'text-slate-700'} />
-                <span>Columnas Dinámicas de Opciones Comerciales (Recargos en Excel)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-white border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20'} font-mono font-bold text-[9px] border`}>
-                  {commercialColumns.length} columnas con recargo activo
-                </span>
-                {commercialColumns.length > 8 && (
-                  <button
-                    type="button"
-                    onClick={() => setExpandedCommercial(prev => !prev)}
-                    className={`px-2 py-0.5 rounded-none border ${isDarkMode ? 'border-white/15 bg-white/10 hover:bg-white/20 text-zinc-200' : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'} text-[9px] font-semibold flex items-center gap-1 transition-colors shrink-0 cursor-pointer shadow-2xs`}
-                  >
-                    {expandedCommercial ? (
-                      <>
-                        <ChevronUp size={11} />
-                        <span>Mostrar menos</span>
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown size={11} />
-                        <span>Ver todas ({commercialColumns.length})</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {commercialColumns.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 rounded-none">
-                {displayedCommercialColumns.map((col, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-2.5 rounded-none ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:border-white/25 hover:bg-white/[0.07]' : 'bg-white border-slate-200 hover:border-slate-400'} border hover:shadow-xs transition-all flex flex-col justify-between gap-1 shadow-2xs`}
-                  >
-                    <div className="flex items-center justify-between gap-1.5">
-                      <span className={`font-mono font-bold text-[10.5px] ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-slate-900 text-white'} px-2 py-0.5 rounded-none shadow-2xs truncate`}>
-                        {col.code}
-                      </span>
-                      <span className={`text-[9.5px] font-mono font-bold px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-white border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20'} border shrink-0`}>
-                        {col.price && col.price !== '0' && col.price !== 'Recargo' ? `+$${col.price} USD` : '+$Recargo USD'}
-                      </span>
-                    </div>
-
-                    <div className="my-1">
-                      <p className={`text-[11px] font-bold ${isDarkMode ? 'text-zinc-100' : 'text-slate-800'} leading-snug line-clamp-2`} title={col.label}>
-                        {col.label}
-                      </p>
-                      <span className={`text-[9px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-semibold block mt-0.5`}>
-                        Columna en Excel #{baseColumns.length + idx + 1}
-                      </span>
-                    </div>
-
-                    <div className={`pt-1.5 border-t ${isDarkMode ? 'border-white/10' : 'border-slate-100'} flex items-center justify-between text-[9px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-medium`}>
-                      <span className={`truncate ${isDarkMode ? 'text-zinc-300' : 'text-slate-600'}`} title={col.featureName}>
-                        {col.featureName || 'Opción Comercial'}
-                      </span>
-                      <span className={`${isDarkMode ? 'text-zinc-200' : 'text-[#18181b]'} font-bold shrink-0 ml-1`}>
-                        Activa en Matriz
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className={`p-3 rounded-none ${isDarkMode ? 'bg-white/[0.04] border-white/10 text-zinc-300' : 'bg-white border-slate-200 text-slate-500'} border text-[11px] font-medium flex items-center gap-2 shadow-2xs`}>
-                <CheckCircle2 size={14} className={`${isDarkMode ? 'text-white' : 'text-[#18181b]'} shrink-0`} />
-                <span>No se detectaron recargos adicionales en este catálogo. Todas las opciones y acabados están incluidos al costo base estándar ($0 USD).</span>
-              </div>
-            )}
-          </div>
-
           {/* Columnas Base Fijas del Modelo */}
-          <div className={`space-y-1.5 pt-2 border-t ${isDarkMode ? 'border-white/10' : 'border-slate-200/80'} rounded-none`}>
+          <div className="space-y-1.5 rounded-none">
             <div className="flex items-center justify-between text-[10px]">
               <div className={`flex items-center gap-1 font-bold ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'} uppercase tracking-wider`}>
                 <Layers size={12} className={isDarkMode ? 'text-zinc-300' : 'text-slate-700'} />

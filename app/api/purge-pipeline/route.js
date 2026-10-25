@@ -32,27 +32,35 @@ async function handlePurge(req) {
     try {
       const { data: record } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw')
+        .select('xml_raw, csv_raw, csv_new_raw, xml_actualizer_raw')
         .eq('company_name', tenant)
         .maybeSingle();
 
-      if (record?.xml_raw && String(record.xml_raw).startsWith('[STORAGE_URL]:')) {
-        const urlStr = String(record.xml_raw).replace('[STORAGE_URL]:', '').trim();
-        const urlParts = urlStr.split('/catalogs-storage/');
-        if (urlParts[1]) {
-          await supabase.storage
-            .from('catalogs-storage')
-            .remove([decodeURIComponent(urlParts[1])]);
+      const pathsToRemove = [];
+      ['xml_raw', 'csv_raw', 'csv_new_raw', 'xml_actualizer_raw'].forEach((field) => {
+        const val = record?.[field];
+        if (val && String(val).startsWith('[STORAGE_URL]:')) {
+          const urlStr = String(val).replace('[STORAGE_URL]:', '').trim();
+          const urlParts = urlStr.split('/catalogs-storage/');
+          if (urlParts[1]) {
+            pathsToRemove.push(decodeURIComponent(urlParts[1]));
+          }
         }
+      });
+
+      if (pathsToRemove.length > 0) {
+        await supabase.storage.from('catalogs-storage').remove(pathsToRemove);
       }
 
-      const { data: fileList } = await supabase.storage
-        .from('catalogs-storage')
-        .list(tenant);
-
-      if (fileList && fileList.length > 0) {
-        const filePaths = fileList.map((f) => `${tenant}/${f.name}`);
-        await supabase.storage.from('catalogs-storage').remove(filePaths);
+      // Limpiar subcarpetas virtuales del tenant
+      for (const prefix of [tenant, `csv_matrices/${tenant}`, `xml_results/${tenant}`, `xml_originals/${tenant}`]) {
+        try {
+          const { data: fileList } = await supabase.storage.from('catalogs-storage').list(prefix);
+          if (fileList && fileList.length > 0) {
+            const filePaths = fileList.map((f) => `${prefix}/${f.name}`);
+            await supabase.storage.from('catalogs-storage').remove(filePaths);
+          }
+        } catch (_) {}
       }
     } catch (storageErr) {
       console.warn('Storage purge error:', storageErr);

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, resolveStorageContent } from '@/app/lib/supabaseClient';
 import { Download, Loader2 } from 'lucide-react';
 
 const DownloadResultXML = ({ moduleName = 'General_Procces' }) => {
@@ -23,7 +23,8 @@ const DownloadResultXML = ({ moduleName = 'General_Procces' }) => {
         return;
       }
 
-      const xmlContent = data.xml_actualizer_raw;
+      const rawContent = data.xml_actualizer_raw;
+      const xmlContent = await resolveStorageContent(rawContent);
       const blob = new Blob([xmlContent], { type: 'application/xml' });
       const url = window.URL.createObjectURL(blob);
       
@@ -65,7 +66,7 @@ const DownloadResultXML = ({ moduleName = 'General_Procces' }) => {
     <button 
       onClick={handleDownload}
       disabled={isDownloading}
-      className="bg-[#18181b] text-white px-4 py-2 rounded text-xs font-bold hover:bg-[#09090b] transition-all flex items-center gap-2 disabled:opacity-50 shadow-sm"
+      className="bg-[#18181b] text-white px-4 py-2 rounded-none text-xs font-bold hover:bg-[#09090b] transition-all flex items-center gap-2 disabled:opacity-50 shadow-sm cursor-pointer"
     >
       {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
       {isDownloading ? 'Downloading...' : `Download ${moduleName}.xml`}

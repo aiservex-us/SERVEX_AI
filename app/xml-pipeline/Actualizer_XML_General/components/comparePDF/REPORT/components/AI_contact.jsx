@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, resolveStorageContent, uploadToCatalogsStorage } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
@@ -1883,7 +1883,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (error || !data || !data.xml_actualizer_raw) {
           setMessages(prev => [...prev, { from: "bot", text: "❌ Error: XML file not found in the database for General Process.", time: nowTime }]);
         } else {
-          const blob = new Blob([data.xml_actualizer_raw], { type: 'application/xml' });
+          const rawXml = data.xml_actualizer_raw;
+          const xmlContent = await resolveStorageContent(rawXml);
+          const blob = new Blob([xmlContent], { type: 'application/xml' });
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -1984,7 +1986,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (csvNewRawToSend) {
           formData.append('csv_new_raw', typeof csvNewRawToSend === 'string' ? csvNewRawToSend : JSON.stringify(csvNewRawToSend));
         }
-        if (xmlRawToSend) {
+        // Solo enviar xml_raw como fallback si no se dispone del csv_raw base
+        if (xmlRawToSend && !csvRawToSend) {
           formData.append('xml_raw', typeof xmlRawToSend === 'string' ? xmlRawToSend : JSON.stringify(xmlRawToSend));
         }
 

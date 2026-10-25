@@ -2,7 +2,7 @@
 
 import Papa from 'papaparse';
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, uploadToCatalogsStorage } from '@/app/lib/supabaseClient';
 import {
   FileCode,
   Building2,
@@ -479,10 +479,30 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
 
         const generatedCsv = await generateCsvFromCetXml(rawContent);
         if (generatedCsv) {
-          payload.csv_raw = generatedCsv;
+          let storageGenUrl: string | null = null;
+          if (generatedCsv.length > 200 * 1024) {
+            try {
+              storageGenUrl = await uploadToCatalogsStorage(
+                generatedCsv,
+                `csv_matrices/General_Procces/csv_raw_${Date.now()}.csv`,
+                'text/csv'
+              );
+            } catch (_) {}
+          }
+          payload.csv_raw = storageGenUrl ? `[STORAGE_URL]: ${storageGenUrl}` : generatedCsv;
         }
       } else if (type === 'csv_base') {
-        payload.csv_raw = rawContent;
+        let storageCsvBaseUrl: string | null = null;
+        if (rawContent && rawContent.length > 200 * 1024) {
+          try {
+            storageCsvBaseUrl = await uploadToCatalogsStorage(
+              rawContent,
+              `csv_matrices/General_Procces/csv_raw_${Date.now()}.csv`,
+              'text/csv'
+            );
+          } catch (_) {}
+        }
+        payload.csv_raw = storageCsvBaseUrl ? `[STORAGE_URL]: ${storageCsvBaseUrl}` : rawContent;
         try {
           if (typeof window !== 'undefined') {
             sessionStorage.setItem('csv_raw', rawContent);
@@ -490,8 +510,19 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           }
         } catch (_) {}
       } else if (type === 'csv_new') {
-        payload.csv_new_raw = rawContent;
-        payload.CSV_final = rawContent;
+        let storageCsvNewUrl: string | null = null;
+        if (rawContent && rawContent.length > 200 * 1024) {
+          try {
+            storageCsvNewUrl = await uploadToCatalogsStorage(
+              rawContent,
+              `csv_matrices/General_Procces/csv_new_${Date.now()}.csv`,
+              'text/csv'
+            );
+          } catch (_) {}
+        }
+        const valToStore = storageCsvNewUrl ? `[STORAGE_URL]: ${storageCsvNewUrl}` : rawContent;
+        payload.csv_new_raw = valToStore;
+        payload.CSV_final = valToStore;
         try {
           if (typeof window !== 'undefined') {
             sessionStorage.setItem('csv_new_raw', rawContent);
@@ -502,7 +533,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
           const fd = new FormData();
           fd.append('company_name', 'General_Procces');
-          fd.append('csv_new_raw', rawContent);
+          fd.append('csv_new_raw', valToStore);
           fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-new`, {
             method: 'POST',
             body: fd
