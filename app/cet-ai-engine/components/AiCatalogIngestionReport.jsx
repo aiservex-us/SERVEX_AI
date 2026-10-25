@@ -97,9 +97,50 @@ function AiCatalogIngestionReport({
   const displayedFeatures = expandedFamilies ? filteredBaseFeatures : filteredBaseFeatures.slice(0, 6);
   const displayedCommercialColumns = expandedCommercial ? commercialColumns : commercialColumns.slice(0, 8);
 
-  const totalSkus = summary?.total_skus?.toLocaleString() || summary?.products || 0;
-  const totalFeatures = summary?.total_features?.toLocaleString() || summary?.features_count || 0;
-  const totalOptions = summary?.total_options?.toLocaleString() || summary?.options || 0;
+  const totalSkus = useMemo(() => {
+    const raw =
+      typeof summary?.total_skus === 'number'
+        ? summary.total_skus
+        : typeof summary?.total_products === 'number'
+          ? summary.total_products
+          : typeof summary?.product_count === 'number'
+            ? summary.product_count
+            : Array.isArray(summary?.products)
+              ? summary.products.length
+              : typeof summary?.products === 'number'
+                ? summary.products
+                : Number(summary?.total_skus || summary?.total_products || 0);
+    return (Number.isFinite(raw) ? raw : 0).toLocaleString();
+  }, [summary]);
+
+  const totalFeatures = useMemo(() => {
+    const raw =
+      typeof summary?.total_features === 'number'
+        ? summary.total_features
+        : typeof summary?.features_count === 'number'
+          ? summary.features_count
+          : Array.isArray(summary?.features)
+            ? summary.features.length
+            : typeof summary?.features === 'number'
+              ? summary.features
+              : Number(summary?.total_features || summary?.features_count || 0);
+    return (Number.isFinite(raw) ? raw : 0).toLocaleString();
+  }, [summary]);
+
+  const totalOptions = useMemo(() => {
+    const raw =
+      typeof summary?.total_options === 'number'
+        ? summary.total_options
+        : typeof summary?.options_count === 'number'
+          ? summary.options_count
+          : Array.isArray(summary?.options)
+            ? summary.options.length
+            : typeof summary?.options === 'number'
+              ? summary.options
+              : Number(summary?.total_options || summary?.options_count || 0);
+    return (Number.isFinite(raw) ? raw : 0).toLocaleString();
+  }, [summary]);
+
   const integrity = summary?.integrity || '100% CET';
   const sampleProduct = summary?.sample_product_example;
 
@@ -487,20 +528,25 @@ function AiCatalogIngestionReport({
                     </p>
                     {feat.options && feat.options.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-0.5 rounded-none">
-                        {feat.options.map((opt, optIdx) => (
-                          <span
-                            key={optIdx}
-                            className={`text-[9px] font-mono px-1.5 py-0.2 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-200 border-white/15' : 'bg-white text-slate-700 border-slate-200'} border shadow-2xs`}
-                            title={`${opt.code} - ${opt.description}`}
-                          >
-                            {opt.code}
-                            {Number(opt.current_price) > 0 && (
-                              <span className={`font-bold ml-1 ${isDarkMode ? 'text-white font-bold' : 'text-[#18181b] font-bold'}`}>
-                                +${opt.current_price}
-                              </span>
-                            )}
-                          </span>
-                        ))}
+                        {feat.options.map((opt, optIdx) => {
+                          const optCode = typeof opt === 'object' && opt !== null ? (opt.code || opt.option_code || '') : String(opt || '');
+                          const optPrice = typeof opt === 'object' && opt !== null ? Number(opt.current_price || opt.price || 0) : 0;
+                          const optDesc = typeof opt === 'object' && opt !== null ? (opt.description || optCode) : optCode;
+                          return (
+                            <span
+                              key={optIdx}
+                              className={`text-[9px] font-mono px-1.5 py-0.2 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-200 border-white/15' : 'bg-white text-slate-700 border-slate-200'} border shadow-2xs`}
+                              title={`${optCode} - ${optDesc}`}
+                            >
+                              {optCode}
+                              {optPrice > 0 && (
+                                <span className={`font-bold ml-1 ${isDarkMode ? 'text-white font-bold' : 'text-[#18181b] font-bold'}`}>
+                                  +${optPrice}
+                                </span>
+                              )}
+                            </span>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
