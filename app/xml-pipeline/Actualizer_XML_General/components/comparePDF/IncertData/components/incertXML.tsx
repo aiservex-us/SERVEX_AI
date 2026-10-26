@@ -490,6 +490,22 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
             } catch (_) {}
           }
           payload.csv_raw = storageGenUrl ? `[STORAGE_URL]: ${storageGenUrl}` : generatedCsv;
+          try {
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('csv_raw', generatedCsv);
+              window.dispatchEvent(new CustomEvent('catalogMatrixUpdated', { detail: { csvRaw: generatedCsv } }));
+            }
+          } catch (_) {}
+          try {
+            const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+            const fdBase = new FormData();
+            fdBase.append('company_name', 'General_Procces');
+            fdBase.append('csv_raw', generatedCsv);
+            fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-base`, {
+              method: 'POST',
+              body: fdBase
+            }).catch(() => {});
+          } catch (_) {}
         }
       } else if (type === 'csv_base') {
         let storageCsvBaseUrl: string | null = null;
@@ -508,6 +524,16 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
             sessionStorage.setItem('csv_raw', rawContent);
             window.dispatchEvent(new CustomEvent('catalogMatrixUpdated', { detail: { csvRaw: rawContent } }));
           }
+        } catch (_) {}
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+          const fdBase = new FormData();
+          fdBase.append('company_name', 'General_Procces');
+          fdBase.append('csv_raw', rawContent);
+          fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-base`, {
+            method: 'POST',
+            body: fdBase
+          }).catch(() => {});
         } catch (_) {}
       } else if (type === 'csv_new') {
         let storageCsvNewUrl: string | null = null;
@@ -533,7 +559,8 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
           const fd = new FormData();
           fd.append('company_name', 'General_Procces');
-          fd.append('csv_new_raw', valToStore);
+          // Enviar rawContent directamente para validación rápida en memoria sin round-trips
+          fd.append('csv_new_raw', rawContent);
           const cacheRes = await fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-new`, {
             method: 'POST',
             body: fd

@@ -2278,37 +2278,58 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   // Validador de Coherencia entre Catálogo Base y CSV Cargado
   const checkClientCsvCoherence = (baseCsv, newCsv) => {
     if (!baseCsv || !newCsv) return { canEvaluate: false, coherent: true };
+    const strBase = String(baseCsv).trim();
+    const strNew = String(newCsv).trim();
+    if (strBase.startsWith('[STORAGE_URL]:') || strNew.startsWith('[STORAGE_URL]:')) {
+      return { canEvaluate: false, coherent: true };
+    }
+
     try {
       const extractModels = (csvStr) => {
         const models = new Set();
-        const str = String(csvStr).trim();
+        let str = String(csvStr).replace(/^\uFEFF/, '').trim();
         if (str.startsWith('[')) {
           try {
             const arr = JSON.parse(str);
             arr.forEach(item => {
-              const key = Object.keys(item).find(k => k.toLowerCase().includes('model'));
+              const key = Object.keys(item).find(k => k.toLowerCase().includes('model') || k.toLowerCase().includes('code') || k.toLowerCase().includes('sku'));
               const val = key ? item[key] : Object.values(item)[0];
               if (val && String(val).trim()) models.add(String(val).trim().toUpperCase());
             });
             return models;
           } catch (_) {}
         }
-        const lines = str.split(/\r?\n/).filter(l => l.trim().length > 0);
+        const lines = str.split(/\r?\n/).filter(l => l.trim().length > 0 && !l.trim().startsWith('#') && !l.trim().startsWith('<!--'));
         if (lines.length <= 1) return models;
-        const delim = lines[0].includes(';') && lines[0].split(';').length >= lines[0].split(',').length ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+
+        const sample = lines.slice(0, 10).join('\n');
+        const countSemi = (sample.match(/;/g) || []).length;
+        const countComma = (sample.match(/,/g) || []).length;
+        const countTab = (sample.match(/\t/g) || []).length;
+        let delim = ',';
+        if (countTab > countSemi && countTab > countComma) delim = '\t';
+        else if (countSemi >= countComma && countSemi > 0) delim = ';';
+
         const headerCols = lines[0].split(delim).map(c => c.trim().replace(/^["']|["']$/g, ''));
-        let modelColIdx = headerCols.findIndex(c => c.toUpperCase().includes('MODEL'));
+        let modelColIdx = headerCols.findIndex(c => {
+          const u = c.toUpperCase();
+          return u.includes('MODEL') || u.includes('MODELO') || u.includes('CODE') || u.includes('CÓDIGO') || u.includes('SKU');
+        });
         if (modelColIdx === -1) modelColIdx = 0;
+
         for (let i = 1; i < lines.length; i++) {
           const parts = lines[i].split(delim);
-          const val = parts[modelColIdx]?.trim().replace(/^["']|["']$/g, '');
-          if (val) models.add(val.toUpperCase());
+          const rawVal = parts[modelColIdx];
+          if (rawVal !== undefined && rawVal !== null) {
+            const val = String(rawVal).trim().replace(/^["']|["']$/g, '').trim().toUpperCase();
+            if (val) models.add(val);
+          }
         }
         return models;
       };
 
-      const baseModels = extractModels(baseCsv);
-      const newModels = extractModels(newCsv);
+      const baseModels = extractModels(strBase);
+      const newModels = extractModels(strNew);
 
       if (baseModels.size === 0) return { canEvaluate: false, coherent: true };
       let commonCount = 0;
@@ -2316,11 +2337,39 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (baseModels.has(m)) commonCount++;
       });
 
+      // Multi-tier matching si la coincidencia exacta arrojó 0
+      if (baseModels.size > 0 && commonCount === 0) {
+        const normKey = (v) => String(v).replace(/[\s\-_/'"`]/g, '').toUpperCase();
+        const baseNormMap = new Map();
+        baseModels.forEach(m => {
+          const k = normKey(m);
+          if (k) baseNormMap.set(k, m);
+        });
+
+        newModels.forEach(m => {
+          const k = normKey(m);
+          if (k && baseNormMap.has(k)) commonCount++;
+        });
+
+        // Comprobación de ceros a la izquierda (00123 -> 123)
+        if (commonCount === 0) {
+          const baseLstripMap = new Map();
+          baseNormMap.forEach((v, k) => {
+            const lk = k.replace(/^0+/, '');
+            if (lk) baseLstripMap.set(lk, v);
+          });
+          newModels.forEach(m => {
+            const lk = normKey(m).replace(/^0+/, '');
+            if (lk && baseLstripMap.has(lk)) commonCount++;
+          });
+        }
+      }
+
       const totalBase = baseModels.size;
       const totalNew = newModels.size;
       let isCoherent = true;
       if (totalBase > 0 && commonCount === 0) isCoherent = false;
-      else if (totalBase >= 5 && (commonCount / totalBase) < 0.05) isCoherent = false;
+      else if (totalBase >= 10 && (commonCount / totalBase) < 0.03 && (totalNew - commonCount) > 0) isCoherent = false;
 
       return { canEvaluate: true, coherent: isCoherent, totalBase, totalNew, commonCount };
     } catch (err) {
