@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Componente SidebarIcon con tooltip tutorial interactivo "Hover Popover" idéntico al panel
+// Componente SidebarIcon con tooltip tutorial interactivo "Hover Popover" con estética arquitectónica Servex
 const SidebarIcon = ({
   icon,
   active,
@@ -24,13 +24,14 @@ const SidebarIcon = ({
   tagline,
   description,
   tip,
-  isDarkMode = true
+  isDarkMode = true,
+  isDanger = false
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      className="relative flex items-center justify-center"
+      className="relative flex items-center justify-center w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -40,73 +41,77 @@ const SidebarIcon = ({
         aria-label={title}
         className={`
           ${hideOnMobile ? 'hidden md:flex' : 'flex'}
-          w-9 h-9 md:w-10 md:h-10 shrink-0
-          items-center justify-center rounded-xl cursor-pointer transition-all duration-200 relative group
+          w-10 h-10 shrink-0
+          items-center justify-center rounded-none cursor-pointer transition-all duration-200 relative group border
           ${active
             ? isDarkMode
-              ? 'bg-white text-zinc-950 shadow-sm shadow-white/20'
-              : 'bg-zinc-900 text-white shadow-sm shadow-zinc-900/25'
-            : isDarkMode
-              ? 'text-zinc-400 hover:text-white hover:bg-white/10'
-              : 'text-slate-400 hover:text-zinc-900 hover:bg-slate-200/60'}
+              ? 'bg-white text-zinc-950 font-bold border-white shadow-[0_0_20px_rgba(255,255,255,0.22)]'
+              : 'bg-[#18181b] text-white font-bold border-[#18181b] shadow-[0_4px_16px_rgba(24,24,27,0.2)]'
+            : isDanger
+              ? isDarkMode
+                ? 'text-zinc-400 border-transparent hover:text-rose-400 hover:border-rose-500/25 hover:bg-rose-500/10'
+                : 'text-slate-500 border-transparent hover:text-rose-600 hover:border-rose-500/25 hover:bg-rose-500/10'
+              : isDarkMode
+                ? 'text-zinc-400 border-transparent hover:text-white hover:bg-white/10 hover:border-white/15'
+                : 'text-slate-500 border-transparent hover:text-[#18181b] hover:bg-[#18181b]/5 hover:border-[#18181b]/15'}
         `}
       >
         {active && (
           <>
-            {/* Indicador Desktop (izquierda) */}
-            <div className={`hidden md:block absolute -left-2.5 w-1 h-5 ${isDarkMode ? 'bg-white' : 'bg-zinc-900'} rounded-r-full shadow-sm`} />
-            {/* Indicador Mobile (abajo) */}
-            <div className={`md:hidden absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 ${isDarkMode ? 'bg-white' : 'bg-zinc-900'} rounded-full`} />
+            {/* Indicador Desktop lineal de precisión en el borde izquierdo */}
+            <div className={`hidden md:block absolute -left-2 top-0 bottom-0 w-[3px] rounded-none ${isDarkMode ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-[#18181b] shadow-[0_0_8px_rgba(0,0,0,0.3)]'}`} />
+            {/* Indicador Mobile lineal arriba */}
+            <div className={`md:hidden absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2px] rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`} />
           </>
         )}
         {icon}
       </button>
 
-      {/* Ventana flotante Tutorial en Hover (Visible en Desktop) */}
+      {/* Ventana flotante Tutorial en Hover (Visible en Desktop) con estética técnica Servex */}
       <AnimatePresence>
         {isHovered && description && (
           <motion.div
-            initial={{ opacity: 0, x: -10, scale: 0.95 }}
+            initial={{ opacity: 0, x: -8, scale: 0.98 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -8, scale: 0.95 }}
-            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, x: -6, scale: 0.98 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className={`
               hidden md:flex flex-col absolute left-full ml-3.5 top-1/2 -translate-y-1/2
-              w-[270px] ${isDarkMode ? 'bg-[#09090b]/80 border-white/10 text-zinc-100 shadow-[0_16px_36px_-6px_rgba(0,0,0,0.65),inset_0_1px_0_0_rgba(255,255,255,0.12)]' : 'bg-white/98 border-slate-200/90 text-slate-900 shadow-[0_16px_36px_-6px_rgba(15,23,42,0.15)]'} backdrop-blur-2xl rounded-2xl p-4
+              w-[275px] ${isDarkMode ? 'bg-[#09090b]/95 border-white/15 text-zinc-100 shadow-[0_20px_50px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.12)]' : 'bg-white/95 border-[#18181b]/15 text-[#18181b] shadow-[0_20px_50px_rgba(0,0,0,0.1)]'} backdrop-blur-2xl rounded-none p-4
               border z-[300] pointer-events-none text-left
             `}
           >
-            {/* Flecha conectora que apunta al icono */}
-            <div className={`absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 ${isDarkMode ? 'bg-[#09090b] border-white/10' : 'bg-white border-slate-200/90'} border-l border-b rotate-45`} />
+            {/* Flecha conectora angular */}
+            <div className={`absolute -left-[5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 ${isDarkMode ? 'bg-[#09090b] border-white/15' : 'bg-white border-[#18181b]/15'} border-l border-b rotate-45`} />
 
-            {/* Cabecera del Tutorial con Badge del Paso */}
+            {/* Cabecera del Tutorial con Badge del Paso idéntico al Servex Copilot badge */}
             <div className="flex items-center justify-between gap-2 mb-2 relative z-10">
-              <span className={`text-[10px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full ${isDarkMode ? 'bg-white/10 text-zinc-200 border-white/20' : 'bg-zinc-900/10 text-zinc-900 border-zinc-900/20'} border flex items-center gap-1.5`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-zinc-200' : 'bg-zinc-900'} animate-pulse`} />
+              <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-200 border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20'} border flex items-center gap-1.5`}>
+                <span className={`w-1.5 h-1.5 rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} animate-pulse`} />
                 {stepNumber || 'GUIDE'}
               </span>
               {tagline && (
-                <span className={`text-[10px] font-semibold ${isDarkMode ? 'text-zinc-400' : 'text-slate-400'} uppercase tracking-wider`}>
+                <span className={`text-[9px] font-semibold tracking-widest ${isDarkMode ? 'text-zinc-400' : 'text-slate-400'} uppercase`}>
                   {tagline}
                 </span>
               )}
             </div>
 
             {/* Section Name */}
-            <h4 className={`text-[13.5px] font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'} tracking-tight leading-snug relative z-10`}>
+            <h4 className={`text-[13px] font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} tracking-tight leading-snug relative z-10`}>
               {title}
             </h4>
 
             {/* Short Explanation / Tutorial */}
-            <p className={`text-[12px] ${isDarkMode ? 'text-zinc-300' : 'text-slate-600'} leading-relaxed mt-1 font-normal relative z-10`}>
+            <p className={`text-[11.5px] ${isDarkMode ? 'text-zinc-300' : 'text-slate-600'} leading-relaxed mt-1.5 font-normal relative z-10`}>
               {description}
             </p>
 
             {/* Quick Action Hint */}
             {tip && (
-              <div className={`mt-2.5 pt-2 border-t ${isDarkMode ? 'border-white/10 text-zinc-200' : 'border-slate-100 text-zinc-900'} flex items-center justify-between text-[11px] font-semibold relative z-10`}>
+              <div className={`mt-3 pt-2 border-t ${isDarkMode ? 'border-white/10 text-zinc-200' : 'border-[#18181b]/10 text-[#18181b]'} flex items-center justify-between text-[10.5px] font-semibold relative z-10`}>
                 <span>{tip}</span>
-                <span className={`${isDarkMode ? 'text-zinc-400' : 'text-slate-400'} font-bold`}>→</span>
+                <span className={`${isDarkMode ? 'text-zinc-400' : 'text-slate-400'} font-bold font-mono`}>→</span>
               </div>
             )}
           </motion.div>
@@ -160,9 +165,13 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
       `}</style>
 
       <aside className={`
-        z-[100] flex-shrink-0 transition-all duration-300 ${isDarkMode ? 'bg-[#09090b]/10 border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]' : 'bg-slate-50/70 border-slate-200/60'} backdrop-blur-md
-        fixed bottom-0 left-0 w-full h-[60px] border-t flex flex-row items-center px-3 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]
-        md:relative md:w-[64px] md:h-full md:border-r md:border-t-0 md:flex-col md:py-4 md:px-0 md:shadow-none md:justify-between
+        z-[100] flex-shrink-0 transition-all duration-300
+        ${isDarkMode
+          ? 'bg-[#09090b]/60 border-white/10 shadow-[1px_0_30px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.04)]'
+          : 'bg-white/70 border-[#18181b]/10 shadow-[1px_0_30px_rgba(0,0,0,0.03)]'}
+        backdrop-blur-xl
+        fixed bottom-0 left-0 w-full h-[60px] border-t flex flex-row items-center px-3
+        md:relative md:w-[64px] md:h-full md:border-r md:border-t-0 md:flex-col md:py-4 md:px-0 md:justify-between
       `}>
         {/* TOP SECTION: GLYNNE Logo + Navigation Stack */}
         <div className="hidden md:flex flex-col items-center w-full">
@@ -171,69 +180,75 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             type="button"
             onClick={() => window.open('https://axglynne.com', '_blank', 'noopener,noreferrer')}
             title="AXGLYNNE Ecosystem"
-            className={`w-10 h-10 rounded-xl flex items-center justify-center p-2 ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-slate-200/50'} transition-all group focus:outline-none`}
+            className={`w-10 h-10 rounded-none flex items-center justify-center p-2.5 transition-all duration-200 group focus:outline-none border border-transparent ${
+              isDarkMode
+                ? 'hover:bg-white/10 text-white hover:border-white/15'
+                : 'hover:bg-[#18181b]/5 text-[#18181b] hover:border-[#18181b]/15'
+            }`}
           >
-            <GlynneLogo className={`w-full h-full ${isDarkMode ? 'text-white' : 'text-zinc-900'} group-hover:scale-105 transition-transform`} />
+            <GlynneLogo className={`w-full h-full ${isDarkMode ? 'text-white' : 'text-[#18181b]'} group-hover:scale-105 transition-transform`} />
           </button>
-          <div className={`w-6 h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-slate-200/80'} my-2.5`} />
+
+          {/* Separador arquitectónico */}
+          <div className={`w-7 h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#18181b]/10'} my-3 transition-colors`} />
 
           {/* Navigation Items (Top-aligned, directly below logo) */}
           <nav className="flex flex-col items-center gap-2 w-full px-2">
             {/* STEP 1: Process Overview */}
             <SidebarIcon
-              icon={<Sparkles size={18} />}
+              icon={<Sparkles size={17} />}
               active={active === 'reporting'}
               title="General Process Home"
               stepNumber="STEP 1"
               tagline="Overview"
-              description="Autonomous process overview, system architecture specifications, and live AI pipeline metrics."
-              tip="View Process Home"
+              description="Vista general del proceso autónomo, arquitectura del sistema y métricas en vivo del pipeline IA."
+              tip="Abrir Home del Proceso"
               onClick={() => setActive('reporting')}
               isDarkMode={isDarkMode}
             />
 
             {/* STEP 2: Export Data Client */}
             <SidebarIcon
-              icon={<FileSpreadsheet size={18} />}
+              icon={<FileSpreadsheet size={17} />}
               active={active === 'xml_results'}
               title="Export Data Client"
               stepNumber="STEP 2"
               tagline="Export"
-              description="Review processed CET tables and export structured matrices directly for clients."
-              tip="Open Export Tables"
+              description="Revisar tablas procesadas de CET y exportar matrices estructuradas directamente para clientes."
+              tip="Abrir Matriz Exportable"
               onClick={() => setActive('xml_results')}
               isDarkMode={isDarkMode}
             />
 
             {/* STEP 3: Current Catalog */}
             <SidebarIcon
-              icon={<FileCode size={18} />}
+              icon={<FileCode size={17} />}
               active={active === 'inbox_updated'}
               title="Current Catalog"
               stepNumber="STEP 3"
               tagline="Catalog"
-              description="Inspect active catalog records, updated price rows, and ingested CSV items."
-              tip="Open Current Catalog"
+              description="Inspeccionar registros activos del catálogo, precios actualizados y filas de productos ingeridas."
+              tip="Abrir Catálogo Activo"
               onClick={() => setActive('inbox_updated')}
               isDarkMode={isDarkMode}
             />
 
             {/* STEP 4: XML Results */}
             <SidebarIcon
-              icon={<FileDiff size={18} />}
+              icon={<FileDiff size={17} />}
               active={active === 'dashboard'}
               title="XML Results & Diff"
               stepNumber="STEP 4"
               tagline="ETL Engine"
-              description="Post-process catalog breakdown, node structure changes, and final XML verification."
-              tip="View XML Results"
+              description="Desglose del catálogo posproceso, cambios en la estructura de nodos y verificación final del XML."
+              tip="Ver Resultados XML"
               onClick={() => setActive('dashboard')}
               isDarkMode={isDarkMode}
             />
           </nav>
         </div>
 
-        {/* MOBILE NAVIGATION BAR */}
+        {/* MOBILE NAVIGATION BAR (When viewport < md) */}
         <nav className="md:hidden flex flex-row items-center justify-around w-full h-full">
           <SidebarIcon
             icon={<Sparkles size={18} />}
@@ -264,7 +279,7 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             isDarkMode={isDarkMode}
           />
           <SidebarIcon
-            icon={isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-700" />}
+            icon={isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-[#18181b]" />}
             active={false}
             title={isDarkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
             onClick={onToggleTheme}
@@ -276,37 +291,44 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             title="Salir / Cerrar Sesión"
             onClick={() => (onExit ? onExit() : router.push('/panel'))}
             isDarkMode={isDarkMode}
+            isDanger={true}
           />
         </nav>
 
         {/* BOTTOM SECTION: Theme Toggle & Exit to Panel / Sign Out (Desktop) */}
         <div className="hidden md:flex flex-col items-center justify-center w-full pb-2 gap-2">
+          {/* Separador inferior arquitectónico */}
+          <div className={`w-7 h-[1px] ${isDarkMode ? 'bg-white/10' : 'bg-[#18181b]/10'} my-1 transition-colors`} />
+
           {/* BOTÓN DE CAMBIO DE THEME (SOBRE EL ICONO DE LOGOUT) */}
           <SidebarIcon
-            icon={isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-700" />}
+            icon={isDarkMode ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-[#18181b]" />}
             active={false}
             title={isDarkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
             stepNumber="THEME"
-            tagline="Apariencia Visual"
-            description={isDarkMode ? "Alternar al tema claro con fondos limpios y contrastes nítidos." : "Alternar al tema oscuro con fondos inmersivos y alto contraste."}
+            tagline="Apariencia"
+            description={isDarkMode ? "Alternar al tema claro con fondos limpios, cristalería translúcida y contrastes nítidos." : "Alternar al tema oscuro con fondos inmersivos y alto contraste."}
             tip={isDarkMode ? "Activar Modo Claro" : "Activar Modo Oscuro"}
             onClick={onToggleTheme}
             isDarkMode={isDarkMode}
           />
 
+          {/* BOTÓN SALIR / CERRAR SESIÓN */}
           <SidebarIcon
-            icon={<LogOut size={18} />}
+            icon={<LogOut size={17} />}
             active={false}
             title="Salir / Cerrar Sesión"
             stepNumber="EXIT"
-            tagline="Navegación y Sesión"
+            tagline="Sesión"
             description="Cerrar sesión de forma segura y salir al Home, o volver al panel de control general."
             tip="Cerrar Sesión / Panel"
             onClick={() => (onExit ? onExit() : router.push('/panel'))}
             isDarkMode={isDarkMode}
+            isDanger={true}
           />
         </div>
       </aside>
     </>
   );
 }
+
