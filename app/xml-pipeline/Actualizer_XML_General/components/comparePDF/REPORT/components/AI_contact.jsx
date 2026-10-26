@@ -1973,13 +1973,21 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             comparisonReport: resData,
             time: botReplyTime
           }
-        ]);
       } catch (err) {
+        const isMismatch =
+          err.message?.toLowerCase().includes('no coincide') ||
+          err.message?.toLowerCase().includes('productos diferentes') ||
+          err.message?.toLowerCase().includes('no corresponden');
+
         setMessages(prev => [
           ...prev, 
           { 
+            id: `err-comp-${Date.now()}`,
             from: "bot", 
-            text: `❌ Error durante la comparación de matrices: ${err.message}`, 
+            role: "assistant",
+            text: isMismatch 
+              ? `⚠️ **Dataset Incompatible con el Catálogo Base**\n\n${err.message}\n\n👉 Por favor usa **/importBase** para subir la matriz CSV con los productos correctos correspondientes a este catálogo.`
+              : `❌ Error durante la comparación de matrices: ${err.message}`, 
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
           }
         ]);
@@ -2294,6 +2302,59 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
   };
 
+  // Validador de Coherencia entre Catálogo Base y CSV Cargado
+  const checkClientCsvCoherence = (baseCsv, newCsv) => {
+    if (!baseCsv || !newCsv) return { canEvaluate: false, coherent: true };
+    try {
+      const extractModels = (csvStr) => {
+        const models = new Set();
+        const str = String(csvStr).trim();
+        if (str.startsWith('[')) {
+          try {
+            const arr = JSON.parse(str);
+            arr.forEach(item => {
+              const key = Object.keys(item).find(k => k.toLowerCase().includes('model'));
+              const val = key ? item[key] : Object.values(item)[0];
+              if (val && String(val).trim()) models.add(String(val).trim().toUpperCase());
+            });
+            return models;
+          } catch (_) {}
+        }
+        const lines = str.split(/\r?\n/).filter(l => l.trim().length > 0);
+        if (lines.length <= 1) return models;
+        const delim = lines[0].includes(';') && lines[0].split(';').length >= lines[0].split(',').length ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+        const headerCols = lines[0].split(delim).map(c => c.trim().replace(/^["']|["']$/g, ''));
+        let modelColIdx = headerCols.findIndex(c => c.toUpperCase().includes('MODEL'));
+        if (modelColIdx === -1) modelColIdx = 0;
+        for (let i = 1; i < lines.length; i++) {
+          const parts = lines[i].split(delim);
+          const val = parts[modelColIdx]?.trim().replace(/^["']|["']$/g, '');
+          if (val) models.add(val.toUpperCase());
+        }
+        return models;
+      };
+
+      const baseModels = extractModels(baseCsv);
+      const newModels = extractModels(newCsv);
+
+      if (baseModels.size === 0) return { canEvaluate: false, coherent: true };
+      let commonCount = 0;
+      newModels.forEach(m => {
+        if (baseModels.has(m)) commonCount++;
+      });
+
+      const totalBase = baseModels.size;
+      const totalNew = newModels.size;
+      let isCoherent = true;
+      if (totalBase > 0 && commonCount === 0) isCoherent = false;
+      else if (totalBase >= 5 && (commonCount / totalBase) < 0.05) isCoherent = false;
+
+      return { canEvaluate: true, coherent: isCoherent, totalBase, totalNew, commonCount };
+    } catch (err) {
+      return { canEvaluate: false, coherent: true };
+    }
+  };
+
   // Manejo de Carga e Ingesta de CSV Nuevo Directo en el Chat
   const handleCsvFileUpload = async (file) => {
     if (!file) return;
@@ -2334,6 +2395,56 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const fileText = await file.text().catch(() => '');
       if (!fileText || !fileText.trim()) {
         throw new Error('El archivo CSV seleccionado está vacío o no pudo ser leído.');
+      }
+
+      // ── PASO 0: Validación Previa de Coherencia entre Datasets ──
+      const baseCsvContent = dbCsvRaw || (typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') : null);
+      const clientCoh = checkClientCsvCoherence(baseCsvContent, fileText);
+
+      // Notificar y consultar al backend para validación contra DB y memoria viva
+      let backendCoh = null;
+      try {
+        const fd = new FormData();
+        fd.append('company_name', 'General_Procces');
+        fd.append('csv_new_raw', fileText);
+        const cacheRes = await fetch(`${apiURL}/api/v1/General_Procces/pipeline/cache-csv-new`, {
+          method: 'POST',
+          body: fd
+        });
+        backendCoh = await cacheRes.json().catch(() => ({}));
+      } catch (cacheErr) {
+        console.warn('[-] Advertencia en validación de caché:', cacheErr);
+      }
+
+      const isMismatch = (clientCoh.canEvaluate && !clientCoh.coherent) || (backendCoh && backendCoh.coherent === false);
+      if (isMismatch) {
+        const totalB = backendCoh?.total_base ?? clientCoh.totalBase ?? 'Registrados';
+        const commonC = backendCoh?.common_count ?? clientCoh.commonCount ?? 0;
+        const totalN = backendCoh?.total_new ?? clientCoh.totalNew ?? 'N/A';
+
+        // Marcar mensaje del usuario como alerta/error
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === uploadId ? { ...m, uploadStatus: 'error' } : m
+          )
+        );
+
+        const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const mismatchBotMsg = {
+          id: Date.now() + 2,
+          from: 'bot',
+          role: 'assistant',
+          text: `⚠️ **El dataset cargado no coincide con el catálogo en proceso**\n\nEl archivo \`${file.name}\` contiene productos y modelos diferentes que **no corresponden** a la matriz descargada/base de este catálogo.\n\n• **Modelos esperados en catálogo base:** ${totalB}\n• **Modelos en el archivo cargado:** ${totalN}\n• **Modelos coincidentes encontrados:** ${commonC}\n\n❌ **No es coherente para la comparación.** Por favor verifica el archivo y sube el dataset CSV correcto correspondiente a este catálogo para continuar.`,
+          content: `El dataset cargado no coincide con el catálogo en proceso. Por favor sube el archivo CSV correcto.`,
+          time: botTime,
+          timestamp: new Date().toISOString()
+        };
+        setMessages((prev) => {
+          const nextList = [...prev, mismatchBotMsg];
+          saveGeneralProcessChat(nextList);
+          return nextList;
+        });
+        return;
       }
 
       setDbCsvNewRaw(fileText);
@@ -2383,17 +2494,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       await supabase
         .from('ClientsSERVEX_General_Procces')
         .upsert(payload, { onConflict: 'company_name' });
-
-      // Notificar al backend en caché
-      try {
-        const fd = new FormData();
-        fd.append('company_name', 'General_Procces');
-        fd.append('csv_new_raw', valToStore);
-        fetch(`${apiURL}/api/v1/General_Procces/pipeline/cache-csv-new`, {
-          method: 'POST',
-          body: fd
-        }).catch(() => {});
-      } catch (_) {}
 
       // Desbloquear fase 3 y emitir step 'done'
       window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'done' } }));

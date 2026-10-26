@@ -534,10 +534,19 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           const fd = new FormData();
           fd.append('company_name', 'General_Procces');
           fd.append('csv_new_raw', valToStore);
-          fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-new`, {
+          const cacheRes = await fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-new`, {
             method: 'POST',
             body: fd
-          }).catch(() => {});
+          });
+          const cacheData = await cacheRes.json().catch(() => ({}));
+          if (cacheData?.coherent === false) {
+            setMessage({
+              text: `⚠️ El dataset no coincide con el catálogo base (${cacheData.common_count || 0} modelos comunes). Por favor sube el archivo CSV correcto.`,
+              type: 'error'
+            });
+            setLoading(false);
+            return;
+          }
         } catch (_) {}
       }
 
