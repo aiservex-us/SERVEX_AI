@@ -283,6 +283,7 @@ export default function MenuInicial() {
         onClose={() => setShowExitModal(false)}
         exitType={exitActionType}
         currentTenant="General_Procces"
+        isDarkMode={isDarkMode}
       />
 
       <main className="w-full h-full p-0 m-0 flex relative overflow-hidden flex-1 min-h-0">

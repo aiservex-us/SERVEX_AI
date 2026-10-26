@@ -28,71 +28,46 @@ async function handlePurge(req) {
   } catch (_) {}
 
   try {
-    // 1. Limpiar archivos del storage bucket catalogs-storage
-    try {
-      const { data: record } = await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .select('xml_raw, csv_raw, csv_new_raw, xml_actualizer_raw')
-        .eq('company_name', tenant)
-        .maybeSingle();
+    // 1. Prioridad #1: Eliminar completamente todos los registros de ClientsSERVEX_General_Procces de inmediato
+    const dbDeletePromises = [
+      supabase.from('ClientsSERVEX_General_Procces').delete().neq('id', 0),
+      supabase.from('ClientsSERVEX_General_Procces').delete().eq('company_name', tenant)
+    ];
 
-      const pathsToRemove = [];
-      ['xml_raw', 'csv_raw', 'csv_new_raw', 'xml_actualizer_raw'].forEach((field) => {
-        const val = record?.[field];
-        if (val && String(val).startsWith('[STORAGE_URL]:')) {
-          const urlStr = String(val).replace('[STORAGE_URL]:', '').trim();
-          const urlParts = urlStr.split('/catalogs-storage/');
-          if (urlParts[1]) {
-            pathsToRemove.push(decodeURIComponent(urlParts[1]));
-          }
-        }
-      });
-
-      if (pathsToRemove.length > 0) {
-        await supabase.storage.from('catalogs-storage').remove(pathsToRemove);
+    // 2. En paralelo: Limpiar archivos del storage bucket catalogs-storage
+    const storageCleanupPromise = (async () => {
+      try {
+        const prefixes = [tenant, `csv_matrices/${tenant}`, `xml_results/${tenant}`, `xml_originals/${tenant}`];
+        await Promise.allSettled(
+          prefixes.map(async (prefix) => {
+            try {
+              const { data: fileList } = await supabase.storage.from('catalogs-storage').list(prefix);
+              if (fileList && fileList.length > 0) {
+                const filePaths = fileList.map((f) => `${prefix}/${f.name}`);
+                await supabase.storage.from('catalogs-storage').remove(filePaths);
+              }
+            } catch (_) {}
+          })
+        );
+      } catch (storageErr) {
+        console.warn('Storage purge error:', storageErr);
       }
+    })();
 
-      // Limpiar subcarpetas virtuales del tenant
-      for (const prefix of [tenant, `csv_matrices/${tenant}`, `xml_results/${tenant}`, `xml_originals/${tenant}`]) {
-        try {
-          const { data: fileList } = await supabase.storage.from('catalogs-storage').list(prefix);
-          if (fileList && fileList.length > 0) {
-            const filePaths = fileList.map((f) => `${prefix}/${f.name}`);
-            await supabase.storage.from('catalogs-storage').remove(filePaths);
-          }
-        } catch (_) {}
-      }
-    } catch (storageErr) {
-      console.warn('Storage purge error:', storageErr);
-    }
-
-    // 2. Eliminar completamente todos los registros de ClientsSERVEX_General_Procces
-    const { error: dbError } = await supabase
-      .from('ClientsSERVEX_General_Procces')
-      .delete()
-      .neq('id', 0);
-
-    if (dbError) {
-      console.error('Error purgando ClientsSERVEX_General_Procces:', dbError);
-    }
-
-    // Doble verificación por company_name
-    try {
-      await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .delete()
-        .eq('company_name', tenant);
-    } catch (_) {}
-
-    // 3. Notificar al backend de Python
+    // 3. En paralelo con timeout rápido: Notificar al backend de Python
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-    try {
-      await Promise.allSettled([
-        fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session`, { method: 'POST' }),
-        fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/clear-session`, { method: 'POST' }),
-        fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/agent/history`, { method: 'DELETE' }),
-      ]);
-    } catch (_) {}
+    const backendNotifyPromise = (async () => {
+      try {
+        await Promise.allSettled([
+          fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
+          fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/clear-session`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
+          fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/agent/history`, { method: 'DELETE', signal: AbortSignal.timeout(1200) }),
+        ]);
+      } catch (_) {}
+    })();
+
+    // Ejecutar todo en paralelo asegurando que el borrado de base de datos se complete sin esperas bloqueantes
+    await Promise.allSettled([...dbDeletePromises, storageCleanupPromise, backendNotifyPromise]);
 
     return NextResponse.json({
       status: 'success',

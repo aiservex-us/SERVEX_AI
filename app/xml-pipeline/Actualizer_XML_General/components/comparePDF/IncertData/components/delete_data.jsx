@@ -63,92 +63,63 @@ export const purgeTenantDataBeacon = (currentTenant = 'General_Procces') => {
 };
 
 export const purgeTenantData = async (currentTenant = 'General_Procces') => {
-  // Disparar purga por beacon en paralelo como reaseguro inmediato
-  purgeTenantDataBeacon(currentTenant);
   resetClientTracking(currentTenant);
 
-  // 1. Obtener y eliminar archivos del bucket catalogs-storage si existen
-  try {
-    const { data: record } = await supabase
-      .from('ClientsSERVEX_General_Procces')
-      .select('xml_raw, csv_raw, csv_new_raw, xml_actualizer_raw')
-      .eq('company_name', currentTenant)
-      .maybeSingle();
-
-    const pathsToRemove = [];
-    ['xml_raw', 'csv_raw', 'csv_new_raw', 'xml_actualizer_raw'].forEach((field) => {
-      const val = record?.[field];
-      if (val && String(val).startsWith('[STORAGE_URL]:')) {
-        const urlStr = String(val).replace('[STORAGE_URL]:', '').trim();
-        const urlParts = urlStr.split('/catalogs-storage/');
-        if (urlParts[1]) {
-          pathsToRemove.push(decodeURIComponent(urlParts[1]));
-        }
-      }
-    });
-
-    if (pathsToRemove.length > 0) {
-      await supabase.storage.from('catalogs-storage').remove(pathsToRemove);
-    }
-
-    // Limpiar subcarpetas virtuales del tenant
-    for (const prefix of [currentTenant, `csv_matrices/${currentTenant}`, `xml_results/${currentTenant}`, `xml_originals/${currentTenant}`]) {
-      try {
-        const { data: fileList } = await supabase.storage.from('catalogs-storage').list(prefix);
-        if (fileList && fileList.length > 0) {
-          const filePaths = fileList.map(f => `${prefix}/${f.name}`);
-          await supabase.storage.from('catalogs-storage').remove(filePaths);
-        }
-      } catch (_) {}
-    }
-  } catch (errStorage) {
-    console.warn('[-] Advertencia en limpieza de storage:', errStorage);
-  }
-
-  // 2. Eliminar completamente todos los registros de ClientsSERVEX_General_Procces
-  // para que la base de datos quede 100% vacía tal como en deleteData
-  const { error } = await supabase
-    .from('ClientsSERVEX_General_Procces')
-    .delete()
-    .neq('id', 0);
-
-  try {
-    await supabase
-      .from('ClientsSERVEX_General_Procces')
-      .delete()
-      .eq('company_name', currentTenant);
-  } catch (_) {}
-
-  // 3. Invocar endpoint API Next.js interno para asegurar purga server-side
-  try {
-    await fetch('/api/purge-pipeline', {
-      method: 'POST',
-      body: JSON.stringify({ tenant: currentTenant }),
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (_) {}
-
-  // 4. Limpiar memoria de sesion, historial de chat y contexto del modelo en backend
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-  try {
-    await Promise.allSettled([
-      fetch(backendUrl + '/api/v1/cet-ai-engine/clear-session', { method: 'POST', keepalive: true }),
-      fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/clear-session', { method: 'POST', keepalive: true }),
-      fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/agent/history', { method: 'DELETE', keepalive: true })
-    ]);
-  } catch (beErr) {
-    console.warn('[-] Advertencia limpiando memoria de sesion en backend:', beErr);
-  }
-
-  // 5. Limpiar almacenamiento local para reiniciar conversacion fresca
+  // Limpiar almacenamiento local inmediatamente de forma sincrónica
   if (typeof window !== 'undefined') {
     try {
       sessionStorage.clear();
       localStorage.removeItem('chat_history_' + currentTenant);
       localStorage.removeItem('cet_active_messages');
+      localStorage.removeItem('general_procces_chat');
+      localStorage.removeItem('active_process_phase');
     } catch (_) {}
   }
-  if (error) throw error;
+
+  // 1. Ejecución paralela de máxima prioridad: borrado directo de DB en Supabase + endpoint Next.js interno
+  const dbPurgePromise = Promise.allSettled([
+    supabase.from('ClientsSERVEX_General_Procces').delete().neq('id', 0),
+    supabase.from('ClientsSERVEX_General_Procces').delete().eq('company_name', currentTenant),
+    fetch('/api/purge-pipeline', {
+      method: 'POST',
+      body: JSON.stringify({ tenant: currentTenant }),
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(1800)
+    }).catch(() => {})
+  ]);
+
+  // 2. Limpieza de storage en paralelo no bloqueante
+  const storageCleanupPromise = (async () => {
+    try {
+      const prefixes = [currentTenant, `csv_matrices/${currentTenant}`, `xml_results/${currentTenant}`, `xml_originals/${currentTenant}`];
+      await Promise.allSettled(
+        prefixes.map(async (prefix) => {
+          try {
+            const { data: fileList } = await supabase.storage.from('catalogs-storage').list(prefix);
+            if (fileList && fileList.length > 0) {
+              const filePaths = fileList.map(f => `${prefix}/${f.name}`);
+              await supabase.storage.from('catalogs-storage').remove(filePaths);
+            }
+          } catch (_) {}
+        })
+      );
+    } catch (_) {}
+  })();
+
+  // 3. Notificación al backend en paralelo con timeout rápido
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+  const backendPromise = Promise.allSettled([
+    fetch(backendUrl + '/api/v1/cet-ai-engine/clear-session', { method: 'POST', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {}),
+    fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/clear-session', { method: 'POST', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {}),
+    fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/agent/history', { method: 'DELETE', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {})
+  ]);
+
+  // Esperar el borrado de base de datos con un límite de tiempo de 1.8 segundos para máxima fluidez
+  const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1800));
+  await Promise.race([
+    Promise.allSettled([dbPurgePromise, storageCleanupPromise, backendPromise]),
+    timeoutPromise
+  ]);
 };
 
 const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) => {
