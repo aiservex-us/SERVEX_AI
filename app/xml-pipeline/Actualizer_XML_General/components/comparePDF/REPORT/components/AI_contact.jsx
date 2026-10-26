@@ -30,7 +30,7 @@ const SLASH_COMMANDS = [
   { id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4, category: 'Export Data From CET or Client' },
   { id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4, category: 'Export Data From CET or Client' },
 
-  { id: 'import', icon: Database, label: '/importBase', desc: 'Import Base excel & XML', phase: 1, category: 'Step 1: Data Ingestion' },
+  { id: 'import', icon: Database, label: '/importBase', desc: 'Subir matriz CSV de nuevos precios (csv_new_raw)', phase: 1, category: 'Step 1: Data Ingestion' },
   { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2, category: 'Step 1: Data Ingestion' },
 
   { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3, category: 'Step 2: XML ETL Engine' }
@@ -555,21 +555,21 @@ function formatProfessionalSpeechText(rawText) {
   return result;
 }
 
-// Configuración global del renderizador de Marked para estilos premium corporativos en dark theme
+// Configuración global del renderizador de Marked para estructura HTML limpia adaptable por CSS
 const origRenderer = new marked.Renderer();
 marked.use({
   renderer: {
     table(token) {
       const orig = origRenderer.table.call(this, token);
-      return `<div class="my-4 overflow-x-auto rounded-none border border-white/10 shadow-lg bg-[#09090b]/70 backdrop-blur-md inline-block max-w-full w-full">
-        ${orig.replace('<table>', '<table class="w-full text-left text-[12.5px] text-zinc-200">')
-          .replace('<thead>', '<thead class="bg-white/[0.06] border-b border-white/10 text-zinc-300 font-bold uppercase tracking-wider text-[11px]">')
-          .replace('<tbody>', '<tbody class="divide-y divide-white/[0.06]">')}
+      return `<div class="alysa-table-wrapper my-4 overflow-x-auto rounded-none border shadow-md inline-block max-w-full w-full">
+        ${orig.replace('<table>', '<table class="w-full text-left text-[12.5px]">')
+          .replace('<thead>', '<thead class="border-b font-bold uppercase tracking-wider text-[11px]">')
+          .replace('<tbody>', '<tbody class="divide-y">')}
       </div>`;
     },
     tablerow(token) {
       const orig = origRenderer.tablerow.call(this, token);
-      return orig.replace('<tr>', '<tr class="hover:bg-white/[0.04] transition-colors duration-150">');
+      return orig.replace('<tr>', '<tr class="transition-colors duration-150">');
     },
     tablecell(token) {
       const orig = origRenderer.tablecell.call(this, token);
@@ -579,44 +579,44 @@ marked.use({
     list(token) {
       const orig = origRenderer.list.call(this, token);
       const classes = token.ordered
-        ? 'list-decimal list-outside ml-5 space-y-2 my-3 text-zinc-200'
-        : 'list-disc list-outside ml-5 space-y-2 my-3 text-zinc-200 marker:text-zinc-400';
+        ? 'list-decimal list-outside ml-5 space-y-2 my-3'
+        : 'list-disc list-outside ml-5 space-y-2 my-3';
       return orig.replace(/^<(ul|ol)>/, `<$1 class="${classes}">`);
     },
     listitem(token) {
       const orig = origRenderer.listitem.call(this, token);
-      return orig.replace(/^<li>/, '<li class="leading-relaxed pl-1 text-zinc-200">');
+      return orig.replace(/^<li>/, '<li class="leading-relaxed pl-1">');
     },
     paragraph(token) {
       const orig = origRenderer.paragraph.call(this, token);
-      return orig.replace(/^<p>/, '<p class="leading-relaxed mb-3 text-zinc-200">');
+      return orig.replace(/^<p>/, '<p class="leading-relaxed mb-3">');
     },
     heading(token) {
       const orig = origRenderer.heading.call(this, token);
       const sizes = {
-        1: 'text-2xl font-bold mt-6 mb-3 text-white tracking-tight',
-        2: 'text-xl font-bold mt-5 mb-2.5 text-white tracking-tight border-b border-white/10 pb-2',
-        3: 'text-lg font-semibold mt-4 mb-2 text-white tracking-tight',
-        4: 'text-base font-semibold mt-3 mb-1.5 text-zinc-100',
+        1: 'text-2xl font-bold mt-6 mb-3 tracking-tight',
+        2: 'text-xl font-bold mt-5 mb-2.5 tracking-tight border-b pb-2',
+        3: 'text-lg font-semibold mt-4 mb-2 tracking-tight',
+        4: 'text-base font-semibold mt-3 mb-1.5',
       };
       const cls = sizes[token.depth] || sizes[4];
       return orig.replace(/^<h[1-6]>/, `<h${token.depth} class="${cls}">`);
     },
     codespan(token) {
       const orig = origRenderer.codespan.call(this, token);
-      return orig.replace('<code>', '<code class="px-1.5 py-0.5 rounded-none bg-white/10 text-white font-mono text-[11.5px] font-semibold border border-white/15 shadow-sm">');
+      return orig.replace('<code>', '<code class="px-1.5 py-0.5 rounded-none font-mono text-[11.5px] font-semibold border shadow-xs">');
     },
     code(token) {
       const orig = origRenderer.code.call(this, token);
-      return `<div class="my-3 rounded-none overflow-hidden bg-[#09090b]/80 border border-white/10 shadow-md">
+      return `<div class="alysa-code-wrapper my-3 rounded-none overflow-hidden border shadow-md">
             <div class="p-3 overflow-x-auto custom-scrollbar">
-              ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[12.5px] text-zinc-200 font-mono leading-relaxed inline-block"><code class="block">')}
+              ${orig.replace(/<pre><code[^>]*>/, '<pre class="text-[12.5px] font-mono leading-relaxed inline-block"><code class="block">')}
             </div>
           </div>`;
     },
     blockquote(token) {
       const orig = origRenderer.blockquote.call(this, token);
-      return orig.replace('<blockquote>', '<blockquote class="border-l-4 border-white/30 bg-white/[0.03] italic py-2.5 px-4 rounded-none my-4 text-zinc-300 shadow-sm">');
+      return orig.replace('<blockquote>', '<blockquote class="border-l-4 italic py-2.5 px-4 rounded-none my-4 shadow-xs">');
     }
   }
 });
@@ -1265,11 +1265,15 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
              [&_li]:text-zinc-200 [&_li]:text-[13px] [&_li]:leading-relaxed
              [&_a]:text-blue-400 [&_a]:underline hover:[&_a]:text-blue-300
              [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-none [&_code]:bg-white/10 [&_code]:text-white [&_code]:border [&_code]:border-white/15
-             [&_pre]:bg-[#09090b]/80 [&_pre]:border [&_pre]:border-white/10 [&_pre]:rounded-none [&_pre]:p-3 [&_pre]:my-2.5 [&_pre]:overflow-x-auto
+             [&_.alysa-code-wrapper]:bg-[#09090b]/80 [&_.alysa-code-wrapper]:border-white/10
+             [&_pre]:bg-transparent [&_pre]:p-0 [&_pre]:my-0 [&_pre]:overflow-x-auto [&_pre]:text-zinc-200
+             [&_blockquote]:border-white/30 [&_blockquote]:bg-white/[0.03] [&_blockquote]:text-zinc-300
              [&_hr]:border-white/10 [&_hr]:my-3
-             [&_table]:w-full [&_table]:border-collapse [&_table]:my-3.5 [&_table]:rounded-none [&_table]:overflow-hidden [&_table]:border [&_table]:border-white/10 [&_table]:bg-[#09090b]/60 [&_table]:backdrop-blur-md [&_table]:shadow-md
-             [&_thead]:bg-white/[0.06] [&_thead]:border-b [&_thead]:border-white/10
+             [&_.alysa-table-wrapper]:border-white/10 [&_.alysa-table-wrapper]:bg-[#09090b]/70 [&_.alysa-table-wrapper]:backdrop-blur-md [&_.alysa-table-wrapper]:shadow-lg
+             [&_table]:w-full [&_table]:border-collapse [&_table]:text-zinc-200
+             [&_thead]:bg-white/[0.06] [&_thead]:border-b [&_thead]:border-white/10 [&_thead]:text-zinc-300
              [&_th]:px-3.5 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-zinc-300 [&_th]:border-b [&_th]:border-white/10
+             [&_tbody]:divide-y [&_tbody]:divide-white/[0.06]
              [&_td]:px-3.5 [&_td]:py-2.5 [&_td]:text-xs [&_td]:text-zinc-300 [&_td]:border-b [&_td]:border-white/[0.05]
              [&_tr:last-child_td]:border-b-0
              [&_tbody_tr]:transition-colors hover:[&_tbody_tr]:bg-white/[0.04]`
@@ -1285,15 +1289,19 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
              [&_li]:text-gray-700 [&_li]:text-[13px] [&_li]:leading-relaxed
              [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-700
              [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-none [&_code]:bg-slate-100 [&_code]:text-slate-900 [&_code]:border [&_code]:border-slate-200
-             [&_pre]:bg-slate-100 [&_pre]:border [&_pre]:border-slate-200 [&_pre]:rounded-none [&_pre]:p-3 [&_pre]:my-2.5 [&_pre]:overflow-x-auto
+             [&_.alysa-code-wrapper]:bg-slate-50 [&_.alysa-code-wrapper]:border-slate-200
+             [&_pre]:bg-transparent [&_pre]:p-0 [&_pre]:my-0 [&_pre]:overflow-x-auto [&_pre]:text-slate-800
+             [&_blockquote]:border-slate-300 [&_blockquote]:bg-slate-50 [&_blockquote]:text-slate-700
              [&_hr]:border-slate-200 [&_hr]:my-3
-             [&_table]:w-full [&_table]:border-collapse [&_table]:my-3.5 [&_table]:rounded-none [&_table]:overflow-hidden [&_table]:border [&_table]:border-slate-200 [&_table]:bg-white [&_table]:shadow-sm
-             [&_thead]:bg-slate-50 [&_thead]:border-b [&_thead]:border-slate-200
+             [&_.alysa-table-wrapper]:border-slate-200 [&_.alysa-table-wrapper]:bg-white/95 [&_.alysa-table-wrapper]:shadow-xs
+             [&_table]:w-full [&_table]:border-collapse [&_table]:text-slate-800
+             [&_thead]:bg-slate-100 [&_thead]:border-b [&_thead]:border-slate-200 [&_thead]:text-slate-700
              [&_th]:px-3.5 [&_th]:py-2.5 [&_th]:text-left [&_th]:text-[11px] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-slate-700 [&_th]:border-b [&_th]:border-slate-200
+             [&_tbody]:divide-y [&_tbody]:divide-slate-100
              [&_td]:px-3.5 [&_td]:py-2.5 [&_td]:text-xs [&_td]:text-slate-700 [&_td]:border-b [&_td]:border-slate-100
              [&_tr:last-child_td]:border-b-0
              [&_tbody_tr]:transition-colors hover:[&_tbody_tr]:bg-slate-50`
-        }`}
+      }`}
       dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );
@@ -1737,55 +1745,19 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
 
     if (qLower === '/importbase') {
-      (async () => {
-        try {
-          const { data } = await supabase
-            .from('ClientsSERVEX_General_Procces')
-            .select('xml_raw, xml_name, file_name, XM_CET_import')
-            .eq('company_name', 'General_Procces')
-            .maybeSingle();
-
-          const xmlContent = data?.xml_raw || data?.XM_CET_import || '';
-          const hasXml = !!xmlContent && String(xmlContent).trim().length > 0;
-
-          if (hasXml) {
-            let fname = data?.xml_name || data?.file_name || '';
-            if (!fname && xmlContent) {
-              const m = String(xmlContent).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
-              if (m && m[1]) fname = m[1].trim();
-              else {
-                const m2 = String(xmlContent).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i);
-                if (m2 && m2[1]) fname = m2[1].endsWith('.xml') ? m2[1] : `${m2[1]}.xml`;
-              }
-            }
-            if (!fname) fname = 'General Process.xml';
-
-            setMessages(prev => [
-              ...prev,
-              {
-                from: 'bot',
-                text: `El archivo maestro XML **(${fname})** está cargado y activo en la base de datos (**File already exists in DB**). El sistema está listo para recibir el CSV de nuevos precios (\`csv_new_raw\`).\n\nPuedes arrastrar tu archivo CSV aquí abajo o a cualquier parte del chat.`,
-                isNew: true
-              },
-              { from: 'tool', toolId: 'incert_wbs_csv_new' }
-            ]);
-          } else {
-            setMessages(prev => [
-              ...prev,
-              { from: 'bot', text: 'Por favor sube o arrastra el archivo maestro XML de CET Designer para iniciar el proceso.', isNew: true },
-              { from: 'tool', toolId: 'incert_delete' }
-            ]);
-          }
-        } catch (e) {
-          setMessages(prev => [
-            ...prev,
-            { from: 'bot', text: 'Por favor sube o arrastra el archivo maestro XML de CET Designer para iniciar el proceso.', isNew: true },
-            { from: 'tool', toolId: 'incert_delete' }
-          ]);
-        }
+      setTimeout(() => {
+        setMessages(prev => [
+          ...prev,
+          {
+            from: 'bot',
+            text: 'Por favor sube o arrastra tu archivo de matriz de nuevos precios (**CSV / Excel**) para actualizar el catálogo (`csv_new_raw`).\n\nPuedes arrastrarlo directamente al chat o utilizar el módulo a continuación:',
+            isNew: true
+          },
+          { from: 'tool', toolId: 'incert_wbs_csv_new' }
+        ]);
         setIsLoading(false);
         scrollToBottom(true);
-      })();
+      }, 300);
       return;
     }
 
@@ -1973,6 +1945,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             comparisonReport: resData,
             time: botReplyTime
           }
+        ]);
       } catch (err) {
         const isMismatch =
           err.message?.toLowerCase().includes('no coincide') ||
@@ -2904,7 +2877,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               className="text-center mb-8 w-full flex flex-col items-center select-none"
             >
               <div className="flex items-center justify-center transition-transform duration-300 hover:scale-[1.02]">
-                <AlysaWordmark className="h-16 sm:h-20 md:h-24 w-auto text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.35)]" />
+                <AlysaWordmark className={`h-16 sm:h-20 md:h-24 w-auto ${isDarkMode ? 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.35)]' : 'text-[#18181b] drop-shadow-[0_0_15px_rgba(0,0,0,0.15)]'}`} />
               </div>
             </motion.div>
 

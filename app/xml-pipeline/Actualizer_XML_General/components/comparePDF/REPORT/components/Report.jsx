@@ -3,7 +3,7 @@ import { supabase } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, Zap, Database, BrainCircuit, Activity, PlusCircle, MinusCircle, FileText, ArrowRight, Search, TrendingUp, TrendingDown, AlertTriangle, Layers, AlertOctagon, ShieldAlert } from 'lucide-react';
 
-export default function AuditReportViewer() {
+export default function AuditReportViewer({ isDarkMode = true }) {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecordId, setSelectedRecordId] = useState(null);
@@ -109,44 +109,54 @@ export default function AuditReportViewer() {
 
   const renderSubTable = (title, icon, items, emptyText) => {
     return (
-      <div className="bg-white/[0.02] backdrop-blur-md rounded-xl border border-white/10 shadow-sm overflow-hidden flex flex-col w-full mb-3">
-        <div className="px-4 py-2.5 bg-white/[0.03] border-b border-white/10 flex items-center justify-between">
+      <div className={`backdrop-blur-md rounded-xl border shadow-sm overflow-hidden flex flex-col w-full mb-3 ${
+        isDarkMode ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
+      }`}>
+        <div className={`px-4 py-2.5 border-b flex items-center justify-between ${
+          isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'
+        }`}>
           <div className="flex items-center gap-2">
             {icon}
-            <h3 className="text-xs font-bold text-zinc-200">{title}</h3>
+            <h3 className={`text-xs font-bold ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'}`}>{title}</h3>
           </div>
-          <span className="text-[10px] px-2.5 py-0.5 rounded-full border bg-white/5 text-zinc-300 border-white/15 font-semibold">
+          <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-semibold ${
+            isDarkMode ? 'bg-white/5 text-zinc-300 border-white/15' : 'bg-slate-100 text-slate-700 border-slate-200'
+          }`}>
             {items.length} {items.length === 1 ? 'record' : 'records'}
           </span>
         </div>
 
         <div className="w-full overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
           <table className="table-fixed border-collapse text-left text-xs w-full">
-            <thead className="bg-[#121215]/95 sticky top-0 z-10 shadow-sm border-b border-white/10">
+            <thead className={`sticky top-0 z-10 shadow-sm border-b ${
+              isDarkMode ? 'bg-[#121215]/95 border-white/10' : 'bg-slate-100/95 border-slate-200'
+            }`}>
               <tr>
                 {['#', 'Model ID', 'Column', 'Original Value', 'New Value', '% Diff'].map(h => (
-                  <th key={h} className="px-4 py-2.5 text-[10px] font-bold text-zinc-400 border-b border-white/10 uppercase tracking-wider">
+                  <th key={h} className={`px-4 py-2.5 text-[10px] font-bold border-b uppercase tracking-wider ${
+                    isDarkMode ? 'text-zinc-400 border-white/10' : 'text-slate-700 border-slate-200'
+                  }`}>
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 bg-transparent">
+            <tbody className={`divide-y bg-transparent ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
               {items.map((c, i) => {
                 const diff = parseDiffNum(c);
                 const pillColor = diff > 0 
-                  ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' 
+                  ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' 
                   : diff < 0 
-                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
-                    : 'bg-white/5 text-zinc-400 border-white/10';
+                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' 
+                    : isDarkMode ? 'bg-white/5 text-zinc-400 border-white/10' : 'bg-slate-100 text-slate-500 border-slate-200';
 
                 return (
-                  <tr key={i} className="hover:bg-white/[0.04] transition-colors">
-                    <td className="px-4 py-2.5 text-[10px] text-zinc-500 font-mono">{i + 1}</td>
-                    <td className="px-4 py-2.5 font-mono font-bold text-white">{c.model_id}</td>
-                    <td className="px-4 py-2.5 text-zinc-300 text-[11px]">{c.column_name}</td>
-                    <td className="px-4 py-2.5 text-zinc-500 line-through decoration-zinc-600 font-mono">{c.old_value}</td>
-                    <td className="px-4 py-2.5 font-semibold text-emerald-400 font-mono">{c.new_value}</td>
+                  <tr key={i} className={`transition-colors ${isDarkMode ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50/80'}`}>
+                    <td className={`px-4 py-2.5 text-[10px] font-mono ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>{i + 1}</td>
+                    <td className={`px-4 py-2.5 font-mono font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{c.model_id}</td>
+                    <td className={`px-4 py-2.5 text-[11px] ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>{c.column_name}</td>
+                    <td className={`px-4 py-2.5 line-through font-mono ${isDarkMode ? 'text-zinc-500 decoration-zinc-600' : 'text-slate-400 decoration-slate-400'}`}>{c.old_value}</td>
+                    <td className="px-4 py-2.5 font-semibold text-emerald-600 font-mono">{c.new_value}</td>
                     <td className="px-4 py-2.5">
                       <span className={`text-[10px] px-2 py-0.5 rounded border font-mono ${pillColor}`}>
                         {c.financial_impact || '0%'}

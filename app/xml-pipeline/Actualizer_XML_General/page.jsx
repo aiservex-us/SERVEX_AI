@@ -33,8 +33,25 @@ export default function MenuInicial() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [exitActionType, setExitActionType] = useState('exit'); // 'exit' | 'reload' | 'signout'
   const [isMobileScreen, setIsMobileScreen] = useState(false);
-  const isDarkMode = true;
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('servex_theme');
+      if (saved) setIsDarkMode(saved === 'dark');
+    } catch (_) {}
+  }, []);
+
+  const handleToggleTheme = () => {
+    setIsDarkMode(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('servex_theme', next ? 'dark' : 'light');
+      } catch (_) {}
+      return next;
+    });
+  };
 
   /* 🔒 PROTECCIÓN DE RUTA DE XML PIPELINE (Temporalmente comentada para desarrollo local)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -207,25 +224,25 @@ export default function MenuInicial() {
 
   const renderViewComponent = (id) => {
     switch (id) {
-      case 'dashboard': return <Dashboard />;
-      case 'incert_delete': return <IncertDelete step="xml" />;
-      case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" />;
-      case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" />;
+      case 'dashboard': return <Dashboard isDarkMode={isDarkMode} />;
+      case 'incert_delete': return <IncertDelete step="xml" isDarkMode={isDarkMode} />;
+      case 'incert_wbs_csv_base': return <IncertDelete step="csv_base" isDarkMode={isDarkMode} />;
+      case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" isDarkMode={isDarkMode} />;
       case 'xml_results':
-      case 'exportCETcsv': return <XMLResultsGeneral />;
-      case 'Tasks': return <CatalogParser />;
-      case 'inbox_updated': return <Csvs_updated />;
-      case 'presentation': return <PrecentMain />;
-      case 'report': return <Report />;
-      case 'notifications': return <UploadFileCmpare />;
-      case 'reporting': return <AIReporting />;
-      case 'graphics': return <ViewportGraphics />;
-      case 'compare': return <Compare />;
+      case 'exportCETcsv': return <XMLResultsGeneral isDarkMode={isDarkMode} />;
+      case 'Tasks': return <CatalogParser isDarkMode={isDarkMode} />;
+      case 'inbox_updated': return <Csvs_updated isDarkMode={isDarkMode} />;
+      case 'presentation': return <PrecentMain isDarkMode={isDarkMode} />;
+      case 'report': return <Report isDarkMode={isDarkMode} />;
+      case 'notifications': return <UploadFileCmpare isDarkMode={isDarkMode} />;
+      case 'reporting': return <AIReporting isDarkMode={isDarkMode} />;
+      case 'graphics': return <ViewportGraphics isDarkMode={isDarkMode} />;
+      case 'compare': return <Compare isDarkMode={isDarkMode} />;
       case 'compare_cet':
-      case 'compareCET': return <CETComparator />;
-      case 'AI_reporter': return <Responce_ai />;
-      case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="General_Procces" /></div>;
-      case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData /></div>;
+      case 'compareCET': return <CETComparator isDarkMode={isDarkMode} />;
+      case 'AI_reporter': return <Responce_ai isDarkMode={isDarkMode} />;
+      case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="General_Procces" isDarkMode={isDarkMode} /></div>;
+      case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData isDarkMode={isDarkMode} /></div>;
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
     }
@@ -354,6 +371,7 @@ export default function MenuInicial() {
             setShowExitModal(true);
           }}
           isDarkMode={isDarkMode}
+          onToggleTheme={handleToggleTheme}
         />
         {/* CONTENEDOR UNIFICADO */}
         <div className="flex flex-1 h-full w-full min-w-0 p-0 bg-transparent">
@@ -375,9 +393,9 @@ export default function MenuInicial() {
                     setShowExitModal(true);
                   }}
                   title="Reiniciar proceso y descartar sesión activa"
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer"
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-none ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white border-white/20' : 'bg-[#18181b]/5 hover:bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20'} border backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer`}
                 >
-                  <RotateCcw size={12} className="text-white group-hover:-rotate-90 transition-transform duration-300" />
+                  <RotateCcw size={12} className={`${isDarkMode ? 'text-white' : 'text-[#18181b]'} group-hover:-rotate-90 transition-transform duration-300`} />
                   <span className="hidden sm:inline">Reiniciar</span>
                 </button>
 

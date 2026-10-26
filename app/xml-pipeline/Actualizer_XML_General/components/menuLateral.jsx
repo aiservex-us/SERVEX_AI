@@ -6,7 +6,9 @@ import {
   Sparkles,
   FileSpreadsheet,
   FileCode,
-  FileDiff
+  FileDiff,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -142,7 +144,7 @@ const GlynneLogo = ({ className = 'w-full h-full text-white', ...props }) => (
   </svg>
 );
 
-export default function MenuLateral({ active, setActive, onExit, isDarkMode = true }) {
+export default function MenuLateral({ active, setActive, onExit, isDarkMode = true, onToggleTheme }) {
   const router = useRouter();
 
   return (
@@ -262,6 +264,13 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             isDarkMode={isDarkMode}
           />
           <SidebarIcon
+            icon={isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-700" />}
+            active={false}
+            title={isDarkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
+            onClick={onToggleTheme}
+            isDarkMode={isDarkMode}
+          />
+          <SidebarIcon
             icon={<LogOut size={18} />}
             active={false}
             title="Salir / Cerrar Sesión"
@@ -270,8 +279,21 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
           />
         </nav>
 
-        {/* BOTTOM SECTION: Exit to Panel or Sign Out (Desktop) */}
-        <div className="hidden md:flex items-center justify-center w-full pb-2">
+        {/* BOTTOM SECTION: Theme Toggle & Exit to Panel / Sign Out (Desktop) */}
+        <div className="hidden md:flex flex-col items-center justify-center w-full pb-2 gap-2">
+          {/* BOTÓN DE CAMBIO DE THEME (SOBRE EL ICONO DE LOGOUT) */}
+          <SidebarIcon
+            icon={isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-700" />}
+            active={false}
+            title={isDarkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
+            stepNumber="THEME"
+            tagline="Apariencia Visual"
+            description={isDarkMode ? "Alternar al tema claro con fondos limpios y contrastes nítidos." : "Alternar al tema oscuro con fondos inmersivos y alto contraste."}
+            tip={isDarkMode ? "Activar Modo Claro" : "Activar Modo Oscuro"}
+            onClick={onToggleTheme}
+            isDarkMode={isDarkMode}
+          />
+
           <SidebarIcon
             icon={<LogOut size={18} />}
             active={false}
