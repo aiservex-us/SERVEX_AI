@@ -1764,7 +1764,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               ...prev,
               {
                 from: 'bot',
-                text: `The master XML file **(${fname})** for General Process is already loaded in the database (**File already exists in DB**). The system is ready to ingest the new catalog CSV (csv_new_raw).`,
+                text: `El archivo maestro XML **(${fname})** está cargado y activo en la base de datos (**File already exists in DB**). El sistema está listo para recibir el CSV de nuevos precios (\`csv_new_raw\`).\n\nPuedes arrastrar tu archivo CSV aquí abajo o a cualquier parte del chat.`,
                 isNew: true
               },
               { from: 'tool', toolId: 'incert_wbs_csv_new' }
@@ -1772,14 +1772,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           } else {
             setMessages(prev => [
               ...prev,
-              { from: 'bot', text: 'Please upload the master XML file for General Process.', isNew: true },
+              { from: 'bot', text: 'Por favor sube o arrastra el archivo maestro XML de CET Designer para iniciar el proceso.', isNew: true },
               { from: 'tool', toolId: 'incert_delete' }
             ]);
           }
         } catch (e) {
           setMessages(prev => [
             ...prev,
-            { from: 'bot', text: 'Please upload the master XML file for General Process.', isNew: true },
+            { from: 'bot', text: 'Por favor sube o arrastra el archivo maestro XML de CET Designer para iniciar el proceso.', isNew: true },
             { from: 'tool', toolId: 'incert_delete' }
           ]);
         }
@@ -2294,6 +2294,167 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
   };
 
+  // Manejo de Carga e Ingesta de CSV Nuevo Directo en el Chat
+  const handleCsvFileUpload = async (file) => {
+    if (!file) return;
+    const isCsvOrExcel = file.name.toLowerCase().endsWith('.csv') || file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
+    if (!isCsvOrExcel) {
+      alert('Solo se admiten archivos en formato .csv o .xlsx para la matriz de nuevos precios.');
+      return;
+    }
+
+    setIsUploadingXml(true);
+    const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const uploadId = `csv-upload-${Date.now()}`;
+
+    // Obtener sesión de usuario al inicio de la función
+    const { data: authData } = await supabase.auth.getUser().catch(() => ({ data: {} }));
+    const currentUser = authData?.user;
+
+    const uploadUserMsg = {
+      id: uploadId,
+      from: 'user',
+      role: 'user',
+      isCsvUpload: true,
+      fileName: file.name,
+      fileSizeKb: (file.size / 1024).toFixed(1),
+      uploadStatus: 'uploading',
+      text: `**Matriz CSV de Nuevos Precios adjunta:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
+      content: `Matriz CSV de Nuevos Precios adjunta: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
+      time: userTime,
+      timestamp: new Date().toISOString()
+    };
+    setMessages((prev) => {
+      const nextList = [...prev, uploadUserMsg];
+      saveGeneralProcessChat(nextList);
+      return nextList;
+    });
+
+    try {
+      const fileText = await file.text().catch(() => '');
+      if (!fileText || !fileText.trim()) {
+        throw new Error('El archivo CSV seleccionado está vacío o no pudo ser leído.');
+      }
+
+      setDbCsvNewRaw(fileText);
+
+      // Persistir en sessionStorage y dispatch evento
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('csv_new_raw', fileText);
+        window.dispatchEvent(new CustomEvent('catalogCsvNewUpdated', { detail: { csvNewRaw: fileText } }));
+      }
+
+      let valToStore = fileText;
+      // Subir a catalogs-storage si supera 200 KB
+      if (file.size > 200 * 1024) {
+        try {
+          const cleanName = (file.name || 'csv_new.csv').replace(/[^a-zA-Z0-9._-]/g, '_');
+          const storageFilePath = `General_Procces/csv_new_${Date.now()}_${cleanName}`;
+
+          const { data: storageData, error: storageErr } = await supabase.storage
+            .from('catalogs-storage')
+            .upload(storageFilePath, file, {
+              cacheControl: '3600',
+              upsert: true,
+              contentType: file.type || 'text/csv'
+            });
+
+          if (!storageErr && storageData) {
+            const { data: publicUrlObj } = supabase.storage
+              .from('catalogs-storage')
+              .getPublicUrl(storageData.path);
+            if (publicUrlObj?.publicUrl) {
+              valToStore = `[STORAGE_URL]: ${publicUrlObj.publicUrl}`;
+            }
+          }
+        } catch (stgErr) {
+          console.warn('[-] Advertencia en almacenamiento Storage para CSV:', stgErr);
+        }
+      }
+
+      // Guardar en tabla ClientsSERVEX_General_Procces
+      const payload = {
+        company_name: 'General_Procces',
+        csv_new_raw: valToStore,
+        CSV_final: valToStore
+      };
+      if (currentUser?.id) payload.user_id = currentUser.id;
+
+      await supabase
+        .from('ClientsSERVEX_General_Procces')
+        .upsert(payload, { onConflict: 'company_name' });
+
+      // Notificar al backend en caché
+      try {
+        const fd = new FormData();
+        fd.append('company_name', 'General_Procces');
+        fd.append('csv_new_raw', valToStore);
+        fetch(`${apiURL}/api/v1/General_Procces/pipeline/cache-csv-new`, {
+          method: 'POST',
+          body: fd
+        }).catch(() => {});
+      } catch (_) {}
+
+      // Desbloquear fase 3 y emitir step 'done'
+      window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'done' } }));
+      if (unlockedPhase < 3) updatePhase(3);
+
+      // Actualizar mensaje de usuario a completed
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === uploadId ? { ...m, uploadStatus: 'completed' } : m
+        )
+      );
+
+      const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const botResponseMsg = {
+        id: Date.now() + 2,
+        from: 'bot',
+        role: 'assistant',
+        text: `✅ **Matriz de Nuevos Precios Ingerida con Éxito**\n\nEl archivo \`${file.name}\` ha sido respaldado y registrado en la base de datos como \`csv_new_raw\`.\n\nEl catálogo base y la nueva lista de precios están sincronizados y listos para ser auditados.\n\n👉 Ejecuta **/executeProcess** para comparar ambas matrices y calcular la auditoría completa con detección de anomalías.`,
+        content: `Matriz de Nuevos Precios Ingerida con Éxito: ${file.name}. Listo para ejecutar /executeProcess.`,
+        time: botTime,
+        timestamp: new Date().toISOString()
+      };
+      setMessages((prev) => {
+        const nextList = [...prev, botResponseMsg];
+        saveGeneralProcessChat(nextList);
+        return nextList;
+      });
+    } catch (err) {
+      console.error('Error subiendo CSV:', err);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === uploadId ? { ...m, uploadStatus: 'error' } : m
+        )
+      );
+      const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages((prev) => [
+        ...prev,
+        {
+          from: 'bot',
+          text: `**Error al ingerir el archivo CSV:** ${err.message}`,
+          time: botTime
+        }
+      ]);
+    } finally {
+      setIsUploadingXml(false);
+    }
+  };
+
+  // Enrutador universal para archivos arrastrados o adjuntos al chat
+  const handleUniversalFileUpload = (file) => {
+    if (!file) return;
+    const nameLower = file.name.toLowerCase();
+    if (nameLower.endsWith('.xml')) {
+      handleXmlFileUpload(file);
+    } else if (nameLower.endsWith('.csv') || nameLower.endsWith('.xlsx') || nameLower.endsWith('.xls')) {
+      handleCsvFileUpload(file);
+    } else {
+      alert('Formato no soportado. Por favor arrastra un archivo maestro .xml o una matriz de precios en .csv / .xlsx.');
+    }
+  };
+
   // Aplicar cambios quirúrgicos al XML desde el Staging Board
   const handleCommitStaged = async (msgIdx, stagedItems) => {
     if (!stagedItems || stagedItems.length === 0) return;
@@ -2514,18 +2675,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             <input
               type="file"
               ref={xmlFileInputRef}
-              accept=".xml"
+              accept=".xml,.csv,.xlsx,.xls"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleXmlFileUpload(file);
+                if (file) handleUniversalFileUpload(file);
                 e.target.value = '';
               }}
             />
             <button
               type="button"
               disabled={isUploadingXml}
-              title="Adjuntar y cargar catálogo XML maestro de CET Designer"
+              title="Adjuntar catálogo XML maestro (.xml) o matriz de precios (.csv/.xlsx)"
               onClick={() => xmlFileInputRef.current?.click()}
               className={`w-8 h-8 rounded-none flex items-center justify-center transition-colors ${isUploadingXml
                 ? isDarkMode ? 'bg-white/20 text-white animate-pulse' : 'bg-[#18181b]/10 text-[#18181b] animate-pulse'
@@ -2607,16 +2768,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         e.preventDefault();
         setDragActiveXml(false);
         const file = e.dataTransfer.files?.[0];
-        if (file) handleXmlFileUpload(file);
+        if (file) handleUniversalFileUpload(file);
       }}
       className="w-full h-full flex flex-col font-sans text-gray-900 overflow-hidden relative bg-transparent"
     >
-      {/* Overlay al arrastrar archivo XML */}
+      {/* Overlay al arrastrar archivo XML o Matriz CSV */}
       {dragActiveXml && (
-        <div className="absolute inset-0 z-50 bg-[#18181b]/25 backdrop-blur-sm border-2 border-dashed border-[#18181b] rounded-none flex flex-col items-center justify-center pointer-events-none p-6 animate-fadeIn">
-          <UploadCloud size={52} className="text-[#18181b] animate-bounce mb-3" />
-          <h3 className="text-base font-bold text-[#18181b]">Suelta tu archivo XML maestro de CET Designer aquí</h3>
-          <p className="text-xs text-slate-600 mt-1">El catálogo se ingerirá y desestructurará en memoria al instante sin tocar Excel</p>
+        <div className="absolute inset-0 z-50 bg-[#09090b]/80 backdrop-blur-md border-2 border-dashed border-white/40 rounded-none flex flex-col items-center justify-center pointer-events-none p-6 animate-fadeIn">
+          <UploadCloud size={56} className="text-white animate-bounce mb-3" />
+          <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">Suelta tu archivo XML maestro o Matriz CSV aquí</h3>
+          <p className="text-xs sm:text-sm text-zinc-300 mt-1.5 max-w-md text-center">
+            Admite catálogos <strong className="text-white">.xml</strong> de CET Designer o matrices <strong className="text-white">.csv / .xlsx</strong> de nuevos precios (<span className="font-mono text-zinc-200">csv_new_raw</span>)
+          </p>
         </div>
       )}
 

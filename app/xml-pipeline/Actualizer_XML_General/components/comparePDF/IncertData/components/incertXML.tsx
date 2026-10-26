@@ -616,8 +616,9 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           {/* Drop Zone 1: XML */}
           {(step === 'all' || step === 'xml') && (
           <div
-            onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-            onDragLeave={() => setDragActive(false)}
+            onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(true); }}
+            onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(false); }}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             className={`border border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer
@@ -652,8 +653,9 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           {/* Drop Zone 3: New CSV */}
           {(step === 'all' || step === 'csv_new') && (
           <div
-            onDragOver={(e) => { e.preventDefault(); setDragActiveNewCSV(true); }}
-            onDragLeave={() => setDragActiveNewCSV(false)}
+            onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragActiveNewCSV(true); }}
+            onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragActiveNewCSV(false); }}
             onDrop={handleDropNewCSV}
             onClick={() => csvNewInputRef.current?.click()}
             className={`border border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center transition-all cursor-pointer
