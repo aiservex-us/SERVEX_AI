@@ -26,6 +26,7 @@ import Footer from './components/footer';
 import MainGif from './components/main3';
 import CardPC from './components/cardPC'
 import CardTex from './components/textSection'
+import DotGrid from './components/DotGrid'
 interface WelcomePopupProps {
   isOpen: boolean;
   onClose: () => void;

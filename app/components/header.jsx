@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
+import ServexLogo from './ServexLogo';
 import {
-  FiInfo,
-  FiBriefcase,
-  FiBookOpen,
-  FiMail,
-  FiMenu,
-  FiX,
-  FiExternalLink,
-  FiCpu,
-  FiTag
-} from 'react-icons/fi';
+  FileText,
+  Briefcase,
+  BookOpen,
+  Mail,
+  Menu,
+  X,
+  Cpu,
+  Tag
+} from 'lucide-react';
 
 export default function Header() {
   const router = useRouter();
@@ -43,56 +43,53 @@ export default function Header() {
     }
   };
 
-  const handleAccessSvx = () => {
-    // Opens in the same tab as requested
-    window.location.href = 'https://servex-clent-profle.vercel.app/';
-  };
-
   const NavItem = ({ icon: Icon, label, onClick }) => (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className="flex items-center gap-3 cursor-pointer text-sm text-black/70 hover:text-black transition"
+      className="flex items-center gap-2 cursor-pointer text-xs md:text-sm font-medium text-neutral-600 hover:text-black transition-colors px-2 py-1"
     >
-      <Icon size={16} />
+      <Icon size={15} className="opacity-70" />
       <span>{label}</span>
-    </div>
+    </button>
   );
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-black/10">
-        <div className="max-w-[95vw] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      {/* ── HEADER CON FONDO HIDDEN (TRANSPARENTE / MINIMALISTA / NO IA) ── */}
+      <header className="fixed top-0 left-0 w-full z-50 bg-transparent border-none">
+        <div className="max-w-[95vw] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
 
-          {/* Logo */}
-          <img
-            src="/logo.png"
-            alt="Logo"
-            className="h-2 md:h-4 cursor-pointer"
-            onClick={() => router.push('/')}
-          />
+          {/* Logo en SVG en tonos negro / gris */}
+          <div className="flex items-center">
+            <ServexLogo
+              className="h-5 sm:h-6 w-auto text-[#18181b] hover:text-black cursor-pointer transition-colors"
+              onClick={() => router.push('/')}
+            />
+          </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          {/* Navegación Desktop Limpia y Elegante */}
+          <nav className="hidden lg:flex items-center gap-6">
             <NavItem
-              icon={FiInfo}
+              icon={FileText}
               label="Policies"
               onClick={() => router.push('/policies')}
             />
 
             <NavItem
-              icon={FiCpu}
+              icon={Cpu}
               label="Operation"
               onClick={() => window.open('https://axglynne.com/servex_espesification', '_blank')}
             />
 
             <NavItem
-              icon={FiTag}
+              icon={Tag}
               label="Pricing"
               onClick={() => router.push('/pricing')}
             />
 
             <NavItem
-              icon={FiBriefcase}
+              icon={Briefcase}
               label="Portfolio"
               onClick={() =>
                 window.open(
@@ -103,13 +100,13 @@ export default function Header() {
             />
 
             <NavItem
-              icon={FiBookOpen}
+              icon={BookOpen}
               label="Blog"
               onClick={() => window.open('https://www.linkedin.com/company/servex-us/posts/', '_blank')}
             />
 
             <NavItem
-              icon={FiMail}
+              icon={Mail}
               label="Contact"
               onClick={() =>
                 window.open(
@@ -120,67 +117,45 @@ export default function Header() {
             />
           </nav>
 
-          {/* Action Button Group */}
-          <div className="hidden md:flex items-center gap-3">
-            {/* New Button: Access Svx Command */}
+          {/* Botón Principal (Sign In / Dashboard) */}
+          <div className="hidden sm:flex items-center">
             <button
-              onClick={handleAccessSvx}
-              className="
-                px-5 py-2
-                text-sm font-medium
-                rounded-full
-                border border-black/10
-                bg-white
-                text-black
-                transition hover:bg-gray-50 hover:scale-[1.03]
-                flex items-center gap-2
-              "
-            >
-              Access Svx Command
-              <FiExternalLink size={14} className="opacity-50" />
-            </button>
-
-            {/* Login / Dashboard Button */}
-            <button
+              type="button"
               onClick={handleMainButton}
               className={`
-                relative overflow-hidden
-                px-6 py-2
-                text-sm font-semibold tracking-wide
+                px-5 py-2
+                text-xs md:text-sm font-semibold tracking-wide
                 rounded-full
-                transition-all duration-300 hover:scale-[1.03] group
+                transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
                 ${
                   isAuthenticated
-                    ? 'bg-gradient-to-b from-[#f8f9fa] to-[#e2e4e8] border border-[#d1d5db] text-[#374151] shadow-[0_2px_10px_rgba(0,0,0,0.05)] hover:shadow-[0_5px_15px_rgba(0,0,0,0.1)]'
-                    : 'bg-black text-white shadow'
+                    ? 'bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-800 shadow-sm'
+                    : 'bg-black hover:bg-neutral-800 text-white shadow'
                 }
               `}
             >
-              {isAuthenticated && (
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1200ms] ease-in-out bg-gradient-to-r from-transparent via-white/90 to-transparent skew-x-[-25deg]" />
-              )}
-              <span className="relative z-10">{isAuthenticated ? 'Dashboard' : 'Sign In'}</span>
+              <span>{isAuthenticated ? 'Dashboard' : 'Sign In'}</span>
             </button>
           </div>
 
-          {/* Mobile Hamburger Button */}
+          {/* Botón Menú Mobile */}
           <button
+            type="button"
             onClick={() => setOpen(true)}
-            className="md:hidden p-2 rounded-full hover:bg-black/5 transition"
+            aria-label="Abrir menú"
+            className="lg:hidden p-2 rounded-full hover:bg-black/5 text-neutral-800 transition-colors"
           >
-            <FiMenu size={22} />
+            <Menu size={20} />
           </button>
         </div>
       </header>
 
-      {/* Mobile Overlay */}
+      {/* Menú Mobile Desplegable */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-          <div className="flex items-center justify-between px-4 py-4 border-b border-black/10">
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="h-7 md:h-9 cursor-pointer"
+        <div className="fixed inset-0 z-50 bg-white/95 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+          <div className="flex items-center justify-between px-6 h-16 border-b border-black/10">
+            <ServexLogo
+              className="h-5 w-auto text-[#18181b]"
               onClick={() => {
                 router.push('/');
                 setOpen(false);
@@ -188,44 +163,54 @@ export default function Header() {
             />
 
             <button
+              type="button"
               onClick={() => setOpen(false)}
-              className="p-2 rounded-full hover:bg-black/5 transition"
+              aria-label="Cerrar menú"
+              className="p-2 rounded-full hover:bg-black/5 text-neutral-800 transition-colors"
             >
-              <FiX size={22} />
+              <X size={20} />
             </button>
           </div>
 
-          <nav className="px-6 py-8 flex flex-col gap-6">
-            <NavItem
-              icon={FiInfo}
-              label="Policies"
+          <nav className="px-6 py-6 flex flex-col gap-4">
+            <button
+              type="button"
               onClick={() => {
                 router.push('/policies');
                 setOpen(false);
               }}
-            />
+              className="flex items-center gap-3 py-2 text-neutral-700 hover:text-black text-sm font-medium text-left transition-colors"
+            >
+              <FileText size={16} />
+              <span>Policies</span>
+            </button>
 
-            <NavItem
-              icon={FiCpu}
-              label="Operation"
+            <button
+              type="button"
               onClick={() => {
                 window.open('https://axglynne.com/servex_espesification', '_blank');
                 setOpen(false);
               }}
-            />
+              className="flex items-center gap-3 py-2 text-neutral-700 hover:text-black text-sm font-medium text-left transition-colors"
+            >
+              <Cpu size={16} />
+              <span>Operation</span>
+            </button>
 
-            <NavItem
-              icon={FiTag}
-              label="Pricing"
+            <button
+              type="button"
               onClick={() => {
                 router.push('/pricing');
                 setOpen(false);
               }}
-            />
+              className="flex items-center gap-3 py-2 text-neutral-700 hover:text-black text-sm font-medium text-left transition-colors"
+            >
+              <Tag size={16} />
+              <span>Pricing</span>
+            </button>
 
-            <NavItem
-              icon={FiBriefcase}
-              label="Portfolio"
+            <button
+              type="button"
               onClick={() => {
                 window.open(
                   'https://servex-us.com/3d-visualization/rendering-gallery/',
@@ -233,58 +218,56 @@ export default function Header() {
                 );
                 setOpen(false);
               }}
-            />
+              className="flex items-center gap-3 py-2 text-neutral-700 hover:text-black text-sm font-medium text-left transition-colors"
+            >
+              <Briefcase size={16} />
+              <span>Portfolio</span>
+            </button>
 
-            <NavItem
-              icon={FiBookOpen}
-              label="Blog"
+            <button
+              type="button"
               onClick={() => {
                 window.open('https://www.linkedin.com/company/servex-us/posts/', '_blank');
                 setOpen(false);
               }}
-            />
+              className="flex items-center gap-3 py-2 text-neutral-700 hover:text-black text-sm font-medium text-left transition-colors"
+            >
+              <BookOpen size={16} />
+              <span>Blog</span>
+            </button>
 
-            <NavItem
-              icon={FiMail}
-              label="Contact"
+            <button
+              type="button"
               onClick={() => {
                 window.open(
-                  'https://servex-us.com/3d-visualization/rendering-gallery/#getintouch',
+                  'https://servex-us.com/#getintouch',
                   '_blank'
                 );
                 setOpen(false);
               }}
-            />
+              className="flex items-center gap-3 py-2 text-neutral-700 hover:text-black text-sm font-medium text-left transition-colors"
+            >
+              <Mail size={16} />
+              <span>Contact</span>
+            </button>
 
-            <div className="pt-6 border-t border-black/10 flex flex-col gap-3">
-              {/* Access Svx Command Button on Mobile */}
+            <div className="pt-4 mt-2 border-t border-black/10">
               <button
-                onClick={handleAccessSvx}
-                className="w-full rounded-full px-6 py-3 text-sm font-medium bg-white text-black border border-black/10 shadow-sm transition active:scale-95 flex justify-center items-center gap-2"
-              >
-                Access Svx Command
-                <FiExternalLink size={14} />
-              </button>
-
-              <button
+                type="button"
                 onClick={() => {
                   handleMainButton();
                   setOpen(false);
                 }}
                 className={`
-                  relative overflow-hidden
-                  w-full rounded-full px-6 py-3 text-sm font-semibold tracking-wide shadow transition active:scale-95 group
+                  w-full py-3 text-sm font-semibold rounded-full shadow transition-all
                   ${
                     isAuthenticated
-                      ? 'bg-gradient-to-b from-[#f8f9fa] to-[#e2e4e8] border border-[#d1d5db] text-[#374151]'
-                      : 'bg-black text-white'
+                      ? 'bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-800'
+                      : 'bg-black text-white hover:bg-neutral-800'
                   }
                 `}
               >
-                {isAuthenticated && (
-                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-[1200ms] ease-in-out bg-gradient-to-r from-transparent via-white/90 to-transparent skew-x-[-25deg]" />
-                )}
-                <span className="relative z-10">{isAuthenticated ? 'Dashboard' : 'Sign In'}</span>
+                <span>{isAuthenticated ? 'Dashboard' : 'Sign In'}</span>
               </button>
             </div>
           </nav>

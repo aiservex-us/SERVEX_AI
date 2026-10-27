@@ -584,6 +584,7 @@ const compile = (gl, type, source) => {
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
+  console.error('[Topography Shader Compile Error]', gl.getShaderInfoLog(shader), source);
   gl.deleteShader(shader);
   return null;
 };
@@ -592,13 +593,17 @@ const link = (gl, vertexSource, fragmentSource) => {
   const vertex = compile(gl, gl.VERTEX_SHADER, vertexSource);
   const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
   const program = gl.createProgram();
-  if (!vertex || !fragment || !program) return null;
+  if (!vertex || !fragment || !program) {
+    console.error('[Topography Program Shader Missing]', { vertex: !!vertex, fragment: !!fragment });
+    return null;
+  }
   gl.attachShader(program, vertex);
   gl.attachShader(program, fragment);
   gl.linkProgram(program);
   gl.deleteShader(vertex);
   gl.deleteShader(fragment);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    console.error('[Topography Program Link Error]', gl.getProgramInfoLog(program));
     gl.deleteProgram(program);
     return null;
   }
@@ -1024,7 +1029,8 @@ const Topography = ({
         view.cell = cell;
       }
 
-      const color = toRgb(s.color);
+      const activeColor = s.lightMode && (!s.color || s.color.toLowerCase() === '#ffffff' || s.color.toLowerCase() === '#fff') ? '#27272a' : s.color;
+      const color = toRgb(activeColor);
       const height = state.elevation * HEIGHT * state.rise;
       const layout = grid(box, view.cell);
       const near = nearRange(cam, s);
@@ -1498,7 +1504,6 @@ const Topography = ({
       [terrain, fieldProgram, sculptProgram, downProgram, blurProgram, compositeProgram, markerProgram].forEach(
         program => program && gl.deleteProgram(program.program)
       );
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [generation]);
 
