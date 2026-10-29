@@ -80,6 +80,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
       return;
     }
     setReadingXml(true);
+    setXmlFileName(file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
       startTransition(() => {
@@ -87,7 +88,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
         setXmlContent(content);
         setMessage({ text: 'XML file loaded successfully', type: 'success' });
         setReadingXml(false);
-        handleSave(content);
+        handleSave(content, file.name);
       });
     };
     reader.readAsText(file);
@@ -100,7 +101,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
     if (file) readXMLFile(file);
   };
 
-  const handleSave = async (rawContent: string) => {
+  const handleSave = async (rawContent: string, fileNameParam?: string) => {
     setMessage({ text: '', type: null });
     
     if (!rawContent.trim()) {
@@ -112,6 +113,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      const effectiveFileName = fileNameParam || xmlFileName;
 
       const payload: any = {
         company_name: moduleName
@@ -119,11 +121,15 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
       if (user?.id) {
         payload.user_id = user.id;
       }
+      if (effectiveFileName) {
+        payload.xml_name = effectiveFileName.replace(/\.xml$/i, '').trim();
+        payload.file_name = effectiveFileName;
+      }
 
       // --- OPTIMIZACIÓN SUPABASE STORAGE (catalogs-storage) ---
       let uploadedPublicUrl = '';
       try {
-        const cleanName = (xmlFileName || `${moduleName}.xml`).replace(/[^a-zA-Z0-9._-]/g, '_');
+        const cleanName = (effectiveFileName || `${moduleName}.xml`).replace(/[^a-zA-Z0-9._-]/g, '_');
         const storageFilePath = `${moduleName}/${Date.now()}_${cleanName}`;
         const xmlBlob = new Blob([rawContent], { type: 'application/xml' });
 

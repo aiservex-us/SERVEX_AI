@@ -23,6 +23,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   const [matrixHeaders, setMatrixHeaders] = useState(BASE_HEADERS);
+  const [xmlBaseName, setXmlBaseName] = useState("");
   
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -113,7 +114,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       let record = null;
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('XM_CET_import, xml_raw, csv_raw')
+        .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
         .eq('company_name', 'General_Procces')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -124,7 +125,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       } else {
         const { data: fallbackData } = await supabase
           .from('ClientsSERVEX_General_Procces')
-          .select('XM_CET_import, xml_raw, csv_raw')
+          .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -134,6 +135,23 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       if (record) {
         existingCsvRaw = record.csv_raw || '';
         rawXmlStr = await resolveXmlContent(record.XM_CET_import || record.xml_raw);
+      }
+
+      let detectedBaseName = (record?.xml_name || record?.file_name || '').replace(/\.xml$/i, '').trim();
+      if (!detectedBaseName && rawXmlStr) {
+        const commentMatch = String(rawXmlStr).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+        if (commentMatch && commentMatch[1]) {
+          detectedBaseName = commentMatch[1].replace(/\.xml$/i, '').trim();
+        } else {
+          const catalogMatch = String(rawXmlStr).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i)
+            || String(rawXmlStr).match(/<Catalog[^>]*>[\s\S]*?<Name>([^<]+)<\/Name>/i);
+          if (catalogMatch && catalogMatch[1]) {
+            detectedBaseName = catalogMatch[1].replace(/\.xml$/i, '').trim();
+          }
+        }
+      }
+      if (detectedBaseName) {
+        setXmlBaseName(detectedBaseName);
       }
 
       // Fallback 1: Si no hay XML pero existe csv_raw en la BD, desglosar e inicializar la matriz al instante
@@ -159,6 +177,19 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
             const fetchedXml = await backRes.text();
             if (fetchedXml && fetchedXml.trim().startsWith('<')) {
               rawXmlStr = fetchedXml;
+              if (!detectedBaseName) {
+                const commentMatch = String(rawXmlStr).match(/<!--\s*filename:\s*(.*?)\s*-->/i);
+                if (commentMatch && commentMatch[1]) {
+                  detectedBaseName = commentMatch[1].replace(/\.xml$/i, '').trim();
+                } else {
+                  const catalogMatch = String(rawXmlStr).match(/<Catalog[^>]*\bName=["']([^"']+)["']/i)
+                    || String(rawXmlStr).match(/<Catalog[^>]*>[\s\S]*?<Name>([^<]+)<\/Name>/i);
+                  if (catalogMatch && catalogMatch[1]) {
+                    detectedBaseName = catalogMatch[1].replace(/\.xml$/i, '').trim();
+                  }
+                }
+                if (detectedBaseName) setXmlBaseName(detectedBaseName);
+              }
             }
           }
         } catch (_) {}
@@ -412,7 +443,8 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.csv`);
+      const cleanPrefix = (xmlBaseName || "Catalog").replace(/\.xml$/i, '').trim();
+      link.setAttribute('download', `${cleanPrefix}-Editable-ALYSAsistemai-${new Date().toISOString().slice(0,10)}.csv`);
       document.body.appendChild(link);
       link.click();
       setTimeout(() => {
@@ -444,7 +476,8 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
       
-      const fileName = `Universal_Catalog_Matrix_${new Date().toISOString().slice(0,10)}.xlsx`;
+      const cleanPrefix = (xmlBaseName || "Catalog").replace(/\.xml$/i, '').trim();
+      const fileName = `${cleanPrefix}-Editable-ALYSAsistemai-${new Date().toISOString().slice(0,10)}.xlsx`;
 
       try {
         XLSX.writeFile(workbook, fileName);
