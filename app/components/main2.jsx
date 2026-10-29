@@ -8,7 +8,7 @@ export default function Hero() {
         h-[85vh]
         max-[800px]:h-[85vh]
         min-[800px]:h-screen
-        bg-white
+        bg-transparent
         overflow-hidden
       "
     >

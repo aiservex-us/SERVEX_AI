@@ -243,11 +243,20 @@ const DotGrid = ({
 
     const rebuild = () => {
       const { dotSize: size, gap: spacing } = settingsRef.current;
-      const cell = Math.max(2, size + spacing);
-      const cols = Math.max(1, Math.floor((view.width + spacing) / cell));
-      const rows = Math.max(1, Math.floor((view.height + spacing) / cell));
-      const startX = (view.width - (cols * cell - spacing)) / 2 + size / 2;
-      const startY = (view.height - (rows * cell - spacing)) / 2 + size / 2;
+      let effectiveSpacing = spacing;
+      const rawCell = Math.max(2, size + spacing);
+      const rawCols = Math.max(1, Math.floor((view.width + spacing) / rawCell));
+      const rawRows = Math.max(1, Math.floor((view.height + spacing) / rawCell));
+      const rawCount = rawCols * rawRows;
+      const MAX_DOTS = 3200;
+      if (rawCount > MAX_DOTS) {
+        effectiveSpacing = Math.round(spacing * Math.sqrt(rawCount / MAX_DOTS));
+      }
+      const cell = Math.max(2, size + effectiveSpacing);
+      const cols = Math.max(1, Math.floor((view.width + effectiveSpacing) / cell));
+      const rows = Math.max(1, Math.floor((view.height + effectiveSpacing) / cell));
+      const startX = (view.width - (cols * cell - effectiveSpacing)) / 2 + size / 2;
+      const startY = (view.height - (rows * cell - effectiveSpacing)) / 2 + size / 2;
       const count = cols * rows;
       rest = new Float32Array(count * 2);
       offset = new Float32Array(count * 2);

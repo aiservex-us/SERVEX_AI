@@ -48,7 +48,7 @@ export function LoginPopup({ visible, onClose }) {
         const { data: dataAzure } = await supabase.auth.getUser();
         if (dataAzure?.user) {
           setEmail(dataAzure.user.email);
-          router.push('/panel');
+          router.push('/xml-pipeline');
         }
       } catch (_) {}
     };

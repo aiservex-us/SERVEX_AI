@@ -8,9 +8,10 @@ const HeroSection = () => {
   return (
     <section className="relative min-h-[100vh] w-full flex flex-col justify-end overflow-hidden bg-white px-6 pb-20 pt-32 md:px-16">
 
-      {/* ── TOPOGRAPHY WEBGL 3D ANIMATION (Pure White Background) ── */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+      {/* ── TOPOGRAPHY WEBGL 3D BACKGROUND (Matching General Process Chat) ── */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <Topography
+          key="home-topography"
           color="#ffffff"
           lineCount={13}
           lineWidth={0.7}
@@ -36,6 +37,9 @@ const HeroSection = () => {
           className="w-full h-full"
         />
       </div>
+
+      {/* Velo periférico equilibrado */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-transparent via-transparent to-black/5" />
 
       {/* 3. CONTENIDO PRINCIPAL */}
       <div className="relative z-20 max-w-[100vw] mx-auto w-full">

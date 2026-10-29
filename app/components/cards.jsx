@@ -2,7 +2,7 @@
 
 export default function ProductFeatures() {
   return (
-    <section className="w-full bg-white py-14 sm:py-16 md:py-20 px-4 sm:px-6">
+    <section className="w-full bg-transparent py-14 sm:py-16 md:py-20 px-4 sm:px-6">
       {/* Header */}
       <div className="max-w-6xl mx-auto text-center mb-10 sm:mb-12 md:mb-14">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-black tracking-tight">

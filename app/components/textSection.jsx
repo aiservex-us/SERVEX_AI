@@ -21,7 +21,7 @@ const StatsSection = () => {
     ];
 
     return (
-        <section className="relative py-20 px-6 md:px-12 bg-[#fff] overflow-hidden font-sans">
+        <section className="relative py-20 px-6 md:px-12 bg-transparent overflow-hidden font-sans">
             {/* Gradientes pasteles sutiles de fondo */}
             <div className="absolute top-0 left-0 w-full h-full -z-10 opacity-30">
                 <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[60%] rounded-full bg-gradient-to-br from-blue-50 to-transparent blur-3xl" />

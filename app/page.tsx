@@ -16,17 +16,14 @@ import {
   Settings
 } from 'lucide-react';
 
-// Existing components
 import Header from './components/header';
 import Main1 from './components/main1';
-import Carrucel from './components/carrucel'
-import Main2 from './components/main2';
-import Cards from './components/cards';
+import TopographyCards from './components/TopographyCards';
 import Footer from './components/footer';
-import MainGif from './components/main3';
-import CardPC from './components/cardPC'
-import CardTex from './components/textSection'
-import DotGrid from './components/DotGrid'
+import CardTex from './components/textSection';
+import DotGrid from './components/DotGrid';
+
+const DotGridComp = DotGrid as any;
 interface WelcomePopupProps {
   isOpen: boolean;
   onClose: () => void;
@@ -227,20 +224,48 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#FFF] relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#FFF] relative overflow-x-clip">
       <div className="transition-all duration-1000 ease-in-out opacity-100 blur-0 scale-100">
         <Header />
-        <main className="flex flex-col w-full overflow-hidden">
-          <section className="w-full"><Main1 /></section>
-          <section className="w-full"><Carrucel /></section>
-          <section className="w-full"><Main2 /></section>
-          <section className="w-full"><MainGif /></section>
-          <section className="w-full"><Cards /></section>
+        <main className="flex flex-col w-full relative">
+          {/* Main1 con su propia animación WebGL de Topografía exclusiva */}
+          <section className="w-full relative z-10 bg-white">
+            <Main1 />
+          </section>
 
-          <section className="w-full"><CardPC /></section>
+          {/* Resto del Home con la animación de fondo DotGrid */}
+          <div className="relative w-full">
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+              <DotGridComp
+                baseColor="#b8bcc8"
+                activeColor="#5b5fc7"
+                shape="circle"
+                dotSize={3}
+                gap={16}
+                proximity={100}
+                strength={1}
+                bounce={0.35}
+                tension={0.7}
+                returnDuration={1.05}
+                shockRadius={320}
+                shockStrength={5}
+                swell={0.8}
+                stretch={0.45}
+                glow={0.6}
+                fade={0}
+                intro={true}
+                className="w-full h-full"
+              />
+            </div>
 
-          <section className="w-full"><CardTex /></section>
-          <Footer />
+            <div className="relative z-10 w-full">
+              <section className="w-full">
+                <TopographyCards />
+              </section>
+              <section className="w-full"><CardTex /></section>
+              <Footer />
+            </div>
+          </div>
         </main>
       </div>
     </div>

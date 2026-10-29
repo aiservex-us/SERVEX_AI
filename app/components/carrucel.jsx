@@ -25,7 +25,7 @@ const logos = [
 
 export default function LogosCarousel() {
     return (
-        <section className="w-full py-14 overflow-hidden bg-white">
+        <section className="w-full py-14 overflow-hidden bg-transparent">
 
             {/* ===== TITLE ===== */}
             <h2 className="text-center text-2xl sm:text-3xl font-semibold tracking-tight text-black mb-10">

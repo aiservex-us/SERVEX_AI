@@ -702,6 +702,9 @@ const Topography = ({
   glitch = 0,
   intro = true,
   lightMode = false,
+  originX = 0,
+  originZ = 0,
+  morphOffset = 0,
   dpr,
   className = '',
   style
@@ -739,6 +742,9 @@ const Topography = ({
     glitch: clamp(glitch, 0, 1),
     intro,
     lightMode,
+    originX,
+    originZ,
+    morphOffset,
     dpr
   };
   const settingsRef = useRef(settings);
@@ -866,9 +872,9 @@ const Topography = ({
     const state = {
       intro: settingsRef.current.intro && !reduce ? 0 : 1,
       rise: 1,
-      travelX: 0,
-      travelZ: 0,
-      morph: 0,
+      travelX: settingsRef.current.originX ?? 0,
+      travelZ: settingsRef.current.originZ ?? 0,
+      morph: settingsRef.current.morphOffset ?? 0,
       yaw: 0,
       pitch: 0,
       yawVelocity: 0,
@@ -1286,7 +1292,7 @@ const Topography = ({
 
     const frame = now => {
       raf = 0;
-      if (!visible || document.hidden) return;
+      if (document.hidden) return;
       const s = settingsRef.current;
       if (s.dpr !== sizedDpr) resize();
       const dt = last ? clamp((now - last) / 1000, 0, 1 / 20) : 1 / 60;
@@ -1324,11 +1330,9 @@ const Topography = ({
         } else glitchData.fill(0);
       } else glitchData.fill(0);
 
-      if (!reduce) {
-        state.travelX += s.direction[0] * s.speed * 0.8 * dt;
-        state.travelZ += s.direction[1] * s.speed * 0.8 * dt;
-        state.morph += s.morph * 0.12 * dt;
-      }
+      state.travelX += s.direction[0] * s.speed * 0.8 * dt;
+      state.travelZ += s.direction[1] * s.speed * 0.8 * dt;
+      state.morph += s.morph * 0.12 * dt;
 
       const engaged = pointer.inside && s.mouseInteraction;
       state.presence += ((engaged ? 1 : 0) - state.presence) * (1 - Math.exp(-dt / (engaged ? 0.18 : 0.45)));
@@ -1376,30 +1380,15 @@ const Topography = ({
       const sculpting = updateSculpt(s, dt);
       render();
 
-      const settling =
-        Math.abs(s.tilt - state.tilt) > 0.01 ||
-        Math.abs(s.elevation - state.elevation) > 1e-4 ||
-        Math.abs(state.yaw - targetYaw) > 1e-4 ||
-        Math.abs(state.pitch - targetPitch) > 1e-4 ||
-        Math.abs(state.yawVelocity) > 1e-4 ||
-        Math.abs(state.pitchVelocity) > 1e-4 ||
-        Math.abs(focusTarget - state.focus) > 1e-3 ||
-        Math.abs(tracing - state.trace) > 1e-3;
-      const busy =
-        (!reduce && (s.speed !== 0 || s.morph !== 0 || s.glitch > 0 || s.markers >= 0)) ||
-        state.intro < 1 ||
-        pulses.length > 0 ||
-        sculpting ||
-        settling ||
-        (state.presence > 0.001 && state.presence < 0.999);
-      quiet = busy ? 0 : quiet + dt;
-      if (quiet < 0.5) raf = requestAnimationFrame(frame);
+      if (!document.hidden) {
+        raf = requestAnimationFrame(frame);
+      }
     };
 
     function wake() {
       quiet = 0;
-      if (!raf && visible && !document.hidden) {
-        last = 0;
+      if (!raf && !document.hidden) {
+        last = performance.now();
         raf = requestAnimationFrame(frame);
       }
     }
@@ -1456,15 +1445,20 @@ const Topography = ({
       wake();
     };
 
+    const onScroll = () => {
+      wake();
+    };
+
     const onVisibility = () => wake();
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
     const intersection = new IntersectionObserver(entries => {
       visible = entries.some(entry => entry.isIntersecting);
-      if (visible) wake();
+      wake();
     });
     intersection.observe(container);
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
@@ -1479,6 +1473,7 @@ const Topography = ({
       wakeRef.current = null;
       resizeObserver.disconnect();
       intersection.disconnect();
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);

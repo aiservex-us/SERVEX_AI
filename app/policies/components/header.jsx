@@ -37,7 +37,7 @@ export default function Header() {
 
   const handleMainButton = () => {
     if (isAuthenticated) {
-      router.push('/panel');
+      router.push('/xml-pipeline');
     } else {
       router.push('/login');
     }

@@ -45,6 +45,9 @@ export async function signInWithAzure() {
   // Usa la instancia 'supabase' (Trabajadores)
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'azure',
+    options: {
+      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/xml-pipeline` : undefined,
+    },
   });
 
   if (error) {
