@@ -335,7 +335,9 @@ export default function AiComparisonReportCard({
                         <th className="py-2.5 px-3.5 text-center">Variación</th>
                       </tr>
                     </thead>
-                    <tbody className={`divide-y text-xs rounded-none ${
+                    <tbody
+                      key={`changes-page-${currentPage}-${searchTerm}`}
+                      className={`divide-y text-xs rounded-none ${
                       isDarkMode ? 'divide-white/[0.06] text-zinc-200' : 'divide-slate-100 text-slate-700'
                     }`}>
                       {paginatedChanges.map((c, idx) => {
@@ -479,7 +481,7 @@ export default function AiComparisonReportCard({
                   No se agregaron nuevos modelos en esta versión.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[260px] overflow-y-auto custom-scrollbar p-0.5 rounded-none">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[260px] overflow-y-auto custom-scrollbar p-0.5 rounded-none alysa-item-stagger">
                   {(added.length > 0 ? added : newModelsList).map((item, i) => {
                     const modelId = typeof item === 'object' ? (item.model_id || item['Model #']) : item;
                     return (
@@ -518,7 +520,7 @@ export default function AiComparisonReportCard({
                   No se eliminó ningún modelo del catálogo base.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[260px] overflow-y-auto custom-scrollbar p-0.5 rounded-none">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[260px] overflow-y-auto custom-scrollbar p-0.5 rounded-none alysa-item-stagger">
                   {(deleted.length > 0 ? deleted : deletedModelsList).map((item, i) => {
                     const modelId = typeof item === 'object' ? (item.model_id || item['Model #']) : item;
                     return (

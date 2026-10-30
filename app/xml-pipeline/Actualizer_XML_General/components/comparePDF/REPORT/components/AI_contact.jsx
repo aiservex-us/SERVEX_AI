@@ -1253,7 +1253,7 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
   return (
     <div
       onClick={handleClick}
-      className={`text-sm font-sans flex flex-col gap-2 w-full max-w-full overflow-x-auto overflow-y-hidden ${isDarkMode
+      className={`alysa-markdown-flow text-sm font-sans flex flex-col gap-2 w-full max-w-full overflow-x-auto overflow-y-hidden ${isDarkMode
           ? `text-zinc-100 
              [&_p]:text-zinc-100 [&_p]:leading-relaxed [&_p]:my-1.5
              [&_strong]:text-white [&_strong]:font-bold
@@ -2995,26 +2995,33 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   return (
                     <motion.div
                       key={msgKey}
-                      initial={{ opacity: 0, y: 14, x: isUser ? 12 : -12 }}
-                      animate={{ opacity: 1, y: 0, x: 0 }}
+                      initial={{ opacity: 0, y: 12, x: isUser ? 10 : -8, scale: 0.992, filter: 'blur(3px)' }}
+                      animate={{ opacity: 1, y: 0, x: 0, scale: 1, filter: 'blur(0px)' }}
                       transition={{
-                        duration: 0.35,
-                        ease: [0.23, 1, 0.32, 1]
+                        duration: 0.38,
+                        ease: [0.22, 1, 0.36, 1]
                       }}
-                      style={msg.toolId ? undefined : { contentVisibility: 'auto', containIntrinsicSize: '0 80px' }}
                       className={`flex gap-3 items-start min-w-0 ${isUser ? 'justify-end w-full' : 'w-full'}`}
                     >
                       {msg.from === 'tool' ? (
-                        <div className="w-full max-w-full min-w-0 my-2 bg-transparent overflow-hidden relative flex justify-center">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.994 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                          className="w-full max-w-full min-w-0 my-2 bg-transparent overflow-hidden relative flex justify-center alysa-card-stagger"
+                        >
                           <div className="w-full max-w-full min-w-0 h-full relative">
                             {renderTool && renderTool(msg.toolId)}
                           </div>
-                        </div>
+                        </motion.div>
                       ) : (
                         <>
                           {/* Avatar: solo para la IA (el usuario no tiene icono) */}
                           {!isUser && (
                             <motion.div
+                              initial={{ opacity: 0, scale: 0.85, rotate: -4 }}
+                              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
                               whileHover={{ scale: 1.08 }}
                               className="flex-shrink-0 flex items-center justify-center pt-0.5"
                             >
@@ -3026,19 +3033,24 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           <div className={`flex flex-col min-w-0 ${msg.uploadSummary || msg.isProcessingConsole || msg.toolId ? 'w-full' : isUser ? isStructuredUser ? 'w-full max-w-[96%] md:max-w-[85%]' : 'max-w-[85%] md:max-w-[75%]' : 'max-w-[90%] md:max-w-[88%]'} gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
                             {/* Cabecera de mensaje (solo para la IA; el usuario no tiene ni 'You' ni la hora) */}
                             {!isUser && msg.time && (
-                              <div className="flex items-baseline gap-2 mb-0.5">
+                              <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.08, duration: 0.25 }}
+                                className="flex items-baseline gap-2 mb-0.5"
+                              >
                                 <span className={`text-[10px] ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>{msg.time}</span>
-                              </div>
+                              </motion.div>
                             )}
 
                             <div
-                              className={`text-[13.5px] leading-relaxed relative break-words min-w-0 ${
+                              className={`text-[13.5px] leading-relaxed relative break-words min-w-0 transition-all duration-200 ${
                                 isUser
                                   ? isStructuredUser
                                     ? 'w-full p-0 bg-transparent border-none shadow-none'
                                     : isDarkMode
-                                      ? 'px-4 py-2.5 rounded-none shadow-md bg-zinc-100 text-zinc-950 border border-zinc-200 font-medium'
-                                      : 'px-4 py-2.5 rounded-none shadow-sm bg-[#18181b] text-white border border-[#18181b]'
+                                      ? 'px-4 py-2.5 rounded-none shadow-md bg-zinc-100 text-zinc-950 border border-zinc-200 font-medium hover:shadow-lg'
+                                      : 'px-4 py-2.5 rounded-none shadow-sm bg-[#18181b] text-white border border-[#18181b] hover:shadow-md'
                                   : 'w-full space-y-2'
                               }`}
                             >
@@ -3046,7 +3058,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                 <>
                                   {/* Mensaje de la IA: contenedor transparente sobre el fondo, sin contenedor negro ni bordes */}
                                   {msg.text && (
-                                    <div className={`w-full bg-transparent border-none shadow-none py-0.5 ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'}`}>
+                                    <div className={`w-full bg-transparent border-none shadow-none py-0.5 alysa-card-stagger ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'}`}>
                                       <BotMessage
                                         text={msg.text}
                                         inspectionReport={msg.inspection_report}
@@ -3059,58 +3071,97 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                                   {/* ── COMPONENTE / TABLA INLINE EN RESPUESTA DEL BOT ── */}
                                   {msg.toolId && renderTool && (
-                                    <div className="w-full max-w-full min-w-0 my-1.5 bg-transparent overflow-hidden">
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 10, scale: 0.994 }}
+                                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                                      transition={{ delay: 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                      className="w-full max-w-full min-w-0 my-1.5 bg-transparent overflow-hidden alysa-card-stagger"
+                                    >
                                       {renderTool(msg.toolId)}
-                                    </div>
+                                    </motion.div>
                                   )}
 
                                   {/* ── CONSOLA DE PROCESAMIENTO EN TIEMPO REAL ── */}
                                   {msg.isProcessingConsole && (
-                                    <CatalogProcessConsole
-                                      fileName={msg.processFileName || 'catalogo.xml'}
-                                      isCompleted={msg.processCompleted}
-                                      summary={msg.processSummary}
-                                      isDarkMode={isDarkMode}
-                                    />
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 8 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                                    >
+                                      <CatalogProcessConsole
+                                        fileName={msg.processFileName || 'catalogo.xml'}
+                                        isCompleted={msg.processCompleted}
+                                        summary={msg.processSummary}
+                                        isDarkMode={isDarkMode}
+                                      />
+                                    </motion.div>
                                   )}
 
                                   {/* ── REPORTE CONVERSACIONAL DE INGESTIÓN XML (PROCESOS GUIADOS POR IA) ── */}
                                   {msg.uploadSummary && (
-                                    <AiCatalogIngestionReport
-                                      summary={msg.uploadSummary}
-                                      csvRaw={dbCsvRaw || msg.uploadSummary?.csv_raw}
-                                      xmlRaw={dbXmlRaw || msg.uploadSummary?.xml_raw}
-                                      getCatalogExcelColumns={getCatalogExcelColumns}
-                                      onCommandSelect={handleCommandSelect}
-                                      time={msg.time}
-                                      isDarkMode={isDarkMode}
-                                    />
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 10, scale: 0.995 }}
+                                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                      className="alysa-card-stagger"
+                                    >
+                                      <AiCatalogIngestionReport
+                                        summary={msg.uploadSummary}
+                                        csvRaw={dbCsvRaw || msg.uploadSummary?.csv_raw}
+                                        xmlRaw={dbXmlRaw || msg.uploadSummary?.xml_raw}
+                                        getCatalogExcelColumns={getCatalogExcelColumns}
+                                        onCommandSelect={handleCommandSelect}
+                                        time={msg.time}
+                                        isDarkMode={isDarkMode}
+                                      />
+                                    </motion.div>
                                   )}
 
                                   {/* ── REPORTE CONVERSACIONAL DE COMPARACIÓN MATRICIAL (/executeProcess) ── */}
                                   {msg.comparisonReport && (
-                                    <div className="space-y-3.5">
-                                      <AiComparisonReportCard
-                                        data={msg.comparisonReport}
-                                        onCommandSelect={handleCommandSelect}
-                                        isDarkMode={isDarkMode}
-                                      />
-                                      <AiAnomalyReportCard
-                                        data={msg.comparisonReport}
-                                        onCommandSelect={handleCommandSelect}
-                                        isDarkMode={isDarkMode}
-                                      />
-                                      <AiAuditExplanationCard
-                                        explanation={msg.comparisonReport.ai_explanation}
-                                        data={msg.comparisonReport}
-                                        isDarkMode={isDarkMode}
-                                      />
+                                    <div className="space-y-3.5 alysa-card-stagger">
+                                      <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.04, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                                      >
+                                        <AiComparisonReportCard
+                                          data={msg.comparisonReport}
+                                          onCommandSelect={handleCommandSelect}
+                                          isDarkMode={isDarkMode}
+                                        />
+                                      </motion.div>
+                                      <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.12, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                                      >
+                                        <AiAnomalyReportCard
+                                          data={msg.comparisonReport}
+                                          onCommandSelect={handleCommandSelect}
+                                          isDarkMode={isDarkMode}
+                                        />
+                                      </motion.div>
+                                      <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                                      >
+                                        <AiAuditExplanationCard
+                                          explanation={msg.comparisonReport.ai_explanation}
+                                          data={msg.comparisonReport}
+                                          isDarkMode={isDarkMode}
+                                        />
+                                      </motion.div>
                                     </div>
                                   )}
 
                                   {/* ── UPLOADER INLINE CUANDO SE REQUIERE XML ── */}
                                   {msg.needs_upload && (
-                                    <div
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 8 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ delay: 0.08, duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
                                       onClick={() => xmlFileInputRef.current?.click()}
                                       className={`mt-3 p-4 border-2 border-dashed rounded-none backdrop-blur-xl transition-all text-center cursor-pointer group shadow-sm ${isDarkMode
                                           ? 'border-white/15 hover:border-white/40 bg-[#09090b]/55 hover:bg-[#09090b]/75 text-zinc-200'
@@ -3124,12 +3175,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                       <p className={`text-[10.5px] mt-0.5 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                                         Formatos soportados: .xml de CET Designer o Catalog Creator. Se montará al instante en memoria.
                                       </p>
-                                    </div>
+                                    </motion.div>
                                   )}
 
                                   {/* ── STAGING BOARD & XML DIFF PREVIEW ── */}
                                   {msg.staged_result && msg.staged_result.items && msg.staged_result.items.length > 0 && (
-                                    <div className={`mt-4 border rounded-none overflow-hidden shadow-xs backdrop-blur-xl ${isDarkMode ? 'border-white/10 bg-[#09090b]/80 text-zinc-100' : 'border-[#18181b]/25 bg-white/95 text-slate-700'}`}>
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 10, scale: 0.995 }}
+                                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                                      transition={{ delay: 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                      className={`mt-4 border rounded-none overflow-hidden shadow-xs backdrop-blur-xl alysa-card-stagger ${isDarkMode ? 'border-white/10 bg-[#09090b]/80 text-zinc-100' : 'border-[#18181b]/25 bg-white/95 text-slate-700'}`}
+                                    >
                                       <div className={`p-3.5 border-b flex flex-wrap items-center justify-between gap-2 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-r from-[#18181b]/12 via-[#18181b]/6 to-transparent border-[#18181b]/15'}`}>
                                         <div>
                                           <div className="flex items-center gap-1.5">
@@ -3250,12 +3306,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                           </button>
                                         )}
                                       </div>
-                                    </div>
+                                    </motion.div>
                                   )}
 
                                   {/* ── CARD DIRECTA DE DESCARGA FINAL EN EL CHAT ── */}
                                   {msg.showDownloadCard && (
-                                    <div className={`mt-3 p-3.5 border rounded-none flex items-center justify-between ${isDarkMode ? 'bg-[#09090b]/65 border-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-[#18181b]/6 border-[#18181b]/20'}`}>
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                                      transition={{ delay: 0.1, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                                      className={`mt-3 p-3.5 border rounded-none flex items-center justify-between ${isDarkMode ? 'bg-[#09090b]/65 border-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-[#18181b]/6 border-[#18181b]/20'}`}
+                                    >
                                       <div className="flex items-center gap-2.5">
                                         <div className={`w-8 h-8 rounded-none ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs`}>
                                           <CheckCheck size={16} />
@@ -3276,7 +3337,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                         <Download size={13} />
                                         Descargar .XML
                                       </button>
-                                    </div>
+                                    </motion.div>
                                   )}
                                 </>
                               ) : msg.isXmlUpload || (msg.text && msg.text.includes("Archivo XML adjunto para ingestión:")) ? (
@@ -3650,6 +3711,132 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         @keyframes dot-bounce {
           0%, 80%, 100% { transform: translateY(0);   opacity: 0.4; }
           40%            { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* ── MICRO-ANIMACIONES FLUIDAS DEL CHAT, BLOQUES MARKDOWN Y TABLAS ── */
+        @keyframes alysa-block-enter {
+          0% {
+            opacity: 0;
+            transform: translateY(7px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes alysa-table-enter {
+          0% {
+            opacity: 0;
+            transform: translateY(9px) scale(0.996);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes alysa-row-enter {
+          0% {
+            opacity: 0;
+            transform: translateY(5px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Cascada orgánica en respuestas Markdown */
+        .alysa-markdown-flow > p,
+        .alysa-markdown-flow > h1,
+        .alysa-markdown-flow > h2,
+        .alysa-markdown-flow > h3,
+        .alysa-markdown-flow > h4,
+        .alysa-markdown-flow > ul,
+        .alysa-markdown-flow > ol,
+        .alysa-markdown-flow > blockquote,
+        .alysa-markdown-flow > .alysa-code-wrapper,
+        .alysa-markdown-flow > hr {
+          animation: alysa-block-enter 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+          will-change: opacity, transform;
+        }
+
+        .alysa-markdown-flow > *:nth-child(1) { animation-delay: 0ms; }
+        .alysa-markdown-flow > *:nth-child(2) { animation-delay: 40ms; }
+        .alysa-markdown-flow > *:nth-child(3) { animation-delay: 80ms; }
+        .alysa-markdown-flow > *:nth-child(4) { animation-delay: 120ms; }
+        .alysa-markdown-flow > *:nth-child(5) { animation-delay: 160ms; }
+        .alysa-markdown-flow > *:nth-child(6) { animation-delay: 200ms; }
+        .alysa-markdown-flow > *:nth-child(7) { animation-delay: 240ms; }
+        .alysa-markdown-flow > *:nth-child(8) { animation-delay: 280ms; }
+        .alysa-markdown-flow > *:nth-child(n+9) { animation-delay: 310ms; }
+
+        /* Elementos de lista con micro-transición */
+        .alysa-markdown-flow li {
+          animation: alysa-row-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+          transition: transform 0.18s ease, color 0.18s ease;
+        }
+        .alysa-markdown-flow li:nth-child(1) { animation-delay: 30ms; }
+        .alysa-markdown-flow li:nth-child(2) { animation-delay: 60ms; }
+        .alysa-markdown-flow li:nth-child(3) { animation-delay: 90ms; }
+        .alysa-markdown-flow li:nth-child(4) { animation-delay: 120ms; }
+        .alysa-markdown-flow li:nth-child(5) { animation-delay: 150ms; }
+        .alysa-markdown-flow li:nth-child(n+6) { animation-delay: 180ms; }
+
+        /* Entrada fluida para contenedores de tablas y tarjetas estructuradas */
+        .alysa-table-wrapper,
+        .alysa-card-stagger table {
+          animation: alysa-table-enter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        /* Cascada sutil fila por fila en todas las tablas del chat */
+        .alysa-table-wrapper tbody tr,
+        .alysa-card-stagger tbody tr,
+        .alysa-item-stagger > * {
+          animation: alysa-row-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+          transition: background-color 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+        }
+        .alysa-table-wrapper tbody tr:nth-child(1),
+        .alysa-card-stagger tbody tr:nth-child(1),
+        .alysa-item-stagger > *:nth-child(1) { animation-delay: 25ms; }
+        .alysa-table-wrapper tbody tr:nth-child(2),
+        .alysa-card-stagger tbody tr:nth-child(2),
+        .alysa-item-stagger > *:nth-child(2) { animation-delay: 50ms; }
+        .alysa-table-wrapper tbody tr:nth-child(3),
+        .alysa-card-stagger tbody tr:nth-child(3),
+        .alysa-item-stagger > *:nth-child(3) { animation-delay: 75ms; }
+        .alysa-table-wrapper tbody tr:nth-child(4),
+        .alysa-card-stagger tbody tr:nth-child(4),
+        .alysa-item-stagger > *:nth-child(4) { animation-delay: 100ms; }
+        .alysa-table-wrapper tbody tr:nth-child(5),
+        .alysa-card-stagger tbody tr:nth-child(5),
+        .alysa-item-stagger > *:nth-child(5) { animation-delay: 125ms; }
+        .alysa-table-wrapper tbody tr:nth-child(6),
+        .alysa-card-stagger tbody tr:nth-child(6),
+        .alysa-item-stagger > *:nth-child(6) { animation-delay: 150ms; }
+        .alysa-table-wrapper tbody tr:nth-child(7),
+        .alysa-card-stagger tbody tr:nth-child(7),
+        .alysa-item-stagger > *:nth-child(7) { animation-delay: 175ms; }
+        .alysa-table-wrapper tbody tr:nth-child(8),
+        .alysa-card-stagger tbody tr:nth-child(8),
+        .alysa-item-stagger > *:nth-child(8) { animation-delay: 200ms; }
+        .alysa-table-wrapper tbody tr:nth-child(9),
+        .alysa-card-stagger tbody tr:nth-child(9),
+        .alysa-item-stagger > *:nth-child(9) { animation-delay: 225ms; }
+        .alysa-table-wrapper tbody tr:nth-child(10),
+        .alysa-card-stagger tbody tr:nth-child(10),
+        .alysa-item-stagger > *:nth-child(10) { animation-delay: 250ms; }
+        .alysa-table-wrapper tbody tr:nth-child(n+11),
+        .alysa-card-stagger tbody tr:nth-child(n+11),
+        .alysa-item-stagger > *:nth-child(n+11) { animation-delay: 275ms; }
+
+        /* Micro-interacción en botones de comando inline */
+        .alysa-cmd-btn {
+          transition: transform 0.16s ease, opacity 0.16s ease;
+        }
+        .alysa-cmd-btn:hover {
+          transform: translateY(-1px);
         }
 
         /* Prose markdown */

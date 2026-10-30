@@ -135,7 +135,7 @@ export default function AiAuditExplanationCard({
       {/* ── CUERPO DE LA EXPLICACIÓN INTERPRETATIVA ── */}
       <div className="p-4 space-y-3">
         <div
-          className={`prose prose-sm max-w-none text-[13px] leading-relaxed ${
+          className={`alysa-markdown-flow prose prose-sm max-w-none text-[13px] leading-relaxed ${
             isDarkMode
               ? 'prose-invert prose-p:text-zinc-300 prose-headings:text-white prose-strong:text-white prose-code:text-zinc-200 prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none'
               : 'text-slate-700 prose-headings:text-zinc-900 prose-strong:text-zinc-900 prose-code:text-slate-900 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none'

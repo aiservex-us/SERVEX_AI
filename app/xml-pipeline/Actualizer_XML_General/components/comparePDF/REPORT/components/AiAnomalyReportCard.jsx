@@ -451,7 +451,7 @@ export default function AiAnomalyReportCard({
               No hay anomalías que coincidan con el filtro seleccionado.
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-2 rounded-none">
+            <div key={`anom-${activeTab}-${currentPage}-${searchTerm}`} className="grid grid-cols-1 gap-2 rounded-none alysa-item-stagger">
               {paginatedAnomalies.map((anom, idx) => {
                 const isCrit = anom.severity === 'CRITICAL';
                 return (
