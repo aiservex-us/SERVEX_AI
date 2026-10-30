@@ -66,11 +66,11 @@ export default function AiAuditExplanationCard({
     return lines.join('\n');
   }, [explanation, data]);
 
-  const renderedHtml = useMemo(() => {
+  const renderedHtmlObj = useMemo(() => {
     try {
-      return marked.parse(resolvedExplanation || '');
+      return { __html: marked.parse(resolvedExplanation || '') };
     } catch {
-      return `<p>${resolvedExplanation}</p>`;
+      return { __html: `<p>${resolvedExplanation}</p>` };
     }
   }, [resolvedExplanation]);
 
@@ -140,7 +140,7 @@ export default function AiAuditExplanationCard({
               ? 'prose-invert prose-p:text-zinc-300 prose-headings:text-white prose-strong:text-white prose-code:text-zinc-200 prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none'
               : 'text-slate-700 prose-headings:text-zinc-900 prose-strong:text-zinc-900 prose-code:text-slate-900 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none'
           }`}
-          dangerouslySetInnerHTML={{ __html: renderedHtml }}
+          dangerouslySetInnerHTML={renderedHtmlObj}
         />
       </div>
 

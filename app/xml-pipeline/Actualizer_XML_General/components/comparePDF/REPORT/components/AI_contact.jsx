@@ -1242,13 +1242,15 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
     return html;
   }, [processedText, isDarkMode]);
 
-  const handleClick = (e) => {
+  const innerHtmlObj = useMemo(() => ({ __html: htmlContent }), [htmlContent]);
+
+  const handleClick = useCallback((e) => {
     const btn = e.target.closest('.alysa-cmd-btn');
     if (btn && onCommandSelect) {
       const cmd = btn.getAttribute('data-cmd');
       onCommandSelect(cmd);
     }
-  };
+  }, [onCommandSelect]);
 
   return (
     <div
@@ -1303,10 +1305,15 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
              [&_tr:last-child_td]:border-b-0
              [&_tbody_tr]:transition-colors hover:[&_tbody_tr]:bg-slate-50`
       }`}
-      dangerouslySetInnerHTML={{ __html: htmlContent }}
+      dangerouslySetInnerHTML={innerHtmlObj}
     />
   );
-});
+}, (prevProps, nextProps) => (
+  prevProps.text === nextProps.text &&
+  prevProps.isDarkMode === nextProps.isDarkMode &&
+  prevProps.inspectionReport === nextProps.inspectionReport &&
+  prevProps.catalogData === nextProps.catalogData
+));
 
 export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolPanel, isDarkMode = true }) {
   const [selectedAgent] = useState({ agent_name: "Alysa", role: "AI Engine" });
@@ -1671,13 +1678,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
   };
 
-  const handleCommandSelect = (cmdLabel) => {
+  const sendMessageRef = useRef(null);
+
+  const handleCommandSelect = useCallback((cmdLabel) => {
     setInput("");
     setShowSlashMenu(false);
     setTimeout(() => {
-      sendMessage(cmdLabel);
+      if (sendMessageRef.current) {
+        sendMessageRef.current(cmdLabel);
+      }
     }, 50);
-  };
+  }, []);
 
   const sendMessage = async (overrideText) => {
     // Interrumpir cualquier captura de voz activa
@@ -2649,8 +2660,10 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
   };
 
+  sendMessageRef.current = sendMessage;
+
   // Descarga directa del XML actualizado
-  const handleDownloadXml = () => {
+  const handleDownloadXml = useCallback(() => {
     recordClientAction({
       companyName: 'General_Procces',
       eventType: 'DOWNLOAD_RESULT_XML',
@@ -2659,7 +2672,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     });
     const url = `${apiURL}/api/v1/General_Procces/agent/download-xml?company_name=General_Procces`;
     window.open(url, '_blank');
-  };
+  }, [apiURL]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -2894,6 +2907,453 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     );
   };
 
+  const renderedMessagesList = useMemo(() => {
+    return messages.map((msg, idx) => {
+      const isUser = msg.from === 'user';
+      const isStructuredUser = isUser && !msg.isXmlUpload && parseUserMessage(msg.text).type !== 'simple';
+      const msgKey = msg.id || `msg-${idx}`;
+      return (
+        <motion.div
+          key={msgKey}
+          initial={{ opacity: 0, y: 10, x: isUser ? 8 : -6 }}
+          animate={{ opacity: 1, y: 0, x: 0 }}
+          transition={{
+            duration: 0.34,
+            ease: [0.22, 1, 0.36, 1]
+          }}
+          className={`flex gap-3 items-start min-w-0 ${isUser ? 'justify-end w-full' : 'w-full'}`}
+        >
+          {msg.from === 'tool' ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.994 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full max-w-full min-w-0 my-2 bg-transparent overflow-hidden relative flex justify-center alysa-card-stagger"
+            >
+              <div className="w-full max-w-full min-w-0 h-full relative">
+                {renderTool && renderTool(msg.toolId)}
+              </div>
+            </motion.div>
+          ) : (
+            <>
+              {/* Avatar: solo para la IA (el usuario no tiene icono) */}
+              {!isUser && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.85, rotate: -4 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ scale: 1.08 }}
+                  className="flex-shrink-0 flex items-center justify-center pt-0.5"
+                >
+                  <AlysaSvgIcon className="w-7 h-7 drop-shadow-sm" />
+                </motion.div>
+              )}
+
+              {/* Bubble column */}
+              <div className={`flex flex-col min-w-0 ${msg.uploadSummary || msg.isProcessingConsole || msg.toolId ? 'w-full' : isUser ? isStructuredUser ? 'w-full max-w-[96%] md:max-w-[85%]' : 'max-w-[85%] md:max-w-[75%]' : 'max-w-[90%] md:max-w-[88%]'} gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
+                {/* Cabecera de mensaje (solo para la IA; el usuario no tiene ni 'You' ni la hora) */}
+                {!isUser && msg.time && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.08, duration: 0.25 }}
+                    className="flex items-baseline gap-2 mb-0.5"
+                  >
+                    <span className={`text-[10px] ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>{msg.time}</span>
+                  </motion.div>
+                )}
+
+                <div
+                  className={`text-[13.5px] leading-relaxed relative break-words min-w-0 transition-all duration-200 ${
+                    isUser
+                      ? isStructuredUser
+                        ? 'w-full p-0 bg-transparent border-none shadow-none'
+                        : isDarkMode
+                          ? 'px-4 py-2.5 rounded-none shadow-md bg-zinc-100 text-zinc-950 border border-zinc-200 font-medium hover:shadow-lg'
+                          : 'px-4 py-2.5 rounded-none shadow-sm bg-[#18181b] text-white border border-[#18181b] hover:shadow-md'
+                      : 'w-full space-y-2'
+                  }`}
+                >
+                  {msg.from === "bot" ? (
+                    <>
+                      {/* Mensaje de la IA: contenedor transparente sobre el fondo, sin contenedor negro ni bordes */}
+                      {msg.text && (
+                        <div className={`w-full bg-transparent border-none shadow-none py-0.5 alysa-card-stagger ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'}`}>
+                          <BotMessage
+                            text={msg.text}
+                            inspectionReport={msg.inspection_report}
+                            catalogData={msg.catalog_data}
+                            onCommandSelect={handleCommandSelect}
+                            isDarkMode={isDarkMode}
+                          />
+                        </div>
+                      )}
+
+                      {/* ── COMPONENTE / TABLA INLINE EN RESPUESTA DEL BOT ── */}
+                      {msg.toolId && renderTool && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.994 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ delay: 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          className="w-full max-w-full min-w-0 my-1.5 bg-transparent overflow-hidden alysa-card-stagger"
+                        >
+                          {renderTool(msg.toolId)}
+                        </motion.div>
+                      )}
+
+                      {/* ── CONSOLA DE PROCESAMIENTO EN TIEMPO REAL ── */}
+                      {msg.isProcessingConsole && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          <CatalogProcessConsole
+                            fileName={msg.processFileName || 'catalogo.xml'}
+                            isCompleted={msg.processCompleted}
+                            summary={msg.processSummary}
+                            isDarkMode={isDarkMode}
+                          />
+                        </motion.div>
+                      )}
+
+                      {/* ── REPORTE CONVERSACIONAL DE INGESTIÓN XML (PROCESOS GUIADOS POR IA) ── */}
+                      {msg.uploadSummary && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.995 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          className="alysa-card-stagger"
+                        >
+                          <AiCatalogIngestionReport
+                            summary={msg.uploadSummary}
+                            csvRaw={dbCsvRaw || msg.uploadSummary?.csv_raw}
+                            xmlRaw={dbXmlRaw || msg.uploadSummary?.xml_raw}
+                            getCatalogExcelColumns={getCatalogExcelColumns}
+                            onCommandSelect={handleCommandSelect}
+                            time={msg.time}
+                            isDarkMode={isDarkMode}
+                          />
+                        </motion.div>
+                      )}
+
+                      {/* ── REPORTE CONVERSACIONAL DE COMPARACIÓN MATRICIAL (/executeProcess) ── */}
+                      {msg.comparisonReport && (
+                        <div className="space-y-3.5 alysa-card-stagger">
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.04, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            <AiComparisonReportCard
+                              data={msg.comparisonReport}
+                              onCommandSelect={handleCommandSelect}
+                              isDarkMode={isDarkMode}
+                            />
+                          </motion.div>
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.12, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            <AiAnomalyReportCard
+                              data={msg.comparisonReport}
+                              onCommandSelect={handleCommandSelect}
+                              isDarkMode={isDarkMode}
+                            />
+                          </motion.div>
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                          >
+                            <AiAuditExplanationCard
+                              explanation={msg.comparisonReport.ai_explanation}
+                              data={msg.comparisonReport}
+                              isDarkMode={isDarkMode}
+                            />
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {/* ── UPLOADER INLINE CUANDO SE REQUIERE XML ── */}
+                      {msg.needs_upload && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.08, duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                          onClick={() => xmlFileInputRef.current?.click()}
+                          className={`mt-3 p-4 border-2 border-dashed rounded-none backdrop-blur-xl transition-all text-center cursor-pointer group shadow-sm ${isDarkMode
+                              ? 'border-white/15 hover:border-white/40 bg-[#09090b]/55 hover:bg-[#09090b]/75 text-zinc-200'
+                              : 'border-slate-300 hover:border-slate-800 bg-white/75 hover:bg-white/90 text-slate-800'
+                            }`}
+                        >
+                          <UploadCloud size={28} className={`mx-auto mb-1.5 group-hover:scale-110 transition-transform ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`} />
+                          <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                            Arrastra o haz clic para subir tu catálogo XML maestro
+                          </h4>
+                          <p className={`text-[10.5px] mt-0.5 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                            Formatos soportados: .xml de CET Designer o Catalog Creator. Se montará al instante en memoria.
+                          </p>
+                        </motion.div>
+                      )}
+
+                      {/* ── STAGING BOARD & XML DIFF PREVIEW ── */}
+                      {msg.staged_result && msg.staged_result.items && msg.staged_result.items.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.995 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ delay: 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                          className={`mt-4 border rounded-none overflow-hidden shadow-xs backdrop-blur-xl alysa-card-stagger ${isDarkMode ? 'border-white/10 bg-[#09090b]/80 text-zinc-100' : 'border-[#18181b]/25 bg-white/95 text-slate-700'}`}
+                        >
+                          <div className={`p-3.5 border-b flex flex-wrap items-center justify-between gap-2 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-r from-[#18181b]/12 via-[#18181b]/6 to-transparent border-[#18181b]/15'}`}>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <Table size={14} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
+                                <h4 className={`text-xs font-bold uppercase tracking-wider font-sans ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
+                                  Surgical Staging & XML Diff Board
+                                </h4>
+                                <span className={`px-2 py-0.5 rounded-none text-[9.5px] font-mono font-bold shadow-xs ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'}`}>
+                                  {msg.staged_result.items.length} {msg.staged_result.items.length === 1 ? 'Cambio' : 'Cambios'}
+                                </span>
+                              </div>
+                              <p className={`text-[11px] mt-0.5 font-medium ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'}`}>
+                                Registro estructurado en memoria de los cambios recopilados durante la conversación.
+                              </p>
+                            </div>
+
+                            {/* Estado de recopilación en memoria (Sin inyección al XML) */}
+                            <div className={`px-3 py-1.5 rounded-none text-xs font-semibold flex items-center gap-1.5 border shadow-xs ${
+                              isDarkMode ? 'bg-white/10 border-white/15 text-zinc-200' : 'bg-[#18181b]/10 border-[#18181b]/15 text-[#18181b]'
+                            }`}>
+                              <Layers size={13} className={isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'} />
+                              <span>Cambios Recopilados</span>
+                            </div>
+                          </div>
+
+                          <div className={`overflow-x-auto max-h-[380px] ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'scrollbar-thin'}`}>
+                            <table className={`w-full text-left text-xs ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
+                              <thead className={`${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-[#18181b]/5 border-[#18181b]/15 text-[#18181b]'} sticky top-0 z-10 border-b font-bold text-[10px] uppercase tracking-wider`}>
+                                <tr>
+                                  <th className="px-3.5 py-2.5">SKU / Nodo</th>
+                                  <th className="px-3.5 py-2.5">Tipo de Nodo</th>
+                                  <th className="px-3.5 py-2.5">Detalle / Opción</th>
+                                  <th className="px-3.5 py-2.5 text-right">Actual</th>
+                                  <th className="px-3.5 py-2.5 text-right">Nuevo</th>
+                                  <th className="px-3.5 py-2.5 text-right">Variación</th>
+                                  <th className="px-3.5 py-2.5 text-center">Estado</th>
+                                </tr>
+                              </thead>
+                              <tbody className={`divide-y ${isDarkMode ? 'divide-white/10' : 'divide-[#18181b]/10'}`}>
+                                {msg.staged_result.items.map((item, itemIdx) => {
+                                  const isOption = String(item.target_type || item.type || '').toLowerCase().includes('option');
+                                  const isMatched = item.status === 'MATCHED' || (!item.status && item.old_price != null);
+                                  const pct = item.percent_delta != null ? item.percent_delta : (item.diff_pct != null ? item.diff_pct : (item.pct != null ? item.pct : null));
+                                  const isPositive = pct != null && pct >= 0;
+                                  return (
+                                    <tr
+                                      key={itemIdx}
+                                      className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-[#18181b]/5'}`}
+                                    >
+                                      <td className={`px-3.5 py-2.5 font-mono font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} text-xs`}>
+                                        {item.sku}
+                                      </td>
+                                      <td className="px-3.5 py-2.5">
+                                        <span
+                                          className={`inline-block px-1.5 py-0.5 rounded-none text-[9.5px] font-mono font-bold ${isOption
+                                            ? isDarkMode ? 'bg-white/15 text-white border border-white/25' : 'bg-[#18181b]/15 text-[#18181b] border border-[#18181b]/25'
+                                            : isDarkMode ? 'bg-white/10 text-zinc-300 border border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border border-[#18181b]/20'
+                                            }`}
+                                        >
+                                          {isOption ? '<OptionPrice>' : '<Price>'}
+                                        </span>
+                                      </td>
+                                      <td
+                                        className={`px-3.5 py-2.5 text-[11px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} max-w-[140px] truncate font-medium`}
+                                        title={item.matched_option_name || item.option_name || item.option_code || item.option}
+                                      >
+                                        {item.matched_option_name || item.option_name || item.option_code || item.option || 'Precio Base'}
+                                      </td>
+                                      <td className={`px-3.5 py-2.5 text-right font-mono ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/60'} text-xs`}>
+                                        {item.old_price != null ? `$${item.old_price}` : <span className={isDarkMode ? 'text-zinc-600' : 'text-[#18181b]/40'}>—</span>}
+                                      </td>
+                                      <td className={`px-3.5 py-2.5 text-right font-mono font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} text-xs`}>
+                                        ${item.new_price != null ? item.new_price : item.new_value}
+                                      </td>
+                                      <td className={`px-3.5 py-2.5 text-right font-mono font-bold text-xs ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
+                                        {pct != null ? (
+                                          <span className={`${isDarkMode ? 'bg-white/15 text-white' : 'bg-[#18181b]/10 text-[#18181b]'} px-1.5 py-0.5 rounded-none`}>
+                                            {isPositive ? `+${pct}%` : `${pct}%`}
+                                          </span>
+                                        ) : (
+                                          <span className={`${isDarkMode ? 'text-zinc-600' : 'text-[#18181b]/40'} font-normal`}>—</span>
+                                        )}
+                                      </td>
+                                      <td className="px-3.5 py-2.5 text-center">
+                                        {isMatched ? (
+                                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/12 border-[#18181b]/25'} px-2 py-0.5 rounded-none border`}>
+                                            <CheckCircle2 size={10} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
+                                            Verificado
+                                          </span>
+                                        ) : (
+                                          <span
+                                            className={`inline-flex items-center gap-1 text-[10px] font-medium ${isDarkMode ? 'text-zinc-400 bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} px-2 py-0.5 rounded-none border`}
+                                            title={item.reason}
+                                          >
+                                            <AlertCircle size={10} className={isDarkMode ? 'text-zinc-400' : 'text-[#18181b]'} />
+                                            No en XML
+                                          </span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <div className={`p-2.5 border-t flex items-center justify-between ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-[#18181b]/5 border-[#18181b]/15'}`}>
+                            <span className={`text-[10.5px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} font-medium`}>
+                              Catálogo: <strong className={isDarkMode ? 'text-white' : 'text-[#18181b]'}>{activeCatalogName || context || 'General Process'}</strong>
+                            </span>
+                            {msg.committed && (
+                              <button
+                                onClick={handleDownloadXml}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-none ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-[11px] font-bold shadow-xs transition-all cursor-pointer`}
+                              >
+                                <Download size={12} />
+                                Descargar XML Actualizado
+                              </button>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* ── CARD DIRECTA DE DESCARGA FINAL EN EL CHAT ── */}
+                      {msg.showDownloadCard && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ delay: 0.1, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                          className={`mt-3 p-3.5 border rounded-none flex items-center justify-between ${isDarkMode ? 'bg-[#09090b]/65 border-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-[#18181b]/6 border-[#18181b]/20'}`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-8 h-8 rounded-none ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs`}>
+                              <CheckCheck size={16} />
+                            </div>
+                            <div>
+                              <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
+                                Catálogo XML Certificado y Actualizado
+                              </h4>
+                              <p className={`text-[10.5px] ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'} font-medium`}>
+                                Listo para importar directamente en CET Designer sin errores de formato.
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleDownloadXml}
+                            className={`px-3.5 py-1.5 ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-xs font-bold rounded-none shadow-xs flex items-center gap-1.5 transition-all cursor-pointer`}
+                          >
+                            <Download size={13} />
+                            Descargar .XML
+                          </button>
+                        </motion.div>
+                      )}
+                    </>
+                  ) : msg.isXmlUpload || (msg.text && msg.text.includes("Archivo XML adjunto para ingestión:")) ? (
+                    (() => {
+                      const fnMatch = msg.fileName || (msg.text.match(/`([^`]+)`/) ? msg.text.match(/`([^`]+)`/)[1] : "catálogo.xml");
+                      const sizeMatch = msg.fileSizeKb || (msg.text.match(/\(([0-9.]+)\s*KB\)/i) ? msg.text.match(/\(([0-9.]+)\s*KB\)/i)[1] : null);
+                      const isUploading = msg.uploadStatus === "uploading";
+                      const isError = msg.uploadStatus === "error";
+
+                      return (
+                        <div className={`space-y-2 ${isDarkMode ? 'text-zinc-950' : 'text-white'} min-w-[240px] sm:min-w-[280px]`}>
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-8 h-8 rounded-none ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/15'} flex items-center justify-center shrink-0`}>
+                              <FileCode2 size={16} className={isDarkMode ? 'text-zinc-950' : 'text-white'} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className={`text-[11px] font-medium ${isDarkMode ? 'text-zinc-700' : 'text-white/80'} block leading-tight`}>
+                                Archivo XML adjunto para ingestión:
+                              </span>
+                              <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                <span className={`font-mono font-bold text-xs ${isDarkMode ? 'bg-zinc-900/10 text-zinc-950' : 'bg-white/20 text-white'} px-2 py-0.5 rounded-none tracking-wide`}>
+                                  {fnMatch}
+                                </span>
+                                {sizeMatch && (
+                                  <span className={`text-[10.5px] font-mono ${isDarkMode ? 'text-zinc-600' : 'text-white/75'}`}>
+                                    ({sizeMatch} KB)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Barra de progreso interactiva */}
+                          <div className="pt-1">
+                            <div className={`w-full ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/20'} rounded-none h-1.5 overflow-hidden`}>
+                              <motion.div
+                                initial={{ width: "25%" }}
+                                animate={{
+                                  width: isUploading ? "80%" : isError ? "100%" : "100%"
+                                }}
+                                transition={{
+                                  duration: isUploading ? 1.5 : 0.4,
+                                  ease: "easeOut"
+                                }}
+                                className={`h-full rounded-none ${isError
+                                  ? "bg-rose-500"
+                                  : isUploading
+                                    ? isDarkMode ? "bg-zinc-900/80 animate-pulse" : "bg-white/80 animate-pulse"
+                                    : isDarkMode ? "bg-zinc-950" : "bg-white"
+                                  }`}
+                              />
+                            </div>
+                            <div className={`flex items-center justify-between text-[10px] font-mono ${isDarkMode ? 'text-zinc-800' : 'text-white/85'} mt-1.5`}>
+                              {isUploading ? (
+                                <>
+                                  <span className="flex items-center gap-1.5 font-medium">
+                                    <RefreshCw size={10} className={`animate-spin ${isDarkMode ? 'text-zinc-950' : 'text-white'}`} />
+                                    Subiendo e ingiriendo en memoria...
+                                  </span>
+                                  <span>80%</span>
+                                </>
+                              ) : isError ? (
+                                <>
+                                  <span className="text-rose-600 font-medium">Error en la carga</span>
+                                  <span>Fallo</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className={`flex items-center gap-1 font-semibold ${isDarkMode ? 'text-zinc-950' : 'text-white'}`}>
+                                    <Check size={12} className={isDarkMode ? 'text-zinc-950' : 'text-white'} />
+                                    Archivo cargado e ingerido
+                                  </span>
+                                  <span className={`font-bold ${isDarkMode ? 'text-zinc-950' : 'text-white'}`}>100%</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <UserStructuredMessage
+                      text={msg.text}
+                      isDarkMode={isDarkMode}
+                      isInsideBubble={!isStructuredUser}
+                    />
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </motion.div>
+      );
+    });
+  }, [messages, isDarkMode, dbCsvRaw, dbXmlRaw, activeCatalogName, context, renderTool, handleCommandSelect, handleDownloadXml]);
+
   return (
     <div
       onDragOver={(e) => { e.preventDefault(); setDragActiveXml(true); }}
@@ -2988,450 +3448,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           <div className="w-full max-w-[1000px] mx-auto flex flex-col px-5 max-[700px]:px-3 min-h-full">
             <div className="flex flex-col gap-6 py-7">
               <AnimatePresence initial={false}>
-                {messages.map((msg, idx) => {
-                  const isUser = msg.from === 'user';
-                  const isStructuredUser = isUser && !msg.isXmlUpload && parseUserMessage(msg.text).type !== 'simple';
-                  const msgKey = msg.id || `msg-${idx}`;
-                  return (
-                    <motion.div
-                      key={msgKey}
-                      initial={{ opacity: 0, y: 12, x: isUser ? 10 : -8, scale: 0.992, filter: 'blur(3px)' }}
-                      animate={{ opacity: 1, y: 0, x: 0, scale: 1, filter: 'blur(0px)' }}
-                      transition={{
-                        duration: 0.38,
-                        ease: [0.22, 1, 0.36, 1]
-                      }}
-                      className={`flex gap-3 items-start min-w-0 ${isUser ? 'justify-end w-full' : 'w-full'}`}
-                    >
-                      {msg.from === 'tool' ? (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10, scale: 0.994 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-                          className="w-full max-w-full min-w-0 my-2 bg-transparent overflow-hidden relative flex justify-center alysa-card-stagger"
-                        >
-                          <div className="w-full max-w-full min-w-0 h-full relative">
-                            {renderTool && renderTool(msg.toolId)}
-                          </div>
-                        </motion.div>
-                      ) : (
-                        <>
-                          {/* Avatar: solo para la IA (el usuario no tiene icono) */}
-                          {!isUser && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.85, rotate: -4 }}
-                              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                              transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-                              whileHover={{ scale: 1.08 }}
-                              className="flex-shrink-0 flex items-center justify-center pt-0.5"
-                            >
-                              <AlysaSvgIcon className="w-7 h-7 drop-shadow-sm" />
-                            </motion.div>
-                          )}
-
-                          {/* Bubble column */}
-                          <div className={`flex flex-col min-w-0 ${msg.uploadSummary || msg.isProcessingConsole || msg.toolId ? 'w-full' : isUser ? isStructuredUser ? 'w-full max-w-[96%] md:max-w-[85%]' : 'max-w-[85%] md:max-w-[75%]' : 'max-w-[90%] md:max-w-[88%]'} gap-1 ${isUser ? 'items-end' : 'items-start flex-1'}`}>
-                            {/* Cabecera de mensaje (solo para la IA; el usuario no tiene ni 'You' ni la hora) */}
-                            {!isUser && msg.time && (
-                              <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.08, duration: 0.25 }}
-                                className="flex items-baseline gap-2 mb-0.5"
-                              >
-                                <span className={`text-[10px] ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>{msg.time}</span>
-                              </motion.div>
-                            )}
-
-                            <div
-                              className={`text-[13.5px] leading-relaxed relative break-words min-w-0 transition-all duration-200 ${
-                                isUser
-                                  ? isStructuredUser
-                                    ? 'w-full p-0 bg-transparent border-none shadow-none'
-                                    : isDarkMode
-                                      ? 'px-4 py-2.5 rounded-none shadow-md bg-zinc-100 text-zinc-950 border border-zinc-200 font-medium hover:shadow-lg'
-                                      : 'px-4 py-2.5 rounded-none shadow-sm bg-[#18181b] text-white border border-[#18181b] hover:shadow-md'
-                                  : 'w-full space-y-2'
-                              }`}
-                            >
-                              {msg.from === "bot" ? (
-                                <>
-                                  {/* Mensaje de la IA: contenedor transparente sobre el fondo, sin contenedor negro ni bordes */}
-                                  {msg.text && (
-                                    <div className={`w-full bg-transparent border-none shadow-none py-0.5 alysa-card-stagger ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'}`}>
-                                      <BotMessage
-                                        text={msg.text}
-                                        inspectionReport={msg.inspection_report}
-                                        catalogData={msg.catalog_data}
-                                        onCommandSelect={handleCommandSelect}
-                                        isDarkMode={isDarkMode}
-                                      />
-                                    </div>
-                                  )}
-
-                                  {/* ── COMPONENTE / TABLA INLINE EN RESPUESTA DEL BOT ── */}
-                                  {msg.toolId && renderTool && (
-                                    <motion.div
-                                      initial={{ opacity: 0, y: 10, scale: 0.994 }}
-                                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                                      transition={{ delay: 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                                      className="w-full max-w-full min-w-0 my-1.5 bg-transparent overflow-hidden alysa-card-stagger"
-                                    >
-                                      {renderTool(msg.toolId)}
-                                    </motion.div>
-                                  )}
-
-                                  {/* ── CONSOLA DE PROCESAMIENTO EN TIEMPO REAL ── */}
-                                  {msg.isProcessingConsole && (
-                                    <motion.div
-                                      initial={{ opacity: 0, y: 8 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                                    >
-                                      <CatalogProcessConsole
-                                        fileName={msg.processFileName || 'catalogo.xml'}
-                                        isCompleted={msg.processCompleted}
-                                        summary={msg.processSummary}
-                                        isDarkMode={isDarkMode}
-                                      />
-                                    </motion.div>
-                                  )}
-
-                                  {/* ── REPORTE CONVERSACIONAL DE INGESTIÓN XML (PROCESOS GUIADOS POR IA) ── */}
-                                  {msg.uploadSummary && (
-                                    <motion.div
-                                      initial={{ opacity: 0, y: 10, scale: 0.995 }}
-                                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                                      className="alysa-card-stagger"
-                                    >
-                                      <AiCatalogIngestionReport
-                                        summary={msg.uploadSummary}
-                                        csvRaw={dbCsvRaw || msg.uploadSummary?.csv_raw}
-                                        xmlRaw={dbXmlRaw || msg.uploadSummary?.xml_raw}
-                                        getCatalogExcelColumns={getCatalogExcelColumns}
-                                        onCommandSelect={handleCommandSelect}
-                                        time={msg.time}
-                                        isDarkMode={isDarkMode}
-                                      />
-                                    </motion.div>
-                                  )}
-
-                                  {/* ── REPORTE CONVERSACIONAL DE COMPARACIÓN MATRICIAL (/executeProcess) ── */}
-                                  {msg.comparisonReport && (
-                                    <div className="space-y-3.5 alysa-card-stagger">
-                                      <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.04, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                                      >
-                                        <AiComparisonReportCard
-                                          data={msg.comparisonReport}
-                                          onCommandSelect={handleCommandSelect}
-                                          isDarkMode={isDarkMode}
-                                        />
-                                      </motion.div>
-                                      <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.12, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                                      >
-                                        <AiAnomalyReportCard
-                                          data={msg.comparisonReport}
-                                          onCommandSelect={handleCommandSelect}
-                                          isDarkMode={isDarkMode}
-                                        />
-                                      </motion.div>
-                                      <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.2, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                                      >
-                                        <AiAuditExplanationCard
-                                          explanation={msg.comparisonReport.ai_explanation}
-                                          data={msg.comparisonReport}
-                                          isDarkMode={isDarkMode}
-                                        />
-                                      </motion.div>
-                                    </div>
-                                  )}
-
-                                  {/* ── UPLOADER INLINE CUANDO SE REQUIERE XML ── */}
-                                  {msg.needs_upload && (
-                                    <motion.div
-                                      initial={{ opacity: 0, y: 8 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      transition={{ delay: 0.08, duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-                                      onClick={() => xmlFileInputRef.current?.click()}
-                                      className={`mt-3 p-4 border-2 border-dashed rounded-none backdrop-blur-xl transition-all text-center cursor-pointer group shadow-sm ${isDarkMode
-                                          ? 'border-white/15 hover:border-white/40 bg-[#09090b]/55 hover:bg-[#09090b]/75 text-zinc-200'
-                                          : 'border-slate-300 hover:border-slate-800 bg-white/75 hover:bg-white/90 text-slate-800'
-                                        }`}
-                                    >
-                                      <UploadCloud size={28} className={`mx-auto mb-1.5 group-hover:scale-110 transition-transform ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`} />
-                                      <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                                        Arrastra o haz clic para subir tu catálogo XML maestro
-                                      </h4>
-                                      <p className={`text-[10.5px] mt-0.5 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-                                        Formatos soportados: .xml de CET Designer o Catalog Creator. Se montará al instante en memoria.
-                                      </p>
-                                    </motion.div>
-                                  )}
-
-                                  {/* ── STAGING BOARD & XML DIFF PREVIEW ── */}
-                                  {msg.staged_result && msg.staged_result.items && msg.staged_result.items.length > 0 && (
-                                    <motion.div
-                                      initial={{ opacity: 0, y: 10, scale: 0.995 }}
-                                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                                      transition={{ delay: 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                                      className={`mt-4 border rounded-none overflow-hidden shadow-xs backdrop-blur-xl alysa-card-stagger ${isDarkMode ? 'border-white/10 bg-[#09090b]/80 text-zinc-100' : 'border-[#18181b]/25 bg-white/95 text-slate-700'}`}
-                                    >
-                                      <div className={`p-3.5 border-b flex flex-wrap items-center justify-between gap-2 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-r from-[#18181b]/12 via-[#18181b]/6 to-transparent border-[#18181b]/15'}`}>
-                                        <div>
-                                          <div className="flex items-center gap-1.5">
-                                            <Table size={14} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
-                                            <h4 className={`text-xs font-bold uppercase tracking-wider font-sans ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
-                                              Surgical Staging & XML Diff Board
-                                            </h4>
-                                            <span className={`px-2 py-0.5 rounded-none text-[9.5px] font-mono font-bold shadow-xs ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'}`}>
-                                              {msg.staged_result.items.length} {msg.staged_result.items.length === 1 ? 'Cambio' : 'Cambios'}
-                                            </span>
-                                          </div>
-                                          <p className={`text-[11px] mt-0.5 font-medium ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'}`}>
-                                            Registro estructurado en memoria de los cambios recopilados durante la conversación.
-                                          </p>
-                                        </div>
-
-                                        {/* Estado de recopilación en memoria (Sin inyección al XML) */}
-                                        <div className={`px-3 py-1.5 rounded-none text-xs font-semibold flex items-center gap-1.5 border shadow-xs ${
-                                          isDarkMode ? 'bg-white/10 border-white/15 text-zinc-200' : 'bg-[#18181b]/10 border-[#18181b]/15 text-[#18181b]'
-                                        }`}>
-                                          <Layers size={13} className={isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'} />
-                                          <span>Cambios Recopilados</span>
-                                        </div>
-                                      </div>
-
-                                      <div className={`overflow-x-auto max-h-[380px] ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'scrollbar-thin'}`}>
-                                        <table className={`w-full text-left text-xs ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
-                                          <thead className={`${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-[#18181b]/5 border-[#18181b]/15 text-[#18181b]'} sticky top-0 z-10 border-b font-bold text-[10px] uppercase tracking-wider`}>
-                                            <tr>
-                                              <th className="px-3.5 py-2.5">SKU / Nodo</th>
-                                              <th className="px-3.5 py-2.5">Tipo de Nodo</th>
-                                              <th className="px-3.5 py-2.5">Detalle / Opción</th>
-                                              <th className="px-3.5 py-2.5 text-right">Actual</th>
-                                              <th className="px-3.5 py-2.5 text-right">Nuevo</th>
-                                              <th className="px-3.5 py-2.5 text-right">Variación</th>
-                                              <th className="px-3.5 py-2.5 text-center">Estado</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody className={`divide-y ${isDarkMode ? 'divide-white/10' : 'divide-[#18181b]/10'}`}>
-                                            {msg.staged_result.items.map((item, itemIdx) => {
-                                              const isOption = String(item.target_type || item.type || '').toLowerCase().includes('option');
-                                              const isMatched = item.status === 'MATCHED' || (!item.status && item.old_price != null);
-                                              const pct = item.percent_delta != null ? item.percent_delta : (item.diff_pct != null ? item.diff_pct : (item.pct != null ? item.pct : null));
-                                              const isPositive = pct != null && pct >= 0;
-                                              return (
-                                                <tr
-                                                  key={itemIdx}
-                                                  className={`transition-colors ${isDarkMode ? 'hover:bg-white/5' : 'hover:bg-[#18181b]/5'}`}
-                                                >
-                                                  <td className={`px-3.5 py-2.5 font-mono font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} text-xs`}>
-                                                    {item.sku}
-                                                  </td>
-                                                  <td className="px-3.5 py-2.5">
-                                                    <span
-                                                      className={`inline-block px-1.5 py-0.5 rounded-none text-[9.5px] font-mono font-bold ${isOption
-                                                        ? isDarkMode ? 'bg-white/15 text-white border border-white/25' : 'bg-[#18181b]/15 text-[#18181b] border border-[#18181b]/25'
-                                                        : isDarkMode ? 'bg-white/10 text-zinc-300 border border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border border-[#18181b]/20'
-                                                        }`}
-                                                    >
-                                                      {isOption ? '<OptionPrice>' : '<Price>'}
-                                                    </span>
-                                                  </td>
-                                                  <td
-                                                    className={`px-3.5 py-2.5 text-[11px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} max-w-[140px] truncate font-medium`}
-                                                    title={item.matched_option_name || item.option_name || item.option_code || item.option}
-                                                  >
-                                                    {item.matched_option_name || item.option_name || item.option_code || item.option || 'Precio Base'}
-                                                  </td>
-                                                  <td className={`px-3.5 py-2.5 text-right font-mono ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/60'} text-xs`}>
-                                                    {item.old_price != null ? `$${item.old_price}` : <span className={isDarkMode ? 'text-zinc-600' : 'text-[#18181b]/40'}>—</span>}
-                                                  </td>
-                                                  <td className={`px-3.5 py-2.5 text-right font-mono font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'} text-xs`}>
-                                                    ${item.new_price != null ? item.new_price : item.new_value}
-                                                  </td>
-                                                  <td className={`px-3.5 py-2.5 text-right font-mono font-bold text-xs ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
-                                                    {pct != null ? (
-                                                      <span className={`${isDarkMode ? 'bg-white/15 text-white' : 'bg-[#18181b]/10 text-[#18181b]'} px-1.5 py-0.5 rounded-none`}>
-                                                        {isPositive ? `+${pct}%` : `${pct}%`}
-                                                      </span>
-                                                    ) : (
-                                                      <span className={`${isDarkMode ? 'text-zinc-600' : 'text-[#18181b]/40'} font-normal`}>—</span>
-                                                    )}
-                                                  </td>
-                                                  <td className="px-3.5 py-2.5 text-center">
-                                                    {isMatched ? (
-                                                      <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/12 border-[#18181b]/25'} px-2 py-0.5 rounded-none border`}>
-                                                        <CheckCircle2 size={10} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
-                                                        Verificado
-                                                      </span>
-                                                    ) : (
-                                                      <span
-                                                        className={`inline-flex items-center gap-1 text-[10px] font-medium ${isDarkMode ? 'text-zinc-400 bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} px-2 py-0.5 rounded-none border`}
-                                                        title={item.reason}
-                                                      >
-                                                        <AlertCircle size={10} className={isDarkMode ? 'text-zinc-400' : 'text-[#18181b]'} />
-                                                        No en XML
-                                                      </span>
-                                                    )}
-                                                  </td>
-                                                </tr>
-                                              );
-                                            })}
-                                          </tbody>
-                                        </table>
-                                      </div>
-
-                                      <div className={`p-2.5 border-t flex items-center justify-between ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-[#18181b]/5 border-[#18181b]/15'}`}>
-                                        <span className={`text-[10.5px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} font-medium`}>
-                                          Catálogo: <strong className={isDarkMode ? 'text-white' : 'text-[#18181b]'}>{activeCatalogName || context || 'General Process'}</strong>
-                                        </span>
-                                        {msg.committed && (
-                                          <button
-                                            onClick={handleDownloadXml}
-                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-none ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-[11px] font-bold shadow-xs transition-all cursor-pointer`}
-                                          >
-                                            <Download size={12} />
-                                            Descargar XML Actualizado
-                                          </button>
-                                        )}
-                                      </div>
-                                    </motion.div>
-                                  )}
-
-                                  {/* ── CARD DIRECTA DE DESCARGA FINAL EN EL CHAT ── */}
-                                  {msg.showDownloadCard && (
-                                    <motion.div
-                                      initial={{ opacity: 0, y: 10, scale: 0.99 }}
-                                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                                      transition={{ delay: 0.1, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                                      className={`mt-3 p-3.5 border rounded-none flex items-center justify-between ${isDarkMode ? 'bg-[#09090b]/65 border-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-[#18181b]/6 border-[#18181b]/20'}`}
-                                    >
-                                      <div className="flex items-center gap-2.5">
-                                        <div className={`w-8 h-8 rounded-none ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs`}>
-                                          <CheckCheck size={16} />
-                                        </div>
-                                        <div>
-                                          <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
-                                            Catálogo XML Certificado y Actualizado
-                                          </h4>
-                                          <p className={`text-[10.5px] ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'} font-medium`}>
-                                            Listo para importar directamente en CET Designer sin errores de formato.
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <button
-                                        onClick={handleDownloadXml}
-                                        className={`px-3.5 py-1.5 ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-xs font-bold rounded-none shadow-xs flex items-center gap-1.5 transition-all cursor-pointer`}
-                                      >
-                                        <Download size={13} />
-                                        Descargar .XML
-                                      </button>
-                                    </motion.div>
-                                  )}
-                                </>
-                              ) : msg.isXmlUpload || (msg.text && msg.text.includes("Archivo XML adjunto para ingestión:")) ? (
-                                (() => {
-                                  const fnMatch = msg.fileName || (msg.text.match(/`([^`]+)`/) ? msg.text.match(/`([^`]+)`/)[1] : "catálogo.xml");
-                                  const sizeMatch = msg.fileSizeKb || (msg.text.match(/\(([0-9.]+)\s*KB\)/i) ? msg.text.match(/\(([0-9.]+)\s*KB\)/i)[1] : null);
-                                  const isUploading = msg.uploadStatus === "uploading";
-                                  const isError = msg.uploadStatus === "error";
-
-                                  return (
-                                    <div className={`space-y-2 ${isDarkMode ? 'text-zinc-950' : 'text-white'} min-w-[240px] sm:min-w-[280px]`}>
-                                      <div className="flex items-center gap-2.5">
-                                        <div className={`w-8 h-8 rounded-none ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/15'} flex items-center justify-center shrink-0`}>
-                                          <FileCode2 size={16} className={isDarkMode ? 'text-zinc-950' : 'text-white'} />
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                          <span className={`text-[11px] font-medium ${isDarkMode ? 'text-zinc-700' : 'text-white/80'} block leading-tight`}>
-                                            Archivo XML adjunto para ingestión:
-                                          </span>
-                                          <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                                            <span className={`font-mono font-bold text-xs ${isDarkMode ? 'bg-zinc-900/10 text-zinc-950' : 'bg-white/20 text-white'} px-2 py-0.5 rounded-none tracking-wide`}>
-                                              {fnMatch}
-                                            </span>
-                                            {sizeMatch && (
-                                              <span className={`text-[10.5px] font-mono ${isDarkMode ? 'text-zinc-600' : 'text-white/75'}`}>
-                                                ({sizeMatch} KB)
-                                              </span>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Barra de progreso interactiva */}
-                                      <div className="pt-1">
-                                        <div className={`w-full ${isDarkMode ? 'bg-zinc-900/10' : 'bg-white/20'} rounded-none h-1.5 overflow-hidden`}>
-                                          <motion.div
-                                            initial={{ width: "25%" }}
-                                            animate={{
-                                              width: isUploading ? "80%" : isError ? "100%" : "100%"
-                                            }}
-                                            transition={{
-                                              duration: isUploading ? 1.5 : 0.4,
-                                              ease: "easeOut"
-                                            }}
-                                            className={`h-full rounded-none ${isError
-                                              ? "bg-rose-500"
-                                              : isUploading
-                                                ? isDarkMode ? "bg-zinc-900/80 animate-pulse" : "bg-white/80 animate-pulse"
-                                                : isDarkMode ? "bg-zinc-950" : "bg-white"
-                                              }`}
-                                          />
-                                        </div>
-                                        <div className={`flex items-center justify-between text-[10px] font-mono ${isDarkMode ? 'text-zinc-800' : 'text-white/85'} mt-1.5`}>
-                                          {isUploading ? (
-                                            <>
-                                              <span className="flex items-center gap-1.5 font-medium">
-                                                <RefreshCw size={10} className={`animate-spin ${isDarkMode ? 'text-zinc-950' : 'text-white'}`} />
-                                                Subiendo e ingiriendo en memoria...
-                                              </span>
-                                              <span>80%</span>
-                                            </>
-                                          ) : isError ? (
-                                            <>
-                                              <span className="text-rose-600 font-medium">Error en la carga</span>
-                                              <span>Fallo</span>
-                                            </>
-                                          ) : (
-                                            <>
-                                              <span className={`flex items-center gap-1 font-semibold ${isDarkMode ? 'text-zinc-950' : 'text-white'}`}>
-                                                <Check size={12} className={isDarkMode ? 'text-zinc-950' : 'text-white'} />
-                                                Archivo cargado e ingerido
-                                              </span>
-                                              <span className={`font-bold ${isDarkMode ? 'text-zinc-950' : 'text-white'}`}>100%</span>
-                                            </>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })()
-                              ) : (
-                                <UserStructuredMessage
-                                  text={msg.text}
-                                  isDarkMode={isDarkMode}
-                                  isInsideBubble={!isStructuredUser}
-                                />
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </motion.div>
-                  );
-                })}
+                {renderedMessagesList}
               </AnimatePresence>
 
               {/* Typing indicator */}
@@ -3686,8 +3703,15 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         )}
       </AnimatePresence>
 
-      {/* Estilos globales y animaciones de keyframes */}
-      <style jsx global>{`
+      {/* Estilos globales y animaciones de keyframes aislados en React.memo */}
+      <AlysaChatGlobalStyles />
+    </div>
+  );
+}
+
+const AlysaChatGlobalStyles = React.memo(function AlysaChatGlobalStyles() {
+  return (
+    <style jsx global>{`
         .orb-ring-1 { animation: orb-pulse 3s ease-in-out infinite; }
         .orb-ring-2 { animation: orb-pulse 3s ease-in-out infinite 0.6s; }
         .avatar-pulse { animation: avatar-pulse 2.5s ease-in-out infinite; }
@@ -3759,7 +3783,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         .alysa-markdown-flow > .alysa-code-wrapper,
         .alysa-markdown-flow > hr {
           animation: alysa-block-enter 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
-          will-change: opacity, transform;
         }
 
         .alysa-markdown-flow > *:nth-child(1) { animation-delay: 0ms; }
@@ -3893,6 +3916,5 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           .orb-ring-1, .orb-ring-2, .avatar-pulse, .dot-bounce { animation: none; }
         }
       `}</style>
-    </div>
   );
-}
+});
