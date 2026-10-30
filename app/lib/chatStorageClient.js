@@ -55,39 +55,42 @@ export function formatChatForStorage(messages, catalogName = 'General Process') 
     });
 }
 
+let _cachedUserId = null;
+
 /**
  * Persiste de forma inmediata e inmutable el chat en la columna 'general_procces_chat'
- * de la tabla 'ClientsSERVEX_General_Procces' en Supabase.
+ * de la tabla 'ClientsSERVEX_General_Procces' en Supabase sin bloquear con llamadas de red a Auth.
  */
 export async function saveGeneralProcessChat(messages, catalogName = 'General Process') {
   try {
     if (!messages || !Array.isArray(messages)) return;
     const formattedChat = formatChatForStorage(messages, catalogName);
 
-    const { data: authData } = await supabase.auth.getUser().catch(() => ({ data: {} }));
-    const currentUserId = authData?.user?.id || null;
+    if (!_cachedUserId) {
+      const { data: sessionData } = await supabase.auth.getSession().catch(() => ({ data: {} }));
+      _cachedUserId = sessionData?.session?.user?.id || null;
+    }
 
-    // 1. Intentar actualizar la fila existente de la sesión
-    const { data: updated, error: updErr } = await supabase
+    const payload = {
+      company_name: 'General_Procces',
+      general_procces_chat: formattedChat
+    };
+    if (_cachedUserId) payload.user_id = _cachedUserId;
+    if (catalogName && catalogName !== 'General Process') {
+      payload.file_name = catalogName;
+      payload.xml_name = catalogName.replace(/\.xml$/i, '');
+    }
+
+    // Upsert directo en una sola operación de red (evita doble viaje UPDATE -> UPSERT)
+    const { error: upsertErr } = await supabase
       .from('ClientsSERVEX_General_Procces')
-      .update({ general_procces_chat: formattedChat })
-      .eq('company_name', 'General_Procces')
-      .select('id');
+      .upsert(payload, { onConflict: 'company_name' });
 
-    // 2. Si no había fila aún (primera interacción antes de subir archivo), crearla
-    if (updErr || !updated || updated.length === 0) {
-      const initPayload = {
-        company_name: 'General_Procces',
-        general_procces_chat: formattedChat
-      };
-      if (currentUserId) initPayload.user_id = currentUserId;
-      if (catalogName && catalogName !== 'General Process') {
-        initPayload.file_name = catalogName;
-        initPayload.xml_name = catalogName.replace(/\.xml$/i, '');
-      }
+    if (upsertErr) {
       await supabase
         .from('ClientsSERVEX_General_Procces')
-        .upsert(initPayload, { onConflict: 'company_name' });
+        .update({ general_procces_chat: formattedChat })
+        .eq('company_name', 'General_Procces');
     }
   } catch (err) {
     console.warn('[-] Advertencia persistiendo general_procces_chat en Supabase:', err);

@@ -1334,56 +1334,102 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
   };
 
+  const userIdRef = useRef(null);
+
   useEffect(() => {
+    let deferredTimer = null;
     const checkDbPhase = async () => {
       try {
+        // 0. Cachear user_id localmente desde sesión activa (0ms de red al enviar mensajes)
+        supabase.auth.getSession().then(({ data: sData }) => {
+          if (sData?.session?.user?.id) {
+            userIdRef.current = sData.session.user.id;
+          }
+        }).catch(() => {});
+
         const modName = (typeof window !== 'undefined' && window.location.pathname.split('/')[1]) || 'xml-pipeline';
         const tableName = 'ClientsSERVEX_General_Procces';
 
-        const { data } = await supabase
+        // 1. Consulta ultraligera de metadatos (< 2 KB) para no saturar la red al recargar la página
+        const { data: meta } = await supabase
           .from(tableName)
-          .select('xml_raw, XM_CET_import, csv_raw, csv_new_raw, xml_actualizer_raw, file_name, xml_name')
+          .select('id, file_name, xml_name, xml_structure_context, audit_summary_markdown1')
           .eq('company_name', 'General_Procces')
           .maybeSingle();
 
-        if (data) {
-          const fname = data.file_name || data.xml_name;
-          if (fname) {
-            setActiveCatalogName(fname);
-            activeCatalogRef.current = fname;
-          }
-          if (data.csv_raw && String(data.csv_raw).trim()) {
-            setDbCsvRaw(data.csv_raw);
-          }
-          const rawXml = (data.XM_CET_import && String(data.XM_CET_import).trim()) || (data.xml_raw && String(data.xml_raw).trim());
-          if (rawXml) {
-            setDbXmlRaw(rawXml);
-          }
-
-          const hasXml = !!((data.xml_raw && String(data.xml_raw).trim()) || (data.XM_CET_import && String(data.XM_CET_import).trim()));
-          const hasCsvBase = !!(data.csv_raw && String(data.csv_raw).trim());
-          const hasCsvNew = !!(data.csv_new_raw && String(data.csv_new_raw).trim());
-          const hasFinalXml = !!(data.xml_actualizer_raw && String(data.xml_actualizer_raw).trim());
-
-          if (hasFinalXml) {
-            setUnlockedPhase(4);
-            localStorage.setItem('alysa_phase_' + modName, 4);
-          } else if (hasXml && hasCsvBase && hasCsvNew) {
-            setUnlockedPhase(3);
-            localStorage.setItem('alysa_phase_' + modName, 3);
-          } else if (hasXml) {
-            setUnlockedPhase(2);
-            localStorage.setItem('alysa_phase_' + modName, 2);
-          } else {
-            setUnlockedPhase(1);
-            localStorage.setItem('alysa_phase_' + modName, 1);
-          }
+        if (!meta) {
+          setUnlockedPhase(1);
+          localStorage.setItem('alysa_phase_' + modName, 1);
+          return;
         }
+
+        const fname = meta.file_name || meta.xml_name || meta.xml_structure_context?.file_name;
+        if (fname) {
+          setActiveCatalogName(fname);
+          activeCatalogRef.current = fname;
+        }
+
+        const hasAuditMd = !!(meta.audit_summary_markdown1 && String(meta.audit_summary_markdown1).trim());
+        const hasStructXml = !!(fname || meta.xml_structure_context);
+
+        if (hasAuditMd) {
+          setUnlockedPhase(4);
+          localStorage.setItem('alysa_phase_' + modName, 4);
+        } else if (hasStructXml) {
+          setUnlockedPhase(prev => (prev < 2 ? 2 : prev));
+        } else {
+          setUnlockedPhase(1);
+          localStorage.setItem('alysa_phase_' + modName, 1);
+          return;
+        }
+
+        // 2. Diferir la descarga de columnas pesadas (MBs de XML/CSV) para dejar 100% libre el canal de la primera consulta al modelo
+        deferredTimer = setTimeout(async () => {
+          try {
+            const { data } = await supabase
+              .from(tableName)
+              .select('xml_raw, XM_CET_import, csv_raw, csv_new_raw, xml_actualizer_raw')
+              .eq('id', meta.id)
+              .maybeSingle();
+
+            if (data) {
+              if (data.csv_raw && String(data.csv_raw).trim()) {
+                setDbCsvRaw(data.csv_raw);
+              }
+              const rawXml = (data.XM_CET_import && String(data.XM_CET_import).trim()) || (data.xml_raw && String(data.xml_raw).trim());
+              if (rawXml) {
+                setDbXmlRaw(rawXml);
+              }
+
+              const hasXml = !!((data.xml_raw && String(data.xml_raw).trim()) || (data.XM_CET_import && String(data.XM_CET_import).trim()) || hasStructXml);
+              const hasCsvBase = !!(data.csv_raw && String(data.csv_raw).trim());
+              const hasCsvNew = !!(data.csv_new_raw && String(data.csv_new_raw).trim());
+              const hasFinalXml = !!((data.xml_actualizer_raw && String(data.xml_actualizer_raw).trim()) || hasAuditMd);
+
+              if (hasFinalXml) {
+                setUnlockedPhase(4);
+                localStorage.setItem('alysa_phase_' + modName, 4);
+              } else if (hasXml && hasCsvBase && hasCsvNew) {
+                setUnlockedPhase(3);
+                localStorage.setItem('alysa_phase_' + modName, 3);
+              } else if (hasXml) {
+                setUnlockedPhase(2);
+                localStorage.setItem('alysa_phase_' + modName, 2);
+              } else {
+                setUnlockedPhase(1);
+                localStorage.setItem('alysa_phase_' + modName, 1);
+              }
+            }
+          } catch (_) {}
+        }, 1200);
       } catch (err) {
         console.error("Error validando la fase en DB:", err);
       }
     };
     checkDbPhase();
+    return () => {
+      if (deferredTimer) clearTimeout(deferredTimer);
+    };
   }, []);
 
   const [dbCsvRaw, setDbCsvRaw] = useState(null);
@@ -1529,6 +1575,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             setActiveCatalogName(dbCat);
             activeCatalogRef.current = dbCat;
           }
+          // Pre-calentar caché de telemetría y conexión LLM en el backend en segundo plano
+          fetch(`${apiURL}/api/v1/General_Procces/agent/history?warmup=1`).catch(() => null);
           return;
         }
 
@@ -1717,7 +1765,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     };
     setMessages(prev => {
       const nextList = [...prev, userMsg];
-      saveGeneralProcessChat(nextList, activeCatalogRef.current || 'General Process.xml');
+      setTimeout(() => {
+        saveGeneralProcessChat(nextList, activeCatalogRef.current || 'General Process.xml');
+      }, 60);
       return nextList;
     });
     setInput("");
@@ -1990,37 +2040,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }));
       historyPayload.push({ role: "user", content: queryToSend });
 
-      const { data: chatAuth } = await supabase.auth.getUser().catch(() => ({ data: {} }));
-      const chatUserId = chatAuth?.user?.id || null;
-
-      // Asegurar que la fila de sesión existe en Supabase para persistir seguimiento_client y chat (asíncrono, no bloquea el envío)
-      (async () => {
-        try {
-          const checkRow = await supabase
-            .from('ClientsSERVEX_General_Procces')
-            .select('id')
-            .eq('company_name', 'General_Procces')
-            .maybeSingle();
-
-          if (!checkRow?.data?.id) {
-            const initPayload = {
-              company_name: 'General_Procces',
-              seguimiento_client: {
-                company_name: 'General_Procces',
-                created_at: new Date().toISOString(),
-                last_updated: new Date().toISOString(),
-                total_actions: 0,
-                session_summary: 'Sesión iniciada sin acciones registradas aún.',
-                events: []
-              }
-            };
-            if (chatUserId) initPayload.user_id = chatUserId;
-            await supabase
-              .from('ClientsSERVEX_General_Procces')
-              .upsert(initPayload, { onConflict: 'company_name' });
-          }
-        } catch (_) {}
-      })();
+      // Lectura instantánea (0ms) de user_id cacheado sin bloquear el envío con llamadas de red a Supabase Auth
+      const chatUserId = userIdRef.current || null;
 
       const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/chat`, {
         method: "POST",
@@ -2028,7 +2049,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         body: JSON.stringify({
           messages: historyPayload,
           raw_messages: [...messages.filter(msg => msg.text).slice(-15), { from: "user", text: queryToSend, time: now }],
-          company_name: context,
+          company_name: 'General_Procces',
           current_section: currentSection,
           unlocked_phase: unlockedPhase,
           user_id: chatUserId
