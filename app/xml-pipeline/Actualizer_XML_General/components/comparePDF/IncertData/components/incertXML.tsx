@@ -1,6 +1,7 @@
 'use client';
 
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
 import { supabase, uploadToCatalogsStorage } from '@/app/lib/supabaseClient';
 import {
@@ -208,24 +209,37 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
   };
 
   const readNewCSVFile = (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      setMessage({ text: 'Only CSV files are allowed', type: 'error' });
+    const lowerName = file.name.toLowerCase();
+    const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
+    if (!lowerName.endsWith('.csv') && !isExcel) {
+      setMessage({ text: 'Only CSV or Excel (.xlsx) files are allowed', type: 'error' });
       return;
     }
     setReadingNewCsv(true);
     const reader = new FileReader();
     reader.onload = (e) => {
       startTransition(() => {
-        const content = e.target?.result as string;
+        let content = '';
+        if (isExcel && e.target?.result) {
+          const workbook = XLSX.read(e.target.result, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          content = XLSX.utils.sheet_to_csv(firstSheet, { FS: ';' });
+        } else {
+          content = e.target?.result as string;
+        }
         setCsvNewContent(content);
-        setMessage({ text: 'CSV Nuevo file loaded successfully', type: 'success' });
+        setMessage({ text: 'Matriz de nuevos precios cargada con éxito', type: 'success' });
         setReadingNewCsv(false);
         if (step === 'csv_new') {
           saveSingleStep('csv_new', content);
         }
       });
     };
-    reader.readAsText(file);
+    if (isExcel) {
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.readAsText(file);
+    }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -719,7 +733,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
             {showNewCsvExistingNotice && (
               <p className="text-[10px] text-zinc-300 mt-2 font-semibold bg-white/10 border border-white/10 inline-block px-2 py-0.5 rounded-full">Click or drop to replace</p>
             )}
-            <input ref={csvNewInputRef} type="file" accept=".csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readNewCSVFile(file); }} />
+            <input ref={csvNewInputRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) readNewCSVFile(file); }} />
           </div>
           )}
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
+import * as XLSX from "xlsx";
 import { supabase, resolveStorageContent, uploadToCatalogsStorage } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
@@ -289,23 +290,23 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
 const QUICK_PROMPTS = [
   {
     icon: Database,
-    label: "CET XML Conversion",
-    q: "How does the AI autonomously convert any CET XML catalog into an import-ready structured matrix without manual effort?"
+    label: "Conversión XML a Excel",
+    q: "¿Cómo transforma Alysa mi archivo XML en una matriz estructurada de Excel lista para descargar?"
   },
   {
     icon: Cpu,
-    label: "Catalog Auto-Update",
-    q: "How does Alysa automatically update the entire XML catalog once I simply upload my file?"
+    label: "Actualización en Vivo",
+    q: "¿Cuáles son las dos formas que tengo para explorar productos y actualizar precios en el catálogo?"
   },
   {
     icon: BarChart2,
-    label: "Compare Discrepancies",
-    q: "How does the AI audit and reconcile pricing deltas and product codes autonomously in seconds?"
+    label: "Auditoría de Precios",
+    q: "¿Cómo auditas y comparas las variaciones de precios, productos nuevos y dados de baja?"
   },
   {
     icon: Shield,
-    label: "Autonomous AI Pipeline",
-    q: "Explain how the AI compresses weeks of manual engineering into seconds—I only upload the file and Alysa does everything."
+    label: "Estado de mi Sesión",
+    q: "¿Qué archivos tengo cargados actualmente en esta sesión y cuál es el siguiente paso recomendado?"
   },
 ];
 
@@ -2414,9 +2415,19 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     });
 
     try {
-      const fileText = await file.text().catch(() => '');
+      let fileText = '';
+      const lowerName = file.name.toLowerCase();
+      if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        fileText = XLSX.utils.sheet_to_csv(worksheet, { FS: ';' });
+      } else {
+        fileText = await file.text().catch(() => '');
+      }
       if (!fileText || !fileText.trim()) {
-        throw new Error('El archivo CSV seleccionado está vacío o no pudo ser leído.');
+        throw new Error('El archivo seleccionado está vacío o no pudo ser leído.');
       }
 
       // ── PASO 0: Validación Previa de Coherencia entre Datasets ──
@@ -2479,17 +2490,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       let valToStore = fileText;
       // Subir a catalogs-storage si supera 200 KB
-      if (file.size > 200 * 1024) {
+      if (fileText.length > 200 * 1024) {
         try {
-          const cleanName = (file.name || 'csv_new.csv').replace(/[^a-zA-Z0-9._-]/g, '_');
+          const cleanName = (file.name || 'csv_new.csv').replace(/\.(xlsx|xls)$/i, '.csv').replace(/[^a-zA-Z0-9._-]/g, '_');
           const storageFilePath = `General_Procces/csv_new_${Date.now()}_${cleanName}`;
+          const csvBlob = new Blob([fileText], { type: 'text/csv;charset=utf-8;' });
 
           const { data: storageData, error: storageErr } = await supabase.storage
             .from('catalogs-storage')
-            .upload(storageFilePath, file, {
+            .upload(storageFilePath, csvBlob, {
               cacheControl: '3600',
               upsert: true,
-              contentType: file.type || 'text/csv'
+              contentType: 'text/csv'
             });
 
           if (!storageErr && storageData) {
@@ -3375,7 +3387,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   </div>
                   <div className="flex flex-col items-start gap-1">
                     <div className="flex items-baseline gap-2">
-                      <span className={`text-[10px] ${isDarkMode ? 'text-zinc-400' : 'text-gray-400'} font-medium`}>Processing...</span>
+                      <span className={`text-[10.5px] ${isDarkMode ? 'text-zinc-300' : 'text-gray-500'} font-medium animate-pulse`}>
+                        Alysa está analizando tu consulta en memoria...
+                      </span>
                     </div>
                     <div className="flex items-center gap-1.5 py-2.5">
                       {[0, 1, 2].map((i) => (
