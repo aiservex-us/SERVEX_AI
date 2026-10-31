@@ -70,6 +70,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const baseCsvRawRef = useRef('');
   const headersRef = useRef(BASE_HEADERS);
   const deletedSkusRef = useRef(new Set());
+  const editRowsRef = useRef([]);
 
   useEffect(() => {
     headersRef.current = headers;
@@ -78,6 +79,10 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   useEffect(() => {
     deletedSkusRef.current = deletedSkus;
   }, [deletedSkus]);
+
+  useEffect(() => {
+    editRowsRef.current = editRows;
+  }, [editRows]);
 
   // Mapa rápido del catálogo original (csv_raw) por Model #
   const baseRowMap = useMemo(() => {
@@ -352,6 +357,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         }
       }
 
+      editRowsRef.current = cleanEditRows;
       setEditRows(cleanEditRows);
       setLoading(false);
     } catch (err) {
@@ -408,9 +414,17 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     setCurrentPage(1);
   }, [searchTerm, filterMode]);
 
-  // Guardar valor de celda editada
+  const markLiveEditActive = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('has_active_live_edits', 'true');
+      } catch (_) {}
+    }
+  };
+
+  // Guardar valor de celda editada directamente en csv_edit_raw
   const commitCellEdit = useCallback(
-    (targetCell = activeCell, valueToSave = cellDraft) => {
+    (targetCell = activeCell, valueToSave = cellDraft, immediate = true) => {
       if (!targetCell) return;
       const { rowIdx, colKey } = targetCell;
       const isNumericCol = colKey === 'List Price' || !BASE_HEADERS.includes(colKey);
@@ -425,23 +439,31 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         }
       }
 
-      setEditRows((prev) => {
-        const next = [...prev];
-        if (!next[rowIdx]) return prev;
-        const updatedRow = { ...next[rowIdx], [colKey]: finalVal };
-        next[rowIdx] = updatedRow;
-        persistCsvEditRaw(next, deletedSkus, headers, false);
-        return next;
-      });
+      const currentList = editRowsRef.current;
+      if (!currentList || !currentList[rowIdx]) return;
+
+      const next = [...currentList];
+      next[rowIdx] = { ...next[rowIdx], [colKey]: finalVal };
+      editRowsRef.current = next;
+      setEditRows(next);
+      markLiveEditActive();
+      persistCsvEditRaw(next, deletedSkusRef.current, headersRef.current, immediate);
     },
-    [activeCell, cellDraft, deletedSkus, headers, persistCsvEditRaw]
+    [activeCell, cellDraft, persistCsvEditRaw]
   );
+
+  const handleCellDraftChange = (newVal) => {
+    setCellDraft(newVal);
+    if (activeCell) {
+      commitCellEdit(activeCell, newVal, false);
+    }
+  };
 
   const startCellEdit = (rowIdx, colKey, currentVal, isRowDeleted) => {
     if (isRowDeleted) return;
     if (colKey === 'Model #' && !editRows[rowIdx]?._isNewRow) return;
     if (activeCell && (activeCell.rowIdx !== rowIdx || activeCell.colKey !== colKey)) {
-      commitCellEdit(activeCell, cellDraft);
+      commitCellEdit(activeCell, cellDraft, true);
     }
     setActiveCell({ rowIdx, colKey });
     setCellDraft(currentVal !== undefined && currentVal !== null ? String(currentVal) : '');
@@ -455,7 +477,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     }
     if (e.key === 'Enter') {
       e.preventDefault();
-      commitCellEdit(activeCell, cellDraft);
+      commitCellEdit(activeCell, cellDraft, true);
       const nextPageRow = paginatedRows[pagePosIdx + 1];
       if (nextPageRow) {
         const colKey = headers[colIdx];
@@ -472,7 +494,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     }
     if (e.key === 'Tab') {
       e.preventDefault();
-      commitCellEdit(activeCell, cellDraft);
+      commitCellEdit(activeCell, cellDraft, true);
       const dir = e.shiftKey ? -1 : 1;
       let nextColIdx = colIdx + dir;
       const currentRowObj = paginatedRows[pagePosIdx];
@@ -493,19 +515,21 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   // Revertir una celda individual a su valor en csv_raw
   const revertSingleCell = (rowIdx, colKey, e) => {
     if (e) e.stopPropagation();
-    const row = editRows[rowIdx];
+    const currentList = editRowsRef.current;
+    const row = currentList[rowIdx];
     if (!row) return;
     const sku = String(row['Model #'] || '').trim();
     const baseRow = baseRowMap.get(sku);
     if (!baseRow) return;
 
     const origVal = baseRow[colKey] !== undefined && baseRow[colKey] !== null ? baseRow[colKey] : '';
-    setEditRows((prev) => {
-      const next = [...prev];
-      next[rowIdx] = { ...next[rowIdx], [colKey]: origVal };
-      persistCsvEditRaw(next, deletedSkus, headers, false);
-      return next;
-    });
+    const next = [...currentList];
+    next[rowIdx] = { ...next[rowIdx], [colKey]: origVal };
+    editRowsRef.current = next;
+    setEditRows(next);
+    markLiveEditActive();
+    persistCsvEditRaw(next, deletedSkusRef.current, headersRef.current, true);
+
     if (activeCell?.rowIdx === rowIdx && activeCell?.colKey === colKey) {
       setActiveCell(null);
     }
@@ -513,9 +537,10 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
   // Agregar nuevo producto a csv_edit_raw
   const handleAddNewProduct = () => {
-    const newSku = `NEW-SKU-${editRows.filter((r) => r._isNewRow).length + 1}`;
+    const currentList = editRowsRef.current;
+    const newSku = `NEW-SKU-${currentList.filter((r) => r._isNewRow).length + 1}`;
     const newRow = { _isNewRow: true };
-    headers.forEach((h) => {
+    headersRef.current.forEach((h) => {
       if (h === 'Model #') newRow[h] = newSku;
       else if (h === 'List Price') newRow[h] = 100;
       else if (h === 'Weight') newRow[h] = 'N/A';
@@ -524,11 +549,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       else newRow[h] = '';
     });
 
-    setEditRows((prev) => {
-      const next = [newRow, ...prev];
-      persistCsvEditRaw(next, deletedSkus, headers, false);
-      return next;
-    });
+    const next = [newRow, ...currentList];
+    editRowsRef.current = next;
+    setEditRows(next);
+    markLiveEditActive();
+    persistCsvEditRaw(next, deletedSkusRef.current, headersRef.current, true);
     setCurrentPage(1);
     setTimeout(() => {
       startCellEdit(0, 'Model #', newSku, false);
@@ -537,26 +562,27 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
   // Marcar / desmarcar baja de producto o eliminar fila nueva
   const handleToggleDeleteRow = (rowIdx) => {
-    const targetRow = editRows[rowIdx];
+    const currentList = editRowsRef.current;
+    const targetRow = currentList[rowIdx];
     if (!targetRow) return;
     const sku = String(targetRow['Model #'] || '').trim();
 
     if (targetRow._isNewRow) {
-      setEditRows((prev) => {
-        const next = prev.filter((_, idx) => idx !== rowIdx);
-        persistCsvEditRaw(next, deletedSkus, headers, false);
-        return next;
-      });
+      const next = currentList.filter((_, idx) => idx !== rowIdx);
+      editRowsRef.current = next;
+      setEditRows(next);
+      markLiveEditActive();
+      persistCsvEditRaw(next, deletedSkusRef.current, headersRef.current, true);
       return;
     }
 
-    setDeletedSkus((prev) => {
-      const next = new Set(prev);
-      if (next.has(sku)) next.delete(sku);
-      else next.add(sku);
-      persistCsvEditRaw(editRows, next, headers, false);
-      return next;
-    });
+    const nextDeleted = new Set(deletedSkusRef.current);
+    if (nextDeleted.has(sku)) nextDeleted.delete(sku);
+    else nextDeleted.add(sku);
+    deletedSkusRef.current = nextDeleted;
+    setDeletedSkus(nextDeleted);
+    markLiveEditActive();
+    persistCsvEditRaw(currentList, nextDeleted, headersRef.current, true);
   };
 
   // Aplicar ajuste masivo sobre las filas filtradas actualmente
@@ -565,35 +591,36 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     if (Number.isNaN(numVal)) return;
 
     const targetIndices = new Set(filteredRows.map((item) => item.originalIdx));
-    setEditRows((prev) => {
-      const next = prev.map((row, idx) => {
-        if (!targetIndices.has(idx)) return row;
-        const sku = String(row['Model #'] || '').trim();
-        if (deletedSkus.has(sku)) return row;
+    const currentList = editRowsRef.current;
+    const next = currentList.map((row, idx) => {
+      if (!targetIndices.has(idx)) return row;
+      const sku = String(row['Model #'] || '').trim();
+      if (deletedSkusRef.current.has(sku)) return row;
 
-        const currentRaw = row[bulkColumn];
-        const currentNum = parseFloat(currentRaw || '0') || 0;
-        let updatedNum = currentNum;
+      const currentRaw = row[bulkColumn];
+      const currentNum = parseFloat(currentRaw || '0') || 0;
+      let updatedNum = currentNum;
 
-        if (bulkMode === 'percent') {
-          if (currentNum <= 0) return row;
-          updatedNum = Math.round(currentNum * (1 + numVal / 100) * 100) / 100;
-        } else if (bulkMode === 'add') {
-          if (currentNum <= 0 && numVal <= 0) return row;
-          updatedNum = Math.round((currentNum + numVal) * 100) / 100;
-        } else if (bulkMode === 'set') {
-          updatedNum = Math.round(numVal * 100) / 100;
-        }
+      if (bulkMode === 'percent') {
+        if (currentNum <= 0) return row;
+        updatedNum = Math.round(currentNum * (1 + numVal / 100) * 100) / 100;
+      } else if (bulkMode === 'add') {
+        if (currentNum <= 0 && numVal <= 0) return row;
+        updatedNum = Math.round((currentNum + numVal) * 100) / 100;
+      } else if (bulkMode === 'set') {
+        updatedNum = Math.round(numVal * 100) / 100;
+      }
 
-        return {
-          ...row,
-          [bulkColumn]: updatedNum > 0 ? updatedNum : ''
-        };
-      });
-
-      persistCsvEditRaw(next, deletedSkus, headers, false);
-      return next;
+      return {
+        ...row,
+        [bulkColumn]: updatedNum > 0 ? updatedNum : ''
+      };
     });
+
+    editRowsRef.current = next;
+    setEditRows(next);
+    markLiveEditActive();
+    persistCsvEditRaw(next, deletedSkusRef.current, headersRef.current, true);
 
     recordClientAction({
       companyName: 'General_Procces',
@@ -609,10 +636,17 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     const resetRows = baseRows.map((r) => ({ ...r }));
     const emptyDeleted = new Set();
     setActiveCell(null);
+    deletedSkusRef.current = emptyDeleted;
+    editRowsRef.current = resetRows;
     setDeletedSkus(emptyDeleted);
     setEditRows(resetRows);
     setShowResetConfirm(false);
-    await persistCsvEditRaw(resetRows, emptyDeleted, headers, true);
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem('has_active_live_edits');
+      } catch (_) {}
+    }
+    await persistCsvEditRaw(resetRows, emptyDeleted, headersRef.current, true);
   };
 
   // Ejecutar proceso de comparación final (csv_raw vs csv_edit_raw)
@@ -1284,9 +1318,9 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                 type={isNumeric ? 'number' : 'text'}
                                 step="any"
                                 value={cellDraft}
-                                onChange={(e) => setCellDraft(e.target.value)}
+                                onChange={(e) => handleCellDraftChange(e.target.value)}
                                 onBlur={() => {
-                                  commitCellEdit(activeCell, cellDraft);
+                                  commitCellEdit(activeCell, cellDraft, true);
                                   setActiveCell(null);
                                 }}
                                 onKeyDown={(e) => handleCellKeyDown(e, pagePosIdx, colIdx)}

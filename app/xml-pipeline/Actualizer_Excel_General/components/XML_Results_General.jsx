@@ -374,11 +374,12 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
 
       let rawXmlStr = '';
       let existingCsvRaw = '';
+      let existingCsvEditRaw = '';
 
       let record = null;
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
+        .select('XM_CET_import, xml_raw, csv_raw, csv_edit_raw, xml_name, file_name')
         .eq('company_name', 'General_Procces')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -389,7 +390,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       } else {
         const { data: fallbackData } = await supabase
           .from('ClientsSERVEX_General_Procces')
-          .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
+          .select('XM_CET_import, xml_raw, csv_raw, csv_edit_raw, xml_name, file_name')
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -398,6 +399,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
 
       if (record) {
         existingCsvRaw = record.csv_raw || '';
+        existingCsvEditRaw = record.csv_edit_raw || '';
         rawXmlStr = await resolveXmlContent(record.XM_CET_import || record.xml_raw);
       }
 
@@ -437,6 +439,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
           setTotalProductsInXml(sanitizedRows.length);
           setProcessedIndex(sanitizedRows.length);
           setLoading(false);
+          syncMatrixCsvToDb(sanitizedRows, headers, existingCsvEditRaw);
           return;
         }
       }
@@ -487,6 +490,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
             setTotalProductsInXml(sanitizedRows.length);
             setProcessedIndex(sanitizedRows.length);
             setLoading(false);
+            syncMatrixCsvToDb(sanitizedRows, headers, existingCsvEditRaw);
             return;
           }
         }
@@ -630,8 +634,8 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         { total_products: allRows.length }
       );
 
-      // Sincronizar en segundo plano la matriz completa en csv_raw en la base de datos
-      syncMatrixCsvToDb(allRows, computedHeaders);
+      // Sincronizar en segundo plano la matriz completa en csv_raw y su copia en csv_edit_raw en la base de datos
+      syncMatrixCsvToDb(allRows, computedHeaders, existingCsvEditRaw);
     } catch (err) {
       console.error("Error processing catalog XML data matrix:", err);
       setError(err.message || "Error processing catalog information.");
@@ -639,20 +643,52 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
     }
   };
 
-  const syncMatrixCsvToDb = async (rowsData, headers) => {
+  const syncMatrixCsvToDb = async (rowsData, headers, existingCsvEditRaw = '') => {
     try {
       if (!rowsData || rowsData.length === 0 || !headers) return;
-      const csvString = Papa.unparse(rowsData, {
+      const cleanedRows = rowsData.map((row) => {
+        const cleanRow = {};
+        headers.forEach((h) => {
+          const val = row[h];
+          if (!BASE_HEADERS.includes(h) || h === 'List Price') {
+            cleanRow[h] = val !== undefined && val !== null && val !== '' && Number(val) > 0 ? val : '';
+          } else {
+            cleanRow[h] = val !== undefined && val !== null ? val : '';
+          }
+        });
+        return cleanRow;
+      });
+
+      const csvString = Papa.unparse(cleanedRows, {
         columns: headers,
         delimiter: ";"
       });
+
       if (csvString) {
+        let shouldWriteFreshEditCopy = !existingCsvEditRaw || !String(existingCsvEditRaw).trim();
+        if (typeof window !== 'undefined') {
+          try {
+            const isExplicitExportTrigger = sessionStorage.getItem('init_csv_edit_on_export') === 'true';
+            const hasActiveLiveEdits = sessionStorage.getItem('has_active_live_edits') === 'true';
+            if (isExplicitExportTrigger) {
+              sessionStorage.removeItem('init_csv_edit_on_export');
+              if (!hasActiveLiveEdits) {
+                shouldWriteFreshEditCopy = true;
+              }
+            }
+          } catch (_) {}
+        }
+
+        const csvEditToSave = shouldWriteFreshEditCopy ? csvString : existingCsvEditRaw;
+
         if (typeof window !== 'undefined') {
           try {
             sessionStorage.setItem('csv_raw', csvString);
+            sessionStorage.setItem('csv_edit_raw', csvEditToSave);
+            localStorage.setItem('csv_edit_raw_General_Procces', csvEditToSave);
           } catch (_) {}
           window.dispatchEvent(new CustomEvent('catalogMatrixUpdated', {
-            detail: { headers, csvRaw: csvString }
+            detail: { headers, csvRaw: csvString, csvEditRaw: csvEditToSave }
           }));
         }
 
@@ -667,13 +703,16 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
           }).catch(() => {});
         } catch (_) {}
 
-        await upsertGeneralProcessRecord(
-          { company_name: 'General_Procces', csv_raw: csvString },
-          'General_Procces'
-        );
+        await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .update({
+            csv_raw: csvString,
+            csv_edit_raw: csvEditToSave
+          })
+          .eq('company_name', 'General_Procces');
       }
     } catch (err) {
-      console.warn('⚠️ Error guardando csv_raw de la matriz:', err);
+      console.warn('⚠️ Error guardando csv_raw y csv_edit_raw de la matriz:', err);
     }
   };
 

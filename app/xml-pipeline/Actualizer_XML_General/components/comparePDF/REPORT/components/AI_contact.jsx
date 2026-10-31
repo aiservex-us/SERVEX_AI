@@ -1861,6 +1861,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     }
 
     if (qLower === '/exportcetcsv' || qLower === '/downloadexcel' || qLower === '/exportexcel') {
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('init_csv_edit_on_export', 'true');
+        } catch (_) {}
+      }
       recordClientAction({
         companyName: 'General_Procces',
         eventType: 'OPEN_XML_MATRIX',
@@ -2264,8 +2269,15 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           company_name: 'General_Procces',
           file_name: file.name,
           xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
-          xml_structure_context: structureToStore
+          xml_structure_context: structureToStore,
+          csv_edit_raw: null
         };
+        if (typeof window !== 'undefined') {
+          try {
+            sessionStorage.removeItem('csv_edit_raw');
+            localStorage.removeItem('csv_edit_raw_General_Procces');
+          } catch (_) {}
+        }
         if (currentUser?.id) payloadContext.user_id = currentUser.id;
 
         await upsertGeneralProcessRecord(payloadContext, 'General_Procces');

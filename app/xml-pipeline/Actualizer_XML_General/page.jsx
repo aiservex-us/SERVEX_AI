@@ -220,6 +220,11 @@ export default function MenuInicial() {
     switch (id) {
       case 'xml_results':
         botText = 'Aquí tienes la tabla y matriz de exportación para clientes (**Export Data Client**):';
+        if (typeof window !== 'undefined') {
+          try {
+            sessionStorage.setItem('init_csv_edit_on_export', 'true');
+          } catch (_) {}
+        }
         break;
       case 'dashboard':
         botText = 'Aquí tienes los resultados de la estructura XML y Diff (**XML Results & Diff**):';
