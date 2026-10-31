@@ -236,11 +236,28 @@ export async function upsertGeneralProcessRecord(payload, companyName = 'General
     delete updateFields.user_id;
 
     // 1. Intentar UPDATE directo por company_name (PATCH nunca dispara WCO_RLS_CONFLICT_CHECK 403)
-    const { data: updatedRows, error: updateErr } = await supabase
+    let { data: updatedRows, error: updateErr } = await supabase
       .from('ClientsSERVEX_General_Procces')
       .update(updateFields)
       .eq('company_name', cleanCompany)
       .select('id');
+
+    // Si alguna columna nueva (ej. csv_edit_raw) aún no existe en el esquema de Postgres, reintentar sin fallar
+    if (updateErr && (updateErr.code === 'PGRST204' || String(updateErr.message || '').includes('csv_edit_raw'))) {
+      const fallbackFields = { ...updateFields };
+      delete fallbackFields.csv_edit_raw;
+      if (Object.keys(fallbackFields).length > 0) {
+        const retryRes = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .update(fallbackFields)
+          .eq('company_name', cleanCompany)
+          .select('id');
+        updatedRows = retryRes.data;
+        updateErr = retryRes.error;
+      } else {
+        return { data: null, error: null, rlsBypassed: true };
+      }
+    }
 
     if (!updateErr && Array.isArray(updatedRows) && updatedRows.length > 0) {
       return { data: updatedRows, error: null, rlsBypassed: false };

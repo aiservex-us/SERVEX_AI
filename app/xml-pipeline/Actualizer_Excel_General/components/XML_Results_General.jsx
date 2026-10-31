@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { supabase, resolveXmlContent, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent, uploadToCatalogsStorage, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RefreshCw, 
   Filter, 
   AlertCircle,
   Download,
+  FileEdit,
   X,
   Search
 } from 'lucide-react';
@@ -732,42 +733,74 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
     });
   };
 
-  const exportToCSV = () => {
+  const openLiveCatalogEditor = async () => {
     try {
-      const rawRowsToExport = filtered && filtered.length > 0 ? filtered : products;
-      if (!rawRowsToExport || rawRowsToExport.length === 0) {
-        alert("No hay productos disponibles en la matriz para exportar. Asegúrate de haber cargado el catálogo.");
+      const rawRowsToUse = products && products.length > 0 ? products : filtered;
+      if (!rawRowsToUse || rawRowsToUse.length === 0) {
+        alert("No hay productos disponibles en la matriz para editar. Asegúrate de haber cargado el catálogo.");
         return;
       }
-      const rowsToExport = cleanRowsZeroValues(rawRowsToExport);
-      
-      recordTrackingEvent(
-        'DOWNLOAD_CSV',
-        `El usuario descargó la matriz de catálogo en formato CSV (${rowsToExport.length} productos).`,
-        'Descarga de Matriz CSV',
-        { total_products: rowsToExport.length, format: 'csv' }
-      );
+      const rowsToSave = cleanRowsZeroValues(rawRowsToUse);
 
-      const csv = Papa.unparse(rowsToExport, {
+      const csv = Papa.unparse(rowsToSave, {
         columns: matrixHeaders,
         delimiter: ";"
       });
-      
-      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      const cleanPrefix = (xmlBaseName || "Catalog").replace(/\.xml$/i, '').trim();
-      link.setAttribute('download', `${cleanPrefix}-Editable-ALYSAsistemai-${new Date().toISOString().slice(0,10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 150);
+
+      recordTrackingEvent(
+        'OPEN_LIVE_EDITOR',
+        `El usuario abrió la sección de Edición y Actualización en Vivo (csv_edit_raw) con ${rowsToSave.length} productos.`,
+        'Apertura de Live Matrix Editor',
+        { total_products: rowsToSave.length, target_column: 'csv_edit_raw' }
+      );
+
+      let editCsvToUse = csv;
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('csv_raw', csv);
+          const existingEdit = sessionStorage.getItem('csv_edit_raw') || localStorage.getItem('csv_edit_raw_General_Procces');
+          if (!existingEdit || !existingEdit.trim()) {
+            sessionStorage.setItem('csv_edit_raw', csv);
+            localStorage.setItem('csv_edit_raw_General_Procces', csv);
+          } else {
+            editCsvToUse = existingEdit;
+          }
+        } catch (_) {}
+      }
+
+      // Persistir la matriz en la columna csv_edit_raw de ClientsSERVEX_General_Procces en segundo plano
+      (async () => {
+        try {
+          let valToStore = editCsvToUse;
+          if (editCsvToUse.length > 200 * 1024) {
+            const stgUrl = await uploadToCatalogsStorage(
+              editCsvToUse,
+              `csv_matrices/General_Procces/csv_edit_raw.csv`,
+              'text/csv'
+            );
+            if (stgUrl) valToStore = `[STORAGE_URL]: ${stgUrl}`;
+          }
+          await upsertGeneralProcessRecord(
+            {
+              company_name: 'General_Procces',
+              csv_raw: csv.length > 200 * 1024 ? valToStore : csv,
+              csv_edit_raw: valToStore
+            },
+            'General_Procces'
+          );
+        } catch (_) {}
+      })();
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('openCatalogEditor', {
+            detail: { csvRaw: csv, csvEditRaw: editCsvToUse }
+          })
+        );
+      }
     } catch (err) {
-      console.error('Error al exportar a CSV:', err);
-      alert('Error al generar el archivo CSV: ' + (err.message || err));
+      console.error('Error al abrir el Editor de Catálogo:', err);
+      alert('Error al abrir la sección de edición: ' + (err.message || err));
     }
   };
 
@@ -910,17 +943,17 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
           </button>
 
           <button 
-            onClick={exportToCSV}
+            onClick={openLiveCatalogEditor}
             type="button"
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-xs border ${
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs border ${
               isDarkMode
-                ? 'bg-white/10 hover:bg-white/20 text-white border-white/15'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
+                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border-emerald-500/35'
+                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
             }`}
-            title="Descargar matriz en formato CSV"
+            title="Abrir sección de Edición y Actualización en Vivo (csv_edit_raw)"
           >
-            <Download size={11} />
-            <span>CSV</span>
+            <FileEdit size={11} />
+            <span>Edit & Update</span>
           </button>
 
           <button 

@@ -69,6 +69,7 @@ export const purgeTenantData = async (currentTenant = 'General_Procces') => {
   if (typeof window !== 'undefined') {
     try {
       sessionStorage.clear();
+      localStorage.removeItem('csv_edit_raw_' + currentTenant);
       localStorage.removeItem('chat_history_' + currentTenant);
       localStorage.removeItem('cet_active_messages');
       localStorage.removeItem('general_procces_chat');

@@ -1,5 +1,6 @@
 'use client';
 import XMLResultsGeneral from '../Actualizer_Excel_General/components/XML_Results_General.jsx';
+import CatalogEditorGeneral from '../Actualizer_Excel_General/components/Catalog_Editor_General.jsx';
 import ImportCETXml from '../Actualizer_Excel_General/components/IncertDataExcel/incertXML_excel';
 
 
@@ -181,14 +182,37 @@ export default function MenuInicial() {
 
 
   const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const [isCatalogEditorOpen, setIsCatalogEditorOpen] = useState(false);
   const [isIntroDismissed, setIsIntroDismissed] = useState(true);
 
+  useEffect(() => {
+    const handleOpenEditor = () => {
+      setIsCatalogEditorOpen(true);
+    };
+    const handleFinishEditorComparison = () => {
+      setIsCatalogEditorOpen(false);
+      setIsToolsOpen(false);
+    };
+    window.addEventListener('openCatalogEditor', handleOpenEditor);
+    window.addEventListener('executeComparisonFromEditor', handleFinishEditorComparison);
+    return () => {
+      window.removeEventListener('openCatalogEditor', handleOpenEditor);
+      window.removeEventListener('executeComparisonFromEditor', handleFinishEditorComparison);
+    };
+  }, []);
+
   const handleSetActive = (id) => {
+    if (id === 'catalog_editor') {
+      setIsCatalogEditorOpen(true);
+      return;
+    }
+    setIsCatalogEditorOpen(false);
     setActive(id);
     setIsToolsOpen(true);
   };
 
   const handleSidebarSelect = (id) => {
+    setIsCatalogEditorOpen(false);
     setActive(id);
     setIsToolsOpen(false);
 
@@ -230,6 +254,7 @@ export default function MenuInicial() {
       case 'incert_wbs_csv_new': return <IncertDelete step="csv_new" isDarkMode={isDarkMode} />;
       case 'xml_results':
       case 'exportCETcsv': return <XMLResultsGeneral isDarkMode={isDarkMode} />;
+      case 'catalog_editor': return <CatalogEditorGeneral isDarkMode={isDarkMode} onBack={() => setIsCatalogEditorOpen(false)} />;
       case 'Tasks': return <CatalogParser isDarkMode={isDarkMode} />;
       case 'inbox_updated': return <Csvs_updated isDarkMode={isDarkMode} />;
       case 'presentation': return <PrecentMain isDarkMode={isDarkMode} />;
@@ -414,12 +439,24 @@ export default function MenuInicial() {
 
             {/* Body Area (Full Viewport with Top Spacing for Floating Header) */}
             <div className="flex flex-1 w-full h-full min-h-0 relative z-10 overflow-hidden pt-12 sm:pt-14">
+              {/* Vista Exclusiva a Pantalla Completa: Editor Interactivo de Catálogo (csv_edit_raw) */}
+              {isCatalogEditorOpen && (
+                <div className="w-full h-full flex flex-col overflow-hidden z-20">
+                  <CatalogEditorGeneral
+                    isDarkMode={isDarkMode}
+                    onBack={() => setIsCatalogEditorOpen(false)}
+                  />
+                </div>
+              )}
+
               {/* Lado Izquierdo: Asistente IA */}
               <div className={`
                 h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
-                ${isToolsOpen
-                  ? 'hidden md:flex md:w-[50%]'
-                  : 'flex w-full'}
+                ${isCatalogEditorOpen
+                  ? 'hidden'
+                  : isToolsOpen
+                    ? 'hidden md:flex md:w-[50%]'
+                    : 'flex w-full'}
               `}>
                 <TeamsAgentChat
                   currentSection={active}
@@ -432,9 +469,11 @@ export default function MenuInicial() {
               {/* Lado Derecho: Contenido Principal */}
               <div className={`
                 relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
-                ${isToolsOpen
-                  ? 'flex w-full md:w-[50%] opacity-100'
-                  : 'hidden md:flex md:w-0 opacity-0'}
+                ${isCatalogEditorOpen
+                  ? 'hidden'
+                  : isToolsOpen
+                    ? 'flex w-full md:w-[50%] opacity-100'
+                    : 'hidden md:flex md:w-0 opacity-0'}
               `}>
                 {/* Contenedor interno absoluto para evitar squish en animación */}
                 <div className="absolute top-0 left-0 w-full h-full flex flex-col overflow-hidden min-w-0 md:min-w-[500px]">

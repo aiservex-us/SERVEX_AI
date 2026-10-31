@@ -1471,6 +1471,33 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     return () => window.removeEventListener('catalogCsvNewUpdated', handleCsvNewUpdate);
   }, []);
 
+  useEffect(() => {
+    const handleEditorCompare = (e) => {
+      const { csvRaw, csvEditRaw } = e.detail || {};
+      if (csvRaw) {
+        setDbCsvRaw(csvRaw);
+        try {
+          sessionStorage.setItem('csv_raw', csvRaw);
+        } catch (_) {}
+      }
+      if (csvEditRaw) {
+        setDbCsvNewRaw(csvEditRaw);
+        try {
+          sessionStorage.setItem('csv_edit_raw', csvEditRaw);
+          sessionStorage.setItem('csv_new_raw', csvEditRaw);
+        } catch (_) {}
+      }
+      if (unlockedPhase < 3) updatePhase(3);
+      setTimeout(() => {
+        if (sendMessageRef.current) {
+          sendMessageRef.current('/executeProcess');
+        }
+      }, 150);
+    };
+    window.addEventListener('executeComparisonFromEditor', handleEditorCompare);
+    return () => window.removeEventListener('executeComparisonFromEditor', handleEditorCompare);
+  }, [unlockedPhase]);
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -1885,7 +1912,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       try {
         // 1. Recopilar de múltiples fuentes locales/estado para garantizar 0 fallas ante RLS
         let csvRawToSend = dbCsvRaw || (typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') : null) || null;
-        let csvNewRawToSend = dbCsvNewRaw || (typeof window !== 'undefined' ? sessionStorage.getItem('csv_new_raw') : null) || null;
+        let csvNewRawToSend =
+          dbCsvNewRaw ||
+          (typeof window !== 'undefined'
+            ? sessionStorage.getItem('csv_new_raw') || sessionStorage.getItem('csv_edit_raw')
+            : null) ||
+          null;
         let xmlRawToSend = dbXmlRaw || null;
 
         // 2. Si falta alguno, enriquecer desde Supabase con la sesión activa del usuario
@@ -2126,6 +2158,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     try {
       const fileText = await file.text().catch(() => '');
       if (fileText) setDbXmlRaw(fileText);
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.removeItem('csv_edit_raw');
+          localStorage.removeItem('csv_edit_raw_General_Procces');
+        } catch (_) {}
+      }
 
       // ── PASO 1: Subida ultrarrápida al bucket de Supabase (catalogs-storage) ──
       let uploadedPublicUrl = '';
