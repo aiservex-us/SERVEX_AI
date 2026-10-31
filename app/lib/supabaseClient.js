@@ -225,6 +225,10 @@ export async function upsertGeneralProcessRecord(payload, companyName = 'General
 
     return { data, error, rlsBypassed: false };
   } catch (err) {
-    return { data: null, error: err, rlsBypassed: false };
+    return {
+      data: null,
+      error: { message: err instanceof Error ? err.message : String(err) },
+      rlsBypassed: false
+    };
   }
 }

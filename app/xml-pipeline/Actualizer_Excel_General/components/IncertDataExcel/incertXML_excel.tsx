@@ -168,7 +168,8 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
 
       if (error) {
         console.error('Supabase Full Error:', error);
-        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
+        const errMsg = (error as { message?: string })?.message || String(error);
+        setMessage({ text: `DB Error: ${errMsg}`, type: 'error' });
       } else {
         setMessage({ text: 'CET XML successfully stored', type: 'success' });
         setXmlContent('');
