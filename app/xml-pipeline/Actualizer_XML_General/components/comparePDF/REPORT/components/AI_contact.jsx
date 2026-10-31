@@ -2269,15 +2269,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           company_name: 'General_Procces',
           file_name: file.name,
           xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
-          xml_structure_context: structureToStore,
-          csv_edit_raw: null
+          xml_structure_context: structureToStore
         };
-        if (typeof window !== 'undefined') {
-          try {
-            sessionStorage.removeItem('csv_edit_raw');
-            localStorage.removeItem('csv_edit_raw_General_Procces');
-          } catch (_) {}
-        }
         if (currentUser?.id) payloadContext.user_id = currentUser.id;
 
         await upsertGeneralProcessRecord(payloadContext, 'General_Procces');

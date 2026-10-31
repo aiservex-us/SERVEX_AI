@@ -207,9 +207,9 @@ export async function uploadToCatalogsStorage(content, path, mimeType = 'text/pl
 }
 
 /**
- * Persiste datos en `ClientsSERVEX_General_Procces` mediante UPDATE directo por `company_name`,
- * evitando el error HTTP 403 `new row violates row-level security policy (USING expression)`
- * que ocurre cuando se invoca `.upsert()` sobre una fila existente.
+ * Persiste datos en `ClientsSERVEX_General_Procces`:
+ * - Si ya existe el registro de `company_name`, ejecuta `.update()` directo (evita 403 en re-subidas).
+ * - Si la tabla está vacía (no existe aún el registro), ejecuta `.upsert()` / `.insert()` para crear la fila.
  */
 export async function upsertGeneralProcessRecord(payload, companyName = 'General_Procces') {
   try {
@@ -218,10 +218,59 @@ export async function upsertGeneralProcessRecord(payload, companyName = 'General
     delete updateFields.company_name;
     delete updateFields.user_id;
 
-    const { data, error } = await supabase
+    // 1. Verificar si ya existe la fila en ClientsSERVEX_General_Procces
+    const { data: existingRow } = await supabase
       .from('ClientsSERVEX_General_Procces')
-      .update(updateFields)
-      .eq('company_name', cleanCompany);
+      .select('id')
+      .eq('company_name', cleanCompany)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingRow?.id) {
+      let { data, error } = await supabase
+        .from('ClientsSERVEX_General_Procces')
+        .update(updateFields)
+        .eq('company_name', cleanCompany);
+
+      if (error && 'csv_edit_raw' in updateFields) {
+        const fallbackFields = { ...updateFields };
+        delete fallbackFields.csv_edit_raw;
+        if (Object.keys(fallbackFields).length > 0) {
+          const retry = await supabase
+            .from('ClientsSERVEX_General_Procces')
+            .update(fallbackFields)
+            .eq('company_name', cleanCompany);
+          data = retry.data;
+          error = retry.error;
+        }
+      }
+
+      return { data, error, rlsBypassed: false };
+    }
+
+    // 2. Si no existe la fila aún (tabla vacía), crearla con upsert
+    const fullPayload = { ...payload, company_name: cleanCompany };
+    if (!fullPayload.user_id) {
+      const { data: sessionData } = await supabase.auth.getSession().catch(() => ({ data: {} }));
+      const currentUserId = sessionData?.session?.user?.id || null;
+      if (currentUserId) {
+        fullPayload.user_id = currentUserId;
+      }
+    }
+
+    let { data, error } = await supabase
+      .from('ClientsSERVEX_General_Procces')
+      .upsert(fullPayload, { onConflict: 'company_name' });
+
+    if (error && 'csv_edit_raw' in fullPayload) {
+      const fallbackPayload = { ...fullPayload };
+      delete fallbackPayload.csv_edit_raw;
+      const retry = await supabase
+        .from('ClientsSERVEX_General_Procces')
+        .upsert(fallbackPayload, { onConflict: 'company_name' });
+      data = retry.data;
+      error = retry.error;
+    }
 
     return { data, error, rlsBypassed: false };
   } catch (err) {
