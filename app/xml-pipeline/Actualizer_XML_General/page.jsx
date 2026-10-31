@@ -407,43 +407,20 @@ export default function MenuInicial() {
         {/* CONTENEDOR UNIFICADO */}
         <div className="flex flex-1 h-full w-full min-w-0 p-0 bg-transparent">
           <div className="flex flex-col w-full h-full bg-transparent overflow-hidden relative">
-            {/* ── TOP BAR (FLOATING & TRANSPARENT OVER BACKGROUND, NO BOTTOM LINE) ── */}
-            <header className="absolute top-0 left-0 right-0 z-30 h-14 flex items-center justify-between px-3 sm:px-6 bg-transparent border-none pointer-events-none w-full">
-              <div className="flex items-center gap-2 sm:gap-2.5 pointer-events-auto">
-                <span className={`text-[10px] font-bold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/10 border-[#18181b]/20'} border px-2.5 py-0.5 rounded-none uppercase tracking-wider backdrop-blur-md transition-colors`}>
-                  Servex Copilot
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 sm:gap-2.5 pointer-events-auto">
-                {/* BOTÓN REINICIAR PROCESO */}
+            {isToolsOpen && (
+              <div className="absolute top-3 right-3 sm:right-6 z-30 pointer-events-auto">
                 <button
-                  type="button"
-                  onClick={() => {
-                    setExitActionType('reload');
-                    setShowExitModal(true);
-                  }}
-                  title="Reiniciar proceso y descartar sesión activa"
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-none ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white border-white/20' : 'bg-[#18181b]/5 hover:bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20'} border backdrop-blur-md transition-all text-[11px] font-semibold shadow-sm group cursor-pointer`}
+                  onClick={() => setIsToolsOpen(false)}
+                  className={`flex items-center justify-center p-1.5 rounded-none border ${isDarkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-white border-slate-200 text-slate-400 hover:text-black hover:bg-zinc-100'} backdrop-blur-md transition-all`}
+                  title="Close panel"
                 >
-                  <RotateCcw size={12} className={`${isDarkMode ? 'text-white' : 'text-[#18181b]'} group-hover:-rotate-90 transition-transform duration-300`} />
-                  <span className="hidden sm:inline">Reiniciar</span>
+                  <X size={16} />
                 </button>
-
-                {isToolsOpen && (
-                  <button
-                    onClick={() => setIsToolsOpen(false)}
-                    className={`flex items-center justify-center p-1.5 rounded-none border ${isDarkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-white border-slate-200 text-slate-400 hover:text-black hover:bg-zinc-100'} backdrop-blur-md transition-all ml-1`}
-                    title="Close panel"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
               </div>
-            </header>
+            )}
 
-            {/* Body Area (Full Viewport with Top Spacing for Floating Header) */}
-            <div className="flex flex-1 w-full h-full min-h-0 relative z-10 overflow-hidden pt-12 sm:pt-14">
+            {/* Body Area (Full Viewport) */}
+            <div className="flex flex-1 w-full h-full min-h-0 relative z-10 overflow-hidden">
               {/* Vista Exclusiva a Pantalla Completa: Editor Interactivo de Catálogo (csv_edit_raw) */}
               {isCatalogEditorOpen && (
                 <div className="w-full h-full flex flex-col overflow-hidden z-20">

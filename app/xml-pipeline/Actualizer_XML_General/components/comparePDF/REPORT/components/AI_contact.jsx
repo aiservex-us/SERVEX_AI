@@ -3439,8 +3439,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               className="text-center mb-8 w-full flex flex-col items-center select-none"
             >
-              <div className="flex items-center justify-center transition-transform duration-300 hover:scale-[1.02]">
+              <div className="flex flex-col items-center justify-center transition-transform duration-300 hover:scale-[1.02]">
                 <AlysaWordmark className={`h-16 sm:h-20 md:h-24 w-auto ${isDarkMode ? 'text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.35)]' : 'text-[#18181b] drop-shadow-[0_0_15px_rgba(0,0,0,0.15)]'}`} />
+                <span className={`mt-2.5 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.22em] ${isDarkMode ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                  AI Autonomous Logic &amp; Yield System Architect
+                </span>
               </div>
             </motion.div>
 
