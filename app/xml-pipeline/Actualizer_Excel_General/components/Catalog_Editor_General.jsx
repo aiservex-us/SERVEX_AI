@@ -68,6 +68,16 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
   const saveTimerRef = useRef(null);
   const baseCsvRawRef = useRef('');
+  const headersRef = useRef(BASE_HEADERS);
+  const deletedSkusRef = useRef(new Set());
+
+  useEffect(() => {
+    headersRef.current = headers;
+  }, [headers]);
+
+  useEffect(() => {
+    deletedSkusRef.current = deletedSkus;
+  }, [deletedSkus]);
 
   // Mapa rápido del catálogo original (csv_raw) por Model #
   const baseRowMap = useMemo(() => {
@@ -151,7 +161,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
   // Serializar editRows activos a formato CSV (; delimiter) para csv_edit_raw
   const serializeRowsToCsv = useCallback(
-    (rowsToSerialize, activeDeletedSkus = deletedSkus, cols = headers) => {
+    (rowsToSerialize, activeDeletedSkus = deletedSkusRef.current, cols = headersRef.current) => {
       const cleanList = rowsToSerialize
         .filter((r) => {
           const sku = String(r['Model #'] || '').trim();
@@ -177,12 +187,12 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         delimiter: ';'
       });
     },
-    [headers, deletedSkus]
+    []
   );
 
-  // Persistir csv_edit_raw en sessionStorage, localStorage y Supabase
+  // Persistir csv_edit_raw directamente en la columna csv_edit_raw de ClientsSERVEX_General_Procces y en memoria local
   const persistCsvEditRaw = useCallback(
-    async (rowsSnapshot, deletedSnapshot = deletedSkus, colsSnapshot = headers, immediate = false) => {
+    async (rowsSnapshot, deletedSnapshot = deletedSkusRef.current, colsSnapshot = headersRef.current, immediate = false) => {
       const csvString = serializeRowsToCsv(rowsSnapshot, deletedSnapshot, colsSnapshot);
       if (!csvString) return '';
 
@@ -196,30 +206,15 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       const runCloudSave = async () => {
         setSyncStatus('saving');
         try {
-          let valToStore = csvString;
-          if (csvString.length > 200 * 1024) {
-            try {
-              const stgUrl = await uploadToCatalogsStorage(
-                csvString,
-                `csv_matrices/General_Procces/csv_edit_raw.csv`,
-                'text/csv'
-              );
-              if (stgUrl) valToStore = `[STORAGE_URL]: ${stgUrl}`;
-            } catch (_) {}
-          }
-
-          await upsertGeneralProcessRecord(
-            {
-              company_name: 'General_Procces',
-              csv_edit_raw: valToStore
-            },
-            'General_Procces'
-          );
+          await supabase
+            .from('ClientsSERVEX_General_Procces')
+            .update({ csv_edit_raw: csvString })
+            .eq('company_name', 'General_Procces');
 
           setSyncStatus('synced');
           setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
         } catch (err) {
-          console.warn('⚠️ Advertencia guardando csv_edit_raw:', err);
+          console.warn('⚠️ Advertencia guardando csv_edit_raw en Supabase:', err);
           setSyncStatus('synced');
         }
       };
@@ -230,12 +225,12 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       } else {
         setSyncStatus('saving');
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = setTimeout(runCloudSave, 650);
+        saveTimerRef.current = setTimeout(runCloudSave, 500);
       }
 
       return csvString;
     },
-    [serializeRowsToCsv, deletedSkus, headers]
+    [serializeRowsToCsv]
   );
 
   const sanitizeParsedRows = (rawRows, cols) => {
@@ -255,22 +250,18 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     });
   };
 
-  // Inicializar editor cargando csv_raw y sincronizando/creando csv_edit_raw
+  // Inicializar editor cargando csv_raw y copiando/sincronizando en csv_edit_raw de ClientsSERVEX_General_Procces
   const loadEditorData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      let rawBaseCsv = typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') || '' : '';
-      let rawEditCsv =
-        typeof window !== 'undefined'
-          ? sessionStorage.getItem('csv_edit_raw') || localStorage.getItem('csv_edit_raw_General_Procces') || ''
-          : '';
+      let rawBaseCsv = '';
+      let rawEditCsv = '';
       let detectedName = 'Catalog';
+      let hasEditInDb = false;
 
       try {
-        // Intentar leer incluyendo csv_edit_raw; si la columna aún no existe en BD, hacer fallback limpio
-        let dbRecord = null;
-        const { data, error: dbErr } = await supabase
+        const { data: dbRecord, error: dbErr } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('csv_raw, csv_edit_raw, xml_name, file_name')
           .eq('company_name', 'General_Procces')
@@ -278,29 +269,24 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           .limit(1)
           .maybeSingle();
 
-        if (!dbErr && data) {
-          dbRecord = data;
-        } else {
-          const { data: fallbackData } = await supabase
-            .from('ClientsSERVEX_General_Procces')
-            .select('csv_raw, xml_name, file_name')
-            .eq('company_name', 'General_Procces')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          if (fallbackData) dbRecord = fallbackData;
-        }
-
-        if (dbRecord) {
+        if (!dbErr && dbRecord) {
           detectedName = (dbRecord.xml_name || dbRecord.file_name || 'Catalog').replace(/\.xml$/i, '').trim();
-          if (!rawBaseCsv && dbRecord.csv_raw) {
+          if (dbRecord.csv_raw && String(dbRecord.csv_raw).trim()) {
             rawBaseCsv = await resolveStorageContent(dbRecord.csv_raw);
           }
-          if (!rawEditCsv && dbRecord.csv_edit_raw) {
+          if (dbRecord.csv_edit_raw && String(dbRecord.csv_edit_raw).trim()) {
             rawEditCsv = await resolveStorageContent(dbRecord.csv_edit_raw);
+            hasEditInDb = true;
           }
         }
       } catch (_) {}
+
+      if (!rawBaseCsv && typeof window !== 'undefined') {
+        rawBaseCsv = sessionStorage.getItem('csv_raw') || '';
+      }
+      if (!rawEditCsv && typeof window !== 'undefined') {
+        rawEditCsv = sessionStorage.getItem('csv_edit_raw') || localStorage.getItem('csv_edit_raw_General_Procces') || '';
+      }
 
       setCatalogName(detectedName);
 
@@ -313,10 +299,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       const baseCols = parsedBase.meta?.fields || Object.keys(parsedBase.data?.[0] || {});
       const cleanBaseRows = sanitizeParsedRows(parsedBase.data, baseCols);
 
+      headersRef.current = baseCols;
       setHeaders(baseCols);
       setBaseRows(cleanBaseRows);
 
-      // Validar si existe csv_edit_raw coherente con el catálogo actual; si no, clonar csv_raw -> csv_edit_raw
+      // Validar si existe csv_edit_raw coherente con el catálogo actual; si no, copiar csv_raw -> csv_edit_raw
       let shouldCloneFromBase = !rawEditCsv || !rawEditCsv.trim();
       let cleanEditRows = [];
 
@@ -340,10 +327,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
       if (shouldCloneFromBase) {
         cleanEditRows = cleanBaseRows.map((r) => ({ ...r }));
-        setDeletedSkus(new Set());
-        await persistCsvEditRaw(cleanEditRows, new Set(), baseCols, true);
+        const emptySet = new Set();
+        deletedSkusRef.current = emptySet;
+        setDeletedSkus(emptySet);
+        await persistCsvEditRaw(cleanEditRows, emptySet, baseCols, true);
       } else {
-        // Detectar SKUs que estaban en base pero fueron dados de baja en csv_edit_raw
         const editSkuSet = new Set(cleanEditRows.map((r) => String(r['Model #'] || '').trim()));
         const restoredDeleted = new Set();
         const mergedRows = [...cleanEditRows];
@@ -354,9 +342,14 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             mergedRows.push({ ...bRow });
           }
         });
+        deletedSkusRef.current = restoredDeleted;
         setDeletedSkus(restoredDeleted);
         cleanEditRows = mergedRows;
-        await persistCsvEditRaw(cleanEditRows, restoredDeleted, baseCols, true);
+        if (!hasEditInDb) {
+          await persistCsvEditRaw(cleanEditRows, restoredDeleted, baseCols, true);
+        } else {
+          setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        }
       }
 
       setEditRows(cleanEditRows);
@@ -659,28 +652,15 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         });
       } catch (_) {}
 
-      // Guardar referencia en Supabase (csv_edit_raw, csv_new_raw, CSV_final)
-      let valToStore = finalEditedCsv;
-      if (finalEditedCsv.length > 200 * 1024) {
-        try {
-          const stgUrl = await uploadToCatalogsStorage(
-            finalEditedCsv,
-            `csv_matrices/General_Procces/csv_edit_${Date.now()}.csv`,
-            'text/csv'
-          );
-          if (stgUrl) valToStore = `[STORAGE_URL]: ${stgUrl}`;
-        } catch (_) {}
-      }
-
-      await upsertGeneralProcessRecord(
-        {
-          company_name: 'General_Procces',
-          csv_edit_raw: valToStore,
-          csv_new_raw: valToStore,
-          CSV_final: valToStore
-        },
-        'General_Procces'
-      );
+      // Guardar directamente el texto CSV en Supabase (csv_edit_raw, csv_new_raw, CSV_final)
+      await supabase
+        .from('ClientsSERVEX_General_Procces')
+        .update({
+          csv_edit_raw: finalEditedCsv,
+          csv_new_raw: finalEditedCsv,
+          CSV_final: finalEditedCsv
+        })
+        .eq('company_name', 'General_Procces');
 
       recordClientAction({
         companyName: 'General_Procces',

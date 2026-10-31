@@ -733,6 +733,8 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
     });
   };
 
+  const [isOpeningEditor, setIsOpeningEditor] = useState(false);
+
   const openLiveCatalogEditor = async () => {
     try {
       const rawRowsToUse = products && products.length > 0 ? products : filtered;
@@ -740,6 +742,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         alert("No hay productos disponibles en la matriz para editar. Asegúrate de haber cargado el catálogo.");
         return;
       }
+      setIsOpeningEditor(true);
       const rowsToSave = cleanRowsZeroValues(rawRowsToUse);
 
       const csv = Papa.unparse(rowsToSave, {
@@ -754,44 +757,41 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         { total_products: rowsToSave.length, target_column: 'csv_edit_raw' }
       );
 
+      // Consultar en ClientsSERVEX_General_Procces si ya existe csv_raw / csv_edit_raw
       let editCsvToUse = csv;
+      try {
+        const { data: existingRow } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('csv_raw, csv_edit_raw')
+          .eq('company_name', 'General_Procces')
+          .maybeSingle();
+
+        const baseCsvToStore = (existingRow?.csv_raw && String(existingRow.csv_raw).trim())
+          ? existingRow.csv_raw
+          : csv;
+
+        const hasExistingEditInDb = !!(existingRow?.csv_edit_raw && String(existingRow.csv_edit_raw).trim());
+        editCsvToUse = hasExistingEditInDb ? existingRow.csv_edit_raw : baseCsvToStore;
+
+        // Copiar de forma exacta y directa csv_raw -> csv_edit_raw en la tabla ClientsSERVEX_General_Procces
+        await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .update({
+            csv_raw: baseCsvToStore,
+            csv_edit_raw: editCsvToUse
+          })
+          .eq('company_name', 'General_Procces');
+      } catch (dbErr) {
+        console.warn('⚠️ Error copiando csv_raw a csv_edit_raw en Supabase:', dbErr);
+      }
+
       if (typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('csv_raw', csv);
-          const existingEdit = sessionStorage.getItem('csv_edit_raw') || localStorage.getItem('csv_edit_raw_General_Procces');
-          if (!existingEdit || !existingEdit.trim()) {
-            sessionStorage.setItem('csv_edit_raw', csv);
-            localStorage.setItem('csv_edit_raw_General_Procces', csv);
-          } else {
-            editCsvToUse = existingEdit;
-          }
+          sessionStorage.setItem('csv_edit_raw', editCsvToUse);
+          localStorage.setItem('csv_edit_raw_General_Procces', editCsvToUse);
         } catch (_) {}
-      }
 
-      // Persistir la matriz en la columna csv_edit_raw de ClientsSERVEX_General_Procces en segundo plano
-      (async () => {
-        try {
-          let valToStore = editCsvToUse;
-          if (editCsvToUse.length > 200 * 1024) {
-            const stgUrl = await uploadToCatalogsStorage(
-              editCsvToUse,
-              `csv_matrices/General_Procces/csv_edit_raw.csv`,
-              'text/csv'
-            );
-            if (stgUrl) valToStore = `[STORAGE_URL]: ${stgUrl}`;
-          }
-          await upsertGeneralProcessRecord(
-            {
-              company_name: 'General_Procces',
-              csv_raw: csv.length > 200 * 1024 ? valToStore : csv,
-              csv_edit_raw: valToStore
-            },
-            'General_Procces'
-          );
-        } catch (_) {}
-      })();
-
-      if (typeof window !== 'undefined') {
         window.dispatchEvent(
           new CustomEvent('openCatalogEditor', {
             detail: { csvRaw: csv, csvEditRaw: editCsvToUse }
@@ -801,6 +801,8 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
     } catch (err) {
       console.error('Error al abrir el Editor de Catálogo:', err);
       alert('Error al abrir la sección de edición: ' + (err.message || err));
+    } finally {
+      setIsOpeningEditor(false);
     }
   };
 
@@ -944,16 +946,17 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
 
           <button 
             onClick={openLiveCatalogEditor}
+            disabled={isOpeningEditor}
             type="button"
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs border ${
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs border disabled:opacity-50 ${
               isDarkMode
                 ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border-emerald-500/35'
                 : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
             }`}
-            title="Abrir sección de Edición y Actualización en Vivo (csv_edit_raw)"
+            title="Copiar csv_raw a csv_edit_raw y abrir sección de Edición y Actualización en Vivo"
           >
-            <FileEdit size={11} />
-            <span>Edit & Update</span>
+            {isOpeningEditor ? <RefreshCw size={11} className="animate-spin" /> : <FileEdit size={11} />}
+            <span>{isOpeningEditor ? 'Copiando...' : 'Edit & Update'}</span>
           </button>
 
           <button 

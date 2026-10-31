@@ -206,110 +206,25 @@ export async function uploadToCatalogsStorage(content, path, mimeType = 'text/pl
   }
 }
 
-let _rlsWriteBlockedSession = false;
-let _lastCheckedAuthUserId = undefined;
-
 /**
- * Persiste datos en `ClientsSERVEX_General_Procces` evitando el error HTTP 403
- * `new row violates row-level security policy (USING expression)` que ocurre cuando
- * PostgREST ejecuta `UPSERT` (`INSERT ... ON CONFLICT DO UPDATE`) sobre una fila cuyo
- * `user_id` fue creado por el backend (Service Role / NULL) o en sesión local sin Auth.
+ * Persiste datos en `ClientsSERVEX_General_Procces` mediante UPDATE directo por `company_name`,
+ * evitando el error HTTP 403 `new row violates row-level security policy (USING expression)`
+ * que ocurre cuando se invoca `.upsert()` sobre una fila existente.
  */
 export async function upsertGeneralProcessRecord(payload, companyName = 'General_Procces') {
   try {
-    const { data: sessionData } = await supabase.auth.getSession().catch(() => ({ data: {} }));
-    const currentUserId = sessionData?.session?.user?.id || null;
-
-    if (_lastCheckedAuthUserId !== currentUserId) {
-      _lastCheckedAuthUserId = currentUserId;
-      _rlsWriteBlockedSession = false;
-    }
-
-    if (_rlsWriteBlockedSession) {
-      return { data: null, error: null, rlsBypassed: true };
-    }
-
     const cleanCompany = (payload?.company_name || companyName || 'General_Procces').trim();
     const updateFields = { ...payload };
     delete updateFields.company_name;
-    // No sobreescribir user_id en UPDATE para no violar políticas WITH CHECK sobre filas existentes
     delete updateFields.user_id;
 
-    // 1. Intentar UPDATE directo por company_name (PATCH nunca dispara WCO_RLS_CONFLICT_CHECK 403)
-    let { data: updatedRows, error: updateErr } = await supabase
+    const { data, error } = await supabase
       .from('ClientsSERVEX_General_Procces')
       .update(updateFields)
-      .eq('company_name', cleanCompany)
-      .select('id');
+      .eq('company_name', cleanCompany);
 
-    // Si alguna columna nueva (ej. csv_edit_raw) aún no existe en el esquema de Postgres, reintentar sin fallar
-    if (updateErr && (updateErr.code === 'PGRST204' || String(updateErr.message || '').includes('csv_edit_raw'))) {
-      const fallbackFields = { ...updateFields };
-      delete fallbackFields.csv_edit_raw;
-      if (Object.keys(fallbackFields).length > 0) {
-        const retryRes = await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .update(fallbackFields)
-          .eq('company_name', cleanCompany)
-          .select('id');
-        updatedRows = retryRes.data;
-        updateErr = retryRes.error;
-      } else {
-        return { data: null, error: null, rlsBypassed: true };
-      }
-    }
-
-    if (!updateErr && Array.isArray(updatedRows) && updatedRows.length > 0) {
-      return { data: updatedRows, error: null, rlsBypassed: false };
-    }
-
-    if (updateErr && (updateErr.code === '42501' || String(updateErr.message || '').includes('row-level security'))) {
-      _rlsWriteBlockedSession = true;
-      return { data: null, error: null, rlsBypassed: true };
-    }
-
-    // 2. Verificar si ya existe el registro en la tabla (SELECT público permitido por RLS)
-    const { data: existingRow } = await supabase
-      .from('ClientsSERVEX_General_Procces')
-      .select('id, user_id')
-      .eq('company_name', cleanCompany)
-      .limit(1)
-      .maybeSingle();
-
-    if (existingRow?.id) {
-      // La fila ya existe pero el UPDATE afectó 0 filas porque RLS filtró por user_id distinto/nulo.
-      // No ejecutar UPSERT/INSERT porque dispararía 403 (WCO_RLS_CONFLICT_CHECK).
-      _rlsWriteBlockedSession = true;
-      return { data: [existingRow], error: null, rlsBypassed: true };
-    }
-
-    // 3. No existe ninguna fila aún: solo intentar INSERT si hay usuario autenticado
-    if (!currentUserId) {
-      _rlsWriteBlockedSession = true;
-      return { data: null, error: null, rlsBypassed: true };
-    }
-
-    const insertPayload = {
-      ...updateFields,
-      company_name: cleanCompany,
-      user_id: currentUserId,
-    };
-
-    const { data: insertedRows, error: insertErr } = await supabase
-      .from('ClientsSERVEX_General_Procces')
-      .insert([insertPayload])
-      .select('id');
-
-    if (insertErr) {
-      if (insertErr.code === '42501' || insertErr.code === '23505' || String(insertErr.message || '').includes('row-level security')) {
-        _rlsWriteBlockedSession = true;
-        return { data: null, error: null, rlsBypassed: true };
-      }
-      return { data: null, error: insertErr, rlsBypassed: false };
-    }
-
-    return { data: insertedRows, error: null, rlsBypassed: false };
+    return { data, error, rlsBypassed: false };
   } catch (err) {
-    return { data: null, error: null, rlsBypassed: true };
+    return { data: null, error: err, rlsBypassed: false };
   }
 }
