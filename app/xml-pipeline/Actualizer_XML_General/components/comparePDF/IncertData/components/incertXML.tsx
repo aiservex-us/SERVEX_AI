@@ -406,10 +406,11 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           row["Model Name"] = description;
 
           validColumns.forEach(col => {
-            if (productOptionPrices[col.optCode] !== undefined) {
-              row[col.label] = productOptionPrices[col.optCode];
+            const optVal = productOptionPrices[col.optCode];
+            if (optVal !== undefined && Number(optVal) > 0) {
+              row[col.label] = optVal;
             } else {
-              row[col.label] = 0;
+              row[col.label] = "";
             }
           });
 

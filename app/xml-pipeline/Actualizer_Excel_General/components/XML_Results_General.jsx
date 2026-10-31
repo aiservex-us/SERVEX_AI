@@ -17,6 +17,268 @@ import { recordClientAction } from '@/app/lib/trackingClient';
 
 const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
 
+// ── Utilidades de Estilizado Nativo OpenXML (.xlsx) en Cliente (Sin dependencias extra) ──
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+const computeCrc32 = (bytes) => {
+  let c = -1;
+  for (let i = 0; i < bytes.length; i++) {
+    c = (c >>> 8) ^ CRC32_TABLE[(c ^ bytes[i]) & 0xff];
+  }
+  return (c ^ -1) >>> 0;
+};
+
+const colLettersToIndex = (letters) => {
+  let col = 0;
+  for (let i = 0; i < letters.length; i++) {
+    col = col * 26 + (letters.charCodeAt(i) - 64);
+  }
+  return col - 1;
+};
+
+const CUSTOM_EXCEL_STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <fonts count="7">
+    <font><sz val="10"/><color rgb="FF334155"/><name val="Calibri"/></font>
+    <font><b/><sz val="10.5"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+    <font><b/><sz val="10.5"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+    <font><b/><sz val="10"/><color rgb="FF0F172A"/><name val="Calibri"/></font>
+    <font><b/><sz val="10"/><color rgb="FF047857"/><name val="Calibri"/></font>
+    <font><sz val="9.5"/><color rgb="FF475569"/><name val="Calibri"/></font>
+    <font><b/><sz val="10"/><color rgb="FF1E40AF"/><name val="Calibri"/></font>
+  </fonts>
+  <fills count="10">
+    <fill><patternFill patternType="none"/></fill>
+    <fill><patternFill patternType="gray125"/></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF0F172A"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF1E3A8A"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF1F5F9"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFE2E8F0"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFECFDF5"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFD1FAE5"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF8FAFC"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFEFF6FF"/><bgColor indexed="64"/></patternFill></fill>
+  </fills>
+  <borders count="3">
+    <border><left/><right/><top/><bottom/><diagonal/></border>
+    <border>
+      <left style="thin"><color rgb="FF334155"/></left>
+      <right style="thin"><color rgb="FF334155"/></right>
+      <top style="thin"><color rgb="FF0F172A"/></top>
+      <bottom style="medium"><color rgb="FF0F172A"/></bottom>
+      <diagonal/>
+    </border>
+    <border>
+      <left style="thin"><color rgb="FFE2E8F0"/></left>
+      <right style="thin"><color rgb="FFE2E8F0"/></right>
+      <top style="thin"><color rgb="FFE2E8F0"/></top>
+      <bottom style="thin"><color rgb="FFE2E8F0"/></bottom>
+      <diagonal/>
+    </border>
+  </borders>
+  <cellStyleXfs count="1">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
+  </cellStyleXfs>
+  <cellXfs count="15">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="4" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="5" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="4" fillId="6" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="4" fillId="7" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="5" fillId="0" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="5" fillId="8" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="8" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="6" fillId="9" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="6" fillId="9" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="8" borderId="2" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+  </cellXfs>
+  <cellStyles count="1">
+    <cellStyle name="Normal" xfId="0" builtinId="0"/>
+  </cellStyles>
+</styleSheet>`;
+
+const applyExcelVisualStyling = (xlsxArrayBuffer) => {
+  const bytes = new Uint8Array(xlsxArrayBuffer);
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder('utf-8');
+
+  const entries = [];
+  let offset = 0;
+
+  while (offset + 30 <= bytes.length) {
+    const sig = view.getUint32(offset, true);
+    if (sig !== 0x04034b50) break;
+
+    const ver = view.getUint16(offset + 4, true);
+    const flag = view.getUint16(offset + 6, true);
+    const method = view.getUint16(offset + 8, true);
+    const time = view.getUint16(offset + 10, true);
+    const date = view.getUint16(offset + 12, true);
+    const crc = view.getUint32(offset + 14, true);
+    const compSize = view.getUint32(offset + 18, true);
+    const uncompSize = view.getUint32(offset + 22, true);
+    const nameLen = view.getUint16(offset + 26, true);
+    const extraLen = view.getUint16(offset + 28, true);
+
+    const nameBytes = bytes.subarray(offset + 30, offset + 30 + nameLen);
+    const name = decoder.decode(nameBytes);
+    const extraBytes = bytes.subarray(offset + 30 + nameLen, offset + 30 + nameLen + extraLen);
+    const dataStart = offset + 30 + nameLen + extraLen;
+    const rawData = bytes.subarray(dataStart, dataStart + compSize);
+
+    if (name === 'xl/styles.xml' && method === 0) {
+      const newBytes = encoder.encode(CUSTOM_EXCEL_STYLES_XML);
+      entries.push({
+        ver, flag, method: 0, time, date,
+        crc: computeCrc32(newBytes),
+        compSize: newBytes.length,
+        uncompSize: newBytes.length,
+        nameBytes,
+        extraBytes,
+        dataBytes: newBytes
+      });
+    } else if (name === 'xl/worksheets/sheet1.xml' && method === 0) {
+      let sheetXml = decoder.decode(rawData);
+
+      // Congelar fila superior de encabezados y primera columna (Model #)
+      sheetXml = sheetXml.replace(
+        '<sheetView workbookViewId="0"/>',
+        '<sheetView workbookViewId="0"><pane xSplit="1" ySplit="1" topLeftCell="B2" activePane="bottomRight" state="frozen"/><selection pane="bottomRight" activeCell="B2" sqref="B2"/></sheetView>'
+      );
+
+      // Asignar estilos por columna, fila zebra y celdas con valor
+      sheetXml = sheetXml.replace(/<row r="(\d+)"([^>]*)>([\s\S]*?)<\/row>/g, (m, rStr, rowAttrs, inner) => {
+        const rowNum = parseInt(rStr, 10);
+        const isHeader = rowNum === 1;
+        const isEvenData = rowNum % 2 === 1;
+
+        const styledCells = inner.replace(/<c r="([A-Z]+)\d+"([^>]*)>([\s\S]*?)<\/c>/g, (cm, colStr, cAttrs, cInner) => {
+          const colIdx = colLettersToIndex(colStr);
+          const hasVal = cInner.includes('<v>') && !cInner.includes('<v></v>');
+          let sIdx = 0;
+
+          if (isHeader) {
+            sIdx = colIdx < 5 ? 1 : 2;
+          } else {
+            if (colIdx === 0) sIdx = isEvenData ? 4 : 3;
+            else if (colIdx === 1) sIdx = isEvenData ? 6 : 5;
+            else if (colIdx === 2 || colIdx === 3) sIdx = isEvenData ? 8 : 7;
+            else if (colIdx === 4) sIdx = isEvenData ? 10 : 9;
+            else {
+              if (hasVal) sIdx = isEvenData ? 12 : 11;
+              else sIdx = isEvenData ? 14 : 13;
+            }
+          }
+          return `<c r="${colStr}${rowNum}"${cAttrs} s="${sIdx}">${cInner}</c>`;
+        });
+
+        return `<row r="${rowNum}"${rowAttrs}>${styledCells}</row>`;
+      });
+
+      const newBytes = encoder.encode(sheetXml);
+      entries.push({
+        ver, flag, method: 0, time, date,
+        crc: computeCrc32(newBytes),
+        compSize: newBytes.length,
+        uncompSize: newBytes.length,
+        nameBytes,
+        extraBytes,
+        dataBytes: newBytes
+      });
+    } else {
+      entries.push({
+        ver, flag, method, time, date, crc, compSize, uncompSize,
+        nameBytes, extraBytes, dataBytes: rawData
+      });
+    }
+
+    offset = dataStart + compSize;
+  }
+
+  // Reconstruir contenedor ZIP (.xlsx)
+  let totalLocalSize = 0;
+  let totalCentralSize = 0;
+  for (const e of entries) {
+    totalLocalSize += 30 + e.nameBytes.length + e.extraBytes.length + e.dataBytes.length;
+    totalCentralSize += 46 + e.nameBytes.length + e.extraBytes.length;
+  }
+
+  const out = new Uint8Array(totalLocalSize + totalCentralSize + 22);
+  const outView = new DataView(out.buffer);
+  let pos = 0;
+  const localOffsets = [];
+
+  for (const e of entries) {
+    localOffsets.push(pos);
+    outView.setUint32(pos, 0x04034b50, true);
+    outView.setUint16(pos + 4, e.ver, true);
+    outView.setUint16(pos + 6, e.flag, true);
+    outView.setUint16(pos + 8, e.method, true);
+    outView.setUint16(pos + 10, e.time, true);
+    outView.setUint16(pos + 12, e.date, true);
+    outView.setUint32(pos + 14, e.crc, true);
+    outView.setUint32(pos + 18, e.compSize, true);
+    outView.setUint32(pos + 22, e.uncompSize, true);
+    outView.setUint16(pos + 26, e.nameBytes.length, true);
+    outView.setUint16(pos + 28, e.extraBytes.length, true);
+    pos += 30;
+    out.set(e.nameBytes, pos); pos += e.nameBytes.length;
+    out.set(e.extraBytes, pos); pos += e.extraBytes.length;
+    out.set(e.dataBytes, pos); pos += e.dataBytes.length;
+  }
+
+  const centralDirOffset = pos;
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    outView.setUint32(pos, 0x02014b50, true);
+    outView.setUint16(pos + 4, e.ver, true);
+    outView.setUint16(pos + 6, e.ver, true);
+    outView.setUint16(pos + 8, e.flag, true);
+    outView.setUint16(pos + 10, e.method, true);
+    outView.setUint16(pos + 12, e.time, true);
+    outView.setUint16(pos + 14, e.date, true);
+    outView.setUint32(pos + 16, e.crc, true);
+    outView.setUint32(pos + 20, e.compSize, true);
+    outView.setUint32(pos + 24, e.uncompSize, true);
+    outView.setUint16(pos + 28, e.nameBytes.length, true);
+    outView.setUint16(pos + 30, e.extraBytes.length, true);
+    outView.setUint16(pos + 32, 0, true);
+    outView.setUint16(pos + 34, 0, true);
+    outView.setUint16(pos + 36, 0, true);
+    outView.setUint32(pos + 38, 0, true);
+    outView.setUint32(pos + 42, localOffsets[i], true);
+    pos += 46;
+    out.set(e.nameBytes, pos); pos += e.nameBytes.length;
+    out.set(e.extraBytes, pos); pos += e.extraBytes.length;
+  }
+
+  outView.setUint32(pos, 0x06054b50, true);
+  outView.setUint16(pos + 4, 0, true);
+  outView.setUint16(pos + 6, 0, true);
+  outView.setUint16(pos + 8, entries.length, true);
+  outView.setUint16(pos + 10, entries.length, true);
+  outView.setUint32(pos + 12, totalCentralSize, true);
+  outView.setUint32(pos + 16, centralDirOffset, true);
+  outView.setUint16(pos + 20, 0, true);
+
+  return out;
+};
+
 const DynamicDataMatrix = ({ isDarkMode = true }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,10 +350,11 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       row["Model Name"] = description;
 
       validColumns.forEach(col => {
-        if (productOptionPrices[col.optCode] !== undefined) {
-          row[col.label] = productOptionPrices[col.optCode];
+        const optVal = productOptionPrices[col.optCode];
+        if (optVal !== undefined && Number(optVal) > 0) {
+          row[col.label] = optVal;
         } else {
-          row[col.label] = 0;
+          row[col.label] = "";
         }
       });
 
@@ -159,10 +422,19 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         const parsedCsv = Papa.parse(existingCsvRaw.trim(), { header: true, skipEmptyLines: true });
         if (parsedCsv.data && parsedCsv.data.length > 0) {
           const headers = parsedCsv.meta.fields || Object.keys(parsedCsv.data[0]);
+          const sanitizedRows = parsedCsv.data.map(r => {
+            const clean = { ...r };
+            headers.forEach(h => {
+              if (!BASE_HEADERS.includes(h) && (clean[h] === 0 || clean[h] === '0')) {
+                clean[h] = '';
+              }
+            });
+            return clean;
+          });
           setMatrixHeaders(headers);
-          setProducts(parsedCsv.data);
-          setTotalProductsInXml(parsedCsv.data.length);
-          setProcessedIndex(parsedCsv.data.length);
+          setProducts(sanitizedRows);
+          setTotalProductsInXml(sanitizedRows.length);
+          setProcessedIndex(sanitizedRows.length);
           setLoading(false);
           return;
         }
@@ -200,10 +472,19 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
           const parsedCsv = Papa.parse(existingCsvRaw.trim(), { header: true, skipEmptyLines: true });
           if (parsedCsv.data && parsedCsv.data.length > 0) {
             const headers = parsedCsv.meta.fields || Object.keys(parsedCsv.data[0]);
+            const sanitizedRows = parsedCsv.data.map(r => {
+              const clean = { ...r };
+              headers.forEach(h => {
+                if (!BASE_HEADERS.includes(h) && (clean[h] === 0 || clean[h] === '0')) {
+                  clean[h] = '';
+                }
+              });
+              return clean;
+            });
             setMatrixHeaders(headers);
-            setProducts(parsedCsv.data);
-            setTotalProductsInXml(parsedCsv.data.length);
-            setProcessedIndex(parsedCsv.data.length);
+            setProducts(sanitizedRows);
+            setTotalProductsInXml(sanitizedRows.length);
+            setProcessedIndex(sanitizedRows.length);
             setLoading(false);
             return;
           }
@@ -419,13 +700,32 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
     return { total, filtered: filtered.length, avgPrice };
   }, [products, filtered]);
 
+  const cleanRowsZeroValues = (rows) => {
+    if (!rows || !Array.isArray(rows)) return [];
+    return rows.map(row => {
+      const cleanRow = {};
+      matrixHeaders.forEach(h => {
+        const val = row[h];
+        if (!BASE_HEADERS.includes(h)) {
+          cleanRow[h] = (val !== undefined && val !== null && val !== '' && Number(val) > 0) ? val : '';
+        } else if (h === 'List Price') {
+          cleanRow[h] = (val !== undefined && val !== null && val !== '' && Number(val) > 0) ? val : '';
+        } else {
+          cleanRow[h] = val !== undefined && val !== null ? val : '';
+        }
+      });
+      return cleanRow;
+    });
+  };
+
   const exportToCSV = () => {
     try {
-      const rowsToExport = filtered && filtered.length > 0 ? filtered : products;
-      if (!rowsToExport || rowsToExport.length === 0) {
+      const rawRowsToExport = filtered && filtered.length > 0 ? filtered : products;
+      if (!rawRowsToExport || rawRowsToExport.length === 0) {
         alert("No hay productos disponibles en la matriz para exportar. Asegúrate de haber cargado el catálogo.");
         return;
       }
+      const rowsToExport = cleanRowsZeroValues(rawRowsToExport);
       
       recordTrackingEvent(
         'DOWNLOAD_CSV',
@@ -459,11 +759,12 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
 
   const exportToExcel = () => {
     try {
-      const rowsToExport = filtered && filtered.length > 0 ? filtered : products;
-      if (!rowsToExport || rowsToExport.length === 0) {
+      const rawRowsToExport = filtered && filtered.length > 0 ? filtered : products;
+      if (!rawRowsToExport || rawRowsToExport.length === 0) {
         alert("No hay productos disponibles en la matriz para exportar. Asegúrate de haber cargado el catálogo.");
         return;
       }
+      const rowsToExport = cleanRowsZeroValues(rawRowsToExport);
       
       recordTrackingEvent(
         'DOWNLOAD_EXCEL',
@@ -473,31 +774,52 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       );
 
       const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: matrixHeaders });
+
+      // Configurar anchos de columna inteligentes, alto de filas y autofiltro
+      worksheet['!cols'] = matrixHeaders.map((h, idx) => {
+        if (idx === 0) return { wch: 16 }; // Model #
+        if (idx === 1) return { wch: 14 }; // List Price
+        if (idx === 2) return { wch: 12 }; // Weight
+        if (idx === 3) return { wch: 18 }; // Classic/ Premium
+        if (idx === 4) return { wch: 36 }; // Model Name
+        return { wch: Math.max(String(h || '').length + 5, 15) };
+      });
+      worksheet['!rows'] = [
+        { hpt: 28 },
+        ...rowsToExport.map(() => ({ hpt: 20 }))
+      ];
+      if (worksheet['!ref']) {
+        worksheet['!autofilter'] = { ref: worksheet['!ref'] };
+      }
+
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
       
       const cleanPrefix = (xmlBaseName || "Catalog").replace(/\.xml$/i, '').trim();
       const fileName = `${cleanPrefix}-Editable-ALYSAsistemai-${new Date().toISOString().slice(0,10)}.xlsx`;
 
+      const rawExcelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      let finalExcelBytes;
       try {
-        XLSX.writeFile(workbook, fileName);
-      } catch (writeErr) {
-        console.warn('Fallback a manual Blob download:', writeErr);
-        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-        const blob = new Blob([excelBuffer], { 
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
-        });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', fileName);
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-        }, 150);
+        finalExcelBytes = applyExcelVisualStyling(rawExcelBuffer);
+      } catch (styleErr) {
+        console.warn('Fallback a Excel sin estilos adicionales:', styleErr);
+        finalExcelBytes = rawExcelBuffer;
       }
+
+      const blob = new Blob([finalExcelBytes], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 150);
     } catch (err) {
       console.error('Error al exportar a Excel:', err);
       alert('Error al generar el archivo Excel: ' + (err.message || err));
@@ -669,7 +991,13 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
 
                     {matrixHeaders.map((header, i) => {
                       let value = p[header];
-                      if (header === "List Price") value = `$${(p["List Price"] || 0).toLocaleString()}`;
+                      if (!BASE_HEADERS.includes(header) && (value === 0 || value === "0")) {
+                        value = "";
+                      }
+                      if (header === "List Price") {
+                        const numPrice = Number(p["List Price"] || 0);
+                        value = numPrice > 0 ? `$${numPrice.toLocaleString()}` : "";
+                      }
                       
                       const isHighlight = header === 'Model #' || header === 'List Price';
                       return (

@@ -73,6 +73,10 @@ export const purgeTenantData = async (currentTenant = 'General_Procces') => {
       localStorage.removeItem('cet_active_messages');
       localStorage.removeItem('general_procces_chat');
       localStorage.removeItem('active_process_phase');
+      localStorage.removeItem('alysa_phase_xml-pipeline');
+      if (window.location?.pathname) {
+        localStorage.removeItem('alysa_phase_' + window.location.pathname.split('/')[1]);
+      }
     } catch (_) {}
   }
 

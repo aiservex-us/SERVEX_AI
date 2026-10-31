@@ -133,7 +133,8 @@ export default function XmlToCsvConverter() {
         "Base Price": prod.basePrice
       };
       optionHeaders.forEach(opt => {
-        row[opt] = prod[opt] !== undefined ? prod[opt] : "0";
+        const val = prod[opt];
+        row[opt] = val !== undefined && Number(val) > 0 ? val : "";
       });
       return row;
     });
