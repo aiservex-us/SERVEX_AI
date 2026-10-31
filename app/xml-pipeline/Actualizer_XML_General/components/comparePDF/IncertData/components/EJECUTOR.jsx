@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EJECUTOR_PLAY from './EJECUTOR_PLAY';
@@ -205,14 +205,7 @@ const SVXUnifiedPlatform = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const payload = { company_name: currentTenant, csv_new_raw: sanitizedJsonData, CSV_final: sanitizedJsonData, created_at: new Date().toISOString() };
       if (user) payload.user_id = user.id;
-      let supabaseError = null;
-      if (user) {
-        const { error } = await supabase.from(targetTableName).update(payload).eq('user_id', user.id);
-        supabaseError = error;
-      } else {
-        const { error } = await supabase.from(targetTableName).upsert(payload, { onConflict: 'company_name' });
-        supabaseError = error;
-      }
+      const { error: supabaseError } = await upsertGeneralProcessRecord(payload, currentTenant);
       if (supabaseError) throw new Error(`Supabase Error: ${supabaseError.message}`);
       setBackendSuccess(true);
       setHasExistingData(true);

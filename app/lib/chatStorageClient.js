@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, upsertGeneralProcessRecord } from './supabaseClient';
 
 /**
  * Sanitiza y serializa el historial de chat para almacenarlo en formato JSON/JSONB
@@ -81,17 +81,7 @@ export async function saveGeneralProcessChat(messages, catalogName = 'General Pr
       payload.xml_name = catalogName.replace(/\.xml$/i, '');
     }
 
-    // Upsert directo en una sola operación de red (evita doble viaje UPDATE -> UPSERT)
-    const { error: upsertErr } = await supabase
-      .from('ClientsSERVEX_General_Procces')
-      .upsert(payload, { onConflict: 'company_name' });
-
-    if (upsertErr) {
-      await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .update({ general_procces_chat: formattedChat })
-        .eq('company_name', 'General_Procces');
-    }
+    await upsertGeneralProcessRecord(payload, 'General_Procces');
   } catch (err) {
     console.warn('[-] Advertencia persistiendo general_procces_chat en Supabase:', err);
   }

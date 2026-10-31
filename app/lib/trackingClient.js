@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, upsertGeneralProcessRecord } from './supabaseClient';
 
 /**
  * Registra una acción del usuario en el seguimiento cronológico (seguimiento_client).
@@ -105,19 +105,17 @@ export async function recordClientAction({
     };
 
     if (row?.id) {
-      await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .update({ seguimiento_client: updatedTracking })
-        .eq('id', row.id);
+      await upsertGeneralProcessRecord(
+        { company_name: cleanCo, seguimiento_client: updatedTracking },
+        cleanCo
+      );
     } else {
       const payload = {
         company_name: cleanCo,
         seguimiento_client: updatedTracking
       };
       if (currentUserId) payload.user_id = currentUserId;
-      await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .upsert(payload, { onConflict: 'company_name' });
+      await upsertGeneralProcessRecord(payload, cleanCo);
     }
   } catch (err) {
     console.warn('[-] Advertencia en recordClientAction:', err);

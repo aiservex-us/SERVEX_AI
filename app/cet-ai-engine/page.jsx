@@ -24,7 +24,7 @@ import {
   Tag,
   Palette
 } from 'lucide-react';
-import { supabase, getCurrentUser } from '../lib/supabaseClient';
+import { supabase, getCurrentUser, upsertGeneralProcessRecord } from '../lib/supabaseClient';
 import MenuLateral from '../xml-pipeline/Actualizer_XML_General/components/menuLateral.jsx';
 import CatalogProcessConsole from './components/CatalogProcessConsole.jsx';
 import AiCatalogIngestionReport from './components/AiCatalogIngestionReport.jsx';
@@ -463,7 +463,11 @@ export default function CETDirectPipelinePage() {
           XM_CET_import: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : ''
         };
         if (authData?.user?.id) payload.user_id = authData.user.id;
-        await supabase.from(tbl).upsert(payload, { onConflict: 'company_name' });
+        if (compToUse === 'General_Procces') {
+          await upsertGeneralProcessRecord(payload, compToUse);
+        } else {
+          await supabase.from(tbl).upsert(payload, { onConflict: 'company_name' });
+        }
       } catch (stgErr) {
         console.warn('[-] Advertencia en almacenamiento primario Supabase:', stgErr);
       }
@@ -542,14 +546,17 @@ export default function CETDirectPipelinePage() {
         delete structureToStore.products;
         delete structureToStore.options;
 
-        await supabase
-          .from(tbl)
-          .upsert({
-            company_name: compToUse,
-            file_name: file.name,
-            xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
-            xml_structure_context: structureToStore
-          }, { onConflict: 'company_name' });
+        const contextPayload = {
+          company_name: compToUse,
+          file_name: file.name,
+          xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
+          xml_structure_context: structureToStore
+        };
+        if (compToUse === 'General_Procces') {
+          await upsertGeneralProcessRecord(contextPayload, compToUse);
+        } else {
+          await supabase.from(tbl).upsert(contextPayload, { onConflict: 'company_name' });
+        }
         console.log(`[+] xml_structure_context persistido exitosamente en ${tbl} (${compToUse})`);
       } catch (saveContextErr) {
         console.warn('[-] Advertencia persistiendo xml_structure_context en Supabase:', saveContextErr);

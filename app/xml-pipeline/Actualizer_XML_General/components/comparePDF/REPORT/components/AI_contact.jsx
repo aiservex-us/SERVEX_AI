@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
 import * as XLSX from "xlsx";
-import { supabase, resolveStorageContent, uploadToCatalogsStorage } from '@/app/lib/supabaseClient';
+import { supabase, resolveStorageContent, uploadToCatalogsStorage, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
@@ -1393,8 +1393,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               .maybeSingle();
 
             if (data) {
+              const localCsvBase = typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') : null;
+              const localCsvNew = typeof window !== 'undefined' ? sessionStorage.getItem('csv_new_raw') : null;
+
               if (data.csv_raw && String(data.csv_raw).trim()) {
                 setDbCsvRaw(data.csv_raw);
+              } else if (localCsvBase && localCsvBase.trim()) {
+                setDbCsvRaw(localCsvBase);
+              }
+              if (data.csv_new_raw && String(data.csv_new_raw).trim()) {
+                setDbCsvNewRaw(data.csv_new_raw);
+              } else if (localCsvNew && localCsvNew.trim()) {
+                setDbCsvNewRaw(localCsvNew);
               }
               const rawXml = (data.XM_CET_import && String(data.XM_CET_import).trim()) || (data.xml_raw && String(data.xml_raw).trim());
               if (rawXml) {
@@ -1402,8 +1412,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               }
 
               const hasXml = !!((data.xml_raw && String(data.xml_raw).trim()) || (data.XM_CET_import && String(data.XM_CET_import).trim()) || hasStructXml);
-              const hasCsvBase = !!(data.csv_raw && String(data.csv_raw).trim());
-              const hasCsvNew = !!(data.csv_new_raw && String(data.csv_new_raw).trim());
+              const hasCsvBase = !!((data.csv_raw && String(data.csv_raw).trim()) || (localCsvBase && localCsvBase.trim()));
+              const hasCsvNew = !!((data.csv_new_raw && String(data.csv_new_raw).trim()) || (localCsvNew && localCsvNew.trim()));
               const hasFinalXml = !!((data.xml_actualizer_raw && String(data.xml_actualizer_raw).trim()) || hasAuditMd);
 
               if (hasFinalXml) {
@@ -1949,33 +1959,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               };
               if (currentUserId) persistencePayload.user_id = currentUserId;
 
-              // 1. Intentar actualizar registro existente por company_name
-              const { data: updData } = await supabase
-                .from('ClientsSERVEX_General_Procces')
-                .update(persistencePayload)
-                .ilike('company_name', 'General_Procces')
-                .select('id');
-
-              // 2. Si no había registro previo con ese company_name, buscar el último o hacer upsert
-              if (!updData || updData.length === 0) {
-                const { data: anyRow } = await supabase
-                  .from('ClientsSERVEX_General_Procces')
-                  .select('id')
-                  .order('created_at', { ascending: false })
-                  .limit(1)
-                  .maybeSingle();
-
-                if (anyRow?.id) {
-                  await supabase
-                    .from('ClientsSERVEX_General_Procces')
-                    .update(persistencePayload)
-                    .eq('id', anyRow.id);
-                } else {
-                  await supabase
-                    .from('ClientsSERVEX_General_Procces')
-                    .upsert(persistencePayload, { onConflict: 'company_name' });
-                }
-              }
+              await upsertGeneralProcessRecord(persistencePayload, 'General_Procces');
               console.log('[+] audit_summary_markdown1 sincronizado con éxito en ClientsSERVEX_General_Procces');
             } catch (syncErr) {
               console.warn('[-] Advertencia persistiendo audit_summary_markdown1 desde cliente:', syncErr);
@@ -2177,9 +2161,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         };
         if (currentUser?.id) payload.user_id = currentUser.id;
 
-        await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .upsert(payload, { onConflict: 'company_name' });
+        await upsertGeneralProcessRecord(payload, 'General_Procces');
       } catch (stgErr) {
         console.warn('[-] Advertencia en almacenamiento primario Supabase:', stgErr);
       }
@@ -2248,9 +2230,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         };
         if (currentUser?.id) payloadContext.user_id = currentUser.id;
 
-        await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .upsert(payloadContext, { onConflict: 'company_name' });
+        await upsertGeneralProcessRecord(payloadContext, 'General_Procces');
         console.log('[+] xml_structure_context persistido exitosamente en ClientsSERVEX_General_Procces');
       } catch (saveContextErr) {
         console.warn('[-] Advertencia persistiendo xml_structure_context en Supabase:', saveContextErr);
@@ -2557,9 +2537,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       };
       if (currentUser?.id) payload.user_id = currentUser.id;
 
-      await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .upsert(payload, { onConflict: 'company_name' });
+      await upsertGeneralProcessRecord(payload, 'General_Procces');
 
       // Desbloquear fase 3 y emitir step 'done'
       window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'done' } }));

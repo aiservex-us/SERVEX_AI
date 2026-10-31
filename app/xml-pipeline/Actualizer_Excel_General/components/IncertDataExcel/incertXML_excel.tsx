@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
 import {
   FileCode,
   Building2,
@@ -162,9 +162,9 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
         payload.XM_CET_import = rawContent;
       }
 
-      const { error } = await supabase
-        .from(`ClientsSERVEX_${moduleName}`)
-        .upsert(payload, { onConflict: 'company_name' });
+      const { error } = moduleName === 'General_Procces'
+        ? await upsertGeneralProcessRecord(payload, moduleName)
+        : await supabase.from(`ClientsSERVEX_${moduleName}`).upsert(payload, { onConflict: 'company_name' });
 
       if (error) {
         console.error('Supabase Full Error:', error);

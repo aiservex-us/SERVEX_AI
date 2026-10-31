@@ -3,7 +3,7 @@
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
-import { supabase, uploadToCatalogsStorage } from '@/app/lib/supabaseClient';
+import { supabase, uploadToCatalogsStorage, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
 import {
   FileCode,
   Building2,
@@ -57,17 +57,22 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         .eq('company_name', companyName)
         .maybeSingle();
 
+      const localCsvBase = typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') : null;
+      const localCsvNew = typeof window !== 'undefined' ? sessionStorage.getItem('csv_new_raw') : null;
+
       if (error) {
         console.error('Error checking existing files:', error);
         setExistingXml(false);
-        setExistingCsv(false);
-        setExistingNewCsv(false);
+        setExistingCsv(!!(localCsvBase && localCsvBase.trim()));
+        setExistingNewCsv(!!(localCsvNew && localCsvNew.trim()));
       } else if (data) {
         const hasXml = !!(data as any)?.xml_raw && String((data as any)?.xml_raw).trim().length > 0;
-        const hasCsv = !!data.csv_raw &&
-          (Array.isArray(data.csv_raw) ? data.csv_raw.length > 0 : String(data.csv_raw).trim().length > 0);
-        const hasNewCsv = !!data.csv_new_raw &&
-          (Array.isArray(data.csv_new_raw) ? data.csv_new_raw.length > 0 : String(data.csv_new_raw).trim().length > 0);
+        const hasCsv = (!!data.csv_raw &&
+          (Array.isArray(data.csv_raw) ? data.csv_raw.length > 0 : String(data.csv_raw).trim().length > 0)) ||
+          !!(localCsvBase && localCsvBase.trim());
+        const hasNewCsv = (!!data.csv_new_raw &&
+          (Array.isArray(data.csv_new_raw) ? data.csv_new_raw.length > 0 : String(data.csv_new_raw).trim().length > 0)) ||
+          !!(localCsvNew && localCsvNew.trim());
         
         setExistingXml(hasXml);
         if (hasXml) {
@@ -178,7 +183,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         setXmlContent(content);
         setMessage({ text: 'XML file loaded successfully', type: 'success' });
         setReadingXml(false);
-        if (step === 'xml') {
+        if (step === 'xml' || step === 'all') {
           setXmlFileName(file.name);
           saveSingleStep('xml', content, file.name);
         }
@@ -188,24 +193,37 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
   };
 
   const readCSVFile = (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      setMessage({ text: 'Only CSV files are allowed', type: 'error' });
+    const lowerName = file.name.toLowerCase();
+    const isExcel = lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls');
+    if (!lowerName.endsWith('.csv') && !isExcel) {
+      setMessage({ text: 'Only CSV or Excel (.xlsx) files are allowed', type: 'error' });
       return;
     }
     setReadingCsv(true);
     const reader = new FileReader();
     reader.onload = (e) => {
       startTransition(() => {
-        const content = e.target?.result as string;
+        let content = '';
+        if (isExcel && e.target?.result) {
+          const workbook = XLSX.read(e.target.result, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          content = XLSX.utils.sheet_to_csv(firstSheet, { FS: ';' });
+        } else {
+          content = e.target?.result as string;
+        }
         setCsvContent(content);
         setMessage({ text: 'CSV Base file loaded successfully', type: 'success' });
         setReadingCsv(false);
-        if (step === 'csv_base') {
+        if (step === 'csv_base' || step === 'all') {
           saveSingleStep('csv_base', content);
         }
       });
     };
-    reader.readAsText(file);
+    if (isExcel) {
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.readAsText(file);
+    }
   };
 
   const readNewCSVFile = (file: File) => {
@@ -230,7 +248,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         setCsvNewContent(content);
         setMessage({ text: 'Matriz de nuevos precios cargada con éxito', type: 'success' });
         setReadingNewCsv(false);
-        if (step === 'csv_new') {
+        if (step === 'csv_new' || step === 'all') {
           saveSingleStep('csv_new', content);
         }
       });
@@ -592,23 +610,20 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         } catch (_) {}
       }
 
-      const { error } = await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .upsert(payload, { onConflict: 'company_name' });
+      const { error } = await upsertGeneralProcessRecord(payload, 'General_Procces');
 
       if (error) {
-        console.error('Supabase Error:', error);
-        setMessage({ text: `DB Error: ${error.message}`, type: 'error' });
-      } else {
-        setMessage({ text: 'Saved successfully', type: 'success' });
-        checkExistingFiles();
-        if (type === 'xml') {
-            window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'csv_base' } }));
-        } else if (type === 'csv_base') {
-            window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'csv_new' } }));
-        } else if (type === 'csv_new') {
-            window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'done' } }));
-        }
+        console.warn('Supabase persistence warning:', error);
+      }
+
+      setMessage({ text: 'Saved successfully', type: 'success' });
+      checkExistingFiles();
+      if (type === 'xml') {
+        window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'csv_base' } }));
+      } else if (type === 'csv_base') {
+        window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'csv_new' } }));
+      } else if (type === 'csv_new') {
+        window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'done' } }));
       }
     } catch (err) {
       console.error(err);

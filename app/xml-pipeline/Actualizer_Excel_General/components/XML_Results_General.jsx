@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { supabase, resolveXmlContent } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RefreshCw, 
@@ -169,7 +169,7 @@ const applyExcelVisualStyling = (xlsxArrayBuffer) => {
 
         const styledCells = inner.replace(/<c r="([A-Z]+)\d+"([^>]*)>([\s\S]*?)<\/c>/g, (cm, colStr, cAttrs, cInner) => {
           const colIdx = colLettersToIndex(colStr);
-          const hasVal = cInner.includes('<v>') && !cInner.includes('<v></v>');
+          const hasVal = cAttrs.includes('t="n"') && cInner.includes('<v>') && !cInner.includes('<v></v>');
           let sIdx = 0;
 
           if (isHeader) {
@@ -646,16 +646,30 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         delimiter: ";"
       });
       if (csvString) {
-        await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .update({ csv_raw: csvString })
-          .eq('company_name', 'General_Procces');
-
         if (typeof window !== 'undefined') {
+          try {
+            sessionStorage.setItem('csv_raw', csvString);
+          } catch (_) {}
           window.dispatchEvent(new CustomEvent('catalogMatrixUpdated', {
             detail: { headers, csvRaw: csvString }
           }));
         }
+
+        try {
+          const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://servex-ai-back.onrender.com';
+          const fdBase = new FormData();
+          fdBase.append('company_name', 'General_Procces');
+          fdBase.append('csv_raw', csvString);
+          fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-base`, {
+            method: 'POST',
+            body: fdBase
+          }).catch(() => {});
+        } catch (_) {}
+
+        await upsertGeneralProcessRecord(
+          { company_name: 'General_Procces', csv_raw: csvString },
+          'General_Procces'
+        );
       }
     } catch (err) {
       console.warn('⚠️ Error guardando csv_raw de la matriz:', err);
