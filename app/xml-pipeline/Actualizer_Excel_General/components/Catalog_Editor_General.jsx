@@ -1556,7 +1556,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           }`}
         >
           {/* Área de mensajes del chat conectado al MCP del Backend */}
-          <div className="flex-1 min-h-0 overflow-y-auto px-3.5 py-4 space-y-3.5 custom-scrollbar">
+          {/* `select-text` anula el `select-none` del contenedor raíz para permitir seleccionar y copiar mensajes */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-3.5 py-4 space-y-3.5 custom-scrollbar select-text cursor-text">
             <div className="flex items-start gap-2.5">
               {/* Avatar oficial de Alysa */}
               <div className="flex-shrink-0 flex items-center justify-center pt-0.5">
