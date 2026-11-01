@@ -12,7 +12,7 @@ import {
   FileSpreadsheet, 
   Sparkles 
 } from 'lucide-react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, ensureGeneralProcessBaseRecord } from '@/app/lib/supabaseClient';
 import { resetClientTracking } from '@/app/lib/trackingClient';
 
 export const purgeTenantDataBeacon = (currentTenant = 'General_Procces') => {
@@ -125,6 +125,11 @@ export const purgeTenantData = async (currentTenant = 'General_Procces') => {
     Promise.allSettled([dbPurgePromise, storageCleanupPromise, backendPromise]),
     timeoutPromise
   ]);
+
+  // 4. Montar inmediatamente la fila base con toda su estructura de columnas para que la DB NUNCA quede vacía
+  ensureGeneralProcessBaseRecord(currentTenant).catch(() => {});
+  // Pre-calentar backend en segundo plano tras el reinicio
+  fetch(`${backendUrl}/api/v1/${encodeURIComponent(currentTenant)}/agent/warmup`, { method: 'POST', keepalive: true }).catch(() => {});
 };
 
 const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) => {

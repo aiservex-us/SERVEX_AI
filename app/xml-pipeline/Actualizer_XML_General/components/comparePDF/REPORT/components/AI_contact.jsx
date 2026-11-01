@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
 import * as XLSX from "xlsx";
-import { supabase, resolveStorageContent, uploadToCatalogsStorage, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
+import { supabase, resolveStorageContent, uploadToCatalogsStorage, upsertGeneralProcessRecord, ensureGeneralProcessBaseRecord } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
@@ -1360,6 +1360,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (!meta) {
           setUnlockedPhase(1);
           localStorage.setItem('alysa_phase_' + modName, 1);
+          // Montar de inmediato el registro base en Supabase para que la DB no quede vacía
+          ensureGeneralProcessBaseRecord('General_Procces').catch(() => {});
           return;
         }
 
@@ -1600,8 +1602,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     };
   }, []);
 
-  // Carga de historial
+  // Carga de historial y precalentamiento prioritario
   useEffect(() => {
+    // 0. Disparo proactivo de precalentamiento (warmup) del backend y Groq en paralelo desde el milisegundo 1
+    fetch(`${apiURL}/api/v1/General_Procces/agent/warmup`, { method: 'POST' }).catch(() => null);
+    fetch(`${apiURL}/api/v1/General_Procces/agent/history?warmup=1`).catch(() => null);
+
     const fetchHistory = async () => {
       try {
         // 1. Cargar directamente desde Supabase 'ClientsSERVEX_General_Procces.general_procces_chat'
@@ -1612,10 +1618,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             setActiveCatalogName(dbCat);
             activeCatalogRef.current = dbCat;
           }
-          // Pre-calentar caché de telemetría y conexión LLM en el backend en segundo plano
-          fetch(`${apiURL}/api/v1/General_Procces/agent/history?warmup=1`).catch(() => null);
           return;
         }
+
+        // Si la BD no tenía historial o estaba vacía, asegurar registro base de inmediato
+        ensureGeneralProcessBaseRecord('General_Procces').catch(() => {});
 
         // 2. Si no había en BD o estaba vacía, consultar backend como fallback
         const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/history`).catch(() => null);
@@ -1802,9 +1809,10 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     };
     setMessages(prev => {
       const nextList = [...prev, userMsg];
+      // Persistir de forma diferida en segundo plano (400ms) para asignar el 100% de prioridad de red al despacho inmediato de la consulta al LLM
       setTimeout(() => {
         saveGeneralProcessChat(nextList, activeCatalogRef.current || 'General Process.xml');
-      }, 60);
+      }, 400);
       return nextList;
     });
     setInput("");

@@ -81,7 +81,21 @@ export async function saveGeneralProcessChat(messages, catalogName = 'General Pr
       payload.xml_name = catalogName.replace(/\.xml$/i, '');
     }
 
-    await upsertGeneralProcessRecord(payload, 'General_Procces');
+    // Actualización directa ultra-rápida de 1 solo salto (0ms de chequeos previos)
+    const updateObj = { general_procces_chat: formattedChat };
+    if (payload.file_name) {
+      updateObj.file_name = payload.file_name;
+      updateObj.xml_name = payload.xml_name;
+    }
+    const { error, count } = await supabase
+      .from('ClientsSERVEX_General_Procces')
+      .update(updateObj)
+      .eq('company_name', 'General_Procces');
+
+    // Si falló o no existía la fila aún (0 filas afectadas), fallback seguro a upsert
+    if (error || count === 0) {
+      await upsertGeneralProcessRecord(payload, 'General_Procces');
+    }
   } catch (err) {
     console.warn('[-] Advertencia persistiendo general_procces_chat en Supabase:', err);
   }

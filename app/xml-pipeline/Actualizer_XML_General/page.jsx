@@ -6,7 +6,7 @@ import ImportCETXml from '../Actualizer_Excel_General/components/IncertDataExcel
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase, getCurrentUser } from '../../lib/supabaseClient.js';
+import { supabase, getCurrentUser, ensureGeneralProcessBaseRecord } from '../../lib/supabaseClient.js';
 import { X, AlertCircle, Sparkles, Settings, RotateCcw, LogOut } from 'lucide-react';
 import TeamsAgentChat from './components/comparePDF/REPORT/components/AI_contact.jsx';
 import AnimatedChatBackground from './components/AnimatedChatBackground.jsx';
@@ -42,6 +42,13 @@ export default function MenuInicial() {
       const saved = localStorage.getItem('servex_theme');
       if (saved) setIsDarkMode(saved === 'dark');
     } catch (_) {}
+  }, []);
+
+  // Asegurar estructura base en Supabase y disparar precalentamiento inmediato del backend al ingresar
+  useEffect(() => {
+    ensureGeneralProcessBaseRecord('General_Procces').catch(() => {});
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+    fetch(`${backendUrl}/api/v1/General_Procces/agent/warmup`, { method: 'POST' }).catch(() => {});
   }, []);
 
   const handleToggleTheme = () => {

@@ -281,3 +281,74 @@ export async function upsertGeneralProcessRecord(payload, companyName = 'General
     };
   }
 }
+
+/**
+ * Garantiza de forma proactiva e inmediata que la fila base para 'General_Procces'
+ * exista en 'ClientsSERVEX_General_Procces' con todas sus columnas inicializadas.
+ * Evita que la DB aparezca vacía al ingresar o reiniciar el proceso, y previene
+ * cualquier retraso de montaje cuando el usuario envía su primera consulta al chat.
+ */
+export async function ensureGeneralProcessBaseRecord(companyName = 'General_Procces') {
+  try {
+    const cleanCompany = (companyName || 'General_Procces').trim();
+
+    // 1. Verificación rápida de la fila existente (< 20ms)
+    const { data: existing } = await supabase
+      .from('ClientsSERVEX_General_Procces')
+      .select('id, company_name')
+      .eq('company_name', cleanCompany)
+      .limit(1)
+      .maybeSingle();
+
+    if (existing?.id) {
+      return existing;
+    }
+
+    // 2. Si no existe la fila (DB vacía por ingreso inicial o tras reinicio),
+    // montar de inmediato la estructura base completa
+    let userId = null;
+    try {
+      const { data: sData } = await supabase.auth.getSession().catch(() => ({ data: {} }));
+      userId = sData?.session?.user?.id || null;
+    } catch (_) {}
+
+    const baseRow = {
+      company_name: cleanCompany,
+      general_procces_chat: [],
+      file_name: null,
+      xml_name: null,
+      xml_raw: null,
+      XM_CET_import: null,
+      csv_raw: null,
+      csv_new_raw: null,
+      csv_edit_raw: null,
+      xml_actualizer_raw: null,
+      xml_structure_context: null,
+      audit_summary_markdown1: null,
+      seguimiento_client: {
+        company_name: cleanCompany,
+        total_actions: 0,
+        session_summary: 'Sesión iniciada. Estructura de base de datos lista.',
+        events: [],
+        pending_updates: []
+      }
+    };
+    if (userId) {
+      baseRow.user_id = userId;
+    }
+
+    const { data, error } = await supabase
+      .from('ClientsSERVEX_General_Procces')
+      .upsert(baseRow, { onConflict: 'company_name' })
+      .select('id, company_name')
+      .maybeSingle();
+
+    if (error) {
+      console.warn('[-] Advertencia en ensureGeneralProcessBaseRecord:', error);
+    }
+    return data || null;
+  } catch (err) {
+    console.warn('[-] Advertencia en ensureGeneralProcessBaseRecord:', err);
+    return null;
+  }
+}

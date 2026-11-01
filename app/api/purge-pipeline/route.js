@@ -54,7 +54,7 @@ async function handlePurge(req) {
       }
     })();
 
-    // 3. En paralelo con timeout rápido: Notificar al backend de Python
+    // 3. En paralelo con timeout rápido: Notificar al backend de Python y activar precalentamiento (warmup)
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
     const backendNotifyPromise = (async () => {
       try {
@@ -62,12 +62,41 @@ async function handlePurge(req) {
           fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
           fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/clear-session`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
           fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/agent/history`, { method: 'DELETE', signal: AbortSignal.timeout(1200) }),
+          fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/agent/warmup`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
         ]);
       } catch (_) {}
     })();
 
-    // Ejecutar todo en paralelo asegurando que el borrado de base de datos se complete sin esperas bloqueantes
+    // Ejecutar borrado, almacenamiento y notificación en paralelo asegurando completitud
     await Promise.allSettled([...dbDeletePromises, storageCleanupPromise, backendNotifyPromise]);
+
+    // 4. Montar inmediatamente la fila base para que la DB NUNCA quede vacía y la estructura esté 100% lista
+    try {
+      const cleanRow = {
+        company_name: tenant,
+        general_procces_chat: [],
+        file_name: null,
+        xml_name: null,
+        xml_raw: null,
+        XM_CET_import: null,
+        csv_raw: null,
+        csv_new_raw: null,
+        csv_edit_raw: null,
+        xml_actualizer_raw: null,
+        xml_structure_context: null,
+        audit_summary_markdown1: null,
+        seguimiento_client: {
+          company_name: tenant,
+          total_actions: 0,
+          session_summary: 'Sesión reiniciada. Estructura de base de datos lista.',
+          events: [],
+          pending_updates: []
+        }
+      };
+      await supabase.from('ClientsSERVEX_General_Procces').upsert(cleanRow, { onConflict: 'company_name' });
+    } catch (recreateErr) {
+      console.warn('Advertencia re-montando registro base en purge:', recreateErr);
+    }
 
     return NextResponse.json({
       status: 'success',
