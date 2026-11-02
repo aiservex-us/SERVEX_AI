@@ -30,6 +30,8 @@ import {
   ChevronsRight,
   FileSpreadsheet,
   Zap,
+  Filter,
+  Tag,
   Paperclip,
   Mic,
   HelpCircle,
@@ -80,6 +82,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const [chatMessages, setChatMessages] = useState([]);
   const [isMcpThinking, setIsMcpThinking] = useState(false);
   const [mcpActiveSkuFilter, setMcpActiveSkuFilter] = useState(null);
+  const [activeFilterTab, setActiveFilterTab] = useState('precios');
   const chatScrollEndRef = useRef(null);
 
   const apiURL =
@@ -402,6 +405,275 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     }
   }, [activeCell]);
 
+  // Generación reactiva de facetas y filtros MCP inteligentes sobre la matriz activa
+  const catalogFacets = useMemo(() => {
+    if (!editRows || editRows.length === 0) {
+      return {
+        precios: [],
+        options: [],
+        muebles: [],
+        categorias: [],
+        calidad: []
+      };
+    }
+
+    const optionCols = headers.filter(
+      (h) => !BASE_HEADERS.includes(h) && !h.startsWith('_')
+    );
+
+    const activeRows = editRows.filter((r) => {
+      const sku = String(r['Model #'] || '').trim();
+      return sku && !deletedSkus.has(sku);
+    });
+
+    const parsedRows = activeRows.map((r) => {
+      const sku = String(r['Model #'] || '').trim();
+      const price = parseFloat(String(r['List Price'] || '').replace(/[^0-9.-]/g, '')) || 0;
+      const weight = parseFloat(String(r['Weight'] || '').replace(/[^0-9.-]/g, '')) || 0;
+      const cat = String(r['Classic/ Premium'] || '').trim();
+      const modelName = String(r['Model Name'] || '').trim();
+
+      const activeOpts = [];
+      optionCols.forEach((col) => {
+        const val = parseFloat(String(r[col] || '').replace(/[^0-9.-]/g, ''));
+        if (!isNaN(val) && val > 0) {
+          activeOpts.push({ col, val });
+        }
+      });
+
+      const lowerName = modelName.toLowerCase();
+      let pType = 'Otros';
+      if (/chair|seating|seat|task|guest|stacker|silla/.test(lowerName)) pType = 'Sillas';
+      else if (/stool|taburete/.test(lowerName)) pType = 'Taburetes';
+      else if (/bench|benching|banca/.test(lowerName)) pType = 'Bancas';
+      else if (/desk|workstation|credenza|escritorio/.test(lowerName)) pType = 'Escritorios';
+      else if (/table|mesa|conference/.test(lowerName)) pType = 'Mesas';
+      else if (/lounge|sofa|settee|ottoman/.test(lowerName)) pType = 'Lounge / Sofás';
+      else if (/storage|cabinet|pedestal|bookcase|file|lateral|almacenamiento/.test(lowerName)) pType = 'Almacenamiento';
+
+      return {
+        sku,
+        price,
+        weight,
+        cat,
+        modelName,
+        pType,
+        optsCount: activeOpts.length,
+        activeOpts
+      };
+    });
+
+    const pricedRows = parsedRows.filter((r) => r.price > 0).sort((a, b) => b.price - a.price);
+    const avgPrice = pricedRows.length > 0
+      ? pricedRows.reduce((acc, r) => acc + r.price, 0) / pricedRows.length
+      : 0;
+
+    // 1. PRECIOS
+    const top10Caros = pricedRows.slice(0, 10).map((r) => r.sku);
+    const top10Baratos = [...pricedRows].sort((a, b) => a.price - b.price).slice(0, 10).map((r) => r.sku);
+    const sobrePromedio = pricedRows.filter((r) => r.price > avgPrice).map((r) => r.sku);
+    const bajoPromedio = pricedRows.filter((r) => r.price <= avgPrice).map((r) => r.sku);
+
+    const preciosFilters = [
+      {
+        id: 'p-top-high',
+        label: 'Top 10 más caros',
+        prompt: 'Muestra los 10 productos más caros de la matriz',
+        skus: top10Caros,
+        badge: `${top10Caros.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_price', parameters: { operator: 'top_highest', limit: 10 } }
+      },
+      {
+        id: 'p-top-low',
+        label: 'Top 10 más baratos',
+        prompt: 'Muestra los 10 productos más económicos de la matriz',
+        skus: top10Baratos,
+        badge: `${top10Baratos.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_price', parameters: { operator: 'top_lowest', limit: 10 } }
+      },
+      ...(avgPrice > 0 ? [
+        {
+          id: 'p-above-avg',
+          label: `Sobre el promedio (> $${Math.round(avgPrice).toLocaleString()})`,
+          prompt: `Filtra productos con List Price superior al promedio ($${Math.round(avgPrice).toLocaleString()})`,
+          skus: sobrePromedio,
+          badge: `${sobrePromedio.length} SKUs`,
+          toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_price: avgPrice + 0.01 } }
+        },
+        {
+          id: 'p-below-avg',
+          label: `Bajo el promedio (≤ $${Math.round(avgPrice).toLocaleString()})`,
+          prompt: `Filtra productos con List Price menor o igual al promedio ($${Math.round(avgPrice).toLocaleString()})`,
+          skus: bajoPromedio,
+          badge: `${bajoPromedio.length} SKUs`,
+          toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { max_price: avgPrice } }
+        }
+      ] : [])
+    ];
+
+    // 2. OPTION PRICES (Combinaciones)
+    const sinOpciones = parsedRows.filter((r) => r.optsCount === 0).map((r) => r.sku);
+    const opts1a5 = parsedRows.filter((r) => r.optsCount >= 1 && r.optsCount <= 5).map((r) => r.sku);
+    const opts6a15 = parsedRows.filter((r) => r.optsCount >= 6 && r.optsCount <= 15).map((r) => r.sku);
+    const optsMas15 = parsedRows.filter((r) => r.optsCount > 15).map((r) => r.sku);
+    const topMasOpciones = [...parsedRows].filter(r => r.optsCount > 0).sort((a, b) => b.optsCount - a.optsCount).slice(0, 15).map((r) => r.sku);
+
+    const optionsFilters = [
+      {
+        id: 'opt-zero',
+        label: 'Sin option prices (Base)',
+        prompt: 'Filtra productos base que no tienen recargos ni option prices configurados',
+        skus: sinOpciones,
+        badge: `${sinOpciones.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { max_options: 0 } }
+      },
+      ...(opts1a5.length > 0 ? [{
+        id: 'opt-1-5',
+        label: '1 a 5 option prices',
+        prompt: 'Filtra productos configurables que tienen entre 1 y 5 option prices',
+        skus: opts1a5,
+        badge: `${opts1a5.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 1, max_options: 5 } }
+      }] : []),
+      ...(opts6a15.length > 0 ? [{
+        id: 'opt-6-15',
+        label: '6 a 15 option prices',
+        prompt: 'Filtra productos con combinaciones medianas (entre 6 y 15 option prices)',
+        skus: opts6a15,
+        badge: `${opts6a15.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 6, max_options: 15 } }
+      }] : []),
+      ...(optsMas15.length > 0 ? [{
+        id: 'opt-gt-15',
+        label: 'Más de 15 option prices',
+        prompt: 'Filtra productos altamente configurables con más de 15 option prices',
+        skus: optsMas15,
+        badge: `${optsMas15.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 16 } }
+      }] : []),
+      ...(topMasOpciones.length > 0 ? [{
+        id: 'opt-top-combo',
+        label: 'Top 15 con más combinaciones',
+        prompt: 'Muestra los 15 productos con mayor número de combinaciones de opciones',
+        skus: topMasOpciones,
+        badge: `${topMasOpciones.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { sort_by: 'options_desc', top_n: 15 } }
+      }] : [])
+    ];
+
+    // Opciones individuales frecuentes
+    const optColCounts = {};
+    parsedRows.forEach((r) => {
+      r.activeOpts.forEach(({ col }) => {
+        optColCounts[col] = (optColCounts[col] || 0) + 1;
+      });
+    });
+    const sortedOptCols = Object.entries(optColCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6);
+
+    sortedOptCols.forEach(([colName, count]) => {
+      const colSkus = parsedRows.filter((r) => r.activeOpts.some((o) => o.col === colName)).map((r) => r.sku);
+      const cleanColName = colName.length > 22 ? colName.slice(0, 20) + '…' : colName;
+      optionsFilters.push({
+        id: `opt-col-${cleanColName}`,
+        label: `Con: ${cleanColName}`,
+        prompt: `Filtra productos que tienen configurada la opción "${colName}"`,
+        skus: colSkus,
+        badge: `${count} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { options_any: [colName] } }
+      });
+    });
+
+    // 3. TIPOS DE MUEBLE
+    const typeGroups = {};
+    parsedRows.forEach((r) => {
+      if (!typeGroups[r.pType]) typeGroups[r.pType] = [];
+      typeGroups[r.pType].push(r.sku);
+    });
+    const mueblesFilters = Object.entries(typeGroups)
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([typeName, skus]) => ({
+        id: `type-${typeName}`,
+        label: typeName,
+        prompt: `Filtra únicamente los productos de tipo "${typeName}"`,
+        skus,
+        badge: `${skus.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { product_types: [typeName] } }
+      }));
+
+    // 4. CATEGORÍAS (Classic / Premium)
+    const catGroups = {};
+    parsedRows.forEach((r) => {
+      const c = r.cat || 'Standard';
+      if (!catGroups[c]) catGroups[c] = [];
+      catGroups[c].push(r.sku);
+    });
+    const categoriasFilters = Object.entries(catGroups)
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([catName, skus]) => ({
+        id: `cat-${catName}`,
+        label: catName,
+        prompt: `Filtra productos en categoría "${catName}"`,
+        skus,
+        badge: `${skus.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { categories: [catName] } }
+      }));
+
+    // 5. AUDITORÍA / CALIDAD
+    const sinPrecio = parsedRows.filter((r) => r.price <= 0).map((r) => r.sku);
+    const sinPeso = parsedRows.filter((r) => r.weight <= 0).map((r) => r.sku);
+    const sinCat = parsedRows.filter((r) => !r.cat).map((r) => r.sku);
+    const sinNombre = parsedRows.filter((r) => !r.modelName).map((r) => r.sku);
+
+    const calidadFilters = [
+      ...(sinPrecio.length > 0 ? [{
+        id: 'audit-price',
+        label: 'Sin List Price ($0 o vacío)',
+        prompt: 'Auditoría: Lista todos los productos que no tienen precio asignado',
+        skus: sinPrecio,
+        badge: `${sinPrecio.length} SKUs`,
+        isAudit: true,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['price'] } }
+      }] : []),
+      ...(sinPeso.length > 0 ? [{
+        id: 'audit-weight',
+        label: 'Sin peso registrado (Weight)',
+        prompt: 'Auditoría: Lista productos que no tienen peso registrado',
+        skus: sinPeso,
+        badge: `${sinPeso.length} SKUs`,
+        isAudit: true,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['weight'] } }
+      }] : []),
+      ...(sinCat.length > 0 ? [{
+        id: 'audit-cat',
+        label: 'Sin categoría comercial',
+        prompt: 'Auditoría: Productos sin valor en Classic/ Premium',
+        skus: sinCat,
+        badge: `${sinCat.length} SKUs`,
+        isAudit: true,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['category'] } }
+      }] : []),
+      ...(sinNombre.length > 0 ? [{
+        id: 'audit-name',
+        label: 'Sin Model Name / Descripción',
+        prompt: 'Auditoría: Productos con Model Name vacío',
+        skus: sinNombre,
+        badge: `${sinNombre.length} SKUs`,
+        isAudit: true,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['name'] } }
+      }] : [])
+    ];
+
+    return {
+      precios: preciosFilters.filter((f) => f.skus.length > 0),
+      options: optionsFilters.filter((f) => f.skus.length > 0),
+      muebles: mueblesFilters.filter((f) => f.skus.length > 0),
+      categorias: categoriasFilters.filter((f) => f.skus.length > 0),
+      calidad: calidadFilters.filter((f) => f.skus.length > 0)
+    };
+  }, [editRows, headers, deletedSkus]);
+
   // Filtrado de filas según búsqueda, pestaña activa y filtro MCP devuelto por el backend
   const filteredRows = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -431,7 +703,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
   // Enviar mensaje al servidor MCP + RAG del backend (`/api/v1/General_Procces/matrix-editor/mcp-chat`)
   const handleSendMatrixChat = useCallback(
-    async (overridePrompt = null) => {
+    async (overridePrompt = null, explicitToolCall = null, precomputedSkus = null, filterLabelOverride = null) => {
       const rawText = overridePrompt !== null ? overridePrompt : chatInputUi;
       const query = String(rawText || '').trim();
       if (!query || isMcpThinking) return;
@@ -469,7 +741,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 role: m.role,
                 content: m.text
               })),
-              csv_edit_raw: currentCsvEditRaw
+              csv_edit_raw: currentCsvEditRaw,
+              tool_call: explicitToolCall || undefined
             })
           });
 
@@ -508,13 +781,18 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           }
         }
 
-        const matchedSkus = Array.isArray(data?.matched_skus) ? data.matched_skus : [];
+        const backendSkus = Array.isArray(data?.matched_skus) ? data.matched_skus : [];
+        const matchedSkus = backendSkus.length > 0
+          ? backendSkus
+          : (Array.isArray(precomputedSkus) && precomputedSkus.length > 0 ? precomputedSkus : []);
+
         const mcpTraces = Array.isArray(data?.mcp_traces) ? data.mcp_traces : [];
         const primaryFilter = mcpTraces.find(
           (t) =>
             t.tool === 'mcp::csv_edit_matrix.filter_by_price' ||
             t.tool === 'mcp::csv_edit_matrix.filter_by_category' ||
-            t.tool === 'mcp::csv_edit_matrix.filter_products'
+            t.tool === 'mcp::csv_edit_matrix.filter_products' ||
+            t.tool === 'mcp::csv_edit_matrix.advanced_filter'
         );
 
         // Si el usuario solicitó filtrar o aislar los productos en la tabla, activar filtro automáticamente
@@ -523,9 +801,9 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           matchedSkus.length > 0 &&
           /\b(filtra|filtrar|filtro|muestra|muestrame|mostrar|tabla|solo\s+los|deja\s+solo|aislar)\b/.test(qLower)
         ) {
-          const filterTag = primaryFilter
+          const filterTag = filterLabelOverride || (primaryFilter
             ? `${primaryFilter.tool.replace('mcp::csv_edit_matrix.', '')} (${matchedSkus.length})`
-            : `${matchedSkus.length} SKUs`;
+            : `${matchedSkus.length} SKUs`);
           setMcpActiveSkuFilter({
             label: filterTag,
             skuSet: new Set(matchedSkus)
@@ -539,9 +817,9 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           mcpTraces,
           matchedSkus,
-          filterLabel: primaryFilter
+          filterLabel: filterLabelOverride || (primaryFilter
             ? `${primaryFilter.tool.replace('mcp::csv_edit_matrix.', '')} (${matchedSkus.length} SKUs)`
-            : null
+            : `${matchedSkus.length} SKUs`)
         };
 
         setChatMessages((prev) => [...prev, botMsg]);
@@ -1615,27 +1893,119 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                     </li>
                   </ul>
 
-                  {/* Accesos rápidos a herramientas del MCP */}
-                  <div className="pt-1.5 flex flex-wrap gap-1">
-                    {[
-                      'Top 10 más caros',
-                      'Precios menores a $400',
-                      'Precios mayores a $800',
-                      'Resumen por categoría'
-                    ].map((quickPrompt) => (
-                      <button
-                        key={quickPrompt}
-                        type="button"
-                        onClick={() => handleSendMatrixChat(quickPrompt)}
-                        className={`px-2 py-0.5 text-[9.5px] font-mono border rounded-none transition-colors cursor-pointer ${
-                          isDarkMode
-                            ? 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/15 hover:text-white'
-                            : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 hover:text-black'
-                        }`}
-                      >
-                        {quickPrompt}
-                      </button>
-                    ))}
+                  {/* Selector interactivo y categorizado de herramientas y filtros MCP */}
+                  <div className="pt-2 space-y-2 border-t border-white/10">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
+                        <SlidersHorizontal size={11} />
+                        Filtros Rápidos & Combinaciones MCP:
+                      </span>
+                    </div>
+
+                    {/* Barra de pestañas para categorizar los filtros */}
+                    <div className="flex items-center gap-1 border-b border-white/10 pb-1.5 overflow-x-auto custom-scrollbar">
+                      {[
+                        { id: 'precios', label: 'Precios', count: catalogFacets.precios.length },
+                        { id: 'options', label: 'Option Prices', count: catalogFacets.options.length },
+                        { id: 'muebles', label: 'Tipos', count: catalogFacets.muebles.length },
+                        { id: 'categorias', label: 'Categorías', count: catalogFacets.categorias.length },
+                        { id: 'calidad', label: 'Auditoría', count: catalogFacets.calidad.length }
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setActiveFilterTab(tab.id)}
+                          className={`px-2 py-0.5 text-[9.5px] font-mono border rounded-none shrink-0 transition-all cursor-pointer flex items-center gap-1 ${
+                            activeFilterTab === tab.id
+                              ? isDarkMode
+                                ? 'bg-white text-zinc-950 border-white font-bold'
+                                : 'bg-[#18181b] text-white border-[#18181b] font-bold'
+                              : isDarkMode
+                                ? 'bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:bg-white/10'
+                                : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-black hover:bg-slate-200'
+                          }`}
+                        >
+                          <span>{tab.label}</span>
+                          <span className="opacity-70 text-[8.5px]">({tab.count})</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Chips inteligentes bajo la pestaña activa */}
+                    <div className="flex flex-wrap gap-1.5 pt-0.5 max-h-[175px] overflow-y-auto custom-scrollbar pr-0.5">
+                      {(catalogFacets[activeFilterTab] || []).length === 0 ? (
+                        <div className="text-[10px] font-mono opacity-60 italic py-1">
+                          No hay filtros disponibles en esta categoría para la matriz actual.
+                        </div>
+                      ) : (
+                        (catalogFacets[activeFilterTab] || []).map((f) => {
+                          const isCurrentlyApplied = mcpActiveSkuFilter?.label === f.label;
+                          return (
+                            <div
+                              key={f.id}
+                              className={`inline-flex items-center border rounded-none text-[9.5px] font-mono transition-all ${
+                                isCurrentlyApplied
+                                  ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300'
+                                  : isDarkMode
+                                    ? 'bg-white/5 border-white/10 text-zinc-300 hover:border-white/30'
+                                    : 'bg-slate-100 border-slate-200 text-slate-800 hover:border-slate-400'
+                              }`}
+                            >
+                              {/* Botón principal: Consulta MCP + Análisis RAG */}
+                              <button
+                                type="button"
+                                onClick={() => handleSendMatrixChat(f.prompt, f.toolCall, f.skus, f.label)}
+                                title={`Consultar análisis MCP: "${f.prompt}"`}
+                                className="px-2 py-1 flex items-center gap-1.5 cursor-pointer hover:underline"
+                              >
+                                {f.isAudit && <AlertCircle size={9.5} className="text-amber-400 shrink-0" />}
+                                <span>{f.label}</span>
+                                <span
+                                  className={`px-1 py-0.2 rounded-none text-[8.5px] ${
+                                    isCurrentlyApplied
+                                      ? 'bg-emerald-500 text-zinc-950 font-bold'
+                                      : isDarkMode
+                                        ? 'bg-white/10 text-zinc-200'
+                                        : 'bg-slate-200 text-slate-700 font-semibold'
+                                  }`}
+                                >
+                                  {f.badge}
+                                </span>
+                              </button>
+
+                              {/* Botón secundario: Aplicar directo en tabla (0ms) */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (isCurrentlyApplied) {
+                                    setMcpActiveSkuFilter(null);
+                                  } else {
+                                    setMcpActiveSkuFilter({
+                                      label: f.label,
+                                      skuSet: new Set(f.skus)
+                                    });
+                                  }
+                                }}
+                                title={isCurrentlyApplied ? 'Quitar filtro de la tabla' : `Aislar ${f.badge} directamente en la tabla`}
+                                className={`px-1.5 py-1 border-l transition-colors cursor-pointer flex items-center gap-0.5 ${
+                                  isCurrentlyApplied
+                                    ? 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700'
+                                    : isDarkMode
+                                      ? 'border-white/10 hover:bg-white/20 text-zinc-300 hover:text-white'
+                                      : 'border-slate-200 hover:bg-slate-200 text-slate-600 hover:text-black'
+                                }`}
+                              >
+                                {isCurrentlyApplied ? <Check size={10} /> : <Zap size={10} />}
+                                <span className="text-[8.5px] font-sans uppercase font-bold tracking-wider">
+                                  {isCurrentlyApplied ? 'Activo' : 'Tabla'}
+                                </span>
+                              </button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1721,22 +2091,39 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
                       {/* Acción para aplicar el resultado del filtro MCP directamente sobre la tabla */}
                       {Array.isArray(msg.matchedSkus) && msg.matchedSkus.length > 0 && (
-                        <div className="pt-1.5 border-t border-white/10 flex items-center justify-between gap-2">
+                        <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
                           <button
                             type="button"
-                            onClick={() =>
-                              setMcpActiveSkuFilter({
-                                label: msg.filterLabel || `${msg.matchedSkus.length} SKUs`,
-                                skuSet: new Set(msg.matchedSkus)
-                              })
-                            }
-                            className={`px-2 py-1 text-[9.5px] font-bold uppercase tracking-wider border rounded-none transition-colors cursor-pointer ${
-                              isDarkMode
-                                ? 'bg-white text-zinc-950 border-white hover:bg-zinc-200'
-                                : 'bg-[#18181b] text-white border-[#18181b] hover:bg-zinc-800'
+                            onClick={() => {
+                              const targetLabel = msg.filterLabel || `${msg.matchedSkus.length} SKUs`;
+                              if (mcpActiveSkuFilter?.label === targetLabel) {
+                                setMcpActiveSkuFilter(null);
+                              } else {
+                                setMcpActiveSkuFilter({
+                                  label: targetLabel,
+                                  skuSet: new Set(msg.matchedSkus)
+                                });
+                              }
+                            }}
+                            className={`px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-wider border rounded-none transition-all cursor-pointer flex items-center gap-1.5 ${
+                              mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`)
+                                ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                                : isDarkMode
+                                  ? 'bg-white text-zinc-950 border-white hover:bg-zinc-200'
+                                  : 'bg-[#18181b] text-white border-[#18181b] hover:bg-zinc-800'
                             }`}
                           >
-                            Aplicar filtro en tabla ({msg.matchedSkus.length} SKUs)
+                            {mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`) ? (
+                              <>
+                                <Check size={11} className="shrink-0" />
+                                <span>Filtro activo en tabla ({msg.matchedSkus.length} SKUs) · Quitar</span>
+                              </>
+                            ) : (
+                              <>
+                                <Filter size={11} className="shrink-0" />
+                                <span>Aplicar filtro en tabla ({msg.matchedSkus.length} SKUs)</span>
+                              </>
+                            )}
                           </button>
                         </div>
                       )}
