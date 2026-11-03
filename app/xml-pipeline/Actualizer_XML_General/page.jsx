@@ -29,6 +29,7 @@ import DeleteData, { purgeTenantData, purgeTenantDataBeacon } from './components
 import CETComparator from '../Actualizer_Excel_General/components/CET_Comparator.jsx';
 import ProcessGridHistory from './components/ProcessGridHistory.jsx';
 import ExitPipelineModal from './components/ExitPipelineModal.jsx';
+import GlobalOnboarding from '@/app/components/GlobalOnboarding.jsx';
 
 export default function MenuInicial() {
   const [active, setActive] = useState('reporting');
@@ -332,7 +333,8 @@ export default function MenuInicial() {
   */
 
   return (
-    <div className={`w-full h-screen overflow-hidden ${isDarkMode ? 'bg-[#09090b]' : 'bg-white'} font-sans flex flex-col m-0 p-0 min-h-0 relative transition-colors duration-500`}>
+    <GlobalOnboarding isDarkMode={isDarkMode}>
+      <div className={`w-full h-screen overflow-hidden ${isDarkMode ? 'bg-[#09090b]' : 'bg-white'} font-sans flex flex-col m-0 p-0 min-h-0 relative transition-colors duration-500`}>
 
       <ExitPipelineModal
         isOpen={showExitModal}
@@ -479,5 +481,6 @@ export default function MenuInicial() {
         </div>
       </main>
     </div>
+  </GlobalOnboarding>
   );
 }
