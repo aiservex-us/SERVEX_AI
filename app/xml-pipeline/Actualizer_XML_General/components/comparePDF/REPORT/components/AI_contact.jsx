@@ -29,7 +29,6 @@ const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
   { id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4, category: 'Export Data From CET or Client' },
-  { id: 'compareCET', icon: Sparkles, label: '/compareCET', desc: 'Compare CET XML against Base', phase: 4, category: 'Export Data From CET or Client' },
 
   { id: 'import', icon: Database, label: '/importBase', desc: 'Subir matriz CSV de nuevos precios (csv_new_raw)', phase: 1, category: 'Step 1: Data Ingestion' },
   { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2, category: 'Step 1: Data Ingestion' },
@@ -399,7 +398,7 @@ const AI_GUIDE_QUESTIONS = [
     category: "Autonomous Pipeline",
     tag: "Slash Commands",
     q: "What slash commands ('/') are available to navigate and control the pipeline?",
-    desc: "Interactive command suite: /importBase, /executeProcess, /compareCET, and /exportCETcsv."
+    desc: "Interactive command suite: /importBase, /executeProcess, and /exportCETcsv."
   },
   {
     category: "Autonomous Pipeline",
@@ -1230,7 +1229,7 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
     }
 
     // Inyectar botones interactivos para comandos de barra después del markdown
-    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|exportExcel|downloadExcel|compareCET|importBase|saveCatalog|deleteData|executeProcess))\b/gi;
+    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|exportExcel|downloadExcel|importBase|saveCatalog|deleteData|executeProcess))\b/gi;
     const btnClass = isDarkMode
       ? 'text-zinc-100 hover:text-white font-semibold underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none'
       : 'text-[#18181b] hover:text-[#27272a] font-semibold hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none';
@@ -1880,9 +1879,6 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         title: 'Apertura de Matriz de Catálogo',
         description: 'El usuario solicitó abrir la tabla y matriz de exportación del catálogo.'
       });
-      if (typeof onOpenToolPanel === 'function') {
-        onOpenToolPanel('xml_results');
-      }
       setTimeout(() => {
         setMessages(prev => [
           ...prev, 
@@ -1901,10 +1897,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
     if (qLower === '/comparecet') {
       setTimeout(() => {
-        setMessages(prev => [...prev, { from: 'bot', text: 'Deploying CET Comparator on the main panel...', isNew: true }]);
-        if (typeof onOpenToolPanel === 'function') onOpenToolPanel('compare_cet');
+        setMessages(prev => [
+          ...prev,
+          {
+            from: 'bot',
+            text: 'Aquí tienes el **Comparador CET** integrado para auditar cambios:',
+            toolId: 'compare_cet',
+            isNew: true
+          }
+        ]);
         setIsLoading(false);
-        scrollToBottom(true);
+        setTimeout(() => scrollToBottom(true), 150);
       }, 500);
       return;
     }

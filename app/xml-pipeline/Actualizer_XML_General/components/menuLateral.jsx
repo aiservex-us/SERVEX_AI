@@ -5,8 +5,7 @@ import {
   LogOut,
   Sparkles,
   FileSpreadsheet,
-  FileCode,
-  FileDiff,
+  LayoutGrid,
   Sun,
   Moon
 } from 'lucide-react';
@@ -220,29 +219,16 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
               isDarkMode={isDarkMode}
             />
 
-            {/* STEP 3: Current Catalog */}
+            {/* STEP 3: Process & Catalog Grid */}
             <SidebarIcon
-              icon={<FileCode size={17} />}
-              active={active === 'inbox_updated'}
-              title="Current Catalog"
+              icon={<LayoutGrid size={17} />}
+              active={active === 'process_grid'}
+              title="Historial de Procesos & Catálogos"
               stepNumber="STEP 3"
-              tagline="Catalog"
-              description="Inspeccionar registros activos del catálogo, precios actualizados y filas de productos ingeridas."
-              tip="Abrir Catálogo Activo"
-              onClick={() => setActive('inbox_updated')}
-              isDarkMode={isDarkMode}
-            />
-
-            {/* STEP 4: XML Results */}
-            <SidebarIcon
-              icon={<FileDiff size={17} />}
-              active={active === 'dashboard'}
-              title="XML Results & Diff"
-              stepNumber="STEP 4"
-              tagline="ETL Engine"
-              description="Desglose del catálogo posproceso, cambios en la estructura de nodos y verificación final del XML."
-              tip="Ver Resultados XML"
-              onClick={() => setActive('dashboard')}
+              tagline="Grid"
+              description="Registro y grilla central de catálogos subidos y procesos ejecutados por el usuario."
+              tip="Abrir Grilla de Procesos"
+              onClick={() => setActive('process_grid')}
               isDarkMode={isDarkMode}
             />
           </nav>
@@ -265,17 +251,10 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             isDarkMode={isDarkMode}
           />
           <SidebarIcon
-            icon={<FileCode size={18} />}
-            active={active === 'inbox_updated'}
-            title="Catalog"
-            onClick={() => setActive('inbox_updated')}
-            isDarkMode={isDarkMode}
-          />
-          <SidebarIcon
-            icon={<FileDiff size={18} />}
-            active={active === 'dashboard'}
-            title="Results"
-            onClick={() => setActive('dashboard')}
+            icon={<LayoutGrid size={18} />}
+            active={active === 'process_grid'}
+            title="Procesos"
+            onClick={() => setActive('process_grid')}
             isDarkMode={isDarkMode}
           />
           <SidebarIcon

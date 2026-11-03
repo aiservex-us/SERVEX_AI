@@ -6,7 +6,6 @@ import {
   FileCode2,
   Table,
   CheckCircle2,
-  Sparkles,
   Download,
   Database,
   Layers,
@@ -525,14 +524,6 @@ function AiCatalogIngestionReport({
           >
             <Download size={13} />
             <span>/exportCETcsv</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onCommandSelect && onCommandSelect('/compareCET')}
-            className={`px-3 py-1.5 rounded-none ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white border-white/20' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'} border font-semibold shadow-2xs flex items-center gap-1.5 text-xs transition-all hover:scale-[1.02] cursor-pointer`}
-          >
-            <Sparkles size={13} />
-            <span>/compareCET</span>
           </button>
         </div>
       </div>

@@ -15,14 +15,13 @@ import {
   FileSpreadsheet,
   UploadCloud,
   BrainCircuit,
-  CheckCircle2, BarChart2, Activity, RefreshCcw
+  CheckCircle2, BarChart2, RefreshCcw
 } from 'lucide-react';
 
 const menuItems = [
   { id: 'reporting', label: 'General Process Home', icon: LayoutDashboard, sub: 'Dashboard' },
   { id: 'incert_delete', label: 'Import Base excel & XML', icon: UploadCloud, sub: 'Ingestion' },
   { id: 'xml_results', label: 'XML Results', icon: FileSpreadsheet, sub: 'Data' },
-  { id: 'cet_comparator', label: 'CET XML Comparator', icon: Activity, sub: 'Audit' },
   { id: 'xml_redirect', label: '', icon: RefreshCcw, link: '/xml-pipeline/Actualizer_XML_General' }
 ];
 

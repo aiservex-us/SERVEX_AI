@@ -27,6 +27,7 @@ import Report from './components/comparePDF/REPORT/dashboard.jsx';
 import IncertDelete from './components/comparePDF/IncertData/Incert_data.jsx'
 import DeleteData, { purgeTenantData, purgeTenantDataBeacon } from './components/comparePDF/IncertData/components/delete_data';
 import CETComparator from '../Actualizer_Excel_General/components/CET_Comparator.jsx';
+import ProcessGridHistory from './components/ProcessGridHistory.jsx';
 import ExitPipelineModal from './components/ExitPipelineModal.jsx';
 
 export default function MenuInicial() {
@@ -188,17 +189,17 @@ export default function MenuInicial() {
   }, []);
 
 
-  const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isCatalogEditorOpen, setIsCatalogEditorOpen] = useState(false);
+  const [isProcessGridOpen, setIsProcessGridOpen] = useState(false);
   const [isIntroDismissed, setIsIntroDismissed] = useState(true);
 
   useEffect(() => {
     const handleOpenEditor = () => {
+      setIsProcessGridOpen(false);
       setIsCatalogEditorOpen(true);
     };
     const handleFinishEditorComparison = () => {
       setIsCatalogEditorOpen(false);
-      setIsToolsOpen(false);
     };
     window.addEventListener('openCatalogEditor', handleOpenEditor);
     window.addEventListener('executeComparisonFromEditor', handleFinishEditorComparison);
@@ -209,52 +210,47 @@ export default function MenuInicial() {
   }, []);
 
   const handleSetActive = (id) => {
-    if (id === 'catalog_editor' || id === 'xml_results' || id === 'exportCETcsv') {
+    if (id === 'catalog_editor') {
+      setIsProcessGridOpen(false);
       setIsCatalogEditorOpen(true);
-      setActive('xml_results');
-      setIsToolsOpen(false);
       return;
     }
-    setIsCatalogEditorOpen(false);
+    if (id === 'process_grid') {
+      setIsCatalogEditorOpen(false);
+      setIsProcessGridOpen(true);
+      setActive('process_grid');
+      return;
+    }
     setActive(id);
-    setIsToolsOpen(true);
   };
 
   const handleSidebarSelect = (id) => {
-    if (id === 'xml_results' || id === 'catalog_editor' || id === 'exportCETcsv') {
+    if (id === 'xml_results' || id === 'catalog_editor') {
+      setIsProcessGridOpen(false);
       setIsCatalogEditorOpen(true);
       setActive('xml_results');
-      setIsToolsOpen(false);
 
       if (typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('init_csv_edit_on_export', 'true');
         } catch (_) {}
-        window.dispatchEvent(new CustomEvent('globalChatMessage', {
-          detail: {
-            from: 'bot',
-            text: 'Aquí tienes el **Editor Interactivo de Matriz (Export Data Client)** listo para editar en vivo y exportar directamente a Excel (.xlsx):',
-            toolId: 'xml_results'
-          }
-        }));
       }
       return;
     }
 
+    if (id === 'process_grid') {
+      setIsCatalogEditorOpen(false);
+      setIsProcessGridOpen(true);
+      setActive('process_grid');
+      return;
+    }
+
+    setIsProcessGridOpen(false);
     setIsCatalogEditorOpen(false);
     setActive(id);
-    setIsToolsOpen(false);
 
     let botText = '';
     switch (id) {
-      case 'xml_results':
-        botText = 'Aquí tienes la tabla y matriz de exportación para clientes (**Export Data Client**):';
-        if (typeof window !== 'undefined') {
-          try {
-            sessionStorage.setItem('init_csv_edit_on_export', 'true');
-          } catch (_) {}
-        }
-        break;
       case 'dashboard':
         botText = 'Aquí tienes los resultados de la estructura XML y Diff (**XML Results & Diff**):';
         break;
@@ -289,6 +285,7 @@ export default function MenuInicial() {
       case 'xml_results':
       case 'exportCETcsv': return <XMLResultsGeneral isDarkMode={isDarkMode} />;
       case 'catalog_editor': return <CatalogEditorGeneral isDarkMode={isDarkMode} onBack={() => setIsCatalogEditorOpen(false)} />;
+      case 'process_grid': return <ProcessGridHistory isDarkMode={isDarkMode} onBack={() => { setIsProcessGridOpen(false); setActive('reporting'); }} />;
       case 'Tasks': return <CatalogParser isDarkMode={isDarkMode} />;
       case 'inbox_updated': return <Csvs_updated isDarkMode={isDarkMode} />;
       case 'presentation': return <PrecentMain isDarkMode={isDarkMode} />;
@@ -433,21 +430,9 @@ export default function MenuInicial() {
           isDarkMode={isDarkMode}
           onToggleTheme={handleToggleTheme}
         />
-        {/* CONTENEDOR UNIFICADO */}
+        {/* CONTENEDOR UNIFICADO: CHAT COMPLETO O EDITOR DE MATRIZ */}
         <div className="flex flex-1 h-full w-full min-w-0 p-0 bg-transparent">
           <div className="flex flex-col w-full h-full bg-transparent overflow-hidden relative">
-            {isToolsOpen && (
-              <div className="absolute top-3 right-3 sm:right-6 z-30 pointer-events-auto">
-                <button
-                  onClick={() => setIsToolsOpen(false)}
-                  className={`flex items-center justify-center p-1.5 rounded-none border ${isDarkMode ? 'bg-white/10 border-white/20 text-white hover:bg-white/20' : 'bg-white border-slate-200 text-slate-400 hover:text-black hover:bg-zinc-100'} backdrop-blur-md transition-all`}
-                  title="Close panel"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            )}
-
             {/* Body Area (Full Viewport) */}
             <div className="flex flex-1 w-full h-full min-h-0 relative z-10 overflow-hidden">
               {/* Vista Exclusiva a Pantalla Completa: Editor Interactivo de Catálogo (csv_edit_raw) */}
@@ -463,40 +448,31 @@ export default function MenuInicial() {
                 </div>
               )}
 
-              {/* Lado Izquierdo: Asistente IA */}
-              <div className={`
-                h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
-                ${isCatalogEditorOpen
-                  ? 'hidden'
-                  : isToolsOpen
-                    ? 'hidden md:flex md:w-[50%]'
-                    : 'flex w-full'}
-              `}>
+              {/* Vista Exclusiva a Pantalla Completa: Grilla de Procesos & Catálogos Subidos */}
+              {isProcessGridOpen && (
+                <div className="w-full h-full flex flex-col overflow-hidden z-20">
+                  <ProcessGridHistory
+                    isDarkMode={isDarkMode}
+                    onBack={() => {
+                      setIsProcessGridOpen(false);
+                      setActive('reporting');
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Chat IA Principal a Pantalla Completa (Todos los módulos y herramientas se renderizan inline en el flujo del chat) */}
+              <div
+                className={`h-full w-full flex flex-col flex-shrink-0 bg-transparent ${
+                  isCatalogEditorOpen || isProcessGridOpen ? 'hidden' : 'flex'
+                }`}
+              >
                 <TeamsAgentChat
                   currentSection={active}
                   onOpenToolPanel={handleSetActive}
                   isDarkMode={isDarkMode}
                   renderTool={(toolId) => renderViewComponent(toolId)}
                 />
-              </div>
-
-              {/* Lado Derecho: Contenido Principal */}
-              <div className={`
-                relative h-full flex-col transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] flex-shrink-0 bg-transparent
-                ${isCatalogEditorOpen
-                  ? 'hidden'
-                  : isToolsOpen
-                    ? 'flex w-full md:w-[50%] opacity-100'
-                    : 'hidden md:flex md:w-0 opacity-0'}
-              `}>
-                {/* Contenedor interno absoluto para evitar squish en animación */}
-                <div className="absolute top-0 left-0 w-full h-full flex flex-col overflow-hidden min-w-0 md:min-w-[500px]">
-                  <div className="flex-1 w-full relative overflow-y-auto pb-24 custom-scrollbar">
-                    <div className="p-1 sm:p-2 w-full h-full">
-                      {renderContent()}
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
