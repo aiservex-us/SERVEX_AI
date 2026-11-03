@@ -35,12 +35,15 @@ import {
   Paperclip,
   Mic,
   HelpCircle,
-  SendHorizonal
+  SendHorizonal,
+  Download
 } from 'lucide-react';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import AlysaWordmark from '@/app/xml-pipeline/Actualizer_XML_General/components/comparePDF/REPORT/components/AlysaWordmark';
+import { applyExcelVisualStyling } from './XML_Results_General.jsx';
 
 const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
 
@@ -279,6 +282,143 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     });
   };
 
+  // Parser auxiliar de respaldo para convertir catálogo XML nativo a CSV si no se ha generado csv_raw previamente
+  const parseCatalogXmlToCsv = (rawXmlStr) => {
+    if (!rawXmlStr) return '';
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(rawXmlStr, 'text/xml');
+      if (xmlDoc.querySelector('parsererror')) return '';
+
+      const globalFeatures = Array.from(xmlDoc.getElementsByTagName('Feature'));
+      const featureMap = new Map();
+      for (const f of globalFeatures) {
+        const fCode = f.getElementsByTagName('Code')[0]?.textContent?.trim();
+        if (fCode) featureMap.set(fCode, f);
+      }
+
+      const featureCache = new Map();
+      const getProductFeatureCodes = (pNode) => {
+        const directRefs = Array.from(pNode.getElementsByTagName('FeatureRef'))
+          .map((r) => r.textContent?.trim())
+          .filter(Boolean);
+        const cacheKey = directRefs.join('|');
+        if (featureCache.has(cacheKey)) return featureCache.get(cacheKey);
+
+        const resolved = [];
+        const visited = new Set();
+        const traverse = (fCode) => {
+          if (!fCode || visited.has(fCode)) return;
+          visited.add(fCode);
+          resolved.push(fCode);
+          const fNode = featureMap.get(fCode);
+          if (fNode) {
+            const subRefs = Array.from(fNode.getElementsByTagName('FeatureRef'));
+            for (const sub of subRefs) {
+              const subCode = sub.textContent?.trim();
+              if (subCode) traverse(subCode);
+            }
+          }
+        };
+        for (const code of directRefs) traverse(code);
+        featureCache.set(cacheKey, resolved);
+        return resolved;
+      };
+
+      const productsXML = Array.from(xmlDoc.getElementsByTagName('Product'));
+      if (productsXML.length === 0) return '';
+
+      const optionMap = new Map();
+      for (const p of productsXML) {
+        const featureCodes = getProductFeatureCodes(p);
+        for (const fCode of featureCodes) {
+          const featureNode = featureMap.get(fCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName('Option'));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName('Code')[0]?.textContent?.trim();
+              const optDesc = opt.getElementsByTagName('Description')[0]?.textContent?.trim();
+              const optPriceElem = opt.querySelector('OptionPrice > Value');
+              if (optPriceElem && optCode) {
+                const optPrice = parseFloat(optPriceElem.textContent || '0');
+                const label = optDesc
+                  ? optDesc.toLowerCase().includes(optCode.toLowerCase())
+                    ? optDesc
+                    : `${optCode} (${optDesc})`
+                  : optCode;
+                const existing = optionMap.get(optCode);
+                if (!existing) {
+                  optionMap.set(optCode, { optCode, label, maxPrice: optPrice });
+                } else if (optPrice > existing.maxPrice) {
+                  existing.maxPrice = optPrice;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      const validColumns = Array.from(optionMap.values()).filter((c) => c.maxPrice > 0);
+      const dynamicOptionHeaders = validColumns.map((c) => c.label);
+      const computedHeaders = [...BASE_HEADERS, ...dynamicOptionHeaders];
+
+      const allRows = productsXML.map((p) => {
+        const model =
+          p.getElementsByTagName('ModelNumber')[0]?.textContent?.trim() ||
+          p.getElementsByTagName('Code')[0]?.textContent?.trim() ||
+          '';
+        const priceElem = p.querySelector('Price > Value');
+        const listPrice = priceElem ? parseFloat(priceElem.textContent || '0') : 0;
+        const weightElem = p.getElementsByTagName('Weight')[0];
+        const weight = weightElem ? weightElem.textContent?.trim() || 'N/A' : 'N/A';
+        const catElem = p.getElementsByTagName('Category')[0];
+        const category = catElem ? catElem.textContent?.trim() || 'Standard' : 'Standard';
+        const descElem = p.getElementsByTagName('Description')[0];
+        const modelName = descElem ? descElem.textContent?.trim() || '' : '';
+
+        const row = {
+          'Model #': model,
+          'List Price': listPrice > 0 ? listPrice : '',
+          'Weight': weight,
+          'Classic/ Premium': category,
+          'Model Name': modelName
+        };
+
+        const pOptionCodes = new Map();
+        const pFeatureCodes = getProductFeatureCodes(p);
+        for (const fCode of pFeatureCodes) {
+          const featureNode = featureMap.get(fCode);
+          if (featureNode) {
+            const options = Array.from(featureNode.getElementsByTagName('Option'));
+            for (const opt of options) {
+              const optCode = opt.getElementsByTagName('Code')[0]?.textContent?.trim();
+              const optPriceElem = opt.querySelector('OptionPrice > Value');
+              if (optCode && optPriceElem) {
+                pOptionCodes.set(optCode, parseFloat(optPriceElem.textContent || '0'));
+              }
+            }
+          }
+        }
+
+        for (const col of validColumns) {
+          if (pOptionCodes.has(col.optCode)) {
+            const val = pOptionCodes.get(col.optCode);
+            row[col.label] = val > 0 ? val : '';
+          } else {
+            row[col.label] = '';
+          }
+        }
+
+        return row;
+      });
+
+      return Papa.unparse(allRows, { columns: computedHeaders, delimiter: ';' });
+    } catch (e) {
+      console.warn('Error en parseCatalogXmlToCsv:', e);
+      return '';
+    }
+  };
+
   // Inicializar editor cargando csv_raw y copiando/sincronizando en csv_edit_raw de ClientsSERVEX_General_Procces
   const loadEditorData = useCallback(async () => {
     setLoading(true);
@@ -292,7 +432,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       try {
         const { data: dbRecord, error: dbErr } = await supabase
           .from('ClientsSERVEX_General_Procces')
-          .select('csv_raw, csv_edit_raw, xml_name, file_name')
+          .select('csv_raw, csv_edit_raw, xml_name, file_name, XM_CET_import, xml_raw')
           .eq('company_name', 'General_Procces')
           .order('created_at', { ascending: false })
           .limit(1)
@@ -307,6 +447,24 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             rawEditCsv = await resolveStorageContent(dbRecord.csv_edit_raw);
             hasEditInDb = true;
           }
+          if (!rawBaseCsv && !rawEditCsv && (dbRecord.XM_CET_import || dbRecord.xml_raw)) {
+            const rawXml = await resolveStorageContent(dbRecord.XM_CET_import || dbRecord.xml_raw);
+            if (rawXml && rawXml.trim().startsWith('<')) {
+              const parsedXmlCsv = parseCatalogXmlToCsv(rawXml);
+              if (parsedXmlCsv) {
+                rawBaseCsv = parsedXmlCsv;
+                rawEditCsv = parsedXmlCsv;
+                upsertGeneralProcessRecord(
+                  {
+                    company_name: 'General_Procces',
+                    csv_raw: parsedXmlCsv,
+                    csv_edit_raw: parsedXmlCsv
+                  },
+                  'General_Procces'
+                ).catch(() => {});
+              }
+            }
+          }
         }
       } catch (_) {}
 
@@ -317,10 +475,17 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         rawEditCsv = sessionStorage.getItem('csv_edit_raw') || localStorage.getItem('csv_edit_raw_General_Procces') || '';
       }
 
+      if (!rawBaseCsv && rawEditCsv) {
+        rawBaseCsv = rawEditCsv;
+      }
+      if (!rawEditCsv && rawBaseCsv) {
+        rawEditCsv = rawBaseCsv;
+      }
+
       setCatalogName(detectedName);
 
       if (!rawBaseCsv || !rawBaseCsv.trim()) {
-        throw new Error('No se encontró la matriz base (csv_raw). Abre primero "Export Data Client" para generar la matriz.');
+        throw new Error('No se encontró catálogo procesado. Asegúrate de haber cargado el catálogo XML en el proceso.');
       }
 
       baseCsvRawRef.current = rawBaseCsv;
@@ -1039,6 +1204,99 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     }
   };
 
+  // Descarga directa de la matriz editada en formato Excel (.xlsx) con estilos de cliente
+  const exportToExcel = useCallback(() => {
+    try {
+      const activeRows = editRowsRef.current.filter((r) => {
+        const sku = String(r['Model #'] || '').trim();
+        return sku && !deletedSkusRef.current.has(sku);
+      });
+
+      const rowsToUse = filteredRows && filteredRows.length > 0 && (searchTerm || mcpActiveSkuFilter || filterMode !== 'all')
+        ? filteredRows.map((item) => item.row)
+        : activeRows;
+
+      if (!rowsToUse || rowsToUse.length === 0) {
+        alert('No hay productos disponibles en la matriz para exportar.');
+        return;
+      }
+
+      const currentHeaders = headersRef.current && headersRef.current.length > 0 ? headersRef.current : BASE_HEADERS;
+
+      const rowsToExport = rowsToUse.map((row) => {
+        const cleanRow = {};
+        currentHeaders.forEach((h) => {
+          const val = row[h];
+          if (!BASE_HEADERS.includes(h)) {
+            cleanRow[h] = val !== undefined && val !== null && val !== '' && Number(val) > 0 ? Number(val) : '';
+          } else if (h === 'List Price') {
+            cleanRow[h] = val !== undefined && val !== null && val !== '' && Number(val) > 0 ? Number(val) : '';
+          } else {
+            cleanRow[h] = val !== undefined && val !== null ? val : '';
+          }
+        });
+        return cleanRow;
+      });
+
+      recordClientAction(
+        'DOWNLOAD_EXCEL',
+        `El usuario descargó la matriz editable en formato Excel (.xlsx) (${rowsToExport.length} productos).`,
+        'Descarga de Matriz Excel desde Editor',
+        { total_products: rowsToExport.length, format: 'xlsx' }
+      );
+
+      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: currentHeaders });
+
+      worksheet['!cols'] = currentHeaders.map((h, idx) => {
+        if (idx === 0) return { wch: 16 }; // Model #
+        if (idx === 1) return { wch: 14 }; // List Price
+        if (idx === 2) return { wch: 12 }; // Weight
+        if (idx === 3) return { wch: 18 }; // Classic/ Premium
+        if (idx === 4) return { wch: 36 }; // Model Name
+        return { wch: Math.max(String(h || '').length + 5, 15) };
+      });
+      worksheet['!rows'] = [
+        { hpt: 28 },
+        ...rowsToExport.map(() => ({ hpt: 20 }))
+      ];
+      if (worksheet['!ref']) {
+        worksheet['!autofilter'] = { ref: worksheet['!ref'] };
+      }
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Catalog Data');
+
+      const cleanPrefix = (catalogName || 'Catalog').replace(/\.xml$/i, '').trim();
+      const fileName = `${cleanPrefix}-Editable-ALYSAsistemai-${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+      const rawExcelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      let finalExcelBytes;
+      try {
+        finalExcelBytes = applyExcelVisualStyling(rawExcelBuffer);
+      } catch (styleErr) {
+        console.warn('Fallback a Excel sin estilos adicionales:', styleErr);
+        finalExcelBytes = rawExcelBuffer;
+      }
+
+      const blob = new Blob([finalExcelBytes], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 150);
+    } catch (err) {
+      console.error('Error al exportar a Excel desde el editor:', err);
+      alert('Error al generar el archivo Excel: ' + (err.message || err));
+    }
+  }, [filteredRows, searchTerm, mcpActiveSkuFilter, filterMode, catalogName]);
+
   // Agregar nuevo producto a csv_edit_raw
   const handleAddNewProduct = () => {
     const currentList = editRowsRef.current;
@@ -1432,6 +1690,21 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 <span>Ajuste en Lote</span>
               </button>
 
+              {/* Botón oficial de Exportar a Excel (.xlsx) */}
+              <button
+                type="button"
+                onClick={exportToExcel}
+                className={`px-2.5 py-1 rounded-none text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                  isDarkMode
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
+                    : 'bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-700'
+                }`}
+                title="Descargar matriz en formato Excel (.xlsx)"
+              >
+                <Download size={11} />
+                <span>Export Excel</span>
+              </button>
+
               {diffMetrics.totalChanges > 0 && (
                 <button
                   type="button"
@@ -1445,6 +1718,22 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 >
                   <RotateCcw size={11} />
                   <span className="hidden sm:inline">Restaurar Base</span>
+                </button>
+              )}
+
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className={`px-2.5 py-1 rounded-none text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
+                    isDarkMode
+                      ? 'bg-white/5 hover:bg-white/15 text-zinc-300 border-white/15'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
+                  title="Volver al proceso principal"
+                >
+                  <ArrowLeft size={11} />
+                  <span className="hidden sm:inline">Volver</span>
                 </button>
               )}
             </div>

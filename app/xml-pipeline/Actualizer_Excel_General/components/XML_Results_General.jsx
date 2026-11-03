@@ -112,7 +112,7 @@ const CUSTOM_EXCEL_STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone
   </cellStyles>
 </styleSheet>`;
 
-const applyExcelVisualStyling = (xlsxArrayBuffer) => {
+export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
   const bytes = new Uint8Array(xlsxArrayBuffer);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const encoder = new TextEncoder();

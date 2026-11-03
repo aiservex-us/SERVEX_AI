@@ -210,7 +210,7 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             {/* STEP 2: Export Data Client */}
             <SidebarIcon
               icon={<FileSpreadsheet size={17} />}
-              active={active === 'xml_results'}
+              active={active === 'xml_results' || active === 'catalog_editor'}
               title="Export Data Client"
               stepNumber="STEP 2"
               tagline="Export"

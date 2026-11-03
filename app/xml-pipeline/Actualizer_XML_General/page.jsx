@@ -209,8 +209,10 @@ export default function MenuInicial() {
   }, []);
 
   const handleSetActive = (id) => {
-    if (id === 'catalog_editor') {
+    if (id === 'catalog_editor' || id === 'xml_results' || id === 'exportCETcsv') {
       setIsCatalogEditorOpen(true);
+      setActive('xml_results');
+      setIsToolsOpen(false);
       return;
     }
     setIsCatalogEditorOpen(false);
@@ -219,6 +221,26 @@ export default function MenuInicial() {
   };
 
   const handleSidebarSelect = (id) => {
+    if (id === 'xml_results' || id === 'catalog_editor' || id === 'exportCETcsv') {
+      setIsCatalogEditorOpen(true);
+      setActive('xml_results');
+      setIsToolsOpen(false);
+
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('init_csv_edit_on_export', 'true');
+        } catch (_) {}
+        window.dispatchEvent(new CustomEvent('globalChatMessage', {
+          detail: {
+            from: 'bot',
+            text: 'Aquí tienes el **Editor Interactivo de Matriz (Export Data Client)** listo para editar en vivo y exportar directamente a Excel (.xlsx):',
+            toolId: 'xml_results'
+          }
+        }));
+      }
+      return;
+    }
+
     setIsCatalogEditorOpen(false);
     setActive(id);
     setIsToolsOpen(false);
@@ -433,7 +455,10 @@ export default function MenuInicial() {
                 <div className="w-full h-full flex flex-col overflow-hidden z-20">
                   <CatalogEditorGeneral
                     isDarkMode={isDarkMode}
-                    onBack={() => setIsCatalogEditorOpen(false)}
+                    onBack={() => {
+                      setIsCatalogEditorOpen(false);
+                      setActive('reporting');
+                    }}
                   />
                 </div>
               )}
