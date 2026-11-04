@@ -66,7 +66,7 @@ const DownloadResultXML = ({ moduleName = 'General_Procces' }) => {
     <button 
       onClick={handleDownload}
       disabled={isDownloading}
-      className="bg-[#18181b] text-white px-4 py-2 rounded-none text-xs font-bold hover:bg-[#09090b] transition-all flex items-center gap-2 disabled:opacity-50 shadow-sm cursor-pointer"
+      className="bg-[#18181b] text-white px-4 py-2 rounded-md text-xs font-bold hover:bg-[#09090b] transition-all flex items-center gap-2 disabled:opacity-50 shadow-sm cursor-pointer"
     >
       {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
       {isDownloading ? 'Downloading...' : `Download ${moduleName}.xml`}

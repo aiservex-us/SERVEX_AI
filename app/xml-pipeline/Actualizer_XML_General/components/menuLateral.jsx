@@ -41,7 +41,7 @@ const SidebarIcon = ({
         className={`
           ${hideOnMobile ? 'hidden md:flex' : 'flex'}
           w-10 h-10 shrink-0
-          items-center justify-center rounded-none cursor-pointer transition-all duration-200 relative group border
+          items-center justify-center rounded-lg cursor-pointer transition-all duration-200 relative group border
           ${active
             ? isDarkMode
               ? 'bg-white text-zinc-950 font-bold border-white shadow-[0_0_20px_rgba(255,255,255,0.22)]'
@@ -58,9 +58,9 @@ const SidebarIcon = ({
         {active && (
           <>
             {/* Indicador Desktop lineal de precisión en el borde izquierdo */}
-            <div className={`hidden md:block absolute -left-2 top-0 bottom-0 w-[3px] rounded-none ${isDarkMode ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-[#18181b] shadow-[0_0_8px_rgba(0,0,0,0.3)]'}`} />
+            <div className={`hidden md:block absolute -left-2 top-0 bottom-0 w-[3px] rounded-full ${isDarkMode ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-[#18181b] shadow-[0_0_8px_rgba(0,0,0,0.3)]'}`} />
             {/* Indicador Mobile lineal arriba */}
-            <div className={`md:hidden absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2px] rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`} />
+            <div className={`md:hidden absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2px] rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'}`} />
           </>
         )}
         {icon}
@@ -76,7 +76,7 @@ const SidebarIcon = ({
             transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className={`
               hidden md:flex flex-col absolute left-full ml-3.5 top-1/2 -translate-y-1/2
-              w-[275px] ${isDarkMode ? 'bg-[#09090b]/95 border-white/15 text-zinc-100 shadow-[0_20px_50px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.12)]' : 'bg-white/95 border-[#18181b]/15 text-[#18181b] shadow-[0_20px_50px_rgba(0,0,0,0.1)]'} backdrop-blur-2xl rounded-none p-4
+              w-[275px] ${isDarkMode ? 'bg-[#09090b]/95 border-white/15 text-zinc-100 shadow-[0_20px_50px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.12)]' : 'bg-white/95 border-[#18181b]/15 text-[#18181b] shadow-[0_20px_50px_rgba(0,0,0,0.1)]'} backdrop-blur-2xl rounded-xl p-4
               border z-[300] pointer-events-none text-left
             `}
           >
@@ -85,8 +85,8 @@ const SidebarIcon = ({
 
             {/* Cabecera del Tutorial con Badge del Paso idéntico al Servex Copilot badge */}
             <div className="flex items-center justify-between gap-2 mb-2 relative z-10">
-              <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-200 border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20'} border flex items-center gap-1.5`}>
-                <span className={`w-1.5 h-1.5 rounded-none ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} animate-pulse`} />
+              <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-md ${isDarkMode ? 'bg-white/10 text-zinc-200 border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20'} border flex items-center gap-1.5`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-white' : 'bg-[#18181b]'} animate-pulse`} />
                 {stepNumber || 'GUIDE'}
               </span>
               {tagline && (
@@ -179,7 +179,7 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             type="button"
             onClick={() => window.open('https://axglynne.com', '_blank', 'noopener,noreferrer')}
             title="AXGLYNNE Ecosystem"
-            className={`w-10 h-10 rounded-none flex items-center justify-center p-2.5 transition-all duration-200 group focus:outline-none border border-transparent ${
+            className={`w-10 h-10 rounded-lg flex items-center justify-center p-2.5 transition-all duration-200 group focus:outline-none border border-transparent ${
               isDarkMode
                 ? 'hover:bg-white/10 text-white hover:border-white/15'
                 : 'hover:bg-[#18181b]/5 text-[#18181b] hover:border-[#18181b]/15'

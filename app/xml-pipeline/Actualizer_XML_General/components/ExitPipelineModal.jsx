@@ -105,7 +105,7 @@ export default function ExitPipelineModal({
       <div 
         role="dialog"
         aria-modal="true"
-        className={`relative w-full max-w-md rounded-none border backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans z-10 transition-colors ${
+        className={`relative w-full max-w-md rounded-xl border backdrop-blur-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans z-10 transition-colors ${
           isDarkMode
             ? 'bg-[#09090b]/95 border-white/15 text-zinc-100 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.08)]'
             : 'bg-white/98 border-slate-200 text-slate-900 shadow-[0_25px_70px_-15px_rgba(15,23,42,0.18)]'
@@ -121,7 +121,7 @@ export default function ExitPipelineModal({
           isDarkMode ? 'border-white/10' : 'border-slate-100'
         }`}>
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-none border flex items-center justify-center shadow-sm shrink-0 ${
+            <div className={`w-9 h-9 rounded-lg border flex items-center justify-center shadow-sm shrink-0 ${
               isDarkMode 
                 ? 'bg-rose-500/15 border-rose-500/30 text-rose-400' 
                 : 'bg-rose-50 border-rose-200 text-rose-600'
@@ -135,7 +135,7 @@ export default function ExitPipelineModal({
                 }`}>
                   {isReload ? 'Reiniciar Proceso y Purgar Datos' : 'Eliminar Proceso y Salir'}
                 </h2>
-                <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-none border ${
+                <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
                   isDarkMode 
                     ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
                     : 'bg-rose-100/80 text-rose-700 border-rose-200'
@@ -157,7 +157,7 @@ export default function ExitPipelineModal({
             type="button"
             disabled={isPurging}
             onClick={onClose} 
-            className={`p-1.5 rounded-none transition-colors disabled:opacity-40 cursor-pointer ${
+            className={`p-1.5 rounded-md transition-colors disabled:opacity-40 cursor-pointer ${
               isDarkMode 
                 ? 'text-zinc-400 hover:text-white hover:bg-white/10' 
                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
@@ -181,13 +181,13 @@ export default function ExitPipelineModal({
           <p className={`text-[12px] leading-relaxed ${
             isDarkMode ? 'text-zinc-300' : 'text-slate-600'
           }`}>
-            Por optimización del sistema, todo lo realizado hasta el momento en este catálogo será <strong className={isDarkMode ? 'text-white font-semibold' : 'text-[#18181b] font-semibold'}>eliminado automáticamente</strong> de Supabase. La tabla <code className={`px-1.5 py-0.5 rounded-none text-[11px] font-mono border ${
+            Por optimización del sistema, todo lo realizado hasta el momento en este catálogo será <strong className={isDarkMode ? 'text-white font-semibold' : 'text-[#18181b] font-semibold'}>eliminado automáticamente</strong> de Supabase. La tabla <code className={`px-1.5 py-0.5 rounded text-[11px] font-mono border ${
               isDarkMode ? 'text-rose-300 bg-white/5 border-white/10' : 'text-rose-700 bg-rose-50/80 border-rose-200/80'
             }`}>ClientsSERVEX_General_Procces</code> quedará <strong className={isDarkMode ? 'text-white font-semibold' : 'text-[#18181b] font-semibold'}>completamente vacía</strong>, tal como al accionar el botón de eliminar proceso.
           </p>
 
           {/* Banner de advertencia */}
-          <div className={`border rounded-none p-3.5 flex items-start gap-3 text-left ${
+          <div className={`border rounded-lg p-3.5 flex items-start gap-3 text-left ${
             isDarkMode 
               ? 'bg-rose-950/30 border-rose-500/25 text-rose-200/90' 
               : 'bg-rose-50/80 border-rose-200 text-rose-900'
@@ -199,7 +199,7 @@ export default function ExitPipelineModal({
           </div>
 
           {/* Lista visual de componentes a purgar */}
-          <div className={`rounded-none border p-3.5 space-y-2.5 ${
+          <div className={`rounded-lg border p-3.5 space-y-2.5 ${
             isDarkMode 
               ? 'bg-white/[0.02] border-white/10 text-zinc-300' 
               : 'bg-slate-50/80 border-slate-200 text-slate-700'
@@ -232,7 +232,7 @@ export default function ExitPipelineModal({
             type="button"
             disabled={isPurging}
             onClick={onClose}
-            className={`px-4 py-2 text-xs font-semibold rounded-none border transition-all cursor-pointer disabled:opacity-40 ${
+            className={`px-4 py-2 text-xs font-semibold rounded-md border transition-all cursor-pointer disabled:opacity-40 ${
               isDarkMode 
                 ? 'bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border-white/10' 
                 : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-200 shadow-xs'
@@ -248,7 +248,7 @@ export default function ExitPipelineModal({
                   type="button"
                   disabled={isPurging}
                   onClick={() => handleConfirmAction('exit')}
-                  className={`px-3.5 py-2 text-xs font-semibold rounded-none border transition-all cursor-pointer disabled:opacity-40 flex items-center gap-1.5 ${
+                  className={`px-3.5 py-2 text-xs font-semibold rounded-md border transition-all cursor-pointer disabled:opacity-40 flex items-center gap-1.5 ${
                     isDarkMode 
                       ? 'bg-white/10 hover:bg-white/15 text-zinc-300 hover:text-white border-white/10' 
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 shadow-xs'
@@ -261,7 +261,7 @@ export default function ExitPipelineModal({
                   type="button"
                   onClick={() => handleConfirmAction('reload')}
                   disabled={isPurging}
-                  className={`px-4 py-2 text-xs font-semibold rounded-none transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+                  className={`px-4 py-2 text-xs font-semibold rounded-md transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
                     isDarkMode
                       ? 'text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 shadow-[0_0_20px_rgba(225,29,72,0.35)] border border-rose-500/40'
                       : 'text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/25 border border-rose-600'
@@ -286,7 +286,7 @@ export default function ExitPipelineModal({
                   type="button"
                   disabled={isPurging}
                   onClick={() => handleConfirmAction('signout')}
-                  className={`px-3.5 py-2 text-xs font-semibold rounded-none border transition-all cursor-pointer disabled:opacity-40 ${
+                  className={`px-3.5 py-2 text-xs font-semibold rounded-md border transition-all cursor-pointer disabled:opacity-40 ${
                     isDarkMode
                       ? 'bg-white/5 hover:bg-rose-500/10 text-zinc-300 hover:text-rose-200 border-white/10 hover:border-rose-500/20'
                       : 'bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 border-slate-200 hover:border-rose-200'
@@ -298,7 +298,7 @@ export default function ExitPipelineModal({
                   type="button"
                   onClick={() => handleConfirmAction('exit')}
                   disabled={isPurging}
-                  className={`px-4 py-2 text-xs font-semibold rounded-none transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
+                  className={`px-4 py-2 text-xs font-semibold rounded-md transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer active:scale-[0.98] ${
                     isDarkMode
                       ? 'text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 shadow-[0_0_20px_rgba(225,29,72,0.35)] border border-rose-500/40'
                       : 'text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-600/25 border border-rose-600'

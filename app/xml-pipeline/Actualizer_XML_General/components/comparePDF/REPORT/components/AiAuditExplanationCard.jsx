@@ -14,7 +14,7 @@ import { marked } from 'marked';
 
 /**
  * Componente AiAuditExplanationCard
- * Renderiza de forma ejecutiva, moderna y con esquinas rectas (rounded-none)
+ * Renderiza de forma ejecutiva, moderna y con esquinas suavemente curvadas
  * la explicación interpretativa construida por el modelo de IA (Alysa SVX)
  * a partir de la información estructurada de audit_summary_markdown1.
  *
@@ -82,15 +82,15 @@ export default function AiAuditExplanationCard({
   };
 
   return (
-    <div className={`w-full border shadow-sm transition-all rounded-none font-sans text-xs ${isDarkMode
+    <div className={`w-full border shadow-sm transition-all rounded-xl font-sans text-xs overflow-hidden ${isDarkMode
         ? 'bg-[#09090b]/80 border-white/10 text-zinc-200'
         : 'bg-white border-slate-200 text-slate-800'
       }`}>
       {/* ── HEADER EJECUTIVO DEL DICTAMEN DE IA ── */}
-      <div className={`p-3.5 border-b flex flex-wrap items-center justify-between gap-3 rounded-none ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/60'
+      <div className={`p-3.5 border-b flex flex-wrap items-center justify-between gap-3 ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/60'
         }`}>
         <div className="flex items-center gap-2.5">
-          <div className={`p-1.5 border rounded-none flex items-center justify-center ${isDarkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-zinc-900 border-zinc-900 text-white'
+          <div className={`p-1.5 border rounded-lg flex items-center justify-center ${isDarkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-zinc-900 border-zinc-900 text-white'
             }`}>
             <Sparkles size={14} className="opacity-90" />
           </div>
@@ -99,7 +99,7 @@ export default function AiAuditExplanationCard({
               <h3 className={`text-[13px] font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
                 Dictamen Técnico de IA • Análisis Interpretativo
               </h3>
-              <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-medium rounded-none border ${isDarkMode
+              <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-medium rounded border ${isDarkMode
                   ? 'bg-white/10 border-white/15 text-zinc-200'
                   : 'bg-slate-100 border-slate-300 text-slate-800'
                 }`}>
@@ -115,7 +115,7 @@ export default function AiAuditExplanationCard({
         <div className="flex items-center gap-2">
           <button
             onClick={handleCopy}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-none border transition-all cursor-pointer ${isDarkMode
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border transition-all cursor-pointer ${isDarkMode
                 ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
                 : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
               }`}
@@ -131,15 +131,15 @@ export default function AiAuditExplanationCard({
       <div className="p-4 space-y-3">
         <div
           className={`alysa-markdown-flow prose prose-sm max-w-none text-[13px] leading-relaxed ${isDarkMode
-              ? 'prose-invert prose-p:text-zinc-300 prose-headings:text-white prose-strong:text-white prose-code:text-zinc-200 prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none'
-              : 'text-slate-700 prose-headings:text-zinc-900 prose-strong:text-zinc-900 prose-code:text-slate-900 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded-none'
+              ? 'prose-invert prose-p:text-zinc-300 prose-headings:text-white prose-strong:text-white prose-code:text-zinc-200 prose-code:bg-white/10 prose-code:px-1 prose-code:py-0.5 prose-code:rounded'
+              : 'text-slate-700 prose-headings:text-zinc-900 prose-strong:text-zinc-900 prose-code:text-slate-900 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded'
             }`}
           dangerouslySetInnerHTML={renderedHtmlObj}
         />
       </div>
 
       {/* ── FOOTER DE GARANTÍA DE VERACIDAD ── */}
-      <div className={`px-3.5 py-2 border-t flex flex-wrap items-center justify-between gap-2 text-[11px] rounded-none ${isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
+      <div className={`px-3.5 py-2 border-t flex flex-wrap items-center justify-between gap-2 text-[11px] ${isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
         }`}>
         <div className="flex items-center gap-1.5">
           <ShieldCheck size={13} className={isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} />

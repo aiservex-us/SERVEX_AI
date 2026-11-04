@@ -43,7 +43,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
             <button
               type="button"
               onClick={onBack}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-semibold border transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
                 isDarkMode
                   ? 'bg-white/5 hover:bg-white/15 text-zinc-300 border-white/15'
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-2xs'
@@ -58,7 +58,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
 
           <div className="flex items-center gap-2">
             <div
-              className={`p-1.5 rounded-none border ${
+              className={`p-1.5 rounded-lg border ${
                 isDarkMode
                   ? 'bg-white/10 border-white/20 text-white'
                   : 'bg-slate-100 border-slate-300 text-slate-800'
@@ -72,7 +72,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
                   Grilla de Procesos & Catálogos
                 </h1>
                 <span
-                  className={`text-[9.5px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-none border ${
+                  className={`text-[9.5px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded border ${
                     isDarkMode
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                       : 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -95,7 +95,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
         {/* Acciones de Cabecera */}
         <div className="flex items-center gap-2">
           <div
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-none ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs border rounded-md ${
               isDarkMode
                 ? 'bg-white/5 border-white/10 text-zinc-300'
                 : 'bg-slate-100 border-slate-200 text-slate-700'
@@ -117,7 +117,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
       >
         <div className="flex items-center gap-2 flex-1 min-w-[220px] max-w-md">
           <div
-            className={`w-full flex items-center gap-2 px-3 py-1.5 border text-xs rounded-none ${
+            className={`w-full flex items-center gap-2 px-3 py-1.5 border text-xs rounded-md ${
               isDarkMode
                 ? 'bg-white/5 border-white/10 text-white focus-within:border-white/30'
                 : 'bg-white border-slate-200 text-slate-900 focus-within:border-slate-400 shadow-2xs'
@@ -138,7 +138,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`px-2.5 py-1 text-[11px] font-medium border rounded-none cursor-pointer transition-all ${
+            className={`px-2.5 py-1 text-[11px] font-medium border rounded-md cursor-pointer transition-all ${
               activeTab === 'all'
                 ? isDarkMode
                   ? 'bg-white text-zinc-950 font-bold border-white'
@@ -153,7 +153,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
           <button
             type="button"
             onClick={() => setActiveTab('catalogs')}
-            className={`px-2.5 py-1 text-[11px] font-medium border rounded-none cursor-pointer transition-all ${
+            className={`px-2.5 py-1 text-[11px] font-medium border rounded-md cursor-pointer transition-all ${
               activeTab === 'catalogs'
                 ? isDarkMode
                   ? 'bg-white text-zinc-950 font-bold border-white'
@@ -168,7 +168,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
           <button
             type="button"
             onClick={() => setActiveTab('processes')}
-            className={`px-2.5 py-1 text-[11px] font-medium border rounded-none cursor-pointer transition-all ${
+            className={`px-2.5 py-1 text-[11px] font-medium border rounded-md cursor-pointer transition-all ${
               activeTab === 'processes'
                 ? isDarkMode
                   ? 'bg-white text-zinc-950 font-bold border-white'
@@ -189,7 +189,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
           {/* Métricas / Resumen rápido */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div
-              className={`p-4 border rounded-none transition-all ${
+              className={`p-4 border rounded-xl transition-all ${
                 isDarkMode
                   ? 'bg-white/[0.03] border-white/10 hover:border-white/20'
                   : 'bg-white border-slate-200 shadow-xs'
@@ -212,7 +212,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
             </div>
 
             <div
-              className={`p-4 border rounded-none transition-all ${
+              className={`p-4 border rounded-xl transition-all ${
                 isDarkMode
                   ? 'bg-white/[0.03] border-white/10 hover:border-white/20'
                   : 'bg-white border-slate-200 shadow-xs'
@@ -235,7 +235,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
             </div>
 
             <div
-              className={`p-4 border rounded-none transition-all ${
+              className={`p-4 border rounded-xl transition-all ${
                 isDarkMode
                   ? 'bg-white/[0.03] border-white/10 hover:border-white/20'
                   : 'bg-white border-slate-200 shadow-xs'
@@ -260,7 +260,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
 
           {/* Tarjeta de Grilla Principal (Placeholder estilizado Servex) */}
           <div
-            className={`border rounded-none overflow-hidden ${
+            className={`border rounded-xl overflow-hidden ${
               isDarkMode
                 ? 'bg-[#0c0c0e]/70 border-white/10'
                 : 'bg-white border-slate-200 shadow-xs'
@@ -289,7 +289,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
             {/* Estado Vacío / En Construcción Arquitectónica */}
             <div className="py-16 px-6 flex flex-col items-center justify-center text-center">
               <div
-                className={`w-14 h-14 rounded-none border flex items-center justify-center mb-4 ${
+                className={`w-14 h-14 rounded-xl border flex items-center justify-center mb-4 ${
                   isDarkMode
                     ? 'bg-white/5 border-white/15 text-zinc-300'
                     : 'bg-slate-100 border-slate-300 text-slate-700'
@@ -310,7 +310,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
               </p>
 
               <div
-                className={`inline-flex items-center gap-2 px-3 py-1.5 border text-xs font-mono rounded-none ${
+                className={`inline-flex items-center gap-2 px-3 py-1.5 border text-xs font-mono rounded-md ${
                   isDarkMode
                     ? 'bg-white/5 border-white/10 text-zinc-300'
                     : 'bg-slate-50 border-slate-200 text-slate-700'

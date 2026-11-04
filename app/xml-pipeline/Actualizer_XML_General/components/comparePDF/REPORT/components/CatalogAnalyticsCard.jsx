@@ -26,8 +26,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
   const [copiedSku, setCopiedSku] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  if (!data) return null;
-
+  const safeData = data || {};
   const {
     title = 'Exploración de Productos del Catálogo',
     company = 'Catálogo XML',
@@ -40,7 +39,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
     products = [],
     tipText = '',
     suggestions = []
-  } = data;
+  } = safeData;
 
   const handleCopy = (sku) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -74,12 +73,14 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
     );
   }, [products, searchTerm]);
 
+  if (!data) return null;
+
   return (
-    <div className="w-full flex flex-col gap-3.5 my-2.5 text-left font-sans rounded-none">
+    <div className="w-full flex flex-col gap-3.5 my-2.5 text-left font-sans">
       {/* ── BARRA SUPERIOR DE CONTEXTO & METADATOS ── */}
-      <div className="flex items-center justify-between flex-wrap gap-2 px-1 rounded-none">
+      <div className="flex items-center justify-between flex-wrap gap-2 px-1">
         <div className="flex items-center gap-2">
-          <div className={`w-6 h-6 rounded-none ${isDarkMode ? 'bg-white/10 text-white' : 'bg-zinc-900/10 text-zinc-900'} flex items-center justify-center`}>
+          <div className={`w-6 h-6 rounded-lg ${isDarkMode ? 'bg-white/10 text-white' : 'bg-zinc-900/10 text-zinc-900'} flex items-center justify-center`}>
             <BarChart3 size={13} />
           </div>
           <span className={`text-[12px] font-bold tracking-tight ${isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}`}>
@@ -89,17 +90,17 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
 
         <div className="flex items-center gap-2 flex-wrap">
           {company && (
-            <span className={`px-2.5 py-0.5 rounded-none text-[10px] font-mono font-bold ${
+            <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold ${
               isDarkMode ? 'bg-white/10 text-zinc-100 border border-white/15' : 'bg-slate-200 text-slate-800'
             }`}>
               Catálogo: {company}
             </span>
           )}
           {filterBadge && (
-            <span className={`px-2.5 py-0.5 rounded-none text-[10px] font-semibold flex items-center gap-1.5 ${
+            <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-semibold flex items-center gap-1.5 ${
               isDarkMode ? 'bg-white/10 text-zinc-200 border border-white/15' : 'bg-slate-100 text-slate-800 border border-slate-200'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-none ${isDarkMode ? 'bg-white' : 'bg-zinc-900'} animate-pulse`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? 'bg-white' : 'bg-zinc-900'} animate-pulse`} />
               {filterBadge}
             </span>
           )}
@@ -108,14 +109,14 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
 
       {/* ── TARJETA PRINCIPAL GLASSMORPHIC RECTA ── */}
       <div
-        className={`w-full rounded-none border transition-all overflow-hidden ${
+        className={`w-full rounded-xl border transition-all overflow-hidden ${
           isDarkMode
             ? 'bg-[#09090b]/80 border-white/10 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65),inset_0_1px_0_0_rgba(255,255,255,0.08)]'
             : 'bg-white border-slate-200 shadow-sm'
         }`}
       >
         {/* Cabecera de la consulta */}
-        <div className={`p-4 sm:p-5 border-b rounded-none ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
+        <div className={`p-4 sm:p-5 border-b  ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
@@ -138,7 +139,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Filtrar por SKU o descripción..."
-                  className={`w-full pl-8 pr-3 py-1.5 rounded-none text-xs font-sans transition-all outline-none ${
+                  className={`w-full pl-8 pr-3 py-1.5 rounded-md text-xs font-sans transition-all outline-none ${
                     isDarkMode
                       ? 'bg-white/5 border border-white/10 text-zinc-100 placeholder-zinc-500 focus:border-white/20 focus:bg-white/10'
                       : 'bg-slate-100 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-slate-300 focus:bg-white'
@@ -151,7 +152,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
           {/* ── GRID DE 4 KPIS EJECUTIVOS RECTOS ── */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4">
             {/* KPI 1: Total Modelos */}
-            <div className={`p-2.5 sm:p-3 rounded-none border flex flex-col justify-between transition-all ${
+            <div className={`p-2.5 sm:p-3 rounded-lg border flex flex-col justify-between transition-all ${
               isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20 shadow-2xs' : 'bg-slate-100/70 border-slate-200'
             }`}>
               <div className="flex items-center justify-between">
@@ -169,7 +170,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
             </div>
 
             {/* KPI 2: Rango Precios Base */}
-            <div className={`p-2.5 sm:p-3 rounded-none border flex flex-col justify-between transition-all ${
+            <div className={`p-2.5 sm:p-3 rounded-lg border flex flex-col justify-between transition-all ${
               isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20 shadow-2xs' : 'bg-slate-100/70 border-slate-200'
             }`}>
               <div className="flex items-center justify-between">
@@ -187,7 +188,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
             </div>
 
             {/* KPI 3: Precio Promedio */}
-            <div className={`p-2.5 sm:p-3 rounded-none border flex flex-col justify-between transition-all ${
+            <div className={`p-2.5 sm:p-3 rounded-lg border flex flex-col justify-between transition-all ${
               isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20 shadow-2xs' : 'bg-slate-100/70 border-slate-200'
             }`}>
               <div className="flex items-center justify-between">
@@ -205,7 +206,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
             </div>
 
             {/* KPI 4: Segmento / Filtro */}
-            <div className={`p-2.5 sm:p-3 rounded-none border flex flex-col justify-between transition-all ${
+            <div className={`p-2.5 sm:p-3 rounded-lg border flex flex-col justify-between transition-all ${
               isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20 shadow-2xs' : 'bg-slate-100/70 border-slate-200'
             }`}>
               <div className="flex items-center justify-between">
@@ -225,10 +226,10 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
         </div>
 
         {/* ── TABLA DE PRODUCTOS ANALIZADOS (RECTA) ── */}
-        <div className="overflow-x-auto w-full custom-scrollbar rounded-none">
-          <table className="w-full text-left border-collapse rounded-none">
+        <div className="overflow-x-auto w-full custom-scrollbar">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className={`border-b text-[11px] font-bold uppercase tracking-wider rounded-none ${
+              <tr className={`border-b text-[11px] font-bold uppercase tracking-wider ${
                 isDarkMode ? 'border-white/10 bg-white/[0.04] text-zinc-400' : 'border-slate-200 bg-slate-50 text-slate-600'
               }`}>
                 <th className="px-3 py-3 text-center w-12">#</th>
@@ -239,11 +240,11 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                 <th className="px-3.5 py-3 text-center w-28">Acción</th>
               </tr>
             </thead>
-            <tbody className={`divide-y text-xs rounded-none ${isDarkMode ? 'divide-white/[0.06] text-zinc-200' : 'divide-slate-100 text-slate-700'}`}>
+            <tbody className={`divide-y text-xs ${isDarkMode ? 'divide-white/[0.06] text-zinc-200' : 'divide-slate-100 text-slate-700'}`}>
               {filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-zinc-400 italic">
-                    No se encontraron productos que coincidan con la búsqueda "{searchTerm}".
+                    No se encontraron productos que coincidan con la búsqueda &ldquo;{searchTerm}&rdquo;.
                   </td>
                 </tr>
               ) : (
@@ -251,13 +252,13 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                   return (
                     <tr
                       key={p.sku || idx}
-                      className={`transition-colors group rounded-none ${
+                      className={`transition-colors group ${
                         isDarkMode ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50'
                       }`}
                     >
                       {/* Posición # */}
-                      <td className="px-3 py-3 text-center rounded-none">
-                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-none text-[11px] font-mono font-bold ${
+                      <td className="px-3 py-3 text-center">
+                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg text-[11px] font-mono font-bold ${
                           isDarkMode ? 'bg-white/5 text-zinc-400' : 'bg-slate-100 text-slate-600'
                         }`}>
                           {p.index || idx + 1}
@@ -265,9 +266,9 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                       </td>
 
                       {/* SKU / Modelo en badge de alto contraste recto */}
-                      <td className="px-3.5 py-3 whitespace-nowrap rounded-none">
+                      <td className="px-3.5 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <span className={`font-mono text-xs sm:text-[13px] font-black px-2.5 py-1 rounded-none tracking-wider ${
+                          <span className={`font-mono text-xs sm:text-[13px] font-black px-2.5 py-1 rounded-md tracking-wider ${
                             isDarkMode
                               ? 'bg-white text-zinc-950 shadow-sm'
                               : 'bg-zinc-900 text-white'
@@ -278,7 +279,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                             type="button"
                             onClick={() => handleCopy(p.sku)}
                             title="Copiar SKU"
-                            className={`p-1.5 rounded-none text-xs transition-colors cursor-pointer ${
+                            className={`p-1.5 rounded-md text-xs transition-colors cursor-pointer ${
                               isDarkMode
                                 ? 'hover:bg-white/10 text-zinc-400 hover:text-white'
                                 : 'hover:bg-slate-200 text-slate-500'
@@ -294,15 +295,15 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                       </td>
 
                       {/* Descripción Comercial */}
-                      <td className="px-3.5 py-3 rounded-none">
+                      <td className="px-3.5 py-3 ">
                         <span className={`line-clamp-2 leading-relaxed ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'}`}>
                           {p.description || '—'}
                         </span>
                       </td>
 
                       {/* Precio de Lista Base en badge consistente recto */}
-                      <td className="px-3.5 py-3 text-right whitespace-nowrap rounded-none">
-                        <span className={`inline-block font-mono font-black text-xs sm:text-[13px] px-3 py-1 rounded-none ${
+                      <td className="px-3.5 py-3 text-right whitespace-nowrap">
+                        <span className={`inline-block font-mono font-black text-xs sm:text-[13px] px-3 py-1 rounded-md ${
                           isDarkMode
                             ? 'bg-white/[0.04] text-white border border-white/10 shadow-2xs'
                             : 'bg-slate-100 text-slate-900 border border-slate-200'
@@ -312,8 +313,8 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                       </td>
 
                       {/* Features Vinculadas */}
-                      <td className="px-3.5 py-3 text-center whitespace-nowrap rounded-none">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-none text-[11px] font-semibold ${
+                      <td className="px-3.5 py-3 text-center whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold ${
                           isDarkMode
                             ? 'bg-white/10 text-zinc-300 border border-white/15'
                             : 'bg-slate-100 text-slate-700 border border-slate-200'
@@ -324,12 +325,12 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                       </td>
 
                       {/* Botón Acción Rápida: Inspeccionar */}
-                      <td className="px-3.5 py-3 text-center whitespace-nowrap rounded-none">
+                      <td className="px-3.5 py-3 text-center whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => handleInspect(p.sku)}
                           title={`Consultar opciones de ${p.sku}`}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-none text-[11px] font-semibold transition-all cursor-pointer ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                             isDarkMode
                               ? 'bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white border border-white/10 hover:border-white/20'
                               : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200'
@@ -348,7 +349,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
         </div>
 
         {/* ── FOOTER: SUGERENCIAS INTERACTIVAS Y TIPS ── */}
-        <div className={`p-3.5 sm:p-4 border-t flex flex-col gap-3 rounded-none ${
+        <div className={`p-3.5 sm:p-4 border-t flex flex-col gap-3  ${
           isDarkMode ? 'border-white/10 bg-white/[0.015]' : 'border-slate-100 bg-slate-50/50'
         }`}>
           {/* Tip amigable si existe */}
@@ -363,7 +364,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
 
           {/* Chips de comandos sugeridos accionables con esquinas rectas */}
           {suggestions && suggestions.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap pt-1 rounded-none">
+            <div className="flex items-center gap-2 flex-wrap pt-1 ">
               <span className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 ${
                 isDarkMode ? 'text-zinc-500' : 'text-slate-400'
               }`}>
@@ -375,7 +376,7 @@ export default function CatalogAnalyticsCard({ data, onCommandSelect, isDarkMode
                   key={sIdx}
                   type="button"
                   onClick={() => handleSuggestion(sug.command)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-semibold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     isDarkMode
                       ? 'bg-white/5 hover:bg-white/15 text-zinc-200 hover:text-white border border-white/10 hover:border-white/20 hover:scale-[1.02] active:scale-[0.98]'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'

@@ -47,6 +47,18 @@ import { applyExcelVisualStyling } from './XML_Results_General.jsx';
 
 const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
 
+// Sanitizador de texto: Elimina completamente cualquier emoji o pictograma del chat
+const stripEmojis = (str) => {
+  if (!str) return '';
+  return String(str)
+    .replace(
+      /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2702}-\u{27B0}\u{24C2}-\u{1F251}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{200D}\u{FE0F}]/gu,
+      ''
+    )
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+};
+
 export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunComparison }) {
   const [headers, setHeaders] = useState(BASE_HEADERS);
   const [baseRows, setBaseRows] = useState([]);
@@ -1079,7 +1091,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         const botMsg = {
           id: `mcp-b-${Date.now()}`,
           role: 'assistant',
-          text: data?.reply || 'Consulta procesada sobre `csv_edit_raw`.',
+          text: stripEmojis(data?.reply) || 'Consulta procesada sobre `csv_edit_raw`.',
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           mcpTraces,
           matchedSkus,
@@ -1095,7 +1107,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           {
             id: `mcp-err-${Date.now()}`,
             role: 'assistant',
-            text: `❌ Error consultando el MCP en el backend: ${err?.message || 'Fallo de red'}`,
+            text: `Error consultando el MCP en el backend: ${err?.message || 'Fallo de red'}`,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             mcpTraces: [],
             matchedSkus: []
@@ -1625,7 +1637,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   if (loading) {
     return (
       <div className={`w-full h-full flex flex-col items-center justify-center py-16 font-sans ${isDarkMode ? 'text-zinc-300' : 'text-slate-600'}`}>
-        <div className={`flex items-center gap-3 px-5 py-3 rounded-none border backdrop-blur-xl ${
+        <div className={`flex items-center gap-3 px-5 py-3 rounded-xl border backdrop-blur-xl ${
           isDarkMode ? 'border-white/10 bg-[#09090b]/80 text-zinc-200' : 'border-slate-200 bg-white text-slate-800'
         }`}>
           <RefreshCw size={15} className="animate-spin" />
@@ -1649,7 +1661,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           {onBack && (
             <button
               onClick={onBack}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none text-xs font-semibold border cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold border cursor-pointer ${
                 isDarkMode ? 'bg-white/10 hover:bg-white/15 text-white border-white/15' : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-200'
               }`}
             >
@@ -1658,7 +1670,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           )}
           <button
             onClick={loadEditorData}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-none text-xs font-semibold border cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold border cursor-pointer ${
               isDarkMode ? 'bg-white text-zinc-950 border-white hover:bg-zinc-200' : 'bg-[#18181b] text-white border-[#18181b] hover:bg-zinc-800'
             }`}
           >
@@ -1701,7 +1713,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   placeholder="Buscar por Model # o descripción..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`rounded-none pl-7 pr-6 py-1 text-[10.5px] w-[170px] sm:w-[220px] focus:outline-none border transition-all ${
+                  className={`rounded-md pl-7 pr-6 py-1 text-[10.5px] w-[170px] sm:w-[220px] focus:outline-none border transition-all ${
                     isDarkMode
                       ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
                       : 'bg-slate-100/80 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white'
@@ -1719,13 +1731,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               </div>
 
               {/* Pestañas de filtro */}
-              <div className={`flex items-center border rounded-none ${
+              <div className={`flex items-center border rounded-md overflow-hidden ${
                 isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
               }`}>
                 <button
                   type="button"
                   onClick={() => setFilterMode('all')}
-                  className={`px-2.5 py-1 rounded-none text-[10px] font-semibold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer ${
                     filterMode === 'all'
                       ? isDarkMode
                         ? 'bg-white text-zinc-950 font-bold'
@@ -1740,7 +1752,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 <button
                   type="button"
                   onClick={() => setFilterMode('modified')}
-                  className={`px-2.5 py-1 rounded-none text-[10px] font-semibold transition-all cursor-pointer border-l ${
+                  className={`px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer border-l ${
                     isDarkMode ? 'border-white/10' : 'border-slate-200'
                   } ${
                     filterMode === 'modified'
@@ -1758,7 +1770,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <button
                     type="button"
                     onClick={() => setFilterMode('new_deleted')}
-                    className={`px-2.5 py-1 rounded-none text-[10px] font-semibold transition-all cursor-pointer border-l ${
+                    className={`px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer border-l ${
                       isDarkMode ? 'border-white/10' : 'border-slate-200'
                     } ${
                       filterMode === 'new_deleted'
@@ -1778,7 +1790,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               {/* Indicador de filtro activo ejecutado por el MCP */}
               {mcpActiveSkuFilter && (
                 <div
-                  className={`flex items-center gap-1.5 px-2 py-1 border rounded-none text-[9.5px] font-mono select-none ${
+                  className={`flex items-center gap-1.5 px-2 py-1 border rounded-md text-[9.5px] font-mono select-none ${
                     isDarkMode
                       ? 'bg-white/10 border-white/20 text-white'
                       : 'bg-slate-900 text-white border-slate-900'
@@ -1803,7 +1815,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               <button
                 type="button"
                 onClick={handleAddNewProduct}
-                className={`px-2.5 py-1 rounded-none text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
                   isDarkMode
                     ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15'
                     : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'
@@ -1816,7 +1828,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               <button
                 type="button"
                 onClick={() => setShowBulkBar((v) => !v)}
-                className={`px-2.5 py-1 rounded-none text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
                   showBulkBar
                     ? isDarkMode
                       ? 'bg-white text-zinc-950 border-white'
@@ -1834,7 +1846,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               <button
                 type="button"
                 onClick={exportToExcel}
-                className={`px-2.5 py-1 rounded-none text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
                   isDarkMode
                     ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
                     : 'bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-700'
@@ -1849,7 +1861,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 <button
                   type="button"
                   onClick={() => setShowResetConfirm(true)}
-                  className={`px-2.5 py-1 rounded-none text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
                     isDarkMode
                       ? 'bg-white/5 hover:bg-white/15 text-zinc-300 border-white/15'
                       : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
@@ -1865,7 +1877,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 <button
                   type="button"
                   onClick={onBack}
-                  className={`px-2.5 py-1 rounded-none text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
                     isDarkMode
                       ? 'bg-white/5 hover:bg-white/15 text-zinc-300 border-white/15'
                       : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
@@ -1894,7 +1906,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 <select
                   value={bulkColumn}
                   onChange={(e) => setBulkColumn(e.target.value)}
-                  className={`px-2 py-1 rounded-none border text-[10.5px] font-semibold focus:outline-none ${
+                  className={`px-2 py-1 rounded-md border text-[10.5px] font-semibold focus:outline-none ${
                     isDarkMode ? 'bg-[#09090b] border-white/15 text-white' : 'bg-white border-slate-300 text-slate-900'
                   }`}
                 >
@@ -1911,7 +1923,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 <select
                   value={bulkMode}
                   onChange={(e) => setBulkMode(e.target.value)}
-                  className={`px-2 py-1 rounded-none border text-[10.5px] font-semibold focus:outline-none ${
+                  className={`px-2 py-1 rounded-md border text-[10.5px] font-semibold focus:outline-none ${
                     isDarkMode ? 'bg-[#09090b] border-white/15 text-white' : 'bg-white border-slate-300 text-slate-900'
                   }`}
                 >
@@ -1926,7 +1938,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   placeholder={bulkMode === 'percent' ? 'Ej: 5 o -10' : 'Ej: 45'}
                   value={bulkValue}
                   onChange={(e) => setBulkValue(e.target.value)}
-                  className={`w-24 px-2 py-1 rounded-none border text-[10.5px] font-mono font-bold focus:outline-none ${
+                  className={`w-24 px-2 py-1 rounded-md border text-[10.5px] font-mono font-bold focus:outline-none ${
                     isDarkMode ? 'bg-[#09090b] border-white/20 text-white' : 'bg-white border-slate-300 text-slate-900'
                   }`}
                 />
@@ -1935,7 +1947,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   type="button"
                   onClick={handleApplyBulkUpdate}
                   disabled={bulkValue === ''}
-                  className={`px-3 py-1 rounded-none text-[10.5px] font-bold cursor-pointer transition-all disabled:opacity-40 ${
+                  className={`px-3 py-1 rounded-md text-[10.5px] font-bold cursor-pointer transition-all disabled:opacity-40 ${
                     isDarkMode ? 'bg-white text-zinc-950 hover:bg-zinc-200' : 'bg-[#18181b] text-white hover:bg-zinc-800'
                   }`}
                 >
@@ -1957,7 +1969,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           {showResetConfirm && (
             <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
               <div
-                className={`max-w-sm w-full rounded-none p-5 border shadow-2xl ${
+                className={`max-w-sm w-full rounded-xl p-5 border shadow-2xl ${
                   isDarkMode ? 'bg-[#09090b] border-white/15 text-white' : 'bg-white border-slate-200 text-slate-900'
                 }`}
               >
@@ -1970,7 +1982,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <button
                     type="button"
                     onClick={() => setShowResetConfirm(false)}
-                    className={`px-3 py-1.5 rounded-none text-xs font-semibold border cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold border cursor-pointer ${
                       isDarkMode ? 'border-white/15 bg-white/5 hover:bg-white/10' : 'border-slate-200 bg-slate-100'
                     }`}
                   >
@@ -1979,7 +1991,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <button
                     type="button"
                     onClick={handleResetAllToBase}
-                    className={`px-3 py-1.5 rounded-none text-xs font-bold cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-md text-xs font-bold cursor-pointer ${
                       isDarkMode ? 'bg-white text-zinc-950 hover:bg-zinc-200' : 'bg-[#18181b] text-white hover:bg-zinc-800'
                     }`}
                   >
@@ -2000,7 +2012,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           >
             {filteredRows.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center bg-transparent">
-                <div className={`w-9 h-9 rounded-none flex items-center justify-center mb-2 border ${
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-2 border ${
                   isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
                 }`}>
                   <Search className={`w-4 h-4 ${isDarkMode ? 'text-zinc-400' : 'text-slate-400'}`} />
@@ -2092,7 +2104,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                           <button
                             type="button"
                             onClick={() => handleToggleDeleteRow(originalIdx)}
-                            className={`p-0.5 rounded-none transition-colors cursor-pointer ${
+                            className={`p-0.5 rounded transition-colors cursor-pointer ${
                               isDarkMode
                                 ? 'text-zinc-400 hover:text-white'
                                 : 'text-slate-400 hover:text-slate-900'
@@ -2144,7 +2156,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                     setActiveCell(null);
                                   }}
                                   onKeyDown={(e) => handleCellKeyDown(e, filteredIdx, colIdx)}
-                                  className={`w-full min-w-[75px] px-2.5 py-1 rounded-none text-[10.5px] font-mono focus:outline-none ring-1 ${
+                                  className={`w-full min-w-[75px] px-2.5 py-1 rounded text-[10.5px] font-mono focus:outline-none ring-1 ${
                                     isDarkMode
                                       ? 'bg-[#09090b] text-white ring-white'
                                       : 'bg-white text-slate-950 ring-slate-900'
@@ -2165,7 +2177,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                   <div className="flex items-center gap-1.5 truncate">
                                     {isSkuCol && isNewRow && (
                                       <span
-                                        className={`px-1 py-0.2 rounded-none text-[8px] font-extrabold uppercase ${
+                                        className={`px-1 py-0.2 rounded text-[8px] font-extrabold uppercase ${
                                           isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'
                                         }`}
                                       >
@@ -2203,7 +2215,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                       <button
                                         type="button"
                                         onClick={(e) => revertSingleCell(originalIdx, colKey, e)}
-                                        className={`p-0.5 rounded-none transition-colors cursor-pointer ${
+                                        className={`p-0.5 rounded transition-colors cursor-pointer ${
                                           isDarkMode ? 'text-zinc-300 hover:text-white' : 'text-slate-600 hover:text-black'
                                         }`}
                                         title="Restaurar celda al valor original de csv_raw"
@@ -2339,7 +2351,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 </div>
 
                 <div
-                  className={`p-3 border rounded-none text-[11px] leading-relaxed space-y-2 shadow-sm ${
+                  className={`p-3 border rounded-xl text-[11px] leading-relaxed space-y-2 shadow-sm ${
                     isDarkMode
                       ? 'bg-[#09090b]/80 border-white/10 text-zinc-300 shadow-[0_4px_20px_rgba(0,0,0,0.35)]'
                       : 'bg-white border-slate-200 text-gray-700 shadow-xs'
@@ -2394,7 +2406,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                 }
                               }
                             }}
-                            className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-none cursor-pointer outline-none transition-colors ${
+                            className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
                               isDarkMode
                                 ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
                                 : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
@@ -2454,7 +2466,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                           return (
                             <div
                               key={f.id}
-                              className={`inline-flex items-center border rounded-none text-[9.5px] font-mono transition-all ${
+                              className={`inline-flex items-center border rounded-md text-[9.5px] font-mono transition-all overflow-hidden ${
                                 isCurrentlyApplied
                                   ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300'
                                   : isDarkMode
@@ -2472,7 +2484,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                 {f.isAudit && <AlertCircle size={9.5} className="text-amber-400 shrink-0" />}
                                 <span>{f.label}</span>
                                 <span
-                                  className={`px-1 py-0.2 rounded-none text-[8.5px] ${
+                                  className={`px-1 py-0.2 rounded text-[8.5px] ${
                                     isCurrentlyApplied
                                       ? 'bg-emerald-500 text-zinc-950 font-bold'
                                       : isDarkMode
@@ -2528,7 +2540,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 return (
                   <div key={msg.id} className="flex justify-end">
                     <div
-                      className={`max-w-[88%] px-3 py-2 border rounded-none text-[11px] leading-relaxed ${
+                      className={`max-w-[88%] px-3 py-2 border rounded-xl text-[11px] leading-relaxed ${
                         isDarkMode
                           ? 'bg-white text-zinc-950 border-white font-medium'
                           : 'bg-[#18181b] text-white border-[#18181b] font-medium'
@@ -2572,7 +2584,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                     </div>
 
                     <div
-                      className={`p-3 border rounded-none text-[11px] leading-relaxed space-y-2 shadow-sm overflow-x-auto ${
+                      className={`p-3 border rounded-xl text-[11px] leading-relaxed space-y-2 shadow-sm overflow-x-auto ${
                         isDarkMode
                           ? 'bg-[#09090b]/80 border-white/10 text-zinc-300 shadow-[0_4px_20px_rgba(0,0,0,0.35)]'
                           : 'bg-white border-slate-200 text-gray-700 shadow-xs'
@@ -2584,7 +2596,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                           {msg.mcpTraces.map((tr, idx) => (
                             <span
                               key={`${tr.tool}-${idx}`}
-                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-none ${
+                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded ${
                                 isDarkMode
                                   ? 'bg-white/5 border-white/10 text-zinc-300'
                                   : 'bg-slate-100 border-slate-200 text-slate-700'
@@ -2616,7 +2628,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                 });
                               }
                             }}
-                            className={`px-2 py-0.5 text-[9.5px] font-mono border rounded-none transition-all cursor-pointer flex items-center gap-1.5 ${
+                            className={`px-2 py-0.5 text-[9.5px] font-mono border rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
                               mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`)
                                 ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
                                 : isDarkMode
@@ -2638,7 +2650,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                           </button>
 
                           <span className="text-[9px] font-mono opacity-50 italic">
-                            💡 Pídele a Alysa: &quot;Súbele 5%&quot;, &quot;Cambia ese precio a $14&quot; o &quot;+$2 a -FG&quot;
+                            Pídele a Alysa: &quot;Súbele 5%&quot;, &quot;Cambia ese precio a $14&quot; o &quot;+$2 a -FG&quot;
                           </span>
                         </div>
                       )}
@@ -2665,7 +2677,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 isDarkMode
                   ? 'bg-[#09090b]/55 border-white/[0.12] text-white shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)] focus-within:border-white/35 focus-within:bg-[#09090b]/70 focus-within:ring-2 focus-within:ring-white/[0.06]'
                   : 'bg-white/80 border-slate-200/80 text-gray-800 shadow-md focus-within:border-[#18181b]/50 focus-within:ring-2 focus-within:ring-[#18181b]/10'
-              } backdrop-blur-2xl border rounded-none relative transition-all duration-300`}
+              } backdrop-blur-2xl border rounded-xl relative transition-all duration-300`}
             >
               {/* Área de Texto e Ícono */}
               <div className="flex flex-col px-2.5 pt-2 pb-0.5 w-full">
@@ -2702,7 +2714,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <button
                     type="button"
                     title="Adjuntar referencia"
-                    className={`w-6 h-6 rounded-none flex items-center justify-center transition-colors cursor-pointer ${
+                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
                       isDarkMode
                         ? 'text-zinc-400 hover:bg-white/10 hover:text-white'
                         : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'
@@ -2713,7 +2725,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <button
                     type="button"
                     title="Voice Recording (Speech-to-Text)"
-                    className={`w-6 h-6 rounded-none flex items-center justify-center transition-colors cursor-pointer ${
+                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
                       isDarkMode
                         ? 'text-zinc-400 hover:bg-white/10 hover:text-white'
                         : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'
@@ -2724,7 +2736,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <button
                     type="button"
                     title="AI Guide & FAQ"
-                    className={`w-6 h-6 rounded-none flex items-center justify-center transition-colors cursor-pointer ${
+                    className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
                       isDarkMode
                         ? 'text-zinc-400 hover:bg-white/10 hover:text-white'
                         : 'text-gray-400 hover:bg-gray-100 hover:text-[#18181b]'
@@ -2741,7 +2753,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                         isDarkMode
                           ? 'text-zinc-300 bg-white/5 border-white/10'
                           : 'text-gray-500 bg-white/80 border-gray-200/60'
-                      } border px-1.5 py-0.5 rounded-none`}
+                      } border px-1.5 py-0.5 rounded-md`}
                     >
                       {chatInputUi.length} chars
                     </span>
@@ -2750,7 +2762,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                     type="button"
                     onClick={() => handleSendMatrixChat()}
                     disabled={!chatInputUi.trim() || isMcpThinking}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-none text-[10px] font-semibold transition-all duration-200 ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all duration-200 ${
                       chatInputUi.trim() && !isMcpThinking
                         ? isDarkMode
                           ? 'bg-white text-zinc-950 shadow-sm hover:bg-zinc-200 font-bold cursor-pointer'
