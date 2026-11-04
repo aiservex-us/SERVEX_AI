@@ -132,24 +132,46 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
         timestamp: new Date().toISOString()
       };
 
-      // Guardar en tabla AI_Users (Upsert por user_id)
-      const { error } = await supabase.from('AI_Users').upsert([
-        {
-          user_id: currentUser.id,
-          user_personal_data: delegationData,
-          user_personal_data_complete: completeData
-        }
-      ], { onConflict: 'user_id' });
+      // Guardar en tabla AI_Users (compatible con schemas sin constraint único en user_id)
+      const { data: existingRows } = await supabase
+        .from('AI_Users')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .limit(1);
 
-      if (error) {
-        throw error;
+      let saveError = null;
+
+      if (existingRows && existingRows.length > 0) {
+        const { error } = await supabase
+          .from('AI_Users')
+          .update({
+            user_personal_data: delegationData,
+            user_personal_data_complete: completeData
+          })
+          .eq('user_id', currentUser.id);
+        saveError = error;
+      } else {
+        const { error } = await supabase
+          .from('AI_Users')
+          .insert([
+            {
+              user_id: currentUser.id,
+              user_personal_data: delegationData,
+              user_personal_data_complete: completeData
+            }
+          ]);
+        saveError = error;
+      }
+
+      if (saveError) {
+        throw saveError;
       }
 
       // Onboarding completado exitosamente: liberar el paso al pipeline
       setNeedsOnboarding(false);
     } catch (e) {
       console.error('Error al persistir perfil en AI_Users:', e);
-      setErrorMsg('No se pudieron guardar tus datos en AI_Users. Por favor verifica e intenta de nuevo.');
+      setErrorMsg(e?.message || 'No se pudieron guardar tus datos en AI_Users. Por favor verifica e intenta de nuevo.');
     } finally {
       setIsSubmitting(false);
     }
