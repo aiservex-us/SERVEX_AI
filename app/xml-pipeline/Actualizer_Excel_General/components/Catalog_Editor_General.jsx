@@ -87,6 +87,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const [mcpActiveSkuFilter, setMcpActiveSkuFilter] = useState(null);
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('');
   const chatScrollEndRef = useRef(null);
+  const lastFilteredSkusRef = useRef([]);
 
   const apiURL =
     process.env.NEXT_PUBLIC_API_URL ||
@@ -879,6 +880,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
         let data = null;
 
+        const activeSkusToSend =
+          mcpActiveSkuFilter?.skuSet && mcpActiveSkuFilter.skuSet.size > 0
+            ? Array.from(mcpActiveSkuFilter.skuSet)
+            : (lastFilteredSkusRef.current && lastFilteredSkusRef.current.length > 0
+                ? lastFilteredSkusRef.current
+                : []);
+
         // 1. Intentar endpoint dedicado del nuevo MCP en el backend
         try {
           const res = await fetch(`${apiURL}/api/v1/General_Procces/matrix-editor/mcp-chat`, {
@@ -893,7 +901,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               })),
               csv_edit_raw: currentCsvEditRaw,
               tool_call: explicitToolCall || undefined,
-              active_skus: mcpActiveSkuFilter?.skuSet ? Array.from(mcpActiveSkuFilter.skuSet) : []
+              active_skus: activeSkusToSend
             })
           });
 
@@ -937,6 +945,10 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           ? backendSkus
           : (Array.isArray(precomputedSkus) && precomputedSkus.length > 0 ? precomputedSkus : []);
 
+        if (matchedSkus.length > 0) {
+          lastFilteredSkusRef.current = matchedSkus;
+        }
+
         const mcpTraces = Array.isArray(data?.mcp_traces) ? data.mcp_traces : [];
         const primaryFilter = mcpTraces.find(
           (t) =>
@@ -954,7 +966,9 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           const targetSkus =
             batchTrace?.affected_skus ||
             data?.affected_skus ||
-            (mcpActiveSkuFilter?.skuSet ? Array.from(mcpActiveSkuFilter.skuSet) : []);
+            (mcpActiveSkuFilter?.skuSet && mcpActiveSkuFilter.skuSet.size > 0
+              ? Array.from(mcpActiveSkuFilter.skuSet)
+              : lastFilteredSkusRef.current);
           const targetCol = batchTrace?.applied_column || batchInfo.target_column || 'List Price';
           const targetMode = batchTrace?.mode || batchInfo.mode || 'percent';
           const targetVal =
@@ -1357,7 +1371,16 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
   // Aplicar ajuste masivo sobre las filas filtradas actualmente o sobre un lote de SKUs específico
   const handleApplyBulkUpdate = (overrideSkus = null, overrideCol = null, overrideMode = null, overrideVal = null) => {
-    const activeCol = overrideCol || bulkColumn;
+    let activeCol = overrideCol || bulkColumn;
+    if (overrideCol) {
+      const match = (headersRef.current || []).find(
+        (h) =>
+          h.toLowerCase() === overrideCol.toLowerCase() ||
+          h.toLowerCase().includes(overrideCol.toLowerCase()) ||
+          overrideCol.toLowerCase().includes(h.toLowerCase())
+      );
+      if (match) activeCol = match;
+    }
     const activeMode = overrideMode || bulkMode;
     const rawVal = overrideVal !== null && overrideVal !== undefined ? overrideVal : bulkValue;
     const numVal = parseFloat(rawVal);
