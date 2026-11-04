@@ -89,6 +89,88 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const chatScrollEndRef = useRef(null);
   const lastFilteredSkusRef = useRef([]);
 
+  // Ancho redimensionable del panel de chat (18vw a 50vw máx)
+  const [chatWidthPercent, setChatWidthPercent] = useState(28);
+  const [isResizingChat, setIsResizingChat] = useState(false);
+  const [isLgScreen, setIsLgScreen] = useState(true);
+  const isResizingRef = useRef(false);
+  const splitContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = sessionStorage.getItem('matrix_editor_chat_width_pct');
+        if (saved) {
+          const val = parseFloat(saved);
+          if (!Number.isNaN(val) && val >= 18 && val <= 50) {
+            setChatWidthPercent(val);
+          }
+        }
+      } catch (_) {}
+
+      const checkScreen = () => {
+        setIsLgScreen(window.innerWidth >= 1024);
+      };
+      checkScreen();
+      window.addEventListener('resize', checkScreen);
+      return () => window.removeEventListener('resize', checkScreen);
+    }
+  }, []);
+
+  const handleStartResize = useCallback((e) => {
+    e.preventDefault();
+    setIsResizingChat(true);
+    isResizingRef.current = true;
+    if (typeof document !== 'undefined') {
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    const handleMouseMove = (moveEvent) => {
+      if (!isResizingRef.current) return;
+      const container = splitContainerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const rawWidthPx = rect.right - moveEvent.clientX;
+      let newPct = (rawWidthPx / rect.width) * 100;
+
+      // Limitar entre 18% mínimo y 50% (50vw) máximo
+      if (newPct < 18) newPct = 18;
+      if (newPct > 50) newPct = 50;
+
+      setChatWidthPercent(newPct);
+    };
+
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+      setIsResizingChat(false);
+      if (typeof document !== 'undefined') {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+
+      setChatWidthPercent((curr) => {
+        try {
+          sessionStorage.setItem('matrix_editor_chat_width_pct', String(curr.toFixed(1)));
+        } catch (_) {}
+        return curr;
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, []);
+
+  const handleResetResize = useCallback(() => {
+    setChatWidthPercent(28);
+    try {
+      sessionStorage.setItem('matrix_editor_chat_width_pct', '28');
+    } catch (_) {}
+  }, []);
+
   const apiURL =
     process.env.NEXT_PUBLIC_API_URL ||
     process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -1589,14 +1671,25 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
   return (
     <div className={`w-full h-full flex flex-col font-sans antialiased select-none ${isDarkMode ? 'text-zinc-100' : 'text-slate-900'}`}>
-      {/* ── CONTENEDOR PRINCIPAL DIVIDIDO: IZQUIERDA TABLA EDITABLE (70-72%) / DERECHA INTERFAZ CHAT ALYSA (28-30%) ── */}
-      <div className="flex-1 w-full min-h-0 flex flex-col lg:flex-row overflow-hidden">
+      {/* ── CONTENEDOR PRINCIPAL DIVIDIDO: IZQUIERDA TABLA EDITABLE / DERECHA INTERFAZ CHAT ALYSA (RESIZABLE HASTA 50VW) ── */}
+      <div
+        ref={splitContainerRef}
+        className="flex-1 w-full min-h-0 flex flex-col lg:flex-row overflow-hidden relative"
+      >
+        {/* Overlay invisible mientras se arrastra para evitar interferencias de eventos */}
+        {isResizingChat && (
+          <div className="fixed inset-0 z-[9999] cursor-col-resize select-none" />
+        )}
+
         {/* ── COLUMNA IZQUIERDA: HERRAMIENTAS, TABLA INTERACTIVA Y PAGINACIÓN ── */}
-        <div className="w-full lg:w-[70%] xl:w-[72%] min-w-0 h-full flex flex-col overflow-hidden">
-          {/* ── SUB-BARRA DE HERRAMIENTAS: BÚSQUEDA, FILTROS Y ACCIONES RÁPIDAS ── */}
+        <div
+          style={isLgScreen ? { width: `${100 - chatWidthPercent}%` } : undefined}
+          className="w-full min-w-0 h-full flex flex-col overflow-hidden"
+        >
+          {/* ── SUB-BARRA DE HERRAMIENTAS: BÚSQUEDA, FILTROS Y ACCIONES RÁPIDAS (OCUPA 100% HASTA EL CHAT) ── */}
           <div
-            className={`w-full flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b ${
-              isDarkMode ? 'bg-transparent border-white/10' : 'bg-white/80 border-slate-200'
+            className={`w-full min-w-full flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b backdrop-blur-md ${
+              isDarkMode ? 'bg-zinc-950/70 border-white/10' : 'bg-white/90 border-slate-200'
             }`}
           >
             <div className="flex flex-wrap items-center gap-2">
@@ -1928,7 +2021,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 )}
               </div>
             ) : (
-              <table className="table-auto border-collapse text-left text-[10px] w-full min-w-[700px] bg-transparent">
+              <table className="w-full min-w-full table-auto border-collapse text-left text-[10px] bg-transparent">
                 <thead
                   className={`sticky top-0 z-20 backdrop-blur-md border-b ${
                     isDarkMode ? 'bg-zinc-900/95 border-white/10' : 'bg-slate-100/95 border-slate-200'
@@ -1937,7 +2030,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <tr>
                     {/* Columna de acción (Baja / Estado) */}
                     <th
-                      className={`w-10 px-2 py-2 text-center text-[9px] font-bold uppercase tracking-wider sticky left-0 z-30 border-r border-b select-none ${
+                      className={`w-10 min-w-[40px] px-2 py-2 text-center text-[9px] font-bold uppercase tracking-wider sticky left-0 z-30 border-r border-b select-none ${
                         isDarkMode
                           ? 'text-zinc-400 bg-zinc-900/95 border-white/10'
                           : 'text-slate-500 bg-slate-100/95 border-slate-200'
@@ -1948,8 +2041,10 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                     {headers.map((h) => (
                       <th
                         key={h}
-                        className={`px-3 py-2 text-[10px] font-bold border-r border-b whitespace-nowrap truncate uppercase tracking-wider select-none bg-transparent ${
-                          isDarkMode ? 'text-zinc-300 border-white/10' : 'text-slate-700 border-slate-200'
+                        className={`px-3 py-2 text-[10px] font-bold border-r border-b whitespace-nowrap uppercase tracking-wider select-none sticky top-0 ${
+                          isDarkMode
+                            ? 'bg-zinc-900/95 text-zinc-300 border-white/10'
+                            : 'bg-slate-100/95 text-slate-700 border-slate-200'
                         }`}
                       >
                         <div className="flex items-center gap-1">
@@ -2077,7 +2172,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                         NEW
                                       </span>
                                     )}
-                                    <span className={colKey === 'Model Name' ? 'max-w-[230px] truncate block' : ''}>
+                                    <span className={colKey === 'Model Name' ? 'max-w-[420px] 2xl:max-w-none truncate block' : ''}>
                                       {currentVal !== '' && currentVal !== undefined && currentVal !== null ? (
                                         isPriceCol && !Number.isNaN(Number(currentVal)) && Number(currentVal) > 0 ? (
                                           `$${Number(currentVal).toLocaleString()}`
@@ -2163,10 +2258,51 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           </div>
         </div>
 
-        {/* ── COLUMNA DERECHA (28-30%): INTERFAZ DE CHAT ALYSA COMPACTA ── */}
+        {/* ── SEPARADOR INTERACTIVO ARRASTRABLE (SPLITTER REDIMENSIONABLE HASTA 50VW) ── */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          onMouseDown={handleStartResize}
+          onDoubleClick={handleResetResize}
+          className={`hidden lg:flex flex-col items-center justify-center w-2 relative z-30 shrink-0 cursor-col-resize select-none group transition-colors ${
+            isResizingChat
+              ? isDarkMode ? 'bg-white/10' : 'bg-slate-300'
+              : isDarkMode ? 'bg-transparent hover:bg-white/5' : 'bg-transparent hover:bg-slate-100'
+          }`}
+          title="Arrastra para redimensionar el panel de Alysa (hasta 50vw). Doble clic para restablecer (28%)."
+        >
+          {/* Línea divisoria */}
+          <div
+            className={`w-px h-full transition-colors ${
+              isResizingChat
+                ? isDarkMode ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-emerald-600'
+                : isDarkMode ? 'bg-white/10 group-hover:bg-white/30' : 'bg-slate-200 group-hover:bg-slate-400'
+            }`}
+          />
+          {/* Manija central de agarre táctil */}
+          <div
+            className={`absolute w-1 h-9 rounded-full transition-all duration-150 pointer-events-none ${
+              isResizingChat
+                ? 'bg-emerald-400 scale-y-125'
+                : isDarkMode
+                  ? 'bg-zinc-600 group-hover:bg-zinc-300'
+                  : 'bg-slate-400 group-hover:bg-slate-700'
+            }`}
+          />
+
+          {/* Badge flotante que muestra el ancho exacto durante el arrastre */}
+          {isResizingChat && (
+            <div className="absolute top-3 right-3 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-zinc-950/95 border border-white/20 text-emerald-400 shadow-2xl pointer-events-none z-50 whitespace-nowrap">
+              Chat: {Math.round(chatWidthPercent)}% / 50vw máx
+            </div>
+          )}
+        </div>
+
+        {/* ── COLUMNA DERECHA: INTERFAZ DE CHAT ALYSA (RESIZABLE HASTA 50VW) ── */}
         <aside
-          className={`w-full lg:w-[30%] xl:w-[28%] shrink-0 h-[340px] lg:h-full border-t lg:border-t-0 lg:border-l flex flex-col overflow-hidden relative ${
-            isDarkMode ? 'bg-transparent border-white/10' : 'bg-white/60 border-slate-200'
+          style={isLgScreen ? { width: `${chatWidthPercent}%` } : undefined}
+          className={`w-full shrink-0 h-[340px] lg:h-full border-t lg:border-t-0 flex flex-col overflow-hidden relative ${
+            isDarkMode ? 'bg-transparent' : 'bg-white/60'
           }`}
         >
           {/* Área de mensajes del chat conectado al MCP del Backend */}
