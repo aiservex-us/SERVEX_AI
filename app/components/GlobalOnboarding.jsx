@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import AnimatedChatBackground from '@/app/xml-pipeline/Actualizer_XML_General/components/AnimatedChatBackground.jsx';
+import ServexLogo from '@/app/components/ServexLogo.jsx';
 import {
   Sparkles,
   Loader2,
@@ -188,10 +189,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                   </span>
                 </div>
                 <div
-                  className={`p-4 sm:p-5 border rounded-none backdrop-blur-xl ${
+                  className={`p-4 sm:p-5 border rounded-none ${
                     isDarkMode
-                      ? 'bg-[#09090b]/70 border-white/10 text-zinc-100 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
-                      : 'bg-white/80 border-slate-200/90 text-slate-800 shadow-md'
+                      ? 'bg-white/[0.03] border-white/15 text-zinc-100'
+                      : 'bg-black/[0.02] border-slate-300 text-slate-800'
                   }`}
                 >
                   <p className="text-[13.5px] leading-relaxed m-0">
@@ -228,10 +229,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
               <div className="flex flex-col flex-1">
                 <span className="text-[10px] font-mono tracking-wider text-zinc-400 mb-1.5 uppercase font-medium">Paso 1 de 6 • Identidad</span>
                 <div
-                  className={`p-4 sm:p-5 border rounded-none backdrop-blur-xl ${
+                  className={`p-4 sm:p-5 border rounded-none ${
                     isDarkMode
-                      ? 'bg-[#09090b]/70 border-white/10 text-zinc-100 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
-                      : 'bg-white/80 border-slate-200/90 text-slate-800 shadow-md'
+                      ? 'bg-transparent border-white/15 text-zinc-100'
+                      : 'bg-transparent border-slate-300 text-slate-800'
                   }`}
                 >
                   <p className="text-[13px] leading-relaxed mb-3">
@@ -243,10 +244,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && nombre.trim() && setChatStep(2)}
-                    className={`w-full border px-3.5 py-2.5 text-xs rounded-none outline-none transition-all backdrop-blur-md ${
+                    className={`w-full border px-3.5 py-2.5 text-xs rounded-none outline-none transition-all ${
                       isDarkMode
-                        ? 'bg-white/5 border-white/15 text-white placeholder-zinc-500 focus:border-white/50 focus:bg-white/10'
-                        : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-600'
+                        ? 'bg-white/[0.04] border-white/20 text-white placeholder-zinc-500 focus:border-white/60 focus:bg-white/[0.08]'
+                        : 'bg-white/60 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-600 focus:bg-white/80'
                     }`}
                     placeholder="Ej. Juan Pérez..."
                   />
@@ -286,10 +287,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
               <div className="flex flex-col flex-1">
                 <span className="text-[10px] font-mono tracking-wider text-zinc-400 mb-1.5 uppercase font-medium">Paso 2 de 6 • Cargo</span>
                 <div
-                  className={`p-4 sm:p-5 border rounded-none backdrop-blur-xl ${
+                  className={`p-4 sm:p-5 border rounded-none ${
                     isDarkMode
-                      ? 'bg-[#09090b]/70 border-white/10 text-zinc-100 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
-                      : 'bg-white/80 border-slate-200/90 text-slate-800 shadow-md'
+                      ? 'bg-transparent border-white/15 text-zinc-100'
+                      : 'bg-transparent border-slate-300 text-slate-800'
                   }`}
                 >
                   <p className="text-[13px] leading-relaxed mb-3">
@@ -301,10 +302,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                     value={cargo}
                     onChange={(e) => setCargo(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && cargo.trim() && setChatStep(3)}
-                    className={`w-full border px-3.5 py-2.5 text-xs rounded-none outline-none transition-all backdrop-blur-md ${
+                    className={`w-full border px-3.5 py-2.5 text-xs rounded-none outline-none transition-all ${
                       isDarkMode
-                        ? 'bg-white/5 border-white/15 text-white placeholder-zinc-500 focus:border-white/50 focus:bg-white/10'
-                        : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-600'
+                        ? 'bg-white/[0.04] border-white/20 text-white placeholder-zinc-500 focus:border-white/60 focus:bg-white/[0.08]'
+                        : 'bg-white/60 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-600 focus:bg-white/80'
                     }`}
                     placeholder="Ej. Catalog Specialist, Data Analyst, Lead Engineer..."
                   />
@@ -344,10 +345,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
               <div className="flex flex-col flex-1">
                 <span className="text-[10px] font-mono tracking-wider text-zinc-400 mb-1.5 uppercase font-medium">Paso 3 de 6 • Delegación</span>
                 <div
-                  className={`p-4 sm:p-5 border rounded-none backdrop-blur-xl ${
+                  className={`p-4 sm:p-5 border rounded-none ${
                     isDarkMode
-                      ? 'bg-[#09090b]/70 border-white/10 text-zinc-100 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
-                      : 'bg-white/80 border-slate-200/90 text-slate-800 shadow-md'
+                      ? 'bg-transparent border-white/15 text-zinc-100'
+                      : 'bg-transparent border-slate-300 text-slate-800'
                   }`}
                 >
                   <p className="text-[13px] leading-relaxed mb-3">
@@ -359,10 +360,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                     value={delegadoPor}
                     onChange={(e) => setDelegadoPor(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && delegadoPor.trim() && setChatStep(4)}
-                    className={`w-full border px-3.5 py-2.5 text-xs rounded-none outline-none transition-all backdrop-blur-md ${
+                    className={`w-full border px-3.5 py-2.5 text-xs rounded-none outline-none transition-all ${
                       isDarkMode
-                        ? 'bg-white/5 border-white/15 text-white placeholder-zinc-500 focus:border-white/50 focus:bg-white/10'
-                        : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-600'
+                        ? 'bg-white/[0.04] border-white/20 text-white placeholder-zinc-500 focus:border-white/60 focus:bg-white/[0.08]'
+                        : 'bg-white/60 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-600 focus:bg-white/80'
                     }`}
                     placeholder="Ej. Dirección de Operaciones, Lead Engineering, Gerencia..."
                   />
@@ -402,10 +403,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
               <div className="flex flex-col flex-1">
                 <span className="text-[10px] font-mono tracking-wider text-zinc-400 mb-1.5 uppercase font-medium">Paso 4 de 6 • Función Principal</span>
                 <div
-                  className={`p-4 sm:p-5 border rounded-none backdrop-blur-xl ${
+                  className={`p-4 sm:p-5 border rounded-none ${
                     isDarkMode
-                      ? 'bg-[#09090b]/70 border-white/10 text-zinc-100 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
-                      : 'bg-white/80 border-slate-200/90 text-slate-800 shadow-md'
+                      ? 'bg-transparent border-white/15 text-zinc-100'
+                      : 'bg-transparent border-slate-300 text-slate-800'
                   }`}
                 >
                   <p className="text-[13px] leading-relaxed mb-3">
@@ -416,10 +417,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                     rows={3}
                     value={funcion}
                     onChange={(e) => setFuncion(e.target.value)}
-                    className={`w-full border px-3.5 py-2.5 text-xs rounded-none outline-none transition-all resize-none backdrop-blur-md ${
+                    className={`w-full border px-3.5 py-2.5 text-xs rounded-none outline-none transition-all resize-none ${
                       isDarkMode
-                        ? 'bg-white/5 border-white/15 text-white placeholder-zinc-500 focus:border-white/50 focus:bg-white/10'
-                        : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-600'
+                        ? 'bg-white/[0.04] border-white/20 text-white placeholder-zinc-500 focus:border-white/60 focus:bg-white/[0.08]'
+                        : 'bg-white/60 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-600 focus:bg-white/80'
                     }`}
                     placeholder="Ej. Actualización de listas de precios anuales, reconciliación y exportación de matrices CET..."
                   />
@@ -459,10 +460,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
               <div className="flex flex-col flex-1">
                 <span className="text-[10px] font-mono tracking-wider text-zinc-400 mb-1.5 uppercase font-medium">Paso 5 de 6 • Fotografía</span>
                 <div
-                  className={`p-4 sm:p-5 border rounded-none backdrop-blur-xl ${
+                  className={`p-4 sm:p-5 border rounded-none ${
                     isDarkMode
-                      ? 'bg-[#09090b]/70 border-white/10 text-zinc-100 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
-                      : 'bg-white/80 border-slate-200/90 text-slate-800 shadow-md'
+                      ? 'bg-transparent border-white/15 text-zinc-100'
+                      : 'bg-transparent border-slate-300 text-slate-800'
                   }`}
                 >
                   <p className="text-[13px] leading-relaxed mb-3">
@@ -486,8 +487,8 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                         onClick={() => fileInputRef.current?.click()}
                         className={`w-20 h-20 border-2 border-dashed flex flex-col items-center justify-center transition-all cursor-pointer ${
                           isDarkMode
-                            ? 'border-white/20 text-zinc-400 hover:border-white/40 hover:text-white bg-white/5'
-                            : 'border-slate-300 text-slate-500 hover:border-slate-500 hover:text-slate-800 bg-white/80'
+                            ? 'border-white/20 text-zinc-400 hover:border-white/50 hover:text-white bg-white/[0.03]'
+                            : 'border-slate-300 text-slate-500 hover:border-slate-500 hover:text-slate-800 bg-white/60'
                         }`}
                       >
                         <Upload size={18} className="mb-1" />
@@ -548,10 +549,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
               <div className="flex flex-col flex-1">
                 <span className="text-[10px] font-mono tracking-wider text-zinc-400 mb-1.5 uppercase font-medium">Paso Final • Confirmación</span>
                 <div
-                  className={`p-4 sm:p-5 border rounded-none backdrop-blur-xl ${
+                  className={`p-4 sm:p-5 border rounded-none ${
                     isDarkMode
-                      ? 'bg-[#09090b]/70 border-white/10 text-zinc-100 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
-                      : 'bg-white/80 border-slate-200/90 text-slate-800 shadow-md'
+                      ? 'bg-transparent border-white/15 text-zinc-100'
+                      : 'bg-transparent border-slate-300 text-slate-800'
                   }`}
                 >
                   <p className="text-[13px] leading-relaxed mb-3">
@@ -562,10 +563,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                       type="text"
                       value={telefono}
                       onChange={(e) => setTelefono(e.target.value)}
-                      className={`w-full border px-3.5 py-2 text-xs rounded-none outline-none backdrop-blur-md ${
+                      className={`w-full border px-3.5 py-2 text-xs rounded-none outline-none ${
                         isDarkMode
-                          ? 'bg-white/5 border-white/15 text-white placeholder-zinc-500 focus:border-white/40'
-                          : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-500'
+                          ? 'bg-white/[0.04] border-white/20 text-white placeholder-zinc-500 focus:border-white/50 focus:bg-white/[0.08]'
+                          : 'bg-white/60 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:bg-white/80'
                       }`}
                       placeholder="Teléfono (Ej. +1 555 123-4567)"
                     />
@@ -573,10 +574,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                       type="text"
                       value={ubicacion}
                       onChange={(e) => setUbicacion(e.target.value)}
-                      className={`w-full border px-3.5 py-2 text-xs rounded-none outline-none backdrop-blur-md ${
+                      className={`w-full border px-3.5 py-2 text-xs rounded-none outline-none ${
                         isDarkMode
-                          ? 'bg-white/5 border-white/15 text-white placeholder-zinc-500 focus:border-white/40'
-                          : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-500'
+                          ? 'bg-white/[0.04] border-white/20 text-white placeholder-zinc-500 focus:border-white/50 focus:bg-white/[0.08]'
+                          : 'bg-white/60 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:bg-white/80'
                       }`}
                       placeholder="Ubicación / Sede (Ej. HQ - Servex)"
                     />
@@ -584,10 +585,10 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
                       type="text"
                       value={comentarios}
                       onChange={(e) => setComentarios(e.target.value)}
-                      className={`w-full border px-3.5 py-2 text-xs rounded-none outline-none backdrop-blur-md ${
+                      className={`w-full border px-3.5 py-2 text-xs rounded-none outline-none ${
                         isDarkMode
-                          ? 'bg-white/5 border-white/15 text-white placeholder-zinc-500 focus:border-white/40'
-                          : 'bg-white/90 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-500'
+                          ? 'bg-white/[0.04] border-white/20 text-white placeholder-zinc-500 focus:border-white/50 focus:bg-white/[0.08]'
+                          : 'bg-white/60 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:bg-white/80'
                       }`}
                       placeholder="Comentarios adicionales o notas..."
                     />
@@ -672,40 +673,29 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
       <div
         className={`relative z-10 w-full max-w-4xl h-[640px] max-h-[92vh] border rounded-none grid grid-cols-1 md:grid-cols-2 overflow-hidden transition-all duration-300 ${
           isDarkMode
-            ? 'bg-[#09090b]/55 border-white/[0.12] backdrop-blur-2xl shadow-[0_20px_70px_rgba(0,0,0,0.75),inset_0_1px_0_0_rgba(255,255,255,0.12)]'
-            : 'bg-white/60 border-slate-200/80 backdrop-blur-2xl shadow-[0_20px_70px_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.8)]'
+            ? 'bg-transparent border-white/20 shadow-[0_20px_70px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]'
+            : 'bg-transparent border-slate-300/70 shadow-[0_20px_70px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.6)]'
         }`}
       >
         {/* Panel Izquierdo: Presentación Arquitectónica Traslúcida */}
         <div
-          className={`hidden md:flex flex-col justify-between p-8 border-r relative overflow-hidden backdrop-blur-xl ${
+          className={`hidden md:flex flex-col justify-between p-8 border-r relative overflow-hidden bg-transparent ${
             isDarkMode
-              ? 'border-white/10 bg-white/[0.02] text-white'
-              : 'border-slate-200/70 bg-white/40 text-slate-900'
+              ? 'border-white/10 text-white'
+              : 'border-slate-200/70 text-slate-900'
           }`}
         >
-          {/* Header Superior: Brand Logo */}
-          <div className="flex items-center gap-3">
-            <div
-              className={`w-8 h-8 border flex items-center justify-center font-bold text-xs ${
-                isDarkMode ? 'border-white/20 bg-white/10 text-white' : 'border-[#18181b]/20 bg-[#18181b] text-white'
+          {/* Header Superior: Logotipo SVG Oficial de Servex */}
+          <div className="flex items-center">
+            <ServexLogo
+              className={`h-6 sm:h-7 w-auto transition-colors ${
+                isDarkMode ? 'text-white' : 'text-[#18181b]'
               }`}
-            >
-              S
-            </div>
-            <div>
-              <span className="text-[11px] font-bold tracking-widest uppercase block leading-none">SERVEX AI</span>
-              <span className="text-[9px] font-mono text-zinc-400 tracking-wider">Enterprise Catalog Platform</span>
-            </div>
+            />
           </div>
 
           {/* Cuerpo Central Informativo */}
           <div className="space-y-4 relative z-10 my-auto">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 border text-[10px] font-mono uppercase tracking-wider rounded-none font-semibold text-emerald-400 bg-emerald-500/10 border-emerald-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Registro Único de Acceso</span>
-            </div>
-
             <h2 className="text-2xl font-bold tracking-tight leading-tight">
               Configuración de Perfil de Usuario
             </h2>
@@ -727,33 +717,13 @@ export default function GlobalOnboarding({ children, isDarkMode = true }) {
           </div>
 
           {/* Footer Izquierdo */}
-          <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10.5px] font-mono text-zinc-400">
+          <div className="pt-4 border-t border-white/10 flex items-center text-[10.5px] font-mono text-zinc-400">
             <span>© 2026 GLYNNE S.A.S.</span>
-            <span>v2.4 Live</span>
           </div>
         </div>
 
         {/* Panel Derecho: Chat Interactivo Traslúcido */}
-        <div className="flex flex-col h-full overflow-hidden relative">
-          {/* Cabecera Superior del Chat */}
-          <div
-            className={`h-14 px-6 border-b flex items-center justify-between shrink-0 backdrop-blur-xl ${
-              isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-200/80 bg-white/40'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-semibold tracking-wide">Ficha Inicial de Usuario</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-mono px-2 py-0.5 border rounded-none ${
-                isDarkMode ? 'border-white/15 bg-white/5 text-zinc-300' : 'border-slate-300 bg-slate-100 text-slate-700'
-              }`}>
-                Paso {chatStep} de 6
-              </span>
-            </div>
-          </div>
-
+        <div className="flex flex-col h-full overflow-hidden relative bg-transparent">
           {/* Área Conversacional */}
           <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center overflow-y-auto custom-scrollbar">
             <AnimatePresence mode="wait">

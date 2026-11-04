@@ -2,22 +2,18 @@
 
 import React from 'react';
 
-/**
- * Servex Corporate Logo in pure vector SVG.
- * Supports currentColor (black, charcoal, dark gray) and responsive sizing.
- */
-export default function ServexLogo({ className = 'h-5 w-auto text-[#18181b]', ...props }) {
+export default function ServexLogo({ className = 'h-6 w-auto text-white', ...props }) {
   return (
     <svg
       version="1.0"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 945 135"
       preserveAspectRatio="xMidYMid meet"
-      className={className}
       fill="currentColor"
+      className={className}
       {...props}
     >
-      <g transform="translate(0, 135) scale(0.1, -0.1)" stroke="none">
+      <g transform="translate(0.000000,135.000000) scale(0.100000,-0.100000)" stroke="none">
         <path d="M353 1325 c-114 -31 -206 -104 -253 -200 -21 -42 -25 -64 -25 -145 0 -116 22 -168 103 -248 46 -45 88 -70 257 -152 234 -114 249 -127 243 -208 -6 -66 -33 -97 -106 -118 -111 -33 -242 13 -335 117 l-53 60 -89 -67 c-50 -37 -92 -68 -93 -70 -8 -6 59 -91 105 -135 105 -101 231 -151 383 -152 109 -1 181 14 260 53 148 74 225 227 199 391 -13 81 -40 131 -102 192 -51 48 -67 57 -395 214 -101 48 -134 105 -99 173 23 46 73 70 146 70 85 -1 136 -23 200 -91 l50 -52 85 67 c47 37 86 72 86 77 0 6 -14 30 -30 54 -54 78 -151 144 -255 171 -65 18 -215 17 -282 -1z" />
         <path d="M8521 1176 c-34 -19 -50 -54 -51 -109 0 -86 40 -127 125 -127 84 0 125 41 125 124 0 58 -17 94 -51 112 -35 18 -116 18 -148 0z" />
         <path d="M1468 1004 c-169 -40 -308 -170 -358 -333 -24 -76 -27 -220 -6 -297 91 -342 532 -482 844 -268 28 20 52 41 52 46 0 9 -100 178 -106 178 -2 0 -25 -14 -51 -30 -26 -17 -70 -37 -97 -45 -60 -18 -174 -19 -228 -3 -63 19 -158 113 -158 158 0 7 108 10 334 10 201 0 337 4 341 9 13 23 17 173 6 232 -51 258 -303 409 -573 343z m200 -219 c49 -21 81 -52 103 -100 36 -79 46 -75 -197 -75 l-216 0 6 28 c12 48 62 106 116 135 61 31 130 36 188 12z" />
