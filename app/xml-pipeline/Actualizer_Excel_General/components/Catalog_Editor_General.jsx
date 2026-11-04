@@ -47,346 +47,6 @@ import { applyExcelVisualStyling } from './XML_Results_General.jsx';
 
 const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
 
-function InlineMessageBatchEditor({
-  msg,
-  headers,
-  isDarkMode,
-  onApplyBulk,
-  mcpActiveSkuFilter,
-  onToggleTableFilter
-}) {
-  const skusCount = Array.isArray(msg?.matchedSkus) ? msg.matchedSkus.length : 0;
-
-  // Filtrar encabezados para edición masiva: solo columnas numéricas (List Price, Weight y opciones comerciales)
-  const editableHeaders = useMemo(() => {
-    return (headers || []).filter((h) => !['Model #', 'Model Name', 'Classic/ Premium'].includes(h));
-  }, [headers]);
-
-  // Pre-detectar columna objetivo basada en los mcpTraces
-  const defaultCol = useMemo(() => {
-    const traces = msg?.mcpTraces || [];
-    for (const t of traces) {
-      const p = t?.params || {};
-      const candidate =
-        p.option_col ||
-        (Array.isArray(p.options_any) && p.options_any[0]) ||
-        (Array.isArray(p.options_all) && p.options_all[0]);
-      if (candidate) {
-        const cLower = String(candidate).trim().toLowerCase();
-        const found = editableHeaders.find((h) => {
-          const hLower = String(h).trim().toLowerCase();
-          return hLower === cLower || hLower.includes(cLower) || cLower.includes(hLower);
-        });
-        if (found) return found;
-      }
-    }
-    return editableHeaders.includes('List Price') ? 'List Price' : editableHeaders[0] || 'List Price';
-  }, [msg, editableHeaders]);
-
-  const [userCol, setUserCol] = useState(null);
-  const targetCol = userCol || defaultCol;
-  const [userMode, setUserMode] = useState(null);
-  const mode = userMode !== null ? userMode : (targetCol === 'List Price' ? 'percent' : 'add');
-  const [val, setVal] = useState('');
-  const [lastAppliedFeedback, setLastAppliedFeedback] = useState(null);
-
-  const isOptionCol = targetCol !== 'List Price' && targetCol !== 'Weight';
-  const targetLabel = msg?.filterLabel || `${skusCount} SKUs`;
-  const isTableFiltered = mcpActiveSkuFilter?.label === targetLabel;
-
-  const handleExecute = (customMode = mode, customVal = val) => {
-    const num = parseFloat(customVal);
-    if (Number.isNaN(num)) return;
-    const ok = onApplyBulk(targetCol, customMode, num);
-    if (ok) {
-      const modeSym =
-        customMode === 'percent'
-          ? (num >= 0 ? `+${num}%` : `${num}%`)
-          : customMode === 'add'
-            ? (num >= 0 ? `+$${num}` : `-$${Math.abs(num)}`)
-            : `$${num}`;
-      setLastAppliedFeedback(`✓ Ajuste aplicado: "${targetCol}" ${modeSym} en ${skusCount} SKUs.`);
-      setTimeout(() => setLastAppliedFeedback(null), 5000);
-      setVal('');
-    }
-  };
-
-  return (
-    <div
-      className={`mt-2.5 pt-2.5 border-t ${
-        isDarkMode ? 'border-white/10' : 'border-zinc-200'
-      } flex flex-col gap-2`}
-    >
-      {/* Encabezado del Batch Action & toggle de aislar en tabla */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
-          <Zap size={11} className="text-amber-400 shrink-0" />
-          <span className={isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}>
-            Ajuste en lote directo ({skusCount} SKUs)
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={onToggleTableFilter}
-          className={`text-[9.5px] px-2 py-0.5 border rounded-none transition-all flex items-center gap-1 cursor-pointer font-mono ${
-            isTableFiltered
-              ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
-              : isDarkMode
-                ? 'bg-white/5 text-zinc-300 border-white/10 hover:text-white hover:bg-white/10'
-                : 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:text-black hover:bg-zinc-200'
-          }`}
-          title={isTableFiltered ? 'Quitar filtro de la tabla' : 'Aislar este lote de productos en la tabla'}
-        >
-          {isTableFiltered ? (
-            <>
-              <Check size={10} className="text-white shrink-0" />
-              <span>Aislado en tabla · Quitar</span>
-            </>
-          ) : (
-            <>
-              <Filter size={10} className="shrink-0" />
-              <span>Aislar en tabla</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Selector de Columna, Modo e Input de Valor */}
-      <div className="grid grid-cols-1 sm:grid-cols-12 gap-1.5 items-center">
-        {/* Columna destino */}
-        <div className="sm:col-span-5">
-          <select
-            value={targetCol}
-            onChange={(e) => {
-              const newCol = e.target.value;
-              setUserCol(newCol);
-              if (newCol === 'List Price') setUserMode('percent');
-              else setUserMode('add');
-            }}
-            className={`w-full text-[10px] font-mono px-2 py-1 border rounded-none outline-none ${
-              isDarkMode
-                ? 'bg-[#121214] border-white/15 text-zinc-200 focus:border-amber-400'
-                : 'bg-white border-zinc-300 text-zinc-800 focus:border-amber-500'
-            }`}
-          >
-            {editableHeaders.map((h) => (
-              <option key={h} value={h}>
-                {h === 'List Price' ? 'Columna: List Price (Base)' : `Opción: ${h}`}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Modo de ajuste */}
-        <div className="sm:col-span-4 flex items-center">
-          <div className="inline-flex w-full border border-white/10 text-[9.5px] font-mono">
-            <button
-              type="button"
-              onClick={() => setUserMode('percent')}
-              className={`flex-1 py-1 text-center transition-colors cursor-pointer ${
-                mode === 'percent'
-                  ? 'bg-amber-500 text-black font-bold'
-                  : isDarkMode
-                    ? 'bg-white/5 text-zinc-400 hover:text-white'
-                    : 'bg-zinc-100 text-zinc-600 hover:text-black'
-              }`}
-              title="Porcentaje (+/- %)"
-            >
-              %
-            </button>
-            <button
-              type="button"
-              onClick={() => setUserMode('add')}
-              className={`flex-1 py-1 text-center transition-colors border-x cursor-pointer ${
-                isDarkMode ? 'border-white/10' : 'border-zinc-200'
-              } ${
-                mode === 'add'
-                  ? 'bg-amber-500 text-black font-bold'
-                  : isDarkMode
-                    ? 'bg-white/5 text-zinc-400 hover:text-white'
-                    : 'bg-zinc-100 text-zinc-600 hover:text-black'
-              }`}
-              title="Sumar o Restar monto fijo (+/- $)"
-            >
-              +/- $
-            </button>
-            <button
-              type="button"
-              onClick={() => setUserMode('set')}
-              className={`flex-1 py-1 text-center transition-colors cursor-pointer ${
-                mode === 'set'
-                  ? 'bg-amber-500 text-black font-bold'
-                  : isDarkMode
-                    ? 'bg-white/5 text-zinc-400 hover:text-white'
-                    : 'bg-zinc-100 text-zinc-600 hover:text-black'
-              }`}
-              title="Fijar valor exacto ($)"
-            >
-              Fijar $
-            </button>
-          </div>
-        </div>
-
-        {/* Valor e input */}
-        <div className="sm:col-span-3 flex items-center gap-1">
-          <input
-            type="number"
-            step="any"
-            value={val}
-            onChange={(e) => setVal(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleExecute();
-              }
-            }}
-            placeholder={mode === 'percent' ? '+5%' : mode === 'add' ? '+$1' : '$12'}
-            className={`w-full text-[10px] font-mono px-2 py-1 border rounded-none outline-none ${
-              isDarkMode
-                ? 'bg-[#121214] border-white/15 text-zinc-200 focus:border-amber-400'
-                : 'bg-white border-zinc-300 text-zinc-800 focus:border-amber-500'
-            }`}
-          />
-          <button
-            type="button"
-            disabled={!val}
-            onClick={() => handleExecute()}
-            className={`px-2 py-1 text-[10px] font-bold uppercase shrink-0 transition-all cursor-pointer ${
-              val
-                ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-sm'
-                : 'opacity-40 bg-zinc-700 text-zinc-400 cursor-not-allowed'
-            }`}
-            title="Aplicar ajuste a este lote"
-          >
-            <Zap size={11} />
-          </button>
-        </div>
-      </div>
-
-      {/* Píldoras de acción rápida en 1 clic */}
-      <div className="flex flex-wrap items-center gap-1 text-[9px] font-mono">
-        <span className="opacity-60 text-[8.5px] uppercase tracking-wider mr-1">Rápido:</span>
-        {isOptionCol ? (
-          <>
-            <button
-              type="button"
-              onClick={() => handleExecute('add', 1)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 hover:bg-white/15 text-zinc-300'
-                  : 'bg-zinc-100 border-zinc-200 hover:bg-zinc-200 text-zinc-800'
-              }`}
-            >
-              +$1
-            </button>
-            <button
-              type="button"
-              onClick={() => handleExecute('add', 2)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 hover:bg-white/15 text-zinc-300'
-                  : 'bg-zinc-100 border-zinc-200 hover:bg-zinc-200 text-zinc-800'
-              }`}
-            >
-              +$2
-            </button>
-            <button
-              type="button"
-              onClick={() => handleExecute('percent', 10)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 hover:bg-white/15 text-zinc-300'
-                  : 'bg-zinc-100 border-zinc-200 hover:bg-zinc-200 text-zinc-800'
-              }`}
-            >
-              +10%
-            </button>
-            <button
-              type="button"
-              onClick={() => handleExecute('set', 0)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20 text-red-400'
-                  : 'bg-red-50 border-red-200 hover:bg-red-100 text-red-700'
-              }`}
-              title="Poner en $0 para eliminar este recargo de la opción"
-            >
-              Quitar recargo ($0)
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => handleExecute('percent', 5)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 hover:bg-white/15 text-zinc-300'
-                  : 'bg-zinc-100 border-zinc-200 hover:bg-zinc-200 text-zinc-800'
-              }`}
-            >
-              +5%
-            </button>
-            <button
-              type="button"
-              onClick={() => handleExecute('percent', 10)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 hover:bg-white/15 text-zinc-300'
-                  : 'bg-zinc-100 border-zinc-200 hover:bg-zinc-200 text-zinc-800'
-              }`}
-            >
-              +10%
-            </button>
-            <button
-              type="button"
-              onClick={() => handleExecute('percent', -5)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 hover:bg-white/15 text-zinc-300'
-                  : 'bg-zinc-100 border-zinc-200 hover:bg-zinc-200 text-zinc-800'
-              }`}
-            >
-              -5%
-            </button>
-            <button
-              type="button"
-              onClick={() => handleExecute('add', 5)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 hover:bg-white/15 text-zinc-300'
-                  : 'bg-zinc-100 border-zinc-200 hover:bg-zinc-200 text-zinc-800'
-              }`}
-            >
-              +$5
-            </button>
-            <button
-              type="button"
-              onClick={() => handleExecute('add', 10)}
-              className={`px-1.5 py-0.5 border rounded-none transition-colors cursor-pointer ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 hover:bg-white/15 text-zinc-300'
-                  : 'bg-zinc-100 border-zinc-200 hover:bg-zinc-200 text-zinc-800'
-              }`}
-            >
-              +$10
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* Notificación de confirmación de ajuste */}
-      {lastAppliedFeedback && (
-        <div className="text-[9.5px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-1 animate-fadeIn flex items-center gap-1.5">
-          <CheckCircle2 size={11} className="shrink-0 text-emerald-400" />
-          <span>{lastAppliedFeedback}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunComparison }) {
   const [headers, setHeaders] = useState(BASE_HEADERS);
   const [baseRows, setBaseRows] = useState([]);
@@ -1232,7 +892,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 content: m.text
               })),
               csv_edit_raw: currentCsvEditRaw,
-              tool_call: explicitToolCall || undefined
+              tool_call: explicitToolCall || undefined,
+              active_skus: mcpActiveSkuFilter?.skuSet ? Array.from(mcpActiveSkuFilter.skuSet) : []
             })
           });
 
@@ -1282,8 +943,27 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             t.tool === 'mcp::csv_edit_matrix.filter_by_price' ||
             t.tool === 'mcp::csv_edit_matrix.filter_by_category' ||
             t.tool === 'mcp::csv_edit_matrix.filter_products' ||
-            t.tool === 'mcp::csv_edit_matrix.advanced_filter'
+            t.tool === 'mcp::csv_edit_matrix.advanced_filter' ||
+            t.tool === 'mcp::csv_edit_matrix.batch_update_matrix'
         );
+
+        // Si se ejecutó una herramienta de actualización masiva MCP (batch_update_matrix), aplicar sincronización en la matriz
+        const batchTrace = mcpTraces.find((t) => t.tool === 'mcp::csv_edit_matrix.batch_update_matrix');
+        if (batchTrace || data?.applied_batch_update) {
+          const batchInfo = batchTrace?.params || data?.applied_batch_update || {};
+          const targetSkus =
+            batchTrace?.affected_skus ||
+            data?.affected_skus ||
+            (mcpActiveSkuFilter?.skuSet ? Array.from(mcpActiveSkuFilter.skuSet) : []);
+          const targetCol = batchTrace?.applied_column || batchInfo.target_column || 'List Price';
+          const targetMode = batchTrace?.mode || batchInfo.mode || 'percent';
+          const targetVal =
+            batchTrace?.value !== undefined ? batchTrace.value : batchInfo.value;
+
+          if (targetSkus.length > 0 && targetVal !== undefined && targetVal !== null) {
+            handleApplyBulkUpdate(targetSkus, targetCol, targetMode, targetVal);
+          }
+        }
 
         // Si el usuario solicitó filtrar o aislar los productos en la tabla, activar filtro automáticamente
         const qLower = query.toLowerCase();
@@ -2761,29 +2441,47 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                       </div>
 
-                      {/* Widget de Ajuste en Lote Rápido directo en el mensaje MCP */}
+                      {/* Control MCP limpio y profesional para aislar o ver productos en tabla */}
                       {Array.isArray(msg.matchedSkus) && msg.matchedSkus.length > 0 && (
-                        <InlineMessageBatchEditor
-                          key={msg.id}
-                          msg={msg}
-                          headers={headers}
-                          isDarkMode={isDarkMode}
-                          onApplyBulk={(col, mode, val) =>
-                            handleApplyBulkUpdate(msg.matchedSkus, col, mode, val)
-                          }
-                          mcpActiveSkuFilter={mcpActiveSkuFilter}
-                          onToggleTableFilter={() => {
-                            const targetLabel = msg.filterLabel || `${msg.matchedSkus.length} SKUs`;
-                            if (mcpActiveSkuFilter?.label === targetLabel) {
-                              setMcpActiveSkuFilter(null);
-                            } else {
-                              setMcpActiveSkuFilter({
-                                label: targetLabel,
-                                skuSet: new Set(msg.matchedSkus)
-                              });
-                            }
-                          }}
-                        />
+                        <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const targetLabel = msg.filterLabel || `${msg.matchedSkus.length} SKUs`;
+                              if (mcpActiveSkuFilter?.label === targetLabel) {
+                                setMcpActiveSkuFilter(null);
+                              } else {
+                                setMcpActiveSkuFilter({
+                                  label: targetLabel,
+                                  skuSet: new Set(msg.matchedSkus)
+                                });
+                              }
+                            }}
+                            className={`px-2 py-0.5 text-[9.5px] font-mono border rounded-none transition-all cursor-pointer flex items-center gap-1.5 ${
+                              mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`)
+                                ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                                : isDarkMode
+                                  ? 'bg-white/5 text-zinc-300 border-white/10 hover:text-white hover:bg-white/10'
+                                  : 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:text-black hover:bg-zinc-200'
+                            }`}
+                          >
+                            {mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`) ? (
+                              <>
+                                <Check size={10} className="shrink-0 text-white" />
+                                <span>Filtro activo en tabla ({msg.matchedSkus.length} SKUs) · Quitar</span>
+                              </>
+                            ) : (
+                              <>
+                                <Filter size={10} className="shrink-0" />
+                                <span>Aislar en tabla ({msg.matchedSkus.length} SKUs)</span>
+                              </>
+                            )}
+                          </button>
+
+                          <span className="text-[9px] font-mono opacity-50 italic">
+                            💡 Pídele a Alysa: &quot;Súbele 5%&quot;, &quot;Cambia ese precio a $14&quot; o &quot;+$2 a -FG&quot;
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>
