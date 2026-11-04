@@ -85,7 +85,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const [chatMessages, setChatMessages] = useState([]);
   const [isMcpThinking, setIsMcpThinking] = useState(false);
   const [mcpActiveSkuFilter, setMcpActiveSkuFilter] = useState(null);
-  const [activeFilterTab, setActiveFilterTab] = useState('options');
+  const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('');
   const chatScrollEndRef = useRef(null);
 
   const apiURL =
@@ -645,11 +645,6 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       };
     });
 
-    const pricedRows = parsedRows.filter((r) => r.price > 0).sort((a, b) => b.price - a.price);
-    const avgPrice = pricedRows.length > 0
-      ? pricedRows.reduce((acc, r) => acc + r.price, 0) / pricedRows.length
-      : 0;
-
     // 1. OPCIONES COMERCIALES XML (Columnas dinámicas de recargo activo desestructuradas del XML)
     const sinOpciones = parsedRows.filter((r) => r.optsCount === 0).map((r) => r.sku);
     const conOpciones = parsedRows.filter((r) => r.optsCount >= 1).map((r) => r.sku);
@@ -682,40 +677,83 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       }] : [])
     ];
 
-    // Opciones comerciales dinámicas exactas del XML (cada columna dinámica presente en el catálogo)
+    // Opciones comerciales dinámicas del XML desglosadas por tiers exactos de recargo
     optionCols.forEach((colName) => {
       const matchingRows = parsedRows.filter((r) => r.activeOpts.some((o) => o.col === colName));
       if (matchingRows.length === 0) return;
 
       const colSkus = matchingRows.map((r) => r.sku);
-      const upcharges = matchingRows
-        .map((r) => {
-          const item = r.activeOpts.find((o) => o.col === colName);
-          return item ? item.val : null;
-        })
-        .filter((v) => v !== null && v > 0);
 
-      let upchargeText = '';
-      if (upcharges.length > 0) {
-        const minUp = Math.min(...upcharges);
-        const maxUp = Math.max(...upcharges);
-        upchargeText = minUp === maxUp
-          ? `+$${Math.round(minUp)}`
-          : `+$${Math.round(minUp)}–$${Math.round(maxUp)}`;
-      }
-
-      const cleanColName = colName.length > 26 ? colName.slice(0, 24) + '…' : colName;
-      optionsFilters.push({
-        id: `opt-dyn-${colName}`,
-        label: cleanColName,
-        prompt: `Filtra productos que incorporan la opción comercial de recargo "${colName}" (${upchargeText}) en el catálogo XML`,
-        skus: colSkus,
-        badge: upchargeText ? `${colSkus.length} SKUs · ${upchargeText}` : `${colSkus.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { options_any: [colName] } }
+      // Agrupar por valor exacto de recargo (price points / tiers)
+      const valueGroups = {};
+      matchingRows.forEach((r) => {
+        const item = r.activeOpts.find((o) => o.col === colName);
+        if (item && item.val > 0) {
+          const valNum = Math.round(item.val * 100) / 100;
+          if (!valueGroups[valNum]) valueGroups[valNum] = [];
+          valueGroups[valNum].push(r.sku);
+        }
       });
+      const distinctVals = Object.keys(valueGroups).map(Number).sort((a, b) => a - b);
+      const cleanColName = colName.length > 24 ? colName.slice(0, 22) + '…' : colName;
+
+      if (distinctVals.length > 1) {
+        // Opción general (todos los tiers combinados)
+        const minUp = distinctVals[0];
+        const maxUp = distinctVals[distinctVals.length - 1];
+        const rangeText = `+$${minUp.toFixed(0)}–$${maxUp.toFixed(0)}`;
+        optionsFilters.push({
+          id: `opt-dyn-${colName}-all`,
+          label: `${cleanColName} (Todos)`,
+          prompt: `Filtra todos los productos con la opción de recargo "${colName}" (${rangeText})`,
+          skus: colSkus,
+          badge: `${colSkus.length} SKUs · ${rangeText}`,
+          toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { options_any: [colName] } }
+        });
+
+        // Tiers individuales exactos (ej. -$FG = $11, -$FG = $12)
+        distinctVals.forEach((val) => {
+          const tierSkus = valueGroups[val];
+          const valFormatted = val % 1 === 0 ? val.toFixed(0) : val.toFixed(2);
+          optionsFilters.push({
+            id: `opt-dyn-${colName}-tier-${val}`,
+            label: `${cleanColName} = +$${valFormatted}`,
+            prompt: `Filtra productos con la opción "${colName}" con recargo exacto de $${val.toFixed(2)}`,
+            skus: tierSkus,
+            badge: `${tierSkus.length} SKUs`,
+            toolCall: {
+              name: 'mcp::csv_edit_matrix.advanced_filter',
+              parameters: {
+                option_col: colName,
+                option_val: val,
+                options_any: [colName]
+              }
+            }
+          });
+        });
+      } else if (distinctVals.length === 1) {
+        // Un único valor de recargo para toda la opción (ej. PRM a +$150)
+        const val = distinctVals[0];
+        const valFormatted = val % 1 === 0 ? val.toFixed(0) : val.toFixed(2);
+        optionsFilters.push({
+          id: `opt-dyn-${colName}`,
+          label: cleanColName,
+          prompt: `Filtra productos que incorporan la opción comercial "${colName}" (+${valFormatted})`,
+          skus: colSkus,
+          badge: `${colSkus.length} SKUs · +$${valFormatted}`,
+          toolCall: {
+            name: 'mcp::csv_edit_matrix.advanced_filter',
+            parameters: {
+              option_col: colName,
+              option_val: val,
+              options_any: [colName]
+            }
+          }
+        });
+      }
     });
 
-    // 2. FAMILIAS DE MODELO XML (Col #1 Model #)
+    // 2. FAMILIAS DE MODELO XML (Col #1 Model #) para selector compacto
     const familyGroups = {};
     parsedRows.forEach((r) => {
       const fam = r.skuFamily || 'GENERAL';
@@ -734,68 +772,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { families: [fam], sku_prefix: fam.toLowerCase() } }
       }));
 
-    // 3. PRECIOS BASE XML (Col #2 List Price)
-    const top10Caros = pricedRows.slice(0, 10).map((r) => r.sku);
-    const top10Baratos = [...pricedRows].sort((a, b) => a.price - b.price).slice(0, 10).map((r) => r.sku);
-    const sobrePromedio = pricedRows.filter((r) => r.price > avgPrice).map((r) => r.sku);
-    const bajoPromedio = pricedRows.filter((r) => r.price <= avgPrice).map((r) => r.sku);
-
-    const preciosFilters = [
-      ...(avgPrice > 0 ? [
-        {
-          id: 'p-above-avg',
-          label: `Sobre el promedio (> $${Math.round(avgPrice).toLocaleString()})`,
-          prompt: `Filtra productos con List Price base superior al promedio oficial del catálogo ($${Math.round(avgPrice).toLocaleString()})`,
-          skus: sobrePromedio,
-          badge: `${sobrePromedio.length} SKUs`,
-          toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_price: avgPrice + 0.01 } }
-        },
-        {
-          id: 'p-below-avg',
-          label: `Bajo el promedio (≤ $${Math.round(avgPrice).toLocaleString()})`,
-          prompt: `Filtra productos con List Price base menor o igual al promedio oficial del catálogo ($${Math.round(avgPrice).toLocaleString()})`,
-          skus: bajoPromedio,
-          badge: `${bajoPromedio.length} SKUs`,
-          toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { max_price: avgPrice } }
-        }
-      ] : []),
-      {
-        id: 'p-top-high',
-        label: 'Top modelos mayor valor base',
-        prompt: 'Muestra los modelos con mayor List Price base en el esquema XML',
-        skus: top10Caros,
-        badge: `${top10Caros.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_price', parameters: { operator: 'top_highest', limit: 10 } }
-      },
-      {
-        id: 'p-top-low',
-        label: 'Top modelos base / entrada',
-        prompt: 'Muestra los modelos base más económicos del catálogo XML',
-        skus: top10Baratos,
-        badge: `${top10Baratos.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_price', parameters: { operator: 'top_lowest', limit: 10 } }
-      }
-    ];
-
-    // 4. GAMA / CLASIFICACIÓN COMERCIAL XML (Col #4 Classic/ Premium)
-    const catGroups = {};
-    parsedRows.forEach((r) => {
-      const c = r.cat || 'Standard';
-      if (!catGroups[c]) catGroups[c] = [];
-      catGroups[c].push(r.sku);
-    });
-    const categoriasFilters = Object.entries(catGroups)
-      .sort((a, b) => b[1].length - a[1].length)
-      .map(([catName, skus]) => ({
-        id: `cat-${catName}`,
-        label: `Gama ${catName}`,
-        prompt: `Filtra productos clasificados en la gama comercial "${catName}" del catálogo XML`,
-        skus,
-        badge: `${skus.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { categories: [catName] } }
-      }));
-
-    // 5. AUDITORÍA ESQUEMA XML (Validación contra las 5 columnas base y recargos)
+    // 3. AUDITORÍA ESQUEMA XML (Validación contra las 5 columnas base y recargos)
     const sinPrecio = parsedRows.filter((r) => r.price <= 0).map((r) => r.sku);
     const sinPeso = parsedRows.filter((r) => r.weight <= 0).map((r) => r.sku);
     const sinCat = parsedRows.filter((r) => !r.cat).map((r) => r.sku);
@@ -843,8 +820,6 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     return {
       options: optionsFilters.filter((f) => f.skus.length > 0),
       familias: familiasFilters.filter((f) => f.skus.length > 0),
-      precios: preciosFilters.filter((f) => f.skus.length > 0),
-      categorias: categoriasFilters.filter((f) => f.skus.length > 0),
       calidad: calidadFilters.filter((f) => f.skus.length > 0)
     };
   }, [editRows, headers, deletedSkus]);
@@ -2194,50 +2169,89 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
                   {/* Selector interactivo y categorizado de herramientas y filtros MCP */}
                   <div className="pt-2 space-y-2 border-t border-white/10">
-                    <div className="flex items-center justify-between gap-1">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
                         <SlidersHorizontal size={11} />
-                        Filtros Rápidos & Combinaciones MCP:
+                        Opciones de Recargo & Tiers XML
+                        <span className="opacity-60 text-[9px]">({(catalogFacets.options || []).length} filtros)</span>
                       </span>
+
+                      {/* Selector compacto de Familias de Modelo XML */}
+                      {Array.isArray(catalogFacets.familias) && catalogFacets.familias.length > 0 && (
+                        <div className="flex items-center gap-1">
+                          <label className="text-[9px] font-mono opacity-60">Familia:</label>
+                          <select
+                            value={selectedFamilyFilter}
+                            onChange={(e) => {
+                              const famVal = e.target.value;
+                              setSelectedFamilyFilter(famVal);
+                              if (!famVal) {
+                                if (mcpActiveSkuFilter?.label?.startsWith('Familia ')) {
+                                  setMcpActiveSkuFilter(null);
+                                }
+                              } else {
+                                const targetFam = catalogFacets.familias.find((f) => f.label === `Familia ${famVal}`);
+                                if (targetFam) {
+                                  handleSendMatrixChat(targetFam.prompt, targetFam.toolCall, targetFam.skus, targetFam.label);
+                                }
+                              }
+                            }}
+                            className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-none cursor-pointer outline-none transition-colors ${
+                              isDarkMode
+                                ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
+                                : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
+                            }`}
+                          >
+                            <option value="">Todas las familias ({catalogFacets.familias.length})</option>
+                            {catalogFacets.familias.map((f) => {
+                              const cleanName = f.label.replace('Familia ', '');
+                              return (
+                                <option key={f.id} value={cleanName}>
+                                  {cleanName} ({f.badge})
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Barra de pestañas para categorizar los filtros deterministas del XML */}
-                    <div className="flex items-center gap-1 border-b border-white/10 pb-1.5 overflow-x-auto custom-scrollbar">
-                      {[
-                        { id: 'options', label: 'Opciones XML', count: (catalogFacets.options || []).length },
-                        { id: 'familias', label: 'Familias XML', count: (catalogFacets.familias || []).length },
-                        { id: 'precios', label: 'Precios Base', count: (catalogFacets.precios || []).length },
-                        { id: 'categorias', label: 'Gama / Categoría', count: (catalogFacets.categorias || []).length },
-                        { id: 'calidad', label: 'Auditoría Esquema XML', count: (catalogFacets.calidad || []).length }
-                      ].map((tab) => (
-                        <button
-                          key={tab.id}
-                          type="button"
-                          onClick={() => setActiveFilterTab(tab.id)}
-                          className={`px-2 py-0.5 text-[9.5px] font-mono border rounded-none shrink-0 transition-all cursor-pointer flex items-center gap-1 ${
-                            activeFilterTab === tab.id
-                              ? isDarkMode
-                                ? 'bg-white text-zinc-950 border-white font-bold'
-                                : 'bg-[#18181b] text-white border-[#18181b] font-bold'
-                              : isDarkMode
-                                ? 'bg-white/5 border-white/10 text-zinc-400 hover:text-white hover:bg-white/10'
-                                : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-black hover:bg-slate-200'
-                          }`}
-                        >
-                          <span>{tab.label}</span>
-                          <span className="opacity-70 text-[8.5px]">({tab.count})</span>
-                        </button>
-                      ))}
-                    </div>
+                    {/* Banner de Auditoría de Esquema XML: Alerta preventiva o indicador de salud */}
+                    {Array.isArray(catalogFacets.calidad) && catalogFacets.calidad.length > 0 ? (
+                      <div className="p-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-200 text-[9.5px] font-mono flex flex-wrap items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <AlertCircle size={11} className="text-amber-400 shrink-0" />
+                          <span className="font-bold">Inconsistencias XML detectadas:</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1">
+                          {catalogFacets.calidad.map((f) => (
+                            <button
+                              key={f.id}
+                              type="button"
+                              onClick={() => handleSendMatrixChat(f.prompt, f.toolCall, f.skus, f.label)}
+                              className="px-1.5 py-0.5 bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/40 text-amber-100 text-[8.5px] cursor-pointer flex items-center gap-1"
+                            >
+                              <span>{f.label}</span>
+                              <span className="font-bold">({f.badge})</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-[9px] font-mono text-emerald-400/90 pt-0.5">
+                        <CheckCircle2 size={10.5} className="text-emerald-400 shrink-0" />
+                        <span>Esquema XML 100% íntegro (Precios base, pesos y descripciones validados)</span>
+                      </div>
+                    )}
 
-                    {/* Chips inteligentes bajo la pestaña activa */}
-                    <div className="flex flex-wrap gap-1.5 pt-0.5 max-h-[175px] overflow-y-auto custom-scrollbar pr-0.5">
-                      {(catalogFacets[activeFilterTab] || []).length === 0 ? (
+                    {/* Chips inteligentes: Modelos Base, Configurables y Tiers de Recargo de cada Opción */}
+                    <div className="flex flex-wrap gap-1.5 pt-1 max-h-[190px] overflow-y-auto custom-scrollbar pr-0.5">
+                      {(catalogFacets.options || []).length === 0 ? (
                         <div className="text-[10px] font-mono opacity-60 italic py-1">
-                          No hay filtros disponibles en esta categoría para la matriz actual.
+                          No hay columnas de opciones comerciales en esta matriz.
                         </div>
                       ) : (
-                        (catalogFacets[activeFilterTab] || []).map((f) => {
+                        (catalogFacets.options || []).map((f) => {
                           const isCurrentlyApplied = mcpActiveSkuFilter?.label === f.label;
                           return (
                             <div
