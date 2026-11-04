@@ -85,7 +85,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const [chatMessages, setChatMessages] = useState([]);
   const [isMcpThinking, setIsMcpThinking] = useState(false);
   const [mcpActiveSkuFilter, setMcpActiveSkuFilter] = useState(null);
-  const [activeFilterTab, setActiveFilterTab] = useState('precios');
+  const [activeFilterTab, setActiveFilterTab] = useState('options');
   const chatScrollEndRef = useRef(null);
 
   const apiURL =
@@ -574,14 +574,15 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const catalogFacets = useMemo(() => {
     if (!editRows || editRows.length === 0) {
       return {
-        precios: [],
         options: [],
-        muebles: [],
+        familias: [],
+        precios: [],
         categorias: [],
         calidad: []
       };
     }
 
+    // Columnas dinámicas de recargo comercial del XML (todas aquellas fuera de los 5 campos fijos)
     const optionCols = headers.filter(
       (h) => !BASE_HEADERS.includes(h) && !h.startsWith('_')
     );
@@ -606,6 +607,21 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         }
       });
 
+      // Extracción determinista de la Familia XML a partir de Col #1 Model #
+      let skuFamily = 'GENERAL';
+      const cleanSku = sku.toUpperCase();
+      if (cleanSku.includes('-')) {
+        const parts = cleanSku.split('-');
+        if (parts[0].length <= 3 && parts.length > 1 && parts[1].length <= 3 && !/^\d+$/.test(parts[1])) {
+          skuFamily = `${parts[0]}-${parts[1]}`;
+        } else {
+          skuFamily = parts[0];
+        }
+      } else {
+        const match = cleanSku.match(/^([A-Z0-9]{2,8})/);
+        if (match) skuFamily = match[1];
+      }
+
       const lowerName = modelName.toLowerCase();
       let pType = 'Otros';
       if (/chair|seating|seat|task|guest|stacker|silla/.test(lowerName)) pType = 'Sillas';
@@ -618,6 +634,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
       return {
         sku,
+        skuFamily,
         price,
         weight,
         cat,
@@ -633,34 +650,102 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       ? pricedRows.reduce((acc, r) => acc + r.price, 0) / pricedRows.length
       : 0;
 
-    // 1. PRECIOS
+    // 1. OPCIONES COMERCIALES XML (Columnas dinámicas de recargo activo desestructuradas del XML)
+    const sinOpciones = parsedRows.filter((r) => r.optsCount === 0).map((r) => r.sku);
+    const conOpciones = parsedRows.filter((r) => r.optsCount >= 1).map((r) => r.sku);
+    const multiOpciones = parsedRows.filter((r) => r.optsCount >= 2).map((r) => r.sku);
+
+    const optionsFilters = [
+      {
+        id: 'opt-base',
+        label: 'Modelos Base (Sin recargos)',
+        prompt: 'Filtra modelos base estándar del catálogo XML que operan exclusivamente con precio fijo sin recargos comerciales',
+        skus: sinOpciones,
+        badge: `${sinOpciones.length} SKUs · Base`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { max_options: 0 } }
+      },
+      ...(conOpciones.length > 0 ? [{
+        id: 'opt-configurable',
+        label: 'Modelos Configurables',
+        prompt: 'Filtra productos configurables del catálogo XML que admiten recargos de opciones comerciales activas',
+        skus: conOpciones,
+        badge: `${conOpciones.length} SKUs · Opciones`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 1 } }
+      }] : []),
+      ...(multiOpciones.length > 0 ? [{
+        id: 'opt-multi',
+        label: 'Con múltiples recargos (≥2)',
+        prompt: 'Filtra productos que combinan dos o más opciones comerciales activas en el esquema XML',
+        skus: multiOpciones,
+        badge: `${multiOpciones.length} SKUs · Multi`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 2 } }
+      }] : [])
+    ];
+
+    // Opciones comerciales dinámicas exactas del XML (cada columna dinámica presente en el catálogo)
+    optionCols.forEach((colName) => {
+      const matchingRows = parsedRows.filter((r) => r.activeOpts.some((o) => o.col === colName));
+      if (matchingRows.length === 0) return;
+
+      const colSkus = matchingRows.map((r) => r.sku);
+      const upcharges = matchingRows
+        .map((r) => {
+          const item = r.activeOpts.find((o) => o.col === colName);
+          return item ? item.val : null;
+        })
+        .filter((v) => v !== null && v > 0);
+
+      let upchargeText = '';
+      if (upcharges.length > 0) {
+        const minUp = Math.min(...upcharges);
+        const maxUp = Math.max(...upcharges);
+        upchargeText = minUp === maxUp
+          ? `+$${Math.round(minUp)}`
+          : `+$${Math.round(minUp)}–$${Math.round(maxUp)}`;
+      }
+
+      const cleanColName = colName.length > 26 ? colName.slice(0, 24) + '…' : colName;
+      optionsFilters.push({
+        id: `opt-dyn-${colName}`,
+        label: cleanColName,
+        prompt: `Filtra productos que incorporan la opción comercial de recargo "${colName}" (${upchargeText}) en el catálogo XML`,
+        skus: colSkus,
+        badge: upchargeText ? `${colSkus.length} SKUs · ${upchargeText}` : `${colSkus.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { options_any: [colName] } }
+      });
+    });
+
+    // 2. FAMILIAS DE MODELO XML (Col #1 Model #)
+    const familyGroups = {};
+    parsedRows.forEach((r) => {
+      const fam = r.skuFamily || 'GENERAL';
+      if (!familyGroups[fam]) familyGroups[fam] = [];
+      familyGroups[fam].push(r.sku);
+    });
+
+    const familiasFilters = Object.entries(familyGroups)
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([fam, skus]) => ({
+        id: `fam-${fam}`,
+        label: `Familia ${fam}`,
+        prompt: `Filtra los productos pertenecientes a la familia de modelos "${fam}" del catálogo XML`,
+        skus,
+        badge: `${skus.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { families: [fam], sku_prefix: fam.toLowerCase() } }
+      }));
+
+    // 3. PRECIOS BASE XML (Col #2 List Price)
     const top10Caros = pricedRows.slice(0, 10).map((r) => r.sku);
     const top10Baratos = [...pricedRows].sort((a, b) => a.price - b.price).slice(0, 10).map((r) => r.sku);
     const sobrePromedio = pricedRows.filter((r) => r.price > avgPrice).map((r) => r.sku);
     const bajoPromedio = pricedRows.filter((r) => r.price <= avgPrice).map((r) => r.sku);
 
     const preciosFilters = [
-      {
-        id: 'p-top-high',
-        label: 'Top 10 más caros',
-        prompt: 'Muestra los 10 productos más caros de la matriz',
-        skus: top10Caros,
-        badge: `${top10Caros.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_price', parameters: { operator: 'top_highest', limit: 10 } }
-      },
-      {
-        id: 'p-top-low',
-        label: 'Top 10 más baratos',
-        prompt: 'Muestra los 10 productos más económicos de la matriz',
-        skus: top10Baratos,
-        badge: `${top10Baratos.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_price', parameters: { operator: 'top_lowest', limit: 10 } }
-      },
       ...(avgPrice > 0 ? [
         {
           id: 'p-above-avg',
           label: `Sobre el promedio (> $${Math.round(avgPrice).toLocaleString()})`,
-          prompt: `Filtra productos con List Price superior al promedio ($${Math.round(avgPrice).toLocaleString()})`,
+          prompt: `Filtra productos con List Price base superior al promedio oficial del catálogo ($${Math.round(avgPrice).toLocaleString()})`,
           skus: sobrePromedio,
           badge: `${sobrePromedio.length} SKUs`,
           toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_price: avgPrice + 0.01 } }
@@ -668,106 +753,31 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         {
           id: 'p-below-avg',
           label: `Bajo el promedio (≤ $${Math.round(avgPrice).toLocaleString()})`,
-          prompt: `Filtra productos con List Price menor o igual al promedio ($${Math.round(avgPrice).toLocaleString()})`,
+          prompt: `Filtra productos con List Price base menor o igual al promedio oficial del catálogo ($${Math.round(avgPrice).toLocaleString()})`,
           skus: bajoPromedio,
           badge: `${bajoPromedio.length} SKUs`,
           toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { max_price: avgPrice } }
         }
-      ] : [])
-    ];
-
-    // 2. OPTION PRICES (Combinaciones)
-    const sinOpciones = parsedRows.filter((r) => r.optsCount === 0).map((r) => r.sku);
-    const opts1a5 = parsedRows.filter((r) => r.optsCount >= 1 && r.optsCount <= 5).map((r) => r.sku);
-    const opts6a15 = parsedRows.filter((r) => r.optsCount >= 6 && r.optsCount <= 15).map((r) => r.sku);
-    const optsMas15 = parsedRows.filter((r) => r.optsCount > 15).map((r) => r.sku);
-    const topMasOpciones = [...parsedRows].filter(r => r.optsCount > 0).sort((a, b) => b.optsCount - a.optsCount).slice(0, 15).map((r) => r.sku);
-
-    const optionsFilters = [
+      ] : []),
       {
-        id: 'opt-zero',
-        label: 'Sin option prices (Base)',
-        prompt: 'Filtra productos base que no tienen recargos ni option prices configurados',
-        skus: sinOpciones,
-        badge: `${sinOpciones.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { max_options: 0 } }
+        id: 'p-top-high',
+        label: 'Top modelos mayor valor base',
+        prompt: 'Muestra los modelos con mayor List Price base en el esquema XML',
+        skus: top10Caros,
+        badge: `${top10Caros.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_price', parameters: { operator: 'top_highest', limit: 10 } }
       },
-      ...(opts1a5.length > 0 ? [{
-        id: 'opt-1-5',
-        label: '1 a 5 option prices',
-        prompt: 'Filtra productos configurables que tienen entre 1 y 5 option prices',
-        skus: opts1a5,
-        badge: `${opts1a5.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 1, max_options: 5 } }
-      }] : []),
-      ...(opts6a15.length > 0 ? [{
-        id: 'opt-6-15',
-        label: '6 a 15 option prices',
-        prompt: 'Filtra productos con combinaciones medianas (entre 6 y 15 option prices)',
-        skus: opts6a15,
-        badge: `${opts6a15.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 6, max_options: 15 } }
-      }] : []),
-      ...(optsMas15.length > 0 ? [{
-        id: 'opt-gt-15',
-        label: 'Más de 15 option prices',
-        prompt: 'Filtra productos altamente configurables con más de 15 option prices',
-        skus: optsMas15,
-        badge: `${optsMas15.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 16 } }
-      }] : []),
-      ...(topMasOpciones.length > 0 ? [{
-        id: 'opt-top-combo',
-        label: 'Top 15 con más combinaciones',
-        prompt: 'Muestra los 15 productos con mayor número de combinaciones de opciones',
-        skus: topMasOpciones,
-        badge: `${topMasOpciones.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { sort_by: 'options_desc', top_n: 15 } }
-      }] : [])
+      {
+        id: 'p-top-low',
+        label: 'Top modelos base / entrada',
+        prompt: 'Muestra los modelos base más económicos del catálogo XML',
+        skus: top10Baratos,
+        badge: `${top10Baratos.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_price', parameters: { operator: 'top_lowest', limit: 10 } }
+      }
     ];
 
-    // Opciones individuales frecuentes
-    const optColCounts = {};
-    parsedRows.forEach((r) => {
-      r.activeOpts.forEach(({ col }) => {
-        optColCounts[col] = (optColCounts[col] || 0) + 1;
-      });
-    });
-    const sortedOptCols = Object.entries(optColCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6);
-
-    sortedOptCols.forEach(([colName, count]) => {
-      const colSkus = parsedRows.filter((r) => r.activeOpts.some((o) => o.col === colName)).map((r) => r.sku);
-      const cleanColName = colName.length > 22 ? colName.slice(0, 20) + '…' : colName;
-      optionsFilters.push({
-        id: `opt-col-${cleanColName}`,
-        label: `Con: ${cleanColName}`,
-        prompt: `Filtra productos que tienen configurada la opción "${colName}"`,
-        skus: colSkus,
-        badge: `${count} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { options_any: [colName] } }
-      });
-    });
-
-    // 3. TIPOS DE MUEBLE
-    const typeGroups = {};
-    parsedRows.forEach((r) => {
-      if (!typeGroups[r.pType]) typeGroups[r.pType] = [];
-      typeGroups[r.pType].push(r.sku);
-    });
-    const mueblesFilters = Object.entries(typeGroups)
-      .sort((a, b) => b[1].length - a[1].length)
-      .map(([typeName, skus]) => ({
-        id: `type-${typeName}`,
-        label: typeName,
-        prompt: `Filtra únicamente los productos de tipo "${typeName}"`,
-        skus,
-        badge: `${skus.length} SKUs`,
-        toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { product_types: [typeName] } }
-      }));
-
-    // 4. CATEGORÍAS (Classic / Premium)
+    // 4. GAMA / CLASIFICACIÓN COMERCIAL XML (Col #4 Classic/ Premium)
     const catGroups = {};
     parsedRows.forEach((r) => {
       const c = r.cat || 'Standard';
@@ -778,14 +788,14 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       .sort((a, b) => b[1].length - a[1].length)
       .map(([catName, skus]) => ({
         id: `cat-${catName}`,
-        label: catName,
-        prompt: `Filtra productos en categoría "${catName}"`,
+        label: `Gama ${catName}`,
+        prompt: `Filtra productos clasificados en la gama comercial "${catName}" del catálogo XML`,
         skus,
         badge: `${skus.length} SKUs`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { categories: [catName] } }
       }));
 
-    // 5. AUDITORÍA / CALIDAD
+    // 5. AUDITORÍA ESQUEMA XML (Validación contra las 5 columnas base y recargos)
     const sinPrecio = parsedRows.filter((r) => r.price <= 0).map((r) => r.sku);
     const sinPeso = parsedRows.filter((r) => r.weight <= 0).map((r) => r.sku);
     const sinCat = parsedRows.filter((r) => !r.cat).map((r) => r.sku);
@@ -795,45 +805,45 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       ...(sinPrecio.length > 0 ? [{
         id: 'audit-price',
         label: 'Sin List Price ($0 o vacío)',
-        prompt: 'Auditoría: Lista todos los productos que no tienen precio asignado',
+        prompt: 'Auditoría XML: Lista productos que no tienen List Price base asignado en el catálogo',
         skus: sinPrecio,
-        badge: `${sinPrecio.length} SKUs`,
+        badge: `${sinPrecio.length} SKUs · Alerta`,
         isAudit: true,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['price'] } }
       }] : []),
       ...(sinPeso.length > 0 ? [{
         id: 'audit-weight',
         label: 'Sin peso registrado (Weight)',
-        prompt: 'Auditoría: Lista productos que no tienen peso registrado',
+        prompt: 'Auditoría XML: Lista productos sin especificación de peso estructural (Col #3 Weight vacía)',
         skus: sinPeso,
-        badge: `${sinPeso.length} SKUs`,
+        badge: `${sinPeso.length} SKUs · Alerta`,
         isAudit: true,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['weight'] } }
       }] : []),
       ...(sinCat.length > 0 ? [{
         id: 'audit-cat',
-        label: 'Sin categoría comercial',
-        prompt: 'Auditoría: Productos sin valor en Classic/ Premium',
+        label: 'Sin gama / categoría comercial',
+        prompt: 'Auditoría XML: Productos sin valor en Col #4 Classic/ Premium',
         skus: sinCat,
-        badge: `${sinCat.length} SKUs`,
+        badge: `${sinCat.length} SKUs · Alerta`,
         isAudit: true,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['category'] } }
       }] : []),
       ...(sinNombre.length > 0 ? [{
         id: 'audit-name',
         label: 'Sin Model Name / Descripción',
-        prompt: 'Auditoría: Productos con Model Name vacío',
+        prompt: 'Auditoría XML: Productos con descripción comercial vacía en el catálogo',
         skus: sinNombre,
-        badge: `${sinNombre.length} SKUs`,
+        badge: `${sinNombre.length} SKUs · Alerta`,
         isAudit: true,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['name'] } }
       }] : [])
     ];
 
     return {
-      precios: preciosFilters.filter((f) => f.skus.length > 0),
       options: optionsFilters.filter((f) => f.skus.length > 0),
-      muebles: mueblesFilters.filter((f) => f.skus.length > 0),
+      familias: familiasFilters.filter((f) => f.skus.length > 0),
+      precios: preciosFilters.filter((f) => f.skus.length > 0),
       categorias: categoriasFilters.filter((f) => f.skus.length > 0),
       calidad: calidadFilters.filter((f) => f.skus.length > 0)
     };
@@ -2191,14 +2201,14 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                       </span>
                     </div>
 
-                    {/* Barra de pestañas para categorizar los filtros */}
+                    {/* Barra de pestañas para categorizar los filtros deterministas del XML */}
                     <div className="flex items-center gap-1 border-b border-white/10 pb-1.5 overflow-x-auto custom-scrollbar">
                       {[
-                        { id: 'precios', label: 'Precios', count: catalogFacets.precios.length },
-                        { id: 'options', label: 'Option Prices', count: catalogFacets.options.length },
-                        { id: 'muebles', label: 'Tipos', count: catalogFacets.muebles.length },
-                        { id: 'categorias', label: 'Categorías', count: catalogFacets.categorias.length },
-                        { id: 'calidad', label: 'Auditoría', count: catalogFacets.calidad.length }
+                        { id: 'options', label: 'Opciones XML', count: (catalogFacets.options || []).length },
+                        { id: 'familias', label: 'Familias XML', count: (catalogFacets.familias || []).length },
+                        { id: 'precios', label: 'Precios Base', count: (catalogFacets.precios || []).length },
+                        { id: 'categorias', label: 'Gama / Categoría', count: (catalogFacets.categorias || []).length },
+                        { id: 'calidad', label: 'Auditoría Esquema XML', count: (catalogFacets.calidad || []).length }
                       ].map((tab) => (
                         <button
                           key={tab.id}
