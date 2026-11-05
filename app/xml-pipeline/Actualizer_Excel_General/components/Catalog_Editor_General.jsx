@@ -772,80 +772,42 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       }] : [])
     ];
 
-    // Opciones comerciales dinámicas del XML desglosadas por tiers exactos de recargo
+    // Opciones comerciales dinámicas del XML (un chip único por opción de precio del catálogo)
     optionCols.forEach((colName) => {
       const matchingRows = parsedRows.filter((r) => r.activeOpts.some((o) => o.col === colName));
       if (matchingRows.length === 0) return;
 
       const colSkus = matchingRows.map((r) => r.sku);
-
-      // Agrupar por valor exacto de recargo (price points / tiers)
-      const valueGroups = {};
+      const vals = [];
       matchingRows.forEach((r) => {
         const item = r.activeOpts.find((o) => o.col === colName);
-        if (item && item.val > 0) {
-          const valNum = Math.round(item.val * 100) / 100;
-          if (!valueGroups[valNum]) valueGroups[valNum] = [];
-          valueGroups[valNum].push(r.sku);
-        }
+        if (item && item.val > 0) vals.push(item.val);
       });
-      const distinctVals = Object.keys(valueGroups).map(Number).sort((a, b) => a - b);
+      vals.sort((a, b) => a - b);
+      const minUp = vals.length > 0 ? vals[0] : 0;
+      const maxUp = vals.length > 0 ? vals[vals.length - 1] : 0;
+      const rangeText = vals.length === 0
+        ? ''
+        : minUp === maxUp
+          ? `+$${minUp % 1 === 0 ? minUp.toFixed(0) : minUp.toFixed(2)}`
+          : `+$${minUp.toFixed(0)}–$${maxUp.toFixed(0)}`;
       const cleanColName = colName.length > 24 ? colName.slice(0, 22) + '…' : colName;
 
-      if (distinctVals.length > 1) {
-        // Opción general (todos los tiers combinados)
-        const minUp = distinctVals[0];
-        const maxUp = distinctVals[distinctVals.length - 1];
-        const rangeText = `+$${minUp.toFixed(0)}–$${maxUp.toFixed(0)}`;
-        optionsFilters.push({
-          id: `opt-dyn-${colName}-all`,
-          label: `${cleanColName} (Todos)`,
-          prompt: `Filtra todos los productos con la opción de recargo "${colName}" (${rangeText})`,
-          skus: colSkus,
-          badge: `${colSkus.length} SKUs · ${rangeText}`,
-          toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { options_any: [colName] } }
-        });
-
-        // Tiers individuales exactos (ej. -$FG = $11, -$FG = $12)
-        distinctVals.forEach((val) => {
-          const tierSkus = valueGroups[val];
-          const valFormatted = val % 1 === 0 ? val.toFixed(0) : val.toFixed(2);
-          optionsFilters.push({
-            id: `opt-dyn-${colName}-tier-${val}`,
-            label: `${cleanColName} = +$${valFormatted}`,
-            prompt: `Filtra productos con la opción "${colName}" con recargo exacto de $${val.toFixed(2)}`,
-            skus: tierSkus,
-            badge: `${tierSkus.length} SKUs`,
-            toolCall: {
-              name: 'mcp::csv_edit_matrix.advanced_filter',
-              parameters: {
-                option_col: colName,
-                option_val: val,
-                options_any: [colName]
-              }
-            }
-          });
-        });
-      } else if (distinctVals.length === 1) {
-        // Un único valor de recargo para toda la opción (ej. PRM a +$150)
-        const val = distinctVals[0];
-        const valFormatted = val % 1 === 0 ? val.toFixed(0) : val.toFixed(2);
-        optionsFilters.push({
-          id: `opt-dyn-${colName}`,
-          label: cleanColName,
-          prompt: `Filtra productos que incorporan la opción comercial "${colName}" (+${valFormatted})`,
-          skus: colSkus,
-          badge: `${colSkus.length} SKUs · +$${valFormatted}`,
-          toolCall: {
-            name: 'mcp::csv_edit_matrix.advanced_filter',
-            parameters: {
-              option_col: colName,
-              option_val: val,
-              options_any: [colName]
-            }
+      optionsFilters.push({
+        id: `opt-dyn-${colName}`,
+        label: cleanColName,
+        targetCol: colName,
+        prompt: `Filtra productos con la opción de precio "${colName}"`,
+        skus: colSkus,
+        badge: `${colSkus.length} SKUs${rangeText ? ` · ${rangeText}` : ''}`,
+        toolCall: {
+          name: 'mcp::csv_edit_matrix.advanced_filter',
+          parameters: {
+            option_col: colName,
+            options_any: [colName]
           }
-        });
-      }
+        }
+      });
     });
 
     // 2. FAMILIAS DE MODELO XML (Col #1 Model #) para selector compacto
@@ -948,7 +910,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
   // Enviar mensaje al servidor MCP + RAG del backend (`/api/v1/General_Procces/matrix-editor/mcp-chat`)
   const handleSendMatrixChat = useCallback(
-    async (overridePrompt = null, explicitToolCall = null, precomputedSkus = null, filterLabelOverride = null) => {
+    async (
+      overridePrompt = null,
+      explicitToolCall = null,
+      precomputedSkus = null,
+      filterLabelOverride = null,
+      targetColOverride = null
+    ) => {
       const rawText = overridePrompt !== null ? overridePrompt : chatInputUi;
       const query = String(rawText || '').trim();
       if (!query || isMcpThinking) return;
@@ -981,6 +949,14 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 ? lastFilteredSkusRef.current
                 : []);
 
+        const activeTargetColToSend =
+          targetColOverride ||
+          explicitToolCall?.parameters?.target_column ||
+          explicitToolCall?.parameters?.option_col ||
+          (explicitToolCall?.parameters?.options_any && explicitToolCall.parameters.options_any[0]) ||
+          mcpActiveSkuFilter?.targetCol ||
+          null;
+
         // 1. Intentar endpoint dedicado del nuevo MCP en el backend
         try {
           const res = await fetch(`${apiURL}/api/v1/General_Procces/matrix-editor/mcp-chat`, {
@@ -995,7 +971,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               })),
               csv_edit_raw: currentCsvEditRaw,
               tool_call: explicitToolCall || undefined,
-              active_skus: activeSkusToSend
+              active_skus: activeSkusToSend,
+              active_target_col: activeTargetColToSend
             })
           });
 
@@ -1063,7 +1040,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             (mcpActiveSkuFilter?.skuSet && mcpActiveSkuFilter.skuSet.size > 0
               ? Array.from(mcpActiveSkuFilter.skuSet)
               : lastFilteredSkusRef.current);
-          const targetCol = batchTrace?.applied_column || batchInfo.target_column || 'List Price';
+          const targetCol = batchTrace?.applied_column || batchInfo.target_column || activeTargetColToSend || 'List Price';
           const targetMode = batchTrace?.mode || batchInfo.mode || 'percent';
           const targetVal =
             batchTrace?.value !== undefined ? batchTrace.value : batchInfo.value;
@@ -1072,6 +1049,15 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             handleApplyBulkUpdate(targetSkus, targetCol, targetMode, targetVal);
           }
         }
+
+        const resolvedTargetCol =
+          targetColOverride ||
+          batchTrace?.applied_column ||
+          primaryFilter?.params?.target_column ||
+          primaryFilter?.params?.option_col ||
+          (primaryFilter?.params?.options_any && primaryFilter.params.options_any[0]) ||
+          mcpActiveSkuFilter?.targetCol ||
+          null;
 
         // Si el usuario solicitó filtrar o aislar los productos en la tabla, activar filtro automáticamente
         const qLower = query.toLowerCase();
@@ -1084,6 +1070,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             : `${matchedSkus.length} SKUs`);
           setMcpActiveSkuFilter({
             label: filterTag,
+            targetCol: resolvedTargetCol,
             skuSet: new Set(matchedSkus)
           });
         }
@@ -1095,6 +1082,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           mcpTraces,
           matchedSkus,
+          targetCol: resolvedTargetCol,
           filterLabel: filterLabelOverride || (primaryFilter
             ? `${primaryFilter.tool.replace('mcp::csv_edit_matrix.', '')} (${matchedSkus.length} SKUs)`
             : `${matchedSkus.length} SKUs`)
@@ -1120,7 +1108,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         }, 60);
       }
     },
-    [chatInputUi, isMcpThinking, apiURL, chatMessages, serializeRowsToCsv]
+    [chatInputUi, isMcpThinking, apiURL, chatMessages, serializeRowsToCsv, mcpActiveSkuFilter]
   );
 
   // Medición de viewport y scroll virtualizado con requestAnimationFrame
@@ -1798,6 +1786,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 >
                   <Sparkles size={10} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-200'} shrink-0`} />
                   <span>Filtro MCP: {mcpActiveSkuFilter.label}</span>
+                  {mcpActiveSkuFilter.targetCol && (
+                    <span className="opacity-80">
+                      · Columna: <strong className="underline underline-offset-2">{mcpActiveSkuFilter.targetCol}</strong>
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => setMcpActiveSkuFilter(null)}
@@ -2489,7 +2482,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                               {/* Botón principal: Consulta MCP + Análisis RAG */}
                               <button
                                 type="button"
-                                onClick={() => handleSendMatrixChat(f.prompt, f.toolCall, f.skus, f.label)}
+                                onClick={() => handleSendMatrixChat(f.prompt, f.toolCall, f.skus, f.label, f.targetCol)}
                                 title={`Consultar análisis MCP: "${f.prompt}"`}
                                 className="px-2 py-1 flex items-center gap-1.5 cursor-pointer hover:underline"
                               >
@@ -2520,6 +2513,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                   } else {
                                     setMcpActiveSkuFilter({
                                       label: f.label,
+                                      targetCol: f.targetCol || null,
                                       skuSet: new Set(f.skus)
                                     });
                                   }
@@ -2640,6 +2634,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                               } else {
                                 setMcpActiveSkuFilter({
                                   label: targetLabel,
+                                  targetCol: msg.targetCol || null,
                                   skuSet: new Set(msg.matchedSkus)
                                 });
                               }
