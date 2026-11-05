@@ -908,6 +908,22 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       });
   }, [editRows, searchTerm, filterMode, deletedSkus, baseRowMap, diffMetrics.modifiedSkuSet, mcpActiveSkuFilter]);
 
+  // Columnas visibles en la tabla: cuando hay una opción filtrada, se muestran solo las columnas base + esa opción
+  const tableHeaders = useMemo(() => {
+    if (!mcpActiveSkuFilter?.targetCol) {
+      return headers;
+    }
+    const activeCol = mcpActiveSkuFilter.targetCol;
+    return headers.filter((h) => BASE_HEADERS.includes(h) || h === activeCol);
+  }, [headers, mcpActiveSkuFilter?.targetCol]);
+
+  // Sincronizar automáticamente la columna seleccionada con el panel de ajuste en lote
+  useEffect(() => {
+    if (mcpActiveSkuFilter?.targetCol) {
+      setBulkColumn(mcpActiveSkuFilter.targetCol);
+    }
+  }, [mcpActiveSkuFilter?.targetCol]);
+
   // Enviar mensaje al servidor MCP + RAG del backend (`/api/v1/General_Procces/matrix-editor/mcp-chat`)
   const handleSendMatrixChat = useCallback(
     async (
@@ -1243,7 +1259,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       commitCellEdit(activeCell, cellDraft, true);
       const nextFilteredRow = filteredRows[filteredIdx + 1];
       if (nextFilteredRow) {
-        const colKey = headers[colIdx];
+        const colKey = tableHeaders[colIdx];
         startCellEdit(
           nextFilteredRow.originalIdx,
           colKey,
@@ -1273,8 +1289,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         return;
       }
       const minCol = currentRowObj.row._isNewRow ? 0 : 1;
-      if (nextColIdx >= minCol && nextColIdx < headers.length) {
-        const nextColKey = headers[nextColIdx];
+      if (nextColIdx >= minCol && nextColIdx < tableHeaders.length) {
+        const nextColKey = tableHeaders[nextColIdx];
         startCellEdit(currentRowObj.originalIdx, nextColKey, currentRowObj.row[nextColKey], false);
       } else {
         setActiveCell(null);
@@ -2043,27 +2059,45 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                     >
                       #
                     </th>
-                    {headers.map((h) => (
-                      <th
-                        key={h}
-                        className={`px-3 py-2 text-[10px] font-bold border-r border-b whitespace-nowrap uppercase tracking-wider select-none sticky top-0 ${
-                          isDarkMode
-                            ? 'bg-zinc-900/95 text-zinc-300 border-white/10'
-                            : 'bg-slate-100/95 text-slate-700 border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1">
-                          <span>{h || '(Empty)'}</span>
-                        </div>
-                      </th>
-                    ))}
+                    {tableHeaders.map((h) => {
+                      const isSelectedOptionCol = h === mcpActiveSkuFilter?.targetCol;
+                      return (
+                        <th
+                          key={h}
+                          className={`px-3 py-2 text-[10px] font-bold border-r border-b whitespace-nowrap uppercase tracking-wider select-none sticky top-0 transition-colors ${
+                            isSelectedOptionCol
+                              ? isDarkMode
+                                ? 'bg-white/15 text-white border-white/30 font-black ring-1 ring-inset ring-white/20'
+                                : 'bg-zinc-200 text-zinc-950 border-zinc-300 font-black ring-1 ring-inset ring-zinc-300'
+                              : isDarkMode
+                                ? 'bg-zinc-900/95 text-zinc-300 border-white/10'
+                                : 'bg-slate-100/95 text-slate-700 border-slate-200'
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span>{h || '(Empty)'}</span>
+                            {isSelectedOptionCol && (
+                              <span
+                                className={`px-1 py-0.2 rounded text-[8px] font-mono tracking-normal uppercase ${
+                                  isDarkMode
+                                    ? 'bg-white text-zinc-950 font-bold'
+                                    : 'bg-zinc-900 text-white font-bold'
+                                }`}
+                              >
+                                Activa
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
 
                 <tbody className={`bg-transparent divide-y ${isDarkMode ? 'divide-white/5' : 'divide-slate-100'}`}>
                   {virtualWindow.topSpacerHeight > 0 && (
                     <tr aria-hidden="true" style={{ height: `${virtualWindow.topSpacerHeight}px` }}>
-                      <td colSpan={headers.length + 1} className="p-0 border-0" />
+                      <td colSpan={tableHeaders.length + 1} className="p-0 border-0" />
                     </tr>
                   )}
 
@@ -2074,24 +2108,34 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                     const isNewRow = !!row._isNewRow;
                     const baseRow = baseRowMap.get(sku);
 
+                    const isOptionSelected = Boolean(mcpActiveSkuFilter?.targetCol && !isRowDeleted);
+
                     return (
                       <tr
                         key={`${sku}-${originalIdx}`}
                         style={{ height: `${ROW_HEIGHT}px` }}
-                        className={`transition-colors group bg-transparent ${
+                        className={`transition-colors group ${
                           isRowDeleted
-                            ? 'opacity-40 line-through'
-                            : isDarkMode
-                              ? 'hover:bg-white/[0.04]'
-                              : 'hover:bg-slate-50/80'
+                            ? 'opacity-40 line-through bg-transparent'
+                            : isOptionSelected
+                              ? isDarkMode
+                                ? 'bg-white/[0.06] hover:bg-white/[0.10]'
+                                : 'bg-zinc-100/85 hover:bg-zinc-200/75'
+                              : isDarkMode
+                                ? 'bg-transparent hover:bg-white/[0.04]'
+                                : 'bg-transparent hover:bg-slate-50/80'
                         }`}
                       >
                         {/* Celda de Acción (Eliminar / Restaurar fila) */}
                         <td
                           className={`px-2 py-1 text-center text-[9.5px] font-bold border-r border-b sticky left-0 z-10 font-mono select-none ${
                             isDarkMode
-                              ? 'text-zinc-400 border-white/5 bg-zinc-900/95 group-hover:bg-zinc-800/95'
-                              : 'text-slate-500 border-slate-100 bg-slate-50/95 group-hover:bg-slate-100'
+                              ? isOptionSelected
+                                ? 'text-zinc-200 border-white/10 bg-zinc-800/95 group-hover:bg-zinc-750/95'
+                                : 'text-zinc-400 border-white/5 bg-zinc-900/95 group-hover:bg-zinc-800/95'
+                              : isOptionSelected
+                                ? 'text-slate-700 border-slate-200 bg-slate-100/95 group-hover:bg-slate-200/95'
+                                : 'text-slate-500 border-slate-100 bg-slate-50/95 group-hover:bg-slate-100'
                           }`}
                         >
                           <button
@@ -2108,12 +2152,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                           </button>
                         </td>
 
-                        {headers.map((colKey, colIdx) => {
+                        {tableHeaders.map((colKey, colIdx) => {
                           const isSkuCol = colIdx === 0;
                           const isPriceCol = colIdx === 1;
-                          const isOptionCol = colIdx >= 5;
+                          const isTargetCol = colKey === mcpActiveSkuFilter?.targetCol;
+                          const isOptionCol = !BASE_HEADERS.includes(colKey);
                           const isNumeric = isPriceCol || isOptionCol;
-                          const isHighlight = colKey === 'Model #' || colKey === 'List Price';
+                          const isHighlight = colKey === 'Model #' || colKey === 'List Price' || isTargetCol;
 
                           const currentVal = row[colKey];
                           const origVal = baseRow ? baseRow[colKey] : '';
@@ -2132,9 +2177,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                               } ${
                                 cellChanged
                                   ? isDarkMode
-                                    ? 'bg-white/[0.08] ring-1 ring-inset ring-white/25'
-                                  : 'bg-slate-100 ring-1 ring-inset ring-slate-300'
-                                : 'bg-transparent'
+                                    ? 'bg-white/[0.12] ring-1 ring-inset ring-white/30'
+                                    : 'bg-slate-200 ring-1 ring-inset ring-slate-400'
+                                  : isTargetCol
+                                    ? isDarkMode
+                                      ? 'bg-white/[0.08] font-semibold text-white'
+                                      : 'bg-zinc-200/60 font-semibold text-zinc-950'
+                                    : 'bg-transparent'
                               }`}
                             >
                               {isEditingThis ? (
@@ -2228,7 +2277,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
                   {virtualWindow.bottomSpacerHeight > 0 && (
                     <tr aria-hidden="true" style={{ height: `${virtualWindow.bottomSpacerHeight}px` }}>
-                      <td colSpan={headers.length + 1} className="p-0 border-0" />
+                      <td colSpan={tableHeaders.length + 1} className="p-0 border-0" />
                     </tr>
                   )}
                 </tbody>
@@ -2244,7 +2293,10 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           >
             <div className="flex items-center gap-2">
               <span>
-                Cols: <strong className={isDarkMode ? 'text-zinc-200' : 'text-slate-700'}>{headers.length}</strong>
+                Cols: <strong className={isDarkMode ? 'text-zinc-200' : 'text-slate-700'}>{tableHeaders.length}</strong>
+                {tableHeaders.length !== headers.length && (
+                  <span className="opacity-75"> (de {headers.length} totales)</span>
+                )}
               </span>
               <span className={isDarkMode ? 'text-white/20' : 'text-slate-300'}>•</span>
               <span>
