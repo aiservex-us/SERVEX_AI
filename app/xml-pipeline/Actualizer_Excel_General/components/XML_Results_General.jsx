@@ -891,7 +891,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
 
   if (error) return (
     <div className="flex w-full flex-col items-center justify-center bg-transparent py-5 text-center font-sans">
-      <AlertCircle className="text-rose-400 mb-1.5" size={22} />
+      <AlertCircle className={`${isDarkMode ? 'text-zinc-400' : 'text-slate-600'} mb-1.5`} size={22} />
       <h3 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'} mb-0.5`}>Engine Synchronization Error</h3>
       <p className={`text-[11px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} max-w-md mb-2`}>{error}</p>
       <button 
@@ -955,8 +955,8 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
             type="button"
             className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs border disabled:opacity-50 ${
               isDarkMode
-                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border-emerald-500/35'
-                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+                ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white font-bold'
+                : 'bg-[#18181b] text-white hover:bg-zinc-800 border-[#18181b] font-bold'
             }`}
             title="Copiar csv_raw a csv_edit_raw y abrir sección de Edición y Actualización en Vivo"
           >
@@ -1194,7 +1194,11 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
                   setShowWarningModal(false);
                   exportToExcel();
                 }}
-                className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.35)] cursor-pointer"
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                  isDarkMode
+                    ? 'text-zinc-950 bg-white hover:bg-zinc-200 border border-white'
+                    : 'text-white bg-[#18181b] hover:bg-zinc-800 border border-[#18181b]'
+                }`}
               >
                 Download Excel (.xlsx)
               </button>

@@ -1796,7 +1796,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                       : 'bg-slate-900 text-white border-slate-900'
                   }`}
                 >
-                  <Sparkles size={10} className="text-amber-400 shrink-0" />
+                  <Sparkles size={10} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-200'} shrink-0`} />
                   <span>Filtro MCP: {mcpActiveSkuFilter.label}</span>
                   <button
                     type="button"
@@ -1848,8 +1848,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 onClick={exportToExcel}
                 className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
                   isDarkMode
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
-                    : 'bg-emerald-700 hover:bg-emerald-800 text-white border-emerald-700'
+                    ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white font-bold'
+                    : 'bg-[#18181b] text-white hover:bg-zinc-800 border-[#18181b] font-bold'
                 }`}
                 title="Descargar matriz en formato Excel (.xlsx)"
               >
@@ -2287,7 +2287,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           <div
             className={`w-px h-full transition-colors ${
               isResizingChat
-                ? isDarkMode ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-emerald-600'
+                ? isDarkMode ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-zinc-900'
                 : isDarkMode ? 'bg-white/10 group-hover:bg-white/30' : 'bg-slate-200 group-hover:bg-slate-400'
             }`}
           />
@@ -2295,7 +2295,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           <div
             className={`absolute w-1 h-9 rounded-full transition-all duration-150 pointer-events-none ${
               isResizingChat
-                ? 'bg-emerald-400 scale-y-125'
+                ? isDarkMode ? 'bg-white scale-y-125' : 'bg-zinc-950 scale-y-125'
                 : isDarkMode
                   ? 'bg-zinc-600 group-hover:bg-zinc-300'
                   : 'bg-slate-400 group-hover:bg-slate-700'
@@ -2304,7 +2304,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
           {/* Badge flotante que muestra el ancho exacto durante el arrastre */}
           {isResizingChat && (
-            <div className="absolute top-3 right-3 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-zinc-950/95 border border-white/20 text-emerald-400 shadow-2xl pointer-events-none z-50 whitespace-nowrap">
+            <div className="absolute top-3 right-3 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-zinc-950/95 border border-white/20 text-white shadow-2xl pointer-events-none z-50 whitespace-nowrap">
               Chat: {Math.round(chatWidthPercent)}% / 50vw máx
             </div>
           )}
@@ -2428,9 +2428,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
                     {/* Banner de Auditoría de Esquema XML: Alerta preventiva o indicador de salud */}
                     {Array.isArray(catalogFacets.calidad) && catalogFacets.calidad.length > 0 ? (
-                      <div className="p-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-200 text-[9.5px] font-mono flex flex-wrap items-center justify-between gap-1.5">
+                      <div className={`p-1.5 border rounded-md text-[9.5px] font-mono flex flex-wrap items-center justify-between gap-1.5 ${
+                        isDarkMode
+                          ? 'bg-white/5 border-white/15 text-zinc-200'
+                          : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+                      }`}>
                         <div className="flex items-center gap-1.5">
-                          <AlertCircle size={11} className="text-amber-400 shrink-0" />
+                          <AlertCircle size={11} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} shrink-0`} />
                           <span className="font-bold">Inconsistencias XML detectadas:</span>
                         </div>
                         <div className="flex flex-wrap items-center gap-1">
@@ -2439,7 +2443,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                               key={f.id}
                               type="button"
                               onClick={() => handleSendMatrixChat(f.prompt, f.toolCall, f.skus, f.label)}
-                              className="px-1.5 py-0.5 bg-amber-500/20 hover:bg-amber-500/35 border border-amber-500/40 text-amber-100 text-[8.5px] cursor-pointer flex items-center gap-1"
+                              className={`px-1.5 py-0.5 rounded border text-[8.5px] cursor-pointer flex items-center gap-1 transition-all ${
+                                isDarkMode
+                                  ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                                  : 'bg-white hover:bg-zinc-200 border-zinc-300 text-zinc-900'
+                              }`}
                             >
                               <span>{f.label}</span>
                               <span className="font-bold">({f.badge})</span>
@@ -2448,8 +2456,10 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-[9px] font-mono text-emerald-400/90 pt-0.5">
-                        <CheckCircle2 size={10.5} className="text-emerald-400 shrink-0" />
+                      <div className={`flex items-center gap-1.5 text-[9px] font-mono pt-0.5 ${
+                        isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
+                      }`}>
+                        <CheckCircle2 size={10.5} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} shrink-0`} />
                         <span>Esquema XML 100% íntegro (Precios base, pesos y descripciones validados)</span>
                       </div>
                     )}
@@ -2468,7 +2478,9 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                               key={f.id}
                               className={`inline-flex items-center border rounded-md text-[9.5px] font-mono transition-all overflow-hidden ${
                                 isCurrentlyApplied
-                                  ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300'
+                                  ? isDarkMode
+                                    ? 'bg-white text-zinc-950 border-white'
+                                    : 'bg-zinc-900 text-white border-zinc-900'
                                   : isDarkMode
                                     ? 'bg-white/5 border-white/10 text-zinc-300 hover:border-white/30'
                                     : 'bg-slate-100 border-slate-200 text-slate-800 hover:border-slate-400'
@@ -2481,12 +2493,14 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                 title={`Consultar análisis MCP: "${f.prompt}"`}
                                 className="px-2 py-1 flex items-center gap-1.5 cursor-pointer hover:underline"
                               >
-                                {f.isAudit && <AlertCircle size={9.5} className="text-amber-400 shrink-0" />}
+                                {f.isAudit && <AlertCircle size={9.5} className={`${isCurrentlyApplied ? (isDarkMode ? 'text-zinc-900' : 'text-zinc-300') : (isDarkMode ? 'text-zinc-400' : 'text-zinc-600')} shrink-0`} />}
                                 <span>{f.label}</span>
                                 <span
                                   className={`px-1 py-0.2 rounded text-[8.5px] ${
                                     isCurrentlyApplied
-                                      ? 'bg-emerald-500 text-zinc-950 font-bold'
+                                      ? isDarkMode
+                                        ? 'bg-zinc-950 text-white font-bold'
+                                        : 'bg-white text-zinc-900 font-bold'
                                       : isDarkMode
                                         ? 'bg-white/10 text-zinc-200'
                                         : 'bg-slate-200 text-slate-700 font-semibold'
@@ -2513,7 +2527,9 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                                 title={isCurrentlyApplied ? 'Quitar filtro de la tabla' : `Aislar ${f.badge} directamente en la tabla`}
                                 className={`px-1.5 py-1 border-l transition-colors cursor-pointer flex items-center gap-0.5 ${
                                   isCurrentlyApplied
-                                    ? 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700'
+                                    ? isDarkMode
+                                      ? 'bg-zinc-200 text-zinc-950 border-zinc-300 hover:bg-white font-bold'
+                                      : 'bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700 font-bold'
                                     : isDarkMode
                                       ? 'border-white/10 hover:bg-white/20 text-zinc-300 hover:text-white'
                                       : 'border-slate-200 hover:bg-slate-200 text-slate-600 hover:text-black'
@@ -2630,7 +2646,9 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                             }}
                             className={`px-2 py-0.5 text-[9.5px] font-mono border rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
                               mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`)
-                                ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                                ? isDarkMode
+                                  ? 'bg-white text-zinc-950 border-white shadow-sm font-bold'
+                                  : 'bg-zinc-900 text-white border-zinc-900 shadow-sm font-bold'
                                 : isDarkMode
                                   ? 'bg-white/5 text-zinc-300 border-white/10 hover:text-white hover:bg-white/10'
                                   : 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:text-black hover:bg-zinc-200'

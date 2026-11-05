@@ -203,7 +203,7 @@ export default function XmlToCsvConverter() {
                 </button>
                 <button 
                   onClick={exportToCSV}
-                  className="flex items-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-green-700 transition-all shadow-md hover:shadow-lg"
+                  className="flex items-center gap-2 bg-[#18181b] text-white px-5 py-2.5 rounded-lg text-[13px] font-semibold hover:bg-zinc-800 transition-all shadow-md hover:shadow-lg"
                 >
                   <Download size={16} />
                   Export to CSV
@@ -215,7 +215,7 @@ export default function XmlToCsvConverter() {
 
         {/* ERROR STATE */}
         {error && (
-          <div className="mb-6 bg-amber-50 text-amber-700 p-4 rounded-lg border border-amber-200 flex items-center gap-3">
+          <div className="mb-6 bg-slate-100 text-slate-800 p-4 rounded-lg border border-slate-200 flex items-center gap-3">
             <X size={18} />
             <span className="text-sm font-medium">{error}</span>
           </div>
@@ -286,7 +286,7 @@ export default function XmlToCsvConverter() {
                       <td className="py-2.5 px-4 border-r border-[#EDEBE9] font-medium">{p.sku}</td>
                       <td className="py-2.5 px-4 border-r border-[#EDEBE9] truncate max-w-[200px]" title={p.description}>{p.description}</td>
                       <td className="py-2.5 px-4 border-r border-[#EDEBE9] text-[#616161]">{p.classification}</td>
-                      <td className="py-2.5 px-4 border-r border-[#EDEBE9] font-semibold text-green-700">${p.basePrice?.toFixed(2)}</td>
+                      <td className="py-2.5 px-4 border-r border-[#EDEBE9] font-semibold text-[#18181b]">${p.basePrice?.toFixed(2)}</td>
                       {optionHeaders.map(opt => (
                         <td key={opt} className={`py-2.5 px-4 border-r border-[#EDEBE9] text-right font-mono
                           ${p[opt] ? 'text-[#242424]' : 'text-slate-300'}`}>

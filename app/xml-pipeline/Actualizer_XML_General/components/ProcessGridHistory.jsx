@@ -74,8 +74,8 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
                 <span
                   className={`text-[9.5px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded border ${
                     isDarkMode
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      ? 'bg-white/10 text-white border-white/20'
+                      : 'bg-zinc-100 text-zinc-900 border-zinc-300'
                   }`}
                 >
                   Espacio Preparado
@@ -247,7 +247,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
                 </span>
                 <Database size={14} className={isDarkMode ? 'text-zinc-400' : 'text-slate-500'} />
               </div>
-              <div className="text-xl font-bold tracking-tight text-emerald-400">Listo</div>
+              <div className={`text-xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-zinc-950'}`}>Listo</div>
               <div
                 className={`text-[10.5px] mt-1 ${
                   isDarkMode ? 'text-zinc-500' : 'text-slate-400'
@@ -316,7 +316,7 @@ export default function ProcessGridHistory({ isDarkMode = true, onBack }) {
                     : 'bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
-                <Sparkles size={12} className="text-amber-400" />
+                <Sparkles size={12} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-600'}`} />
                 <span>Sección preparada para la integración de lógica futura</span>
               </div>
             </div>

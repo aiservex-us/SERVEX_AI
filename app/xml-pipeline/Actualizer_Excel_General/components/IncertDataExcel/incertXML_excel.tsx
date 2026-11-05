@@ -205,9 +205,9 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
                 <h3 className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-tight">System Base Storage</h3>
                 <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Module ({moduleName})</p>
               </div>
-              <div className="bg-amber-50 border border-amber-100 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
-                <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={14} />
-                <p className="text-[9px] sm:text-[10px] text-amber-800 leading-tight">
+              <div className="bg-slate-50 border border-slate-200 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-start gap-2 sm:gap-3 text-left">
+                <AlertCircle className="text-slate-600 shrink-0 mt-0.5" size={14} />
+                <p className="text-[9px] sm:text-[10px] text-slate-700 leading-tight">
                   <strong>IMPORTANT:</strong> Uploading CET XML to Cloud Database. <strong>Do not close</strong> this window.
                 </p>
               </div>
@@ -269,7 +269,7 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
 
                 {message.type && (
                   <div className={`p-3 rounded-lg flex items-center gap-3 text-xs font-semibold border-l-4
-                    ${message.type === 'success' ? 'bg-[#18181b]/10 border-l-[#18181b] text-[#18181b]' : 'bg-red-50 border-l-red-600 text-red-800'}`}>
+                    ${message.type === 'success' ? 'bg-[#18181b]/10 border-l-[#18181b] text-[#18181b]' : 'bg-zinc-100 border-l-zinc-950 text-zinc-900'}`}>
                     {message.type === 'success' ? <CheckCircle2 size={16} className="text-[#18181b]" /> : <AlertCircle size={16} />}
                     {message.text}
                   </div>

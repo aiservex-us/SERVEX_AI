@@ -154,7 +154,7 @@ const CSVFinalResultsGeneral = () => {
 
   if (error) return (
     <div className="flex h-[80vh] min-h-[80vh] w-full flex-col items-center justify-center bg-transparent p-12 text-center font-sans">
-      <AlertCircle className="text-red-500 mb-3" size={36} />
+      <AlertCircle className="text-slate-600 mb-3" size={36} />
       <h3 className="text-sm font-bold text-slate-800 mb-1">Engine Synchronization Error</h3>
       <p className="text-xs text-slate-500 max-w-md mb-4">{error}</p>
       <button 

@@ -370,9 +370,9 @@ export default function CETComparator() {
                               <td className="px-4 py-2.5 font-mono font-bold text-white">{c.model_id}</td>
                               <td className="px-4 py-2.5 text-zinc-300 text-[11px]">{c.column_name}</td>
                               <td className="px-4 py-2.5 text-zinc-500 line-through decoration-zinc-600 font-mono">{c.old_value}</td>
-                              <td className="px-4 py-2.5 font-semibold text-emerald-400 font-mono">{c.new_value}</td>
+                              <td className="px-4 py-2.5 font-semibold text-white font-mono">{c.new_value}</td>
                               <td className="px-4 py-2.5">
-                                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border font-mono ${diffNum > 0 ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : diffNum < 0 ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-white/5 text-zinc-400 border-white/10'}`}>
+                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded border font-mono bg-white/10 text-white border-white/20">
                                    {c.financial_impact || 'N/A'}
                                  </span>
                               </td>
@@ -434,9 +434,9 @@ export default function CETComparator() {
                               <td className="px-4 py-2.5 font-mono font-bold text-white">{c.model_id}</td>
                               <td className="px-4 py-2.5 text-zinc-300 font-semibold text-[11px]">{c.column_name}</td>
                               <td className="px-4 py-2.5 text-zinc-500 line-through decoration-zinc-600 font-mono">{c.old_value}</td>
-                              <td className="px-4 py-2.5 font-semibold text-emerald-400 font-mono">{c.new_value}</td>
+                              <td className="px-4 py-2.5 font-semibold text-white font-mono">{c.new_value}</td>
                               <td className="px-4 py-2.5">
-                                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border font-mono ${diffNum > 0 ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : diffNum < 0 ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-white/5 text-zinc-400 border-white/10'}`}>
+                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded border font-mono bg-white/10 text-white border-white/20">
                                    {c.financial_impact || 'N/A'}
                                  </span>
                               </td>
@@ -480,7 +480,7 @@ export default function CETComparator() {
                         summaryRaw.new_models_list.map((model, idx) => (
                           <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors">
                             <span className="text-zinc-200 font-semibold">{model}</span>
-                            <span className="text-[10px] text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-sans font-semibold">New SKU</span>
+                            <span className="text-[10px] text-zinc-200 bg-white/10 border border-white/20 px-2 py-0.5 rounded-full font-sans font-semibold">New SKU</span>
                           </div>
                         ))
                       ) : (
@@ -505,7 +505,7 @@ export default function CETComparator() {
                         summaryRaw.deleted_models_list.map((model, idx) => (
                           <div key={idx} className="py-2 px-3 flex items-center justify-between font-mono text-xs rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors">
                             <span className="text-zinc-400 font-medium line-through decoration-zinc-600">{model}</span>
-                            <span className="text-[10px] text-rose-300 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full font-sans font-medium">Discontinued</span>
+                            <span className="text-[10px] text-zinc-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full font-sans font-medium">Discontinued</span>
                           </div>
                         ))
                       ) : (
@@ -541,7 +541,7 @@ export default function CETComparator() {
               </button>
             </div>
             <div className="px-8 py-6 flex gap-4">
-              <div className={`p-2 h-fit rounded-full shrink-0 ${modalConfig.isError ? 'bg-rose-500/10 text-rose-400' : modalConfig.type === 'confirm' ? 'bg-white/10 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
+              <div className="p-2 h-fit rounded-full shrink-0 bg-white/10 text-white">
                 <AlertCircle size={22} className="currentColor" />
               </div>
               <div className="flex-1 mt-1">

@@ -258,7 +258,7 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             isDarkMode={isDarkMode}
           />
           <SidebarIcon
-            icon={isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-[#18181b]" />}
+            icon={isDarkMode ? <Sun size={18} className="text-white" /> : <Moon size={18} className="text-[#18181b]" />}
             active={false}
             title={isDarkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
             onClick={onToggleTheme}
@@ -281,7 +281,7 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
 
           {/* BOTÓN DE CAMBIO DE THEME (SOBRE EL ICONO DE LOGOUT) */}
           <SidebarIcon
-            icon={isDarkMode ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-[#18181b]" />}
+            icon={isDarkMode ? <Sun size={17} className="text-white" /> : <Moon size={17} className="text-[#18181b]" />}
             active={false}
             title={isDarkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
             stepNumber="THEME"
