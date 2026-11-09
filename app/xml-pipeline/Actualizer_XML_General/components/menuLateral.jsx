@@ -5,6 +5,7 @@ import {
   LogOut,
   Sparkles,
   FileSpreadsheet,
+  FileCode2,
   LayoutGrid,
   Sun,
   Moon
@@ -219,12 +220,25 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
               isDarkMode={isDarkMode}
             />
 
-            {/* STEP 3: Process & Catalog Grid */}
+            {/* STEP 3: Certified XML & Matrix Viewer */}
+            <SidebarIcon
+              icon={<FileCode2 size={17} />}
+              active={active === 'xml_viewer' || active === 'xml_actualizer_viewer'}
+              title="Certified XML & Matrix Viewer"
+              stepNumber="STEP 3"
+              tagline="Certified XML"
+              description="Visualizador de solo lectura del archivo xml_actualizer_raw certificado para CET Designer. Inspección en matriz de productos y código XML con filtros inteligentes."
+              tip="Abrir Visualizador XML"
+              onClick={() => setActive('xml_viewer')}
+              isDarkMode={isDarkMode}
+            />
+
+            {/* STEP 4: Process & Catalog Grid */}
             <SidebarIcon
               icon={<LayoutGrid size={17} />}
               active={active === 'process_grid'}
               title="Historial de Procesos & Catálogos"
-              stepNumber="STEP 3"
+              stepNumber="STEP 4"
               tagline="Grid"
               description="Registro y grilla central de catálogos subidos y procesos ejecutados por el usuario."
               tip="Abrir Grilla de Procesos"
@@ -248,6 +262,13 @@ export default function MenuLateral({ active, setActive, onExit, isDarkMode = tr
             active={active === 'xml_results'}
             title="Export"
             onClick={() => setActive('xml_results')}
+            isDarkMode={isDarkMode}
+          />
+          <SidebarIcon
+            icon={<FileCode2 size={18} />}
+            active={active === 'xml_viewer' || active === 'xml_actualizer_viewer'}
+            title="XML Final"
+            onClick={() => setActive('xml_viewer')}
             isDarkMode={isDarkMode}
           />
           <SidebarIcon

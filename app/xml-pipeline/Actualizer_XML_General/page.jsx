@@ -1,6 +1,7 @@
 'use client';
 import XMLResultsGeneral from '../Actualizer_Excel_General/components/XML_Results_General.jsx';
 import CatalogEditorGeneral from '../Actualizer_Excel_General/components/Catalog_Editor_General.jsx';
+import XMLActualizerViewer from '../Actualizer_Excel_General/components/XML_Actualizer_Viewer.jsx';
 import ImportCETXml from '../Actualizer_Excel_General/components/IncertDataExcel/incertXML_excel';
 
 
@@ -192,11 +193,13 @@ export default function MenuInicial() {
 
   const [isCatalogEditorOpen, setIsCatalogEditorOpen] = useState(false);
   const [isProcessGridOpen, setIsProcessGridOpen] = useState(false);
+  const [isXmlViewerOpen, setIsXmlViewerOpen] = useState(false);
   const [isIntroDismissed, setIsIntroDismissed] = useState(true);
 
   useEffect(() => {
     const handleOpenEditor = () => {
       setIsProcessGridOpen(false);
+      setIsXmlViewerOpen(false);
       setIsCatalogEditorOpen(true);
     };
     const handleFinishEditorComparison = () => {
@@ -214,11 +217,20 @@ export default function MenuInicial() {
   const handleSetActive = (id) => {
     if (id === 'catalog_editor') {
       setIsProcessGridOpen(false);
+      setIsXmlViewerOpen(false);
       setIsCatalogEditorOpen(true);
+      return;
+    }
+    if (id === 'xml_viewer' || id === 'xml_actualizer_viewer') {
+      setIsProcessGridOpen(false);
+      setIsCatalogEditorOpen(false);
+      setIsXmlViewerOpen(true);
+      setActive('xml_viewer');
       return;
     }
     if (id === 'process_grid') {
       setIsCatalogEditorOpen(false);
+      setIsXmlViewerOpen(false);
       setIsProcessGridOpen(true);
       setActive('process_grid');
       return;
@@ -229,6 +241,7 @@ export default function MenuInicial() {
   const handleSidebarSelect = (id) => {
     if (id === 'xml_results' || id === 'catalog_editor') {
       setIsProcessGridOpen(false);
+      setIsXmlViewerOpen(false);
       setIsCatalogEditorOpen(true);
       setActive('xml_results');
 
@@ -240,8 +253,17 @@ export default function MenuInicial() {
       return;
     }
 
+    if (id === 'xml_viewer' || id === 'xml_actualizer_viewer') {
+      setIsProcessGridOpen(false);
+      setIsCatalogEditorOpen(false);
+      setIsXmlViewerOpen(true);
+      setActive('xml_viewer');
+      return;
+    }
+
     if (id === 'process_grid') {
       setIsCatalogEditorOpen(false);
+      setIsXmlViewerOpen(false);
       setIsProcessGridOpen(true);
       setActive('process_grid');
       return;
@@ -249,6 +271,7 @@ export default function MenuInicial() {
 
     setIsProcessGridOpen(false);
     setIsCatalogEditorOpen(false);
+    setIsXmlViewerOpen(false);
     setActive(id);
 
     let botText = '';
@@ -287,6 +310,8 @@ export default function MenuInicial() {
       case 'xml_results':
       case 'exportCETcsv': return <XMLResultsGeneral isDarkMode={isDarkMode} />;
       case 'catalog_editor': return <CatalogEditorGeneral isDarkMode={isDarkMode} onBack={() => setIsCatalogEditorOpen(false)} />;
+      case 'xml_viewer':
+      case 'xml_actualizer_viewer': return <XMLActualizerViewer isDarkMode={isDarkMode} onBack={() => { setIsXmlViewerOpen(false); setActive('reporting'); }} />;
       case 'process_grid': return <ProcessGridHistory isDarkMode={isDarkMode} onBack={() => { setIsProcessGridOpen(false); setActive('reporting'); }} />;
       case 'Tasks': return <CatalogParser isDarkMode={isDarkMode} />;
       case 'inbox_updated': return <Csvs_updated isDarkMode={isDarkMode} />;
@@ -464,10 +489,23 @@ export default function MenuInicial() {
                 </div>
               )}
 
+              {/* Vista Exclusiva a Pantalla Completa: Visualizador XML Final & Matriz (xml_actualizer_raw) */}
+              {isXmlViewerOpen && (
+                <div className="w-full h-full flex flex-col overflow-hidden z-20">
+                  <XMLActualizerViewer
+                    isDarkMode={isDarkMode}
+                    onBack={() => {
+                      setIsXmlViewerOpen(false);
+                      setActive('reporting');
+                    }}
+                  />
+                </div>
+              )}
+
               {/* Chat IA Principal a Pantalla Completa (Todos los módulos y herramientas se renderizan inline en el flujo del chat) */}
               <div
                 className={`h-full w-full flex flex-col flex-shrink-0 bg-transparent ${
-                  isCatalogEditorOpen || isProcessGridOpen ? 'hidden' : 'flex'
+                  isCatalogEditorOpen || isProcessGridOpen || isXmlViewerOpen ? 'hidden' : 'flex'
                 }`}
               >
                 <TeamsAgentChat
