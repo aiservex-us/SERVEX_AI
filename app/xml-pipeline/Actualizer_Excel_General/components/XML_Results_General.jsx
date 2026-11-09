@@ -133,12 +133,12 @@ const DRAWING1_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <xdr:oneCellAnchor>
     <xdr:from>
-      <xdr:col>5</xdr:col>
-      <xdr:colOff>80000</xdr:colOff>
+      <xdr:col>0</xdr:col>
+      <xdr:colOff>60000</xdr:colOff>
       <xdr:row>0</xdr:row>
-      <xdr:rowOff>25000</xdr:rowOff>
+      <xdr:rowOff>80000</xdr:rowOff>
     </xdr:from>
-    <xdr:ext cx="1890000" cy="270000"/>
+    <xdr:ext cx="2100000" cy="300000"/>
     <xdr:pic>
       <xdr:nvPicPr>
         <xdr:cNvPr id="2" name="ServexLogo"/>
@@ -161,7 +161,7 @@ const DRAWING1_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
       <xdr:spPr>
         <a:xfrm>
           <a:off x="0" y="0"/>
-          <a:ext cx="1890000" cy="270000"/>
+          <a:ext cx="2100000" cy="300000"/>
         </a:xfrm>
         <a:prstGeom prst="rect">
           <a:avLst/>
@@ -243,10 +243,10 @@ export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
     } else if (name === 'xl/worksheets/sheet1.xml' && method === 0) {
       let sheetXml = decoder.decode(rawData);
 
-      // Congelar fila superior de encabezados y primera columna (Model #)
+      // Congelar panel superior (logo en fila 1 y encabezados en fila 3) y primera columna (Model #)
       sheetXml = sheetXml.replace(
         '<sheetView workbookViewId="0"/>',
-        '<sheetView workbookViewId="0"><pane xSplit="1" ySplit="1" topLeftCell="B2" activePane="bottomRight" state="frozen"/><selection pane="bottomRight" activeCell="B2" sqref="B2"/></sheetView>'
+        '<sheetView workbookViewId="0"><pane xSplit="1" ySplit="3" topLeftCell="B4" activePane="bottomRight" state="frozen"/><selection pane="bottomRight" activeCell="B4" sqref="B4"/></sheetView>'
       );
 
       // Vincular capa gráfica Drawing con el logo oficial SERVEX
@@ -254,11 +254,12 @@ export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
         sheetXml = sheetXml.replace('</worksheet>', '<drawing r:id="rIdDrawing1"/></worksheet>');
       }
 
-      // Asignar estilos por columna, fila zebra y celdas con valor
+      // Asignar estilos por columna, fila zebra y celdas con valor (Encabezados en Fila 3, datos en Fila 4+)
       sheetXml = sheetXml.replace(/<row r="(\d+)"([^>]*)>([\s\S]*?)<\/row>/g, (m, rStr, rowAttrs, inner) => {
         const rowNum = parseInt(rStr, 10);
-        const isHeader = rowNum === 1;
-        const isEvenData = rowNum % 2 === 1;
+        if (rowNum < 3) return m;
+        const isHeader = rowNum === 3;
+        const isEvenData = (rowNum - 3) % 2 === 0;
 
         const styledCells = inner.replace(/<c r="([A-Z]+)\d+"([^>]*)>([\s\S]*?)<\/c>/g, (cm, colStr, cAttrs, cInner) => {
           const colIdx = colLettersToIndex(colStr);
@@ -956,9 +957,9 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         { total_products: rowsToExport.length, format: 'xlsx' }
       );
 
-      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: matrixHeaders });
+      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: matrixHeaders, origin: "A3" });
 
-      // Configurar anchos de columna inteligentes, alto de filas y autofiltro
+      // Configurar anchos de columna inteligentes, alto de filas (banner de logo antes de tabla) y autofiltro
       worksheet['!cols'] = matrixHeaders.map((h, idx) => {
         if (idx === 0) return { wch: 16 }; // Model #
         if (idx === 1) return { wch: 14 }; // List Price
@@ -968,12 +969,22 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         return { wch: Math.max(String(h || '').length + 5, 15) };
       });
       worksheet['!rows'] = [
-        { hpt: 28 },
+        { hpt: 48 }, // Fila 1: Banner para el logo de Servex antes de la tabla
+        { hpt: 10 }, // Fila 2: Separador
+        { hpt: 28 }, // Fila 3: Encabezados de columnas
         ...rowsToExport.map(() => ({ hpt: 20 }))
       ];
-      if (worksheet['!ref']) {
-        worksheet['!autofilter'] = { ref: worksheet['!ref'] };
-      }
+      const colLetterFromIdx = (idx) => {
+        let s = '';
+        let n = idx;
+        while (n >= 0) {
+          s = String.fromCharCode((n % 26) + 65) + s;
+          n = Math.floor(n / 26) - 1;
+        }
+        return s;
+      };
+      const lastCol = colLetterFromIdx(matrixHeaders.length - 1);
+      worksheet['!autofilter'] = { ref: `A3:${lastCol}${rowsToExport.length + 3}` };
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");

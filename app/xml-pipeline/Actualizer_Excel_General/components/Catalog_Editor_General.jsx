@@ -1362,7 +1362,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         { total_products: rowsToExport.length, format: 'xlsx' }
       );
 
-      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: currentHeaders });
+      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: currentHeaders, origin: "A3" });
 
       worksheet['!cols'] = currentHeaders.map((h, idx) => {
         if (idx === 0) return { wch: 16 }; // Model #
@@ -1373,12 +1373,22 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         return { wch: Math.max(String(h || '').length + 5, 15) };
       });
       worksheet['!rows'] = [
-        { hpt: 28 },
+        { hpt: 48 }, // Fila 1: Banner para el logo de Servex antes de la tabla
+        { hpt: 10 }, // Fila 2: Separador
+        { hpt: 28 }, // Fila 3: Encabezados de tabla
         ...rowsToExport.map(() => ({ hpt: 20 }))
       ];
-      if (worksheet['!ref']) {
-        worksheet['!autofilter'] = { ref: worksheet['!ref'] };
-      }
+      const colLetterFromIdx = (idx) => {
+        let s = '';
+        let n = idx;
+        while (n >= 0) {
+          s = String.fromCharCode((n % 26) + 65) + s;
+          n = Math.floor(n / 26) - 1;
+        }
+        return s;
+      };
+      const lastCol = colLetterFromIdx(currentHeaders.length - 1);
+      worksheet['!autofilter'] = { ref: `A3:${lastCol}${rowsToExport.length + 3}` };
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Catalog Data');
