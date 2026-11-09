@@ -824,7 +824,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       {
         id: 'opt-base',
         label: 'Modelos Base (Sin recargos)',
-        prompt: 'Filtra modelos base estándar del catálogo XML que operan exclusivamente con precio fijo sin recargos comerciales',
+        prompt: 'Filtra modelos base',
         skus: sinOpciones,
         badge: `${sinOpciones.length} SKUs · Base`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { max_options: 0 } }
@@ -832,7 +832,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       ...(conOpciones.length > 0 ? [{
         id: 'opt-configurable',
         label: 'Modelos Configurables',
-        prompt: 'Filtra productos configurables del catálogo XML que admiten recargos de opciones comerciales activas',
+        prompt: 'Filtra modelos configurables',
         skus: conOpciones,
         badge: `${conOpciones.length} SKUs · Opciones`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 1 } }
@@ -840,7 +840,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       ...(multiOpciones.length > 0 ? [{
         id: 'opt-multi',
         label: 'Con múltiples recargos (≥2)',
-        prompt: 'Filtra productos que combinan dos o más opciones comerciales activas en el esquema XML',
+        prompt: 'Filtra modelos con múltiples recargos',
         skus: multiOpciones,
         badge: `${multiOpciones.length} SKUs · Multi`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 2 } }
@@ -872,7 +872,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         id: `opt-dyn-${colName}`,
         label: cleanColName,
         targetCol: colName,
-        prompt: `Filtra productos con la opción de precio "${colName}"`,
+        prompt: `Filtra productos con opción "${colName}"`,
         skus: colSkus,
         badge: `${colSkus.length} SKUs${rangeText ? ` · ${rangeText}` : ''}`,
         toolCall: {
@@ -906,7 +906,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       .map(([tipo, skus]) => ({
         id: `tipo-${tipo}`,
         label: tipo,
-        prompt: `Filtra productos pertenecientes a la tipología "${tipo}" en el catálogo XML`,
+        prompt: `Filtra tipología "${tipo}"`,
         skus,
         badge: `${skus.length} SKUs`,
         toolCall: { name: 'mcp::csv_edit_matrix.filter_by_category', parameters: { category: tipo } }
@@ -925,7 +925,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       .map(([fam, skus]) => ({
         id: `fam-${fam}`,
         label: `Familia ${fam}`,
-        prompt: `Filtra los productos pertenecientes a la familia de modelos "${fam}" del catálogo XML`,
+        prompt: `Filtra familia "${fam}"`,
         skus,
         badge: `${skus.length} SKUs`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { families: [fam], sku_prefix: fam.toLowerCase() } }
@@ -941,7 +941,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       ...(sinPrecio.length > 0 ? [{
         id: 'audit-price',
         label: 'Sin List Price ($0 o vacío)',
-        prompt: 'Auditoría XML: Lista productos que no tienen List Price base asignado en el catálogo',
+        prompt: 'Auditoría: Productos sin List Price',
         skus: sinPrecio,
         badge: `${sinPrecio.length} SKUs · Alerta`,
         isAudit: true,
@@ -950,7 +950,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       ...(sinPeso.length > 0 ? [{
         id: 'audit-weight',
         label: 'Sin peso registrado (Weight)',
-        prompt: 'Auditoría XML: Lista productos sin especificación de peso estructural (Col #3 Weight vacía)',
+        prompt: 'Auditoría: Productos sin Weight',
         skus: sinPeso,
         badge: `${sinPeso.length} SKUs · Alerta`,
         isAudit: true,
@@ -959,7 +959,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       ...(sinCat.length > 0 ? [{
         id: 'audit-cat',
         label: 'Sin gama / categoría comercial',
-        prompt: 'Auditoría XML: Productos sin valor en Col #4 Classic/ Premium',
+        prompt: 'Auditoría: Productos sin Classic/ Premium',
         skus: sinCat,
         badge: `${sinCat.length} SKUs · Alerta`,
         isAudit: true,
@@ -968,7 +968,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       ...(sinNombre.length > 0 ? [{
         id: 'audit-name',
         label: 'Sin Model Name / Descripción',
-        prompt: 'Auditoría XML: Productos con descripción comercial vacía en el catálogo',
+        prompt: 'Auditoría: Productos sin Model Name',
         skus: sinNombre,
         badge: `${sinNombre.length} SKUs · Alerta`,
         isAudit: true,
