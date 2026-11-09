@@ -32,12 +32,9 @@ import {
   Mic,
   HelpCircle
 } from 'lucide-react';
-import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import AlysaWordmark from '@/app/xml-pipeline/Actualizer_XML_General/components/comparePDF/REPORT/components/AlysaWordmark';
-import { applyExcelVisualStyling } from './XML_Results_General.jsx';
 import { getProductTypology, PRODUCT_TYPOLOGY_RULES } from './Catalog_Editor_General.jsx';
 
 const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
@@ -670,58 +667,6 @@ export default function XMLActualizerViewer({
     }
   };
 
-  // Exportar matriz a Excel (.xlsx) con estilos exactos
-  const exportToExcel = () => {
-    if (!filteredRows || filteredRows.length === 0) {
-      alert('No hay productos para exportar.');
-      return;
-    }
-    try {
-      const rowsForExcel = filteredRows.map((r) => {
-        const obj = {};
-        headers.forEach((h) => {
-          obj[h] = r[h] !== undefined && r[h] !== null ? r[h] : '';
-        });
-        return obj;
-      });
-
-      const worksheet = XLSX.utils.json_to_sheet(rowsForExcel, { header: headers });
-      worksheet['!cols'] = headers.map((h, idx) => {
-        if (idx === 0) return { wch: 16 };
-        if (idx === 1) return { wch: 14 };
-        if (idx === 2) return { wch: 12 };
-        if (idx === 3) return { wch: 18 };
-        if (idx === 4) return { wch: 38 };
-        return { wch: Math.max(String(h || '').length + 5, 15) };
-      });
-
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Certified Matrix');
-
-      const rawBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-      let finalBytes = rawBuffer;
-      try {
-        finalBytes = applyExcelVisualStyling(rawBuffer);
-      } catch (_) {}
-
-      const blob = new Blob([finalBytes], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${catalogName}-Certified-Matrix.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 150);
-    } catch (e) {
-      alert('Error exportando matriz: ' + e.message);
-    }
-  };
-
   // Disparar mensaje y filtro interactivo con Alysa
   const handleSendMatrixChat = useCallback(
     (promptText, skusList = null, filterLabel = null, targetCol = null) => {
@@ -1094,23 +1039,6 @@ export default function XMLActualizerViewer({
                 <Download size={11} />
                 <span>Descargar .xml</span>
               </button>
-
-              {/* Botón oficial de Exportar a Excel (.xlsx) */}
-              {viewMode === 'matrix' && (
-                <button
-                  type="button"
-                  onClick={exportToExcel}
-                  className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
-                    isDarkMode
-                      ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white font-bold'
-                      : 'bg-[#18181b] text-white hover:bg-zinc-800 border-[#18181b] font-bold'
-                  }`}
-                  title="Descargar matriz en formato Excel (.xlsx)"
-                >
-                  <Download size={11} />
-                  <span>Export Excel</span>
-                </button>
-              )}
 
               {onBack && (
                 <button
