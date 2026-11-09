@@ -36,7 +36,8 @@ import {
   Mic,
   HelpCircle,
   SendHorizonal,
-  Download
+  Download,
+  Play
 } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -1362,7 +1363,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         { total_products: rowsToExport.length, format: 'xlsx' }
       );
 
-      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: currentHeaders, origin: "A3" });
+      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: currentHeaders });
 
       worksheet['!cols'] = currentHeaders.map((h, idx) => {
         if (idx === 0) return { wch: 16 }; // Model #
@@ -1373,22 +1374,12 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         return { wch: Math.max(String(h || '').length + 5, 15) };
       });
       worksheet['!rows'] = [
-        { hpt: 48 }, // Fila 1: Banner para el logo de Servex antes de la tabla
-        { hpt: 10 }, // Fila 2: Separador
-        { hpt: 28 }, // Fila 3: Encabezados de tabla
+        { hpt: 28 },
         ...rowsToExport.map(() => ({ hpt: 20 }))
       ];
-      const colLetterFromIdx = (idx) => {
-        let s = '';
-        let n = idx;
-        while (n >= 0) {
-          s = String.fromCharCode((n % 26) + 65) + s;
-          n = Math.floor(n / 26) - 1;
-        }
-        return s;
-      };
-      const lastCol = colLetterFromIdx(currentHeaders.length - 1);
-      worksheet['!autofilter'] = { ref: `A3:${lastCol}${rowsToExport.length + 3}` };
+      if (worksheet['!ref']) {
+        worksheet['!autofilter'] = { ref: worksheet['!ref'] };
+      }
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Catalog Data');
@@ -1640,6 +1631,10 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           })
         );
       }
+
+      if (typeof onBack === 'function') {
+        onBack();
+      }
     } catch (err) {
       console.error('Error ejecutando comparación desde el editor:', err);
       alert('Error al preparar la comparación: ' + (err.message || err));
@@ -1859,6 +1854,28 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               >
                 <SlidersHorizontal size={11} />
                 <span>Ajuste en Lote</span>
+              </button>
+
+              {/* Botón directo de Ejecutar Proceso / Comparación en Vivo */}
+              <button
+                type="button"
+                disabled={isRunningAudit}
+                onClick={handleExecuteComparison}
+                className={`px-3 py-1 rounded-md text-[10.5px] font-bold border flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                  isRunningAudit
+                    ? 'opacity-70 cursor-not-allowed bg-blue-600 text-white border-blue-500'
+                    : isDarkMode
+                      ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600'
+                }`}
+                title="Ejecutar /executeProcess directamente con los datos actuales de esta matriz en vivo"
+              >
+                {isRunningAudit ? (
+                  <RefreshCw size={11} className="animate-spin" />
+                ) : (
+                  <Play size={11} className="fill-current" />
+                )}
+                <span>{isRunningAudit ? 'Comparando...' : 'Ejecutar Comparación'}</span>
               </button>
 
               {/* Botón oficial de Exportar a Excel (.xlsx) */}

@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
 import * as XLSX from "xlsx";
-import { cleanExcelCsv } from '@/app/xml-pipeline/Actualizer_Excel_General/components/servexExcelLogo';
 import { supabase, resolveStorageContent, uploadToCatalogsStorage, upsertGeneralProcessRecord, ensureGeneralProcessBaseRecord } from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
@@ -2501,7 +2500,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        fileText = cleanExcelCsv(XLSX.utils.sheet_to_csv(worksheet, { FS: ';' }));
+        fileText = XLSX.utils.sheet_to_csv(worksheet, { FS: ';' });
       } else {
         fileText = await file.text().catch(() => '');
       }

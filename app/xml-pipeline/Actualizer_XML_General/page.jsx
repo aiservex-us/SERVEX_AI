@@ -201,6 +201,7 @@ export default function MenuInicial() {
     };
     const handleFinishEditorComparison = () => {
       setIsCatalogEditorOpen(false);
+      setActive('reporting');
     };
     window.addEventListener('openCatalogEditor', handleOpenEditor);
     window.addEventListener('executeComparisonFromEditor', handleFinishEditorComparison);

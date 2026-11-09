@@ -4,7 +4,6 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
 import { supabase, uploadToCatalogsStorage, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
-import { cleanExcelCsv } from '@/app/xml-pipeline/Actualizer_Excel_General/components/servexExcelLogo';
 import {
   FileCode,
   Building2,
@@ -208,7 +207,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         if (isExcel && e.target?.result) {
           const workbook = XLSX.read(e.target.result, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          content = cleanExcelCsv(XLSX.utils.sheet_to_csv(firstSheet, { FS: ';' }));
+          content = XLSX.utils.sheet_to_csv(firstSheet, { FS: ';' });
         } else {
           content = e.target?.result as string;
         }
@@ -242,7 +241,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         if (isExcel && e.target?.result) {
           const workbook = XLSX.read(e.target.result, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          content = cleanExcelCsv(XLSX.utils.sheet_to_csv(firstSheet, { FS: ';' }));
+          content = XLSX.utils.sheet_to_csv(firstSheet, { FS: ';' });
         } else {
           content = e.target?.result as string;
         }

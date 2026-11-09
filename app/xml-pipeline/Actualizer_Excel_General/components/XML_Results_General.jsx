@@ -15,7 +15,6 @@ import {
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { recordClientAction } from '@/app/lib/trackingClient';
-import { SERVEX_LOGO_PNG_BASE64, SERVEX_LOGO_SVG } from './servexExcelLogo.js';
 
 const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
 
@@ -113,76 +112,6 @@ const CUSTOM_EXCEL_STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone
   </cellStyles>
 </styleSheet>`;
 
-const base64ToUint8Array = (base64) => {
-  if (typeof window !== 'undefined' && typeof window.atob === 'function') {
-    const bin = window.atob(base64);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-    return arr;
-  }
-  if (typeof atob === 'function') {
-    const bin = atob(base64);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-    return arr;
-  }
-  return new Uint8Array(0);
-};
-
-const DRAWING1_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-  <xdr:oneCellAnchor>
-    <xdr:from>
-      <xdr:col>0</xdr:col>
-      <xdr:colOff>60000</xdr:colOff>
-      <xdr:row>0</xdr:row>
-      <xdr:rowOff>80000</xdr:rowOff>
-    </xdr:from>
-    <xdr:ext cx="2100000" cy="300000"/>
-    <xdr:pic>
-      <xdr:nvPicPr>
-        <xdr:cNvPr id="2" name="ServexLogo"/>
-        <xdr:cNvPicPr>
-          <a:picLocks noChangeAspect="1"/>
-        </xdr:cNvPicPr>
-      </xdr:nvPicPr>
-      <xdr:blipFill>
-        <a:blip r:embed="rIdImg1">
-          <a:extLst>
-            <a:ext uri="{96DAC542-7CC2-4481-BE90-D090477295DA}">
-              <asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="rIdSvg1"/>
-            </a:ext>
-          </a:extLst>
-        </a:blip>
-        <a:stretch>
-          <a:fillRect/>
-        </a:stretch>
-      </xdr:blipFill>
-      <xdr:spPr>
-        <a:xfrm>
-          <a:off x="0" y="0"/>
-          <a:ext cx="2100000" cy="300000"/>
-        </a:xfrm>
-        <a:prstGeom prst="rect">
-          <a:avLst/>
-        </a:prstGeom>
-      </xdr:spPr>
-    </xdr:pic>
-    <xdr:clientData/>
-  </xdr:oneCellAnchor>
-</xdr:wsDr>`;
-
-const DRAWING_RELS_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rIdImg1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>
-  <Relationship Id="rIdSvg1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image2.svg"/>
-</Relationships>`;
-
-const SHEET_RELS_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rIdDrawing1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/>
-</Relationships>`;
-
 export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
   const bytes = new Uint8Array(xlsxArrayBuffer);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -191,7 +120,6 @@ export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
 
   const entries = [];
   let offset = 0;
-  let hasSheetRels = false;
 
   while (offset + 30 <= bytes.length) {
     const sig = view.getUint32(offset, true);
@@ -214,22 +142,7 @@ export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
     const dataStart = offset + 30 + nameLen + extraLen;
     const rawData = bytes.subarray(dataStart, dataStart + compSize);
 
-    if (name === '[Content_Types].xml' && method === 0) {
-      let ct = decoder.decode(rawData);
-      if (!ct.includes('image/png')) {
-        ct = ct.replace('</Types>', `  <Default Extension="png" ContentType="image/png"/>\n  <Default Extension="svg" ContentType="image/svg+xml"/>\n  <Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>\n</Types>`);
-      }
-      const newBytes = encoder.encode(ct);
-      entries.push({
-        ver, flag, method: 0, time, date,
-        crc: computeCrc32(newBytes),
-        compSize: newBytes.length,
-        uncompSize: newBytes.length,
-        nameBytes,
-        extraBytes,
-        dataBytes: newBytes
-      });
-    } else if (name === 'xl/styles.xml' && method === 0) {
+    if (name === 'xl/styles.xml' && method === 0) {
       const newBytes = encoder.encode(CUSTOM_EXCEL_STYLES_XML);
       entries.push({
         ver, flag, method: 0, time, date,
@@ -243,23 +156,17 @@ export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
     } else if (name === 'xl/worksheets/sheet1.xml' && method === 0) {
       let sheetXml = decoder.decode(rawData);
 
-      // Congelar panel superior (logo en fila 1 y encabezados en fila 3) y primera columna (Model #)
+      // Congelar fila superior de encabezados y primera columna (Model #)
       sheetXml = sheetXml.replace(
         '<sheetView workbookViewId="0"/>',
-        '<sheetView workbookViewId="0"><pane xSplit="1" ySplit="3" topLeftCell="B4" activePane="bottomRight" state="frozen"/><selection pane="bottomRight" activeCell="B4" sqref="B4"/></sheetView>'
+        '<sheetView workbookViewId="0"><pane xSplit="1" ySplit="1" topLeftCell="B2" activePane="bottomRight" state="frozen"/><selection pane="bottomRight" activeCell="B2" sqref="B2"/></sheetView>'
       );
 
-      // Vincular capa gráfica Drawing con el logo oficial SERVEX
-      if (!sheetXml.includes('<drawing')) {
-        sheetXml = sheetXml.replace('</worksheet>', '<drawing r:id="rIdDrawing1"/></worksheet>');
-      }
-
-      // Asignar estilos por columna, fila zebra y celdas con valor (Encabezados en Fila 3, datos en Fila 4+)
+      // Asignar estilos por columna, fila zebra y celdas con valor
       sheetXml = sheetXml.replace(/<row r="(\d+)"([^>]*)>([\s\S]*?)<\/row>/g, (m, rStr, rowAttrs, inner) => {
         const rowNum = parseInt(rStr, 10);
-        if (rowNum < 3) return m;
-        const isHeader = rowNum === 3;
-        const isEvenData = (rowNum - 3) % 2 === 0;
+        const isHeader = rowNum === 1;
+        const isEvenData = rowNum % 2 === 1;
 
         const styledCells = inner.replace(/<c r="([A-Z]+)\d+"([^>]*)>([\s\S]*?)<\/c>/g, (cm, colStr, cAttrs, cInner) => {
           const colIdx = colLettersToIndex(colStr);
@@ -294,22 +201,6 @@ export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
         extraBytes,
         dataBytes: newBytes
       });
-    } else if (name === 'xl/worksheets/_rels/sheet1.xml.rels' && method === 0) {
-      hasSheetRels = true;
-      let relsXml = decoder.decode(rawData);
-      if (!relsXml.includes('rIdDrawing1')) {
-        relsXml = relsXml.replace('</Relationships>', '<Relationship Id="rIdDrawing1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>');
-      }
-      const newBytes = encoder.encode(relsXml);
-      entries.push({
-        ver, flag, method: 0, time, date,
-        crc: computeCrc32(newBytes),
-        compSize: newBytes.length,
-        uncompSize: newBytes.length,
-        nameBytes,
-        extraBytes,
-        dataBytes: newBytes
-      });
     } else {
       entries.push({
         ver, flag, method, time, date, crc, compSize, uncompSize,
@@ -319,27 +210,6 @@ export const applyExcelVisualStyling = (xlsxArrayBuffer) => {
 
     offset = dataStart + compSize;
   }
-
-  const addEntry = (nameStr, dataBytes) => {
-    const nBytes = encoder.encode(nameStr);
-    entries.push({
-      ver: 20, flag: 0, method: 0, time: 0, date: 0,
-      crc: computeCrc32(dataBytes),
-      compSize: dataBytes.length,
-      uncompSize: dataBytes.length,
-      nameBytes: nBytes,
-      extraBytes: new Uint8Array(0),
-      dataBytes
-    });
-  };
-
-  if (!hasSheetRels) {
-    addEntry('xl/worksheets/_rels/sheet1.xml.rels', encoder.encode(SHEET_RELS_XML));
-  }
-  addEntry('xl/drawings/drawing1.xml', encoder.encode(DRAWING1_XML));
-  addEntry('xl/drawings/_rels/drawing1.xml.rels', encoder.encode(DRAWING_RELS_XML));
-  addEntry('xl/media/image1.png', base64ToUint8Array(SERVEX_LOGO_PNG_BASE64));
-  addEntry('xl/media/image2.svg', encoder.encode(SERVEX_LOGO_SVG));
 
   // Reconstruir contenedor ZIP (.xlsx)
   let totalLocalSize = 0;
@@ -957,9 +827,9 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         { total_products: rowsToExport.length, format: 'xlsx' }
       );
 
-      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: matrixHeaders, origin: "A3" });
+      const worksheet = XLSX.utils.json_to_sheet(rowsToExport, { header: matrixHeaders });
 
-      // Configurar anchos de columna inteligentes, alto de filas (banner de logo antes de tabla) y autofiltro
+      // Configurar anchos de columna inteligentes, alto de filas y autofiltro
       worksheet['!cols'] = matrixHeaders.map((h, idx) => {
         if (idx === 0) return { wch: 16 }; // Model #
         if (idx === 1) return { wch: 14 }; // List Price
@@ -969,22 +839,12 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         return { wch: Math.max(String(h || '').length + 5, 15) };
       });
       worksheet['!rows'] = [
-        { hpt: 48 }, // Fila 1: Banner para el logo de Servex antes de la tabla
-        { hpt: 10 }, // Fila 2: Separador
-        { hpt: 28 }, // Fila 3: Encabezados de columnas
+        { hpt: 28 },
         ...rowsToExport.map(() => ({ hpt: 20 }))
       ];
-      const colLetterFromIdx = (idx) => {
-        let s = '';
-        let n = idx;
-        while (n >= 0) {
-          s = String.fromCharCode((n % 26) + 65) + s;
-          n = Math.floor(n / 26) - 1;
-        }
-        return s;
-      };
-      const lastCol = colLetterFromIdx(matrixHeaders.length - 1);
-      worksheet['!autofilter'] = { ref: `A3:${lastCol}${rowsToExport.length + 3}` };
+      if (worksheet['!ref']) {
+        worksheet['!autofilter'] = { ref: worksheet['!ref'] };
+      }
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Catalog Data");
