@@ -1861,19 +1861,19 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 type="button"
                 disabled={isRunningAudit}
                 onClick={handleExecuteComparison}
-                className={`px-3 py-1 rounded-md text-[10.5px] font-bold border flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
-                  isRunningAudit
-                    ? 'opacity-70 cursor-not-allowed bg-blue-600 text-white border-blue-500'
-                    : isDarkMode
-                      ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600'
+                className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isRunningAudit ? 'opacity-60 cursor-not-allowed' : ''
+                } ${
+                  isDarkMode
+                    ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15'
+                    : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'
                 }`}
                 title="Ejecutar /executeProcess directamente con los datos actuales de esta matriz en vivo"
               >
                 {isRunningAudit ? (
                   <RefreshCw size={11} className="animate-spin" />
                 ) : (
-                  <Play size={11} className="fill-current" />
+                  <Play size={11} />
                 )}
                 <span>{isRunningAudit ? 'Comparando...' : 'Ejecutar Comparación'}</span>
               </button>
