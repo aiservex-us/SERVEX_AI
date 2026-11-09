@@ -379,8 +379,8 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
-        .eq('company_name', 'General_Procces')
-        .order('created_at', { ascending: false })
+        .or('company_name.eq.General_Procces,company_name.eq.General Process')
+        .order('id', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -390,10 +390,22 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         const { data: fallbackData } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
-          .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
           .limit(1)
           .maybeSingle();
         if (fallbackData) record = fallbackData;
+      }
+
+      // Si la fila más reciente no contiene el XML maestro, buscar la que sí lo contiene
+      if (record && (!record.XM_CET_import && !record.xml_raw)) {
+        const { data: xmlRow } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
+          .not('xml_raw', 'is', null)
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (xmlRow) record = xmlRow;
       }
 
       if (record) {
@@ -494,6 +506,14 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         setMatrixHeaders(BASE_HEADERS);
         setLoading(false);
         return;
+      }
+
+      if (!rawXmlStr || typeof rawXmlStr !== 'string' || !rawXmlStr.includes('<')) {
+        if (existingCsvRaw && existingCsvRaw.trim()) {
+          setLoading(false);
+          return;
+        }
+        throw new Error("Contenido XML del catálogo no disponible o aún no sincronizado.");
       }
 
       await yieldToMainThread();

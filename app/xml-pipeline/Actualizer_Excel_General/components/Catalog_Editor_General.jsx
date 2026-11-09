@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   supabase,
   resolveStorageContent,
@@ -24,6 +25,7 @@ import {
   Layers,
   Check,
   X,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -181,6 +183,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const [mcpActiveSkuFilter, setMcpActiveSkuFilter] = useState(null);
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('');
   const [selectedTypologyFilter, setSelectedTypologyFilter] = useState('');
+  const [showSlashMenu, setShowSlashMenu] = useState(false);
+  const [expandedSlashCategory, setExpandedSlashCategory] = useState(null);
   const chatScrollEndRef = useRef(null);
   const lastFilteredSkusRef = useRef([]);
 
@@ -608,15 +612,40 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       let hasEditInDb = false;
 
       try {
-        const { data: dbRecord, error: dbErr } = await supabase
+        let dbRecord = null;
+        const { data: rowMatch } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('csv_raw, csv_edit_raw, xml_name, file_name, XM_CET_import, xml_raw')
-          .eq('company_name', 'General_Procces')
-          .order('created_at', { ascending: false })
+          .or('company_name.eq.General_Procces,company_name.eq.General Process')
+          .order('id', { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        if (!dbErr && dbRecord) {
+        if (rowMatch) {
+          dbRecord = rowMatch;
+        } else {
+          const { data: anyRow } = await supabase
+            .from('ClientsSERVEX_General_Procces')
+            .select('csv_raw, csv_edit_raw, xml_name, file_name, XM_CET_import, xml_raw')
+            .order('id', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (anyRow) dbRecord = anyRow;
+        }
+
+        // Si la fila activa no tiene csv_raw ni xml_raw, buscar la fila que contenga el catálogo
+        if (dbRecord && !dbRecord.csv_raw && !dbRecord.csv_edit_raw && !dbRecord.XM_CET_import && !dbRecord.xml_raw) {
+          const { data: catRow } = await supabase
+            .from('ClientsSERVEX_General_Procces')
+            .select('csv_raw, csv_edit_raw, xml_name, file_name, XM_CET_import, xml_raw')
+            .not('csv_raw', 'is', null)
+            .order('id', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (catRow) dbRecord = catRow;
+        }
+
+        if (dbRecord) {
           detectedName = (dbRecord.xml_name || dbRecord.file_name || 'Catalog').replace(/\.xml$/i, '').trim();
           if (dbRecord.csv_raw && String(dbRecord.csv_raw).trim()) {
             rawBaseCsv = await resolveStorageContent(dbRecord.csv_raw);
@@ -1306,6 +1335,193 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       }
     },
     [chatInputUi, isMcpThinking, apiURL, chatMessages, serializeRowsToCsv, mcpActiveSkuFilter, catalogFacets]
+  );
+
+  // Catálogo dinámico de Herramientas (Slash Commands) para Alysa
+  const availableCatalogTools = useMemo(() => {
+    const tools = [];
+
+    // 1. Tipologías de Producto XML
+    if (Array.isArray(catalogFacets?.tipologias)) {
+      catalogFacets.tipologias.forEach((t) => {
+        const cleanSlug = t.label
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+        tools.push({
+          id: `cmd-tipo-${cleanSlug}`,
+          label: `/${cleanSlug}`,
+          displayName: t.label,
+          desc: `${t.skus.length} SKUs`,
+          category: 'Tipologías de Producto',
+          icon: Layers,
+          prompt: `Filtra solo las ${t.label.toLowerCase()}`,
+          skus: t.skus,
+          filterLabel: `Tipología: ${t.label} (${t.skus.length} SKUs)`,
+          targetCol: null,
+          toolCall: t.toolCall
+        });
+      });
+    }
+
+    // 2. Opciones de Recargo & Tiers XML
+    if (Array.isArray(catalogFacets?.options)) {
+      catalogFacets.options.forEach((o) => {
+        let cleanSlug = '';
+        if (o.id === 'opt-base') cleanSlug = 'modelos-base';
+        else if (o.id === 'opt-configurable') cleanSlug = 'configurables';
+        else if (o.id === 'opt-multi') cleanSlug = 'multiples-recargos';
+        else {
+          cleanSlug = (o.targetCol || o.label)
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9_-]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+        }
+        tools.push({
+          id: `cmd-opt-${cleanSlug}`,
+          label: `/${cleanSlug}`,
+          displayName: o.label,
+          desc: o.badge || `${o.skus.length} SKUs`,
+          category: 'Opciones & Recargos XML',
+          icon: SlidersHorizontal,
+          prompt: o.prompt,
+          skus: o.skus,
+          filterLabel: o.label,
+          targetCol: o.targetCol || null,
+          toolCall: o.toolCall
+        });
+      });
+    }
+
+    // 3. Auditoría de Calidad y Esquema XML
+    if (Array.isArray(catalogFacets?.calidad)) {
+      catalogFacets.calidad.forEach((c) => {
+        let cleanSlug = '';
+        if (c.id === 'audit-price') cleanSlug = 'sin-precio';
+        else if (c.id === 'audit-weight') cleanSlug = 'sin-peso';
+        else if (c.id === 'audit-cat') cleanSlug = 'sin-categoria';
+        else if (c.id === 'audit-name') cleanSlug = 'sin-nombre';
+        else cleanSlug = c.id;
+
+        tools.push({
+          id: `cmd-audit-${cleanSlug}`,
+          label: `/${cleanSlug}`,
+          displayName: c.label,
+          desc: c.badge || `${c.skus.length} SKUs`,
+          category: 'Auditoría Esquema XML',
+          icon: AlertCircle,
+          prompt: c.prompt,
+          skus: c.skus,
+          filterLabel: c.label,
+          targetCol: null,
+          toolCall: c.toolCall
+        });
+      });
+    }
+
+    // 4. Vistas Globales y Diagnóstico
+    tools.push({
+      id: 'cmd-global-todos',
+      label: '/todos',
+      displayName: 'Ver Catálogo Completo',
+      desc: `Restablecer filtros (${editRows.length} SKUs)`,
+      category: 'Vistas Globales & Diagnóstico',
+      icon: Sparkles,
+      prompt: 'Muestra todos los productos del catálogo completo sin ningún filtro activo',
+      skus: editRows.map((r) => r[0]).filter(Boolean),
+      filterLabel: null,
+      targetCol: null,
+      toolCall: null
+    });
+
+    tools.push({
+      id: 'cmd-global-resumen',
+      label: '/resumen',
+      displayName: 'Resumen General del Catálogo',
+      desc: 'Métricas de precio, familias y opciones comerciales',
+      category: 'Vistas Globales & Diagnóstico',
+      icon: Filter,
+      prompt: 'Dame un resumen ejecutivo completo del catálogo, con métricas de precios, tipologías y opciones de recargo detectadas',
+      skus: [],
+      filterLabel: null,
+      targetCol: null,
+      toolCall: null
+    });
+
+    return tools;
+  }, [catalogFacets, editRows]);
+
+  // Herramientas filtradas dinámicamente cuando el usuario teclea '/' en el input
+  const filteredSlashCommands = useMemo(() => {
+    if (!chatInputUi.startsWith('/')) return availableCatalogTools;
+    const search = chatInputUi.slice(1).trim().toLowerCase();
+    if (!search) return availableCatalogTools;
+    return availableCatalogTools.filter((t) =>
+      t.label.toLowerCase().includes(search) ||
+      t.displayName.toLowerCase().includes(search) ||
+      t.category.toLowerCase().includes(search)
+    );
+  }, [chatInputUi, availableCatalogTools]);
+
+  // Ejecutor conversacional de herramientas (por clic o comando)
+  const handleToolCommandClick = useCallback(
+    (rawCmd) => {
+      setShowSlashMenu(false);
+      setChatInputUi('');
+
+      if (!rawCmd) return;
+
+      let tool = null;
+      if (typeof rawCmd === 'object' && rawCmd.label) {
+        tool = rawCmd;
+      } else {
+        const normalized = String(rawCmd).trim().toLowerCase();
+        const cleanCmd = normalized.startsWith('/') ? normalized : `/${normalized}`;
+        tool = availableCatalogTools.find(
+          (t) =>
+            t.label.toLowerCase() === cleanCmd ||
+            t.label.toLowerCase() === normalized ||
+            t.id.toLowerCase() === normalized ||
+            t.displayName.toLowerCase() === normalized
+        );
+      }
+
+      if (!tool) {
+        handleSendMatrixChat(String(rawCmd));
+        return;
+      }
+
+      // 1. Aislar de forma reactiva e inmediata en la tabla matriz (0ms)
+      if (tool.label === '/todos') {
+        setMcpActiveSkuFilter(null);
+        setSelectedTypologyFilter('');
+      } else if (Array.isArray(tool.skus) && tool.skus.length > 0) {
+        setMcpActiveSkuFilter({
+          label: tool.filterLabel || tool.displayName || tool.label,
+          targetCol: tool.targetCol || null,
+          skuSet: new Set(tool.skus)
+        });
+        if (tool.category === 'Tipologías de Producto') {
+          setSelectedTypologyFilter(tool.displayName);
+        }
+      }
+
+      // 2. Disparar a Alysa MCP para análisis estadístico, RAG y sugerencias de edición masiva
+      handleSendMatrixChat(
+        tool.prompt,
+        tool.toolCall,
+        tool.skus,
+        tool.filterLabel || tool.displayName || tool.label,
+        tool.targetCol
+      );
+    },
+    [availableCatalogTools, handleSendMatrixChat]
   );
 
   // Medición de viewport y scroll virtualizado con requestAnimationFrame
@@ -2616,270 +2832,75 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                     </li>
                   </ul>
 
-                  {/* Selector interactivo y categorizado de herramientas y filtros MCP */}
-                  <div className="pt-2 space-y-2 border-t border-white/10">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                  {/* Comandos y Herramientas del Catálogo XML (Slash Commands interactivos) */}
+                  <div className="pt-2.5 space-y-2.5 border-t border-white/10">
+                    <div className="flex items-center justify-between gap-2">
                       <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
-                        <SlidersHorizontal size={11} />
-                        Opciones de Recargo & Tiers XML
-                        <span className="opacity-60 text-[9px]">({(catalogFacets.options || []).length} filtros)</span>
+                        <Sparkles size={11} />
+                        Herramientas & Comandos de Catálogo
                       </span>
-
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {/* Selector compacto de Tipologías de Producto */}
-                        {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <label className="text-[9px] font-mono opacity-60">Tipo:</label>
-                            <select
-                              value={selectedTypologyFilter}
-                              onChange={(e) => {
-                                const tipoVal = e.target.value;
-                                setSelectedTypologyFilter(tipoVal);
-                                if (!tipoVal) {
-                                  if (mcpActiveSkuFilter?.label?.startsWith('Tipología: ')) {
-                                    setMcpActiveSkuFilter(null);
-                                  }
-                                } else {
-                                  const targetTipo = catalogFacets.tipologias.find((t) => t.label === tipoVal);
-                                  if (targetTipo) {
-                                    setMcpActiveSkuFilter({
-                                      label: `Tipología: ${targetTipo.label}`,
-                                      targetCol: null,
-                                      skuSet: new Set(targetTipo.skus)
-                                    });
-                                  }
-                                }
-                              }}
-                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
-                                selectedTypologyFilter
-                                  ? isDarkMode
-                                    ? 'bg-white text-zinc-950 font-bold border-white'
-                                    : 'bg-zinc-900 text-white font-bold border-zinc-900'
-                                  : isDarkMode
-                                    ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
-                                    : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
-                              }`}
-                            >
-                              <option value="">Todas las tipologías ({catalogFacets.tipologias.length})</option>
-                              {catalogFacets.tipologias.map((t) => (
-                                <option key={t.id} value={t.label}>
-                                  {t.label} ({t.badge})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-
-                        {/* Selector compacto de Familias de Modelo XML */}
-                        {Array.isArray(catalogFacets.familias) && catalogFacets.familias.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <label className="text-[9px] font-mono opacity-60">Familia:</label>
-                            <select
-                              value={selectedFamilyFilter}
-                              onChange={(e) => {
-                                const famVal = e.target.value;
-                                setSelectedFamilyFilter(famVal);
-                                if (!famVal) {
-                                  if (mcpActiveSkuFilter?.label?.startsWith('Familia ')) {
-                                    setMcpActiveSkuFilter(null);
-                                  }
-                                } else {
-                                  const targetFam = catalogFacets.familias.find((f) => f.label === `Familia ${famVal}`);
-                                  if (targetFam) {
-                                    handleSendMatrixChat(targetFam.prompt, targetFam.toolCall, targetFam.skus, targetFam.label);
-                                  }
-                                }
-                              }}
-                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
-                                selectedFamilyFilter
-                                  ? isDarkMode
-                                    ? 'bg-white text-zinc-950 font-bold border-white'
-                                    : 'bg-zinc-900 text-white font-bold border-zinc-900'
-                                  : isDarkMode
-                                    ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
-                                    : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
-                              }`}
-                            >
-                              <option value="">Todas las familias ({catalogFacets.familias.length})</option>
-                              {catalogFacets.familias.map((f) => {
-                                const cleanName = f.label.replace('Familia ', '');
-                                return (
-                                  <option key={f.id} value={cleanName}>
-                                    {cleanName} ({f.badge})
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          </div>
-                        )}
-                      </div>
+                      <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
+                        Escribe <strong className="font-bold">/</strong> en el chat
+                      </span>
                     </div>
 
-                    {/* Chips interactivos de Tipologías de Producto detectadas */}
-                    {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1 pt-1 pb-1 border-b border-white/10">
-                        <span className={`text-[9px] font-mono opacity-60 mr-1 flex items-center gap-1 shrink-0 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
-                          <Layers size={10} /> Tipologías:
-                        </span>
-                        {catalogFacets.tipologias.map((t) => {
-                          const isApplied = mcpActiveSkuFilter?.label === `Tipología: ${t.label}` || selectedTypologyFilter === t.label;
-                          return (
-                            <button
-                              key={t.id}
-                              type="button"
-                              onClick={() => {
-                                if (isApplied) {
-                                  setMcpActiveSkuFilter(null);
-                                  setSelectedTypologyFilter('');
-                                } else {
-                                  setMcpActiveSkuFilter({
-                                    label: `Tipología: ${t.label}`,
-                                    targetCol: null,
-                                    skuSet: new Set(t.skus)
-                                  });
-                                  setSelectedTypologyFilter(t.label);
-                                }
-                              }}
-                              title={`Filtrar ${t.label} (${t.skus.length} productos)`}
-                              className={`px-2 py-0.5 rounded text-[9px] font-mono border transition-all cursor-pointer flex items-center gap-1 ${
-                                isApplied
-                                  ? isDarkMode
-                                    ? 'bg-white text-zinc-950 font-bold border-white shadow-sm'
-                                    : 'bg-zinc-900 text-white font-bold border-zinc-900 shadow-sm'
-                                  : isDarkMode
-                                    ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'
-                                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
-                              }`}
-                            >
-                              <span>{t.label}</span>
-                              <span className={`text-[8px] opacity-75 ${isApplied ? 'font-bold' : ''}`}>
-                                ({t.skus.length})
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                    <p className={`text-[10px] leading-relaxed ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                      Haz clic en cualquier herramienta para aislar productos en la matriz y activar análisis inmediato de Alysa:
+                    </p>
 
-                    {/* Banner de Auditoría de Esquema XML: Alerta preventiva o indicador de salud */}
-                    {Array.isArray(catalogFacets.calidad) && catalogFacets.calidad.length > 0 ? (
-                      <div className={`p-1.5 border rounded-md text-[9.5px] font-mono flex flex-wrap items-center justify-between gap-1.5 ${
-                        isDarkMode
-                          ? 'bg-white/5 border-white/15 text-zinc-200'
-                          : 'bg-zinc-100 border-zinc-300 text-zinc-800'
-                      }`}>
-                        <div className="flex items-center gap-1.5">
-                          <AlertCircle size={11} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} shrink-0`} />
-                          <span className="font-bold">Inconsistencias XML detectadas:</span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1">
-                          {catalogFacets.calidad.map((f) => (
-                            <button
-                              key={f.id}
-                              type="button"
-                              onClick={() => handleSendMatrixChat(f.prompt, f.toolCall, f.skus, f.label)}
-                              className={`px-1.5 py-0.5 rounded border text-[8.5px] cursor-pointer flex items-center gap-1 transition-all ${
-                                isDarkMode
-                                  ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
-                                  : 'bg-white hover:bg-zinc-200 border-zinc-300 text-zinc-900'
-                              }`}
-                            >
-                              <span>{f.label}</span>
-                              <span className="font-bold">({f.badge})</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className={`flex items-center gap-1.5 text-[9px] font-mono pt-0.5 ${
-                        isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
-                      }`}>
-                        <CheckCircle2 size={10.5} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} shrink-0`} />
-                        <span>Esquema XML 100% íntegro (Precios base, pesos y descripciones validados)</span>
-                      </div>
-                    )}
+                    {/* Agrupaciones de Herramientas categorizadas tipo Slash Command */}
+                    <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1">
+                      {Object.entries(
+                        availableCatalogTools.reduce((acc, cmd) => {
+                          const cat = cmd.category || 'Otras Herramientas';
+                          if (!acc[cat]) acc[cat] = [];
+                          acc[cat].push(cmd);
+                          return acc;
+                        }, {})
+                      ).map(([category, commands]) => (
+                        <div key={category} className="space-y-1">
+                          <span className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+                            {category}
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {commands.map((cmd) => {
+                              const isCurrent =
+                                (cmd.label === '/todos' && !mcpActiveSkuFilter) ||
+                                (cmd.filterLabel && mcpActiveSkuFilter?.label === cmd.filterLabel) ||
+                                (mcpActiveSkuFilter?.label && cmd.displayName && mcpActiveSkuFilter.label.includes(cmd.displayName));
 
-                    {/* Chips inteligentes: Modelos Base, Configurables y Tiers de Recargo de cada Opción */}
-                    <div className="flex flex-wrap gap-1.5 pt-1 max-h-[190px] overflow-y-auto custom-scrollbar pr-0.5">
-                      {(catalogFacets.options || []).length === 0 ? (
-                        <div className="text-[10px] font-mono opacity-60 italic py-1">
-                          No hay columnas de opciones comerciales en esta matriz.
-                        </div>
-                      ) : (
-                        (catalogFacets.options || []).map((f) => {
-                          const isCurrentlyApplied = mcpActiveSkuFilter?.label === f.label;
-                          return (
-                            <div
-                              key={f.id}
-                              className={`inline-flex items-center border rounded-md text-[9.5px] font-mono transition-all overflow-hidden ${
-                                isCurrentlyApplied
-                                  ? isDarkMode
-                                    ? 'bg-white text-zinc-950 border-white'
-                                    : 'bg-zinc-900 text-white border-zinc-900'
-                                  : isDarkMode
-                                    ? 'bg-white/5 border-white/10 text-zinc-300 hover:border-white/30'
-                                    : 'bg-slate-100 border-slate-200 text-slate-800 hover:border-slate-400'
-                              }`}
-                            >
-                              {/* Botón principal: Consulta MCP + Análisis RAG */}
-                              <button
-                                type="button"
-                                onClick={() => handleSendMatrixChat(f.prompt, f.toolCall, f.skus, f.label, f.targetCol)}
-                                title={`Consultar análisis MCP: "${f.prompt}"`}
-                                className="px-2 py-1 flex items-center gap-1.5 cursor-pointer hover:underline"
-                              >
-                                {f.isAudit && <AlertCircle size={9.5} className={`${isCurrentlyApplied ? (isDarkMode ? 'text-zinc-900' : 'text-zinc-300') : (isDarkMode ? 'text-zinc-400' : 'text-zinc-600')} shrink-0`} />}
-                                <span>{f.label}</span>
-                                <span
-                                  className={`px-1 py-0.2 rounded text-[8.5px] ${
-                                    isCurrentlyApplied
+                              return (
+                                <button
+                                  key={cmd.id}
+                                  type="button"
+                                  onClick={() => handleToolCommandClick(cmd)}
+                                  className={`alysa-cmd-btn group inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[9.5px] font-mono border transition-all cursor-pointer ${
+                                    isCurrent
                                       ? isDarkMode
-                                        ? 'bg-zinc-950 text-white font-bold'
-                                        : 'bg-white text-zinc-900 font-bold'
+                                        ? 'bg-white text-zinc-950 font-bold border-white shadow-sm'
+                                        : 'bg-zinc-900 text-white font-bold border-zinc-900 shadow-sm'
                                       : isDarkMode
-                                        ? 'bg-white/10 text-zinc-200'
-                                        : 'bg-slate-200 text-slate-700 font-semibold'
+                                        ? 'bg-white/5 hover:bg-white/15 text-zinc-200 hover:text-white border-white/10 hover:border-white/20'
+                                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-200 hover:border-slate-300'
                                   }`}
+                                  title={`Ejecutar ${cmd.label} (${cmd.desc})`}
                                 >
-                                  {f.badge}
-                                </span>
-                              </button>
+                                  <span className={`font-bold ${isCurrent ? (isDarkMode ? 'text-zinc-950' : 'text-white') : (isDarkMode ? 'text-white' : 'text-zinc-900')}`}>
+                                    {cmd.label}
+                                  </span>
+                                  <span className="opacity-60 text-[8.5px]">
+                                    ({cmd.desc})
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
 
-                              {/* Botón secundario: Aplicar directo en tabla (0ms) */}
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (isCurrentlyApplied) {
-                                    setMcpActiveSkuFilter(null);
-                                  } else {
-                                    setMcpActiveSkuFilter({
-                                      label: f.label,
-                                      targetCol: f.targetCol || null,
-                                      skuSet: new Set(f.skus)
-                                    });
-                                  }
-                                }}
-                                title={isCurrentlyApplied ? 'Quitar filtro de la tabla' : `Aislar ${f.badge} directamente en la tabla`}
-                                className={`px-1.5 py-1 border-l transition-colors cursor-pointer flex items-center gap-0.5 ${
-                                  isCurrentlyApplied
-                                    ? isDarkMode
-                                      ? 'bg-zinc-200 text-zinc-950 border-zinc-300 hover:bg-white font-bold'
-                                      : 'bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700 font-bold'
-                                    : isDarkMode
-                                      ? 'border-white/10 hover:bg-white/20 text-zinc-300 hover:text-white'
-                                      : 'border-slate-200 hover:bg-slate-200 text-slate-600 hover:text-black'
-                                }`}
-                              >
-                                {isCurrentlyApplied ? <Check size={10} /> : <Zap size={10} />}
-                                <span className="text-[8.5px] font-sans uppercase font-bold tracking-wider">
-                                  {isCurrentlyApplied ? 'Activo' : 'Tabla'}
-                                </span>
-                              </button>
-                            </div>
-                          );
-                        })
-                      )}
+                    <div className={`pt-2 border-t text-[9px] font-mono leading-relaxed ${isDarkMode ? 'border-white/10 text-zinc-500' : 'border-slate-200 text-slate-500'}`}>
+                      Tras seleccionar cualquier herramienta, pídele a Alysa: <span className={isDarkMode ? 'text-zinc-300' : 'text-slate-800'}>&quot;Súbele 5%&quot;</span>, <span className={isDarkMode ? 'text-zinc-300' : 'text-slate-800'}>&quot;+$2 a -FG&quot;</span> o <span className={isDarkMode ? 'text-zinc-300' : 'text-slate-800'}>&quot;Cambia ese precio a $14&quot;</span>.
                     </div>
                   </div>
                 </div>
@@ -2961,7 +2982,51 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                       )}
 
                       <div className="prose prose-xs max-w-none text-[10.5px] leading-relaxed">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code({ node, inline, className, children, ...props }) {
+                              const text = String(children).trim();
+                              if (inline && text.startsWith('/')) {
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToolCommandClick(text)}
+                                    className={`alysa-cmd-btn font-mono font-bold px-1.5 py-0.5 rounded text-[10px] mx-0.5 transition-all inline-flex items-center gap-1 cursor-pointer border ${
+                                      isDarkMode
+                                        ? 'bg-white/10 hover:bg-white text-zinc-100 hover:text-zinc-950 border-white/20'
+                                        : 'bg-zinc-100 hover:bg-zinc-900 text-zinc-800 hover:text-white border-zinc-300'
+                                    }`}
+                                    title={`Ejecutar herramienta ${text}`}
+                                  >
+                                    <span>{text}</span>
+                                  </button>
+                                );
+                              }
+                              return (
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            a({ node, href, children, ...props }) {
+                              if (href && href.startsWith('/')) {
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToolCommandClick(href)}
+                                    className="alysa-cmd-btn font-mono font-bold underline cursor-pointer mx-0.5"
+                                  >
+                                    {children}
+                                  </button>
+                                );
+                              }
+                              return <a href={href} {...props}>{children}</a>;
+                            }
+                          }}
+                        >
+                          {msg.text}
+                        </ReactMarkdown>
                       </div>
 
                       {/* Control MCP limpio y profesional para aislar o ver productos en tabla */}
@@ -3027,6 +3092,99 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
           {/* Footer con el Input compacto acoplado en la parte inferior */}
           <footer className="relative z-20 flex-shrink-0 px-3 pt-1 pb-2.5 bg-transparent border-t-0 w-full">
+            {/* Paleta flotante de Herramientas y Slash Commands cuando el usuario escribe '/' */}
+            <AnimatePresence>
+              {showSlashMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                  transition={{ duration: 0.16, ease: 'easeOut' }}
+                  className={`absolute bottom-[calc(100%+8px)] left-3 right-3 mx-auto ${
+                    isDarkMode
+                      ? 'bg-[#09090b]/95 border-white/[0.14] text-white shadow-[0_16px_40px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
+                      : 'bg-white/95 border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.08)] text-slate-800'
+                  } backdrop-blur-2xl border rounded-xl z-50 overflow-hidden`}
+                >
+                  <div className="p-2 max-h-[290px] overflow-y-auto custom-scrollbar">
+                    {filteredSlashCommands.length === 0 ? (
+                      <div className="py-3 px-3 text-center text-[10px] font-mono opacity-60">
+                        No se encontraron herramientas con &quot;{chatInputUi}&quot;
+                      </div>
+                    ) : (
+                      Object.entries(
+                        filteredSlashCommands.reduce((acc, cmd) => {
+                          const cat = cmd.category || 'Otras Herramientas';
+                          if (!acc[cat]) acc[cat] = [];
+                          acc[cat].push(cmd);
+                          return acc;
+                        }, {})
+                      ).map(([category, commands]) => {
+                        const isExpanded = expandedSlashCategory === null || expandedSlashCategory === category;
+                        return (
+                          <div key={category} className="mb-2 last:mb-0">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedSlashCategory(expandedSlashCategory === category ? '' : category)}
+                              className={`w-full flex items-center justify-between px-2 py-1 text-left rounded cursor-pointer transition-colors ${
+                                isDarkMode ? 'hover:bg-white/5 text-zinc-400' : 'hover:bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              <span className="text-[9.5px] font-bold uppercase tracking-wider">
+                                {category} ({commands.length})
+                              </span>
+                              <ChevronDown
+                                size={11}
+                                className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+
+                            {isExpanded && (
+                              <div className="mt-1 space-y-0.5">
+                                {commands.map((cmd) => {
+                                  const IconComp = cmd.icon || Sparkles;
+                                  return (
+                                    <button
+                                      key={cmd.id}
+                                      type="button"
+                                      onClick={() => handleToolCommandClick(cmd)}
+                                      className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group ${
+                                        isDarkMode
+                                          ? 'hover:bg-white/10 text-zinc-200 hover:text-white'
+                                          : 'hover:bg-slate-100 text-slate-700 hover:text-slate-900'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <div className={`p-1 rounded ${isDarkMode ? 'bg-white/5 text-zinc-300' : 'bg-slate-100 text-slate-600'}`}>
+                                          <IconComp size={11} />
+                                        </div>
+                                        <div className="truncate">
+                                          <span className="text-[11px] font-mono font-bold">{cmd.label}</span>
+                                          <span className="mx-1.5 opacity-40">·</span>
+                                          <span className="text-[10px] opacity-80">{cmd.displayName}</span>
+                                        </div>
+                                      </div>
+                                      <span
+                                        className={`text-[8.5px] font-mono px-1.5 py-0.5 rounded shrink-0 ${
+                                          isDarkMode ? 'bg-white/5 text-zinc-400' : 'bg-slate-100 text-slate-500'
+                                        }`}
+                                      >
+                                        {cmd.desc}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div
               className={`w-full ${
                 isDarkMode
@@ -3046,14 +3204,36 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <textarea
                     rows={1}
                     value={chatInputUi}
-                    onChange={(e) => setChatInputUi(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setChatInputUi(val);
+                      if (val.startsWith('/')) {
+                        setShowSlashMenu(true);
+                      } else {
+                        setShowSlashMenu(false);
+                      }
+                    }}
                     onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setShowSlashMenu(false);
+                        return;
+                      }
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
+                        if (chatInputUi.startsWith('/')) {
+                          const match =
+                            availableCatalogTools.find(
+                              (t) => t.label.toLowerCase() === chatInputUi.trim().toLowerCase()
+                            ) || filteredSlashCommands[0];
+                          if (match) {
+                            handleToolCommandClick(match);
+                            return;
+                          }
+                        }
                         handleSendMatrixChat();
                       }
                     }}
-                    placeholder="Filtra productos, precios > / < o categorías en csv_edit_raw…"
+                    placeholder="Escribe / para ver herramientas, o consulta en csv_edit_raw…"
                     className={`flex-1 bg-transparent border-none outline-none resize-none text-[11px] ${
                       isDarkMode
                         ? 'text-zinc-100 placeholder-zinc-500 caret-white'

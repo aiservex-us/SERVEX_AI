@@ -218,19 +218,35 @@ export async function upsertGeneralProcessRecord(payload, companyName = 'General
     delete updateFields.company_name;
     delete updateFields.user_id;
 
-    // 1. Verificar si ya existe la fila en ClientsSERVEX_General_Procces
-    const { data: existingRow } = await supabase
+    // 1. Localizar la fila existente en ClientsSERVEX_General_Procces (evita duplicidad)
+    let targetRowId = null;
+    const { data: rowMatch } = await supabase
       .from('ClientsSERVEX_General_Procces')
-      .select('id')
-      .eq('company_name', cleanCompany)
+      .select('id, company_name')
+      .or(`company_name.eq.${cleanCompany},company_name.eq.General_Procces,company_name.eq.General Process`)
+      .order('id', { ascending: true })
       .limit(1)
       .maybeSingle();
 
-    if (existingRow?.id) {
+    if (rowMatch?.id) {
+      targetRowId = rowMatch.id;
+    } else {
+      const { data: anyRow } = await supabase
+        .from('ClientsSERVEX_General_Procces')
+        .select('id, company_name')
+        .order('id', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (anyRow?.id) {
+        targetRowId = anyRow.id;
+      }
+    }
+
+    if (targetRowId) {
       let { data, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .update(updateFields)
-        .eq('company_name', cleanCompany);
+        .eq('id', targetRowId);
 
       if (error && 'csv_edit_raw' in updateFields) {
         const fallbackFields = { ...updateFields };
@@ -239,7 +255,7 @@ export async function upsertGeneralProcessRecord(payload, companyName = 'General
           const retry = await supabase
             .from('ClientsSERVEX_General_Procces')
             .update(fallbackFields)
-            .eq('company_name', cleanCompany);
+            .eq('id', targetRowId);
           data = retry.data;
           error = retry.error;
         }
@@ -296,12 +312,24 @@ export async function ensureGeneralProcessBaseRecord(companyName = 'General_Proc
     const { data: existing } = await supabase
       .from('ClientsSERVEX_General_Procces')
       .select('id, company_name')
-      .eq('company_name', cleanCompany)
+      .or(`company_name.eq.${cleanCompany},company_name.eq.General_Procces,company_name.eq.General Process`)
+      .order('id', { ascending: true })
       .limit(1)
       .maybeSingle();
 
     if (existing?.id) {
       return existing;
+    }
+
+    const { data: anyExisting } = await supabase
+      .from('ClientsSERVEX_General_Procces')
+      .select('id, company_name')
+      .order('id', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (anyExisting?.id) {
+      return anyExisting;
     }
 
     // 2. Si no existe la fila (DB vacía por ingreso inicial o tras reinicio),

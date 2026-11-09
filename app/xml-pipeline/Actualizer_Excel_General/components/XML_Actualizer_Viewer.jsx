@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   supabase,
   resolveStorageContent
@@ -16,6 +17,7 @@ import {
   Layers,
   Check,
   X,
+  ChevronDown,
   FileCode2,
   Table,
   Code2,
@@ -105,6 +107,8 @@ export default function XMLActualizerViewer({
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
+  const [showSlashMenu, setShowSlashMenu] = useState(false);
+  const [expandedSlashCategory, setExpandedSlashCategory] = useState(null);
   const chatBottomRef = useRef(null);
 
   // Scroll virtualizado de la tabla
@@ -171,37 +175,62 @@ export default function XMLActualizerViewer({
     } catch (_) {}
   }, []);
 
-  // Cargar xml_actualizer_raw desde Supabase
+  // Cargar xml_actualizer_raw desde Supabase / sessionStorage
   const loadCertifiedXml = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data: record, error: dbErr } = await supabase
+      // 1. Verificar primero si ya está en sessionStorage en memoria caliente (0ms)
+      const localUpdatedXml = typeof window !== 'undefined' ? sessionStorage.getItem('xml_actualizer_raw') : null;
+      const localBaseXml = typeof window !== 'undefined' ? (sessionStorage.getItem('xml_raw') || sessionStorage.getItem('XM_CET_import')) : null;
+
+      // 2. Consultar en Supabase buscando registro con fallback elástico
+      let record = null;
+      const { data: rowMatch } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('id, xml_actualizer_raw, XM_CET_import, xml_raw, xml_name, file_name, created_at')
-        .eq('company_name', 'General_Procces')
-        .order('created_at', { ascending: false })
+        .select('id, company_name, xml_actualizer_raw, XM_CET_import, xml_raw, xml_name, file_name, created_at')
+        .or('company_name.eq.General_Procces,company_name.eq.General Process')
+        .order('id', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (dbErr) throw new Error(dbErr.message);
-      if (!record) {
-        throw new Error('No se encontró registro del catálogo en la base de datos.');
+      if (rowMatch) {
+        record = rowMatch;
+      } else {
+        const { data: anyRow } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('id, company_name, xml_actualizer_raw, XM_CET_import, xml_raw, xml_name, file_name, created_at')
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (anyRow) record = anyRow;
       }
 
-      const name = (record.xml_name || record.file_name || 'Catalog').replace(/\.xml$/i, '').trim();
+      // Si el registro activo no tiene XML pero existe otra fila con el XML maestro, buscarla
+      if (!record?.xml_actualizer_raw && !record?.XM_CET_import && !record?.xml_raw) {
+        const { data: xmlRow } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('id, company_name, xml_actualizer_raw, XM_CET_import, xml_raw, xml_name, file_name, created_at')
+          .not('xml_raw', 'is', null)
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (xmlRow) record = xmlRow;
+      }
+
+      const name = (record?.xml_name || record?.file_name || 'Catalog').replace(/\.xml$/i, '').trim();
       setCatalogName(name);
 
-      let rawXmlSource = record.xml_actualizer_raw;
+      let rawXmlSource = record?.xml_actualizer_raw || localUpdatedXml;
       let usedFallback = false;
 
       if (!rawXmlSource || !String(rawXmlSource).trim()) {
-        rawXmlSource = record.XM_CET_import || record.xml_raw;
+        rawXmlSource = record?.XM_CET_import || record?.xml_raw || localBaseXml;
         usedFallback = true;
       }
 
       if (!rawXmlSource || !String(rawXmlSource).trim()) {
-        throw new Error('No existe ningún archivo XML disponible en la base de datos.');
+        throw new Error('No existe ningún archivo XML disponible en la base de datos ni en memoria.');
       }
 
       setIsFallbackXml(usedFallback);
@@ -784,6 +813,185 @@ export default function XMLActualizerViewer({
     [chatInput, isChatLoading, rows]
   );
 
+  // Herramientas dinámicas (Slash Commands) para el Visor Certificado
+  const availableCatalogTools = useMemo(() => {
+    const tools = [];
+
+    // 1. Tipologías
+    if (Array.isArray(catalogFacets?.tipologias)) {
+      catalogFacets.tipologias.forEach((t) => {
+        const cleanSlug = t.label
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+        tools.push({
+          id: `cmd-tipo-${cleanSlug}`,
+          label: `/${cleanSlug}`,
+          displayName: t.label,
+          desc: `${t.skus.length} SKUs`,
+          category: 'Tipologías de Producto',
+          icon: Layers,
+          prompt: `Filtra solo las ${t.label.toLowerCase()}`,
+          skus: t.skus,
+          filterLabel: `Tipología: ${t.label} (${t.skus.length} SKUs)`,
+          targetCol: null
+        });
+      });
+    }
+
+    // 2. Opciones & Recargos
+    if (Array.isArray(catalogFacets?.options)) {
+      catalogFacets.options.forEach((o) => {
+        let cleanSlug = '';
+        if (o.id === 'opt-base') cleanSlug = 'modelos-base';
+        else if (o.id === 'opt-configurable') cleanSlug = 'configurables';
+        else if (o.id === 'opt-multi') cleanSlug = 'multiples-recargos';
+        else {
+          cleanSlug = (o.targetCol || o.label)
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9_-]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+        }
+        tools.push({
+          id: `cmd-opt-${cleanSlug}`,
+          label: `/${cleanSlug}`,
+          displayName: o.label,
+          desc: o.badge || `${o.skus.length} SKUs`,
+          category: 'Opciones & Recargos XML',
+          icon: SlidersHorizontal,
+          prompt: o.prompt,
+          skus: o.skus,
+          filterLabel: o.label,
+          targetCol: o.targetCol || null
+        });
+      });
+    }
+
+    // 3. Auditoría de Calidad
+    if (Array.isArray(catalogFacets?.calidad)) {
+      catalogFacets.calidad.forEach((c) => {
+        let cleanSlug = '';
+        if (c.id === 'audit-price') cleanSlug = 'sin-precio';
+        else if (c.id === 'audit-weight') cleanSlug = 'sin-peso';
+        else if (c.id === 'audit-cat') cleanSlug = 'sin-categoria';
+        else if (c.id === 'audit-name') cleanSlug = 'sin-nombre';
+        else cleanSlug = c.id;
+
+        tools.push({
+          id: `cmd-audit-${cleanSlug}`,
+          label: `/${cleanSlug}`,
+          displayName: c.label,
+          desc: c.badge || `${c.skus.length} SKUs`,
+          category: 'Auditoría Esquema XML',
+          icon: AlertCircle,
+          prompt: c.prompt,
+          skus: c.skus,
+          filterLabel: c.label,
+          targetCol: null
+        });
+      });
+    }
+
+    // 4. Comandos Globales
+    tools.push({
+      id: 'cmd-global-todos',
+      label: '/todos',
+      displayName: 'Ver Catálogo Completo',
+      desc: `Restablecer filtros (${rows.length} SKUs)`,
+      category: 'Vistas Globales & Inspección',
+      icon: Sparkles,
+      prompt: 'Muestra todos los productos del catálogo completo',
+      skus: rows.map((r) => r['Model #']).filter(Boolean),
+      filterLabel: null,
+      targetCol: null
+    });
+
+    tools.push({
+      id: 'cmd-global-resumen',
+      label: '/resumen',
+      displayName: 'Resumen General del XML',
+      desc: 'Métricas de precio, familias y opciones comerciales',
+      category: 'Vistas Globales & Inspección',
+      icon: Filter,
+      prompt: 'Dame un resumen general del catálogo XML certificado',
+      skus: [],
+      filterLabel: null,
+      targetCol: null
+    });
+
+    return tools;
+  }, [catalogFacets, rows]);
+
+  const filteredSlashCommands = useMemo(() => {
+    if (!chatInput.startsWith('/')) return availableCatalogTools;
+    const search = chatInput.slice(1).trim().toLowerCase();
+    if (!search) return availableCatalogTools;
+    return availableCatalogTools.filter((t) =>
+      t.label.toLowerCase().includes(search) ||
+      t.displayName.toLowerCase().includes(search) ||
+      t.category.toLowerCase().includes(search)
+    );
+  }, [chatInput, availableCatalogTools]);
+
+  const handleToolCommandClick = useCallback(
+    (rawCmd) => {
+      setShowSlashMenu(false);
+      setChatInput('');
+
+      if (!rawCmd) return;
+
+      let tool = null;
+      if (typeof rawCmd === 'object' && rawCmd.label) {
+        tool = rawCmd;
+      } else {
+        const normalized = String(rawCmd).trim().toLowerCase();
+        const cleanCmd = normalized.startsWith('/') ? normalized : `/${normalized}`;
+        tool = availableCatalogTools.find(
+          (t) =>
+            t.label.toLowerCase() === cleanCmd ||
+            t.label.toLowerCase() === normalized ||
+            t.id.toLowerCase() === normalized ||
+            t.displayName.toLowerCase() === normalized
+        );
+      }
+
+      if (!tool) {
+        handleSendMatrixChat(String(rawCmd));
+        return;
+      }
+
+      // 1. Aislar de forma reactiva e inmediata en la tabla matriz
+      if (tool.label === '/todos') {
+        setMcpActiveSkuFilter(null);
+        setSelectedTypologyFilter('');
+      } else if (Array.isArray(tool.skus) && tool.skus.length > 0) {
+        setMcpActiveSkuFilter({
+          label: tool.filterLabel || tool.displayName || tool.label,
+          targetCol: tool.targetCol || null,
+          skuSet: new Set(tool.skus)
+        });
+        if (tool.category === 'Tipologías de Producto') {
+          setSelectedTypologyFilter(tool.displayName);
+        }
+      }
+
+      // 2. Disparar a Alysa
+      handleSendMatrixChat(
+        tool.prompt,
+        tool.skus,
+        tool.filterLabel || tool.displayName || tool.label,
+        tool.targetCol
+      );
+    },
+    [availableCatalogTools, handleSendMatrixChat]
+  );
+
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
@@ -1336,258 +1544,75 @@ export default function XMLActualizerViewer({
                     Bienvenido al visor certificado del archivo <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>xml_actualizer_raw</code>. Estoy conectada para asistirte con filtros y consultas de inspección sobre el catálogo final para CET Designer.
                   </p>
 
-                  {/* SELECTOR INTERACTIVO Y CATEGORIZADO DE FILTROS MCP */}
-                  <div className="pt-2 space-y-2 border-t border-white/10">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
-                        <SlidersHorizontal size={11} />
-                        Opciones de Recargo & Tiers XML
-                        <span className="opacity-60 text-[9px]">({(catalogFacets.options || []).length} filtros)</span>
+                  {/* Comandos y Herramientas del Catálogo XML (Slash Commands interactivos) */}
+                  <div className="pt-2.5 space-y-2.5 border-t border-white/10">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? "text-zinc-300" : "text-slate-700"}`}>
+                        <Sparkles size={11} />
+                        Herramientas & Comandos de Catálogo
                       </span>
-
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <label className="text-[9px] font-mono opacity-60">Tipo:</label>
-                            <select
-                              value={selectedTypologyFilter}
-                              onChange={(e) => {
-                                const tipoVal = e.target.value;
-                                setSelectedTypologyFilter(tipoVal);
-                                if (!tipoVal) {
-                                  if (mcpActiveSkuFilter?.label?.startsWith('Tipología: ')) {
-                                    setMcpActiveSkuFilter(null);
-                                  }
-                                } else {
-                                  const targetTipo = catalogFacets.tipologias.find((t) => t.label === tipoVal);
-                                  if (targetTipo) {
-                                    setMcpActiveSkuFilter({
-                                      label: `Tipología: ${targetTipo.label}`,
-                                      targetCol: null,
-                                      skuSet: new Set(targetTipo.skus)
-                                    });
-                                  }
-                                }
-                              }}
-                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
-                                selectedTypologyFilter
-                                  ? isDarkMode
-                                    ? 'bg-white text-zinc-950 font-bold border-white'
-                                    : 'bg-zinc-900 text-white font-bold border-zinc-900'
-                                  : isDarkMode
-                                    ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
-                                    : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
-                              }`}
-                            >
-                              <option value="">Todas las tipologías ({catalogFacets.tipologias.length})</option>
-                              {catalogFacets.tipologias.map((t) => (
-                                <option key={t.id} value={t.label}>
-                                  {t.label} ({t.badge})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-
-                        {Array.isArray(catalogFacets.familias) && catalogFacets.familias.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <label className="text-[9px] font-mono opacity-60">Familia:</label>
-                            <select
-                              value={selectedFamilyFilter}
-                              onChange={(e) => {
-                                const famVal = e.target.value;
-                                setSelectedFamilyFilter(famVal);
-                                if (!famVal) {
-                                  if (mcpActiveSkuFilter?.label?.startsWith('Familia ')) {
-                                    setMcpActiveSkuFilter(null);
-                                  }
-                                } else {
-                                  const targetFam = catalogFacets.familias.find((f) => f.label === `Familia ${famVal}`);
-                                  if (targetFam) {
-                                    handleSendMatrixChat(targetFam.prompt, targetFam.skus, targetFam.label);
-                                  }
-                                }
-                              }}
-                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
-                                selectedFamilyFilter
-                                  ? isDarkMode
-                                    ? 'bg-white text-zinc-950 font-bold border-white'
-                                    : 'bg-zinc-900 text-white font-bold border-zinc-900'
-                                  : isDarkMode
-                                    ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
-                                    : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
-                              }`}
-                            >
-                              <option value="">Todas las familias ({catalogFacets.familias.length})</option>
-                              {catalogFacets.familias.map((f) => {
-                                const cleanName = f.label.replace('Familia ', '');
-                                return (
-                                  <option key={f.id} value={cleanName}>
-                                    {cleanName} ({f.badge})
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          </div>
-                        )}
-                      </div>
+                      <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${isDarkMode ? "bg-white/5 border-white/10 text-zinc-400" : "bg-slate-100 border-slate-200 text-slate-600"}`}>
+                        Escribe <strong className="font-bold">/</strong> en el chat
+                      </span>
                     </div>
 
-                    {/* Chips interactivos de Tipologías */}
-                    {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1 pt-1 pb-1 border-b border-white/10">
-                        <span className={`text-[9px] font-mono opacity-60 mr-1 flex items-center gap-1 shrink-0 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
-                          <Layers size={10} /> Tipologías:
-                        </span>
-                        {catalogFacets.tipologias.map((t) => {
-                          const isApplied = mcpActiveSkuFilter?.label === `Tipología: ${t.label}` || selectedTypologyFilter === t.label;
-                          return (
-                            <button
-                              key={t.id}
-                              type="button"
-                              onClick={() => {
-                                if (isApplied) {
-                                  setMcpActiveSkuFilter(null);
-                                  setSelectedTypologyFilter('');
-                                } else {
-                                  setMcpActiveSkuFilter({
-                                    label: `Tipología: ${t.label}`,
-                                    targetCol: null,
-                                    skuSet: new Set(t.skus)
-                                  });
-                                  setSelectedTypologyFilter(t.label);
-                                }
-                              }}
-                              title={`Filtrar ${t.label} (${t.skus.length} productos)`}
-                              className={`px-2 py-0.5 rounded text-[9px] font-mono border transition-all cursor-pointer flex items-center gap-1 ${
-                                isApplied
-                                  ? isDarkMode
-                                    ? 'bg-white text-zinc-950 font-bold border-white shadow-sm'
-                                    : 'bg-zinc-900 text-white font-bold border-zinc-900 shadow-sm'
-                                  : isDarkMode
-                                    ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'
-                                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
-                              }`}
-                            >
-                              <span>{t.label}</span>
-                              <span className={`text-[8px] opacity-75 ${isApplied ? 'font-bold' : ''}`}>
-                                ({t.skus.length})
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
+                    <p className={`text-[10px] leading-relaxed ${isDarkMode ? "text-zinc-400" : "text-slate-500"}`}>
+                      Haz clic en cualquier herramienta para aislar productos en la matriz y activar análisis inmediato de inspección:
+                    </p>
 
-                    {/* Banner de Auditoría de Salud del XML */}
-                    {Array.isArray(catalogFacets.calidad) && catalogFacets.calidad.length > 0 ? (
-                      <div className={`p-1.5 border rounded-md text-[9.5px] font-mono flex flex-wrap items-center justify-between gap-1.5 ${
-                        isDarkMode
-                          ? 'bg-white/5 border-white/15 text-zinc-200'
-                          : 'bg-zinc-100 border-zinc-300 text-zinc-800'
-                      }`}>
-                        <div className="flex items-center gap-1.5">
-                          <AlertCircle size={11} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} shrink-0`} />
-                          <span className="font-bold">Modelos con precio $0:</span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1">
-                          {catalogFacets.calidad.map((f) => (
-                            <button
-                              key={f.id}
-                              type="button"
-                              onClick={() => handleSendMatrixChat(f.prompt, f.skus, f.label)}
-                              className={`px-1.5 py-0.5 rounded border text-[8.5px] cursor-pointer flex items-center gap-1 transition-all ${
-                                isDarkMode
-                                  ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
-                                  : 'bg-white hover:bg-zinc-200 border-zinc-300 text-zinc-900'
-                              }`}
-                            >
-                              <span>{f.label}</span>
-                              <span className="font-bold">({f.badge})</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className={`flex items-center gap-1.5 text-[9px] font-mono pt-0.5 ${
-                        isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
-                      }`}>
-                        <CheckCircle2 size={10.5} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} shrink-0`} />
-                        <span>Esquema XML 100% íntegro (Precios base, pesos y descripciones validados)</span>
-                      </div>
-                    )}
+                    {/* Agrupaciones de Herramientas categorizadas tipo Slash Command */}
+                    <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1">
+                      {Object.entries(
+                        availableCatalogTools.reduce((acc, cmd) => {
+                          const cat = cmd.category || "Otras Herramientas";
+                          if (!acc[cat]) acc[cat] = [];
+                          acc[cat].push(cmd);
+                          return acc;
+                        }, {})
+                      ).map(([category, commands]) => (
+                        <div key={category} className="space-y-1">
+                          <span className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${isDarkMode ? "text-zinc-400" : "text-slate-500"}`}>
+                            {category}
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {commands.map((cmd) => {
+                              const isCurrent =
+                                (cmd.label === "/todos" && !mcpActiveSkuFilter) ||
+                                (cmd.filterLabel && mcpActiveSkuFilter?.label === cmd.filterLabel) ||
+                                (mcpActiveSkuFilter?.label && cmd.displayName && mcpActiveSkuFilter.label.includes(cmd.displayName));
 
-                    {/* Chips inteligentes de recargos y opciones */}
-                    <div className="flex flex-wrap gap-1.5 pt-1 max-h-[190px] overflow-y-auto custom-scrollbar pr-0.5">
-                      {(catalogFacets.options || []).map((f) => {
-                        const isCurrentlyApplied = mcpActiveSkuFilter?.label === f.label;
-                        return (
-                          <div
-                            key={f.id}
-                            className={`flex items-center border rounded-md overflow-hidden transition-all ${
-                              isCurrentlyApplied
-                                ? isDarkMode
-                                  ? 'bg-white text-zinc-950 border-white shadow-sm font-bold'
-                                  : 'bg-zinc-900 text-white border-zinc-900 shadow-sm font-bold'
-                                : isDarkMode
-                                  ? 'bg-white/5 border-white/10 hover:border-white/20'
-                                  : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                            }`}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleSendMatrixChat(f.prompt, f.skus, f.label, f.targetCol)}
-                              className="px-2 py-1 text-left flex items-center gap-1.5 cursor-pointer"
-                            >
-                              <span className="text-[10px] truncate max-w-[150px]">{f.label}</span>
-                              <span
-                                className={`px-1 py-0.2 rounded text-[8.5px] ${
-                                  isCurrentlyApplied
-                                    ? isDarkMode
-                                      ? 'bg-zinc-950 text-white font-bold'
-                                      : 'bg-white text-zinc-900 font-bold'
-                                    : isDarkMode
-                                      ? 'bg-white/10 text-zinc-200'
-                                      : 'bg-slate-200 text-slate-700 font-semibold'
-                                }`}
-                              >
-                                {f.badge}
-                              </span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (isCurrentlyApplied) {
-                                  setMcpActiveSkuFilter(null);
-                                } else {
-                                  setMcpActiveSkuFilter({
-                                    label: f.label,
-                                    targetCol: f.targetCol || null,
-                                    skuSet: new Set(f.skus)
-                                  });
-                                }
-                              }}
-                              title={isCurrentlyApplied ? 'Quitar filtro de la tabla' : `Aislar ${f.badge} directamente en la tabla`}
-                              className={`px-1.5 py-1 border-l transition-colors cursor-pointer flex items-center gap-0.5 ${
-                                isCurrentlyApplied
-                                  ? isDarkMode
-                                    ? 'bg-zinc-200 text-zinc-950 border-zinc-300 hover:bg-white font-bold'
-                                    : 'bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700 font-bold'
-                                  : isDarkMode
-                                    ? 'border-white/10 hover:bg-white/20 text-zinc-300 hover:text-white'
-                                    : 'border-slate-200 hover:bg-slate-200 text-slate-600 hover:text-black'
-                              }`}
-                            >
-                              {isCurrentlyApplied ? <Check size={10} /> : <Zap size={10} />}
-                              <span className="text-[8.5px] font-sans uppercase font-bold tracking-wider">
-                                {isCurrentlyApplied ? 'Activo' : 'Tabla'}
-                              </span>
-                            </button>
+                              return (
+                                <button
+                                  key={cmd.id}
+                                  type="button"
+                                  onClick={() => handleToolCommandClick(cmd)}
+                                  className={`alysa-cmd-btn group inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[9.5px] font-mono border transition-all cursor-pointer ${
+                                    isCurrent
+                                      ? isDarkMode
+                                        ? "bg-white text-zinc-950 font-bold border-white shadow-sm"
+                                        : "bg-zinc-900 text-white font-bold border-zinc-900 shadow-sm"
+                                      : isDarkMode
+                                        ? "bg-white/5 hover:bg-white/15 text-zinc-200 hover:text-white border-white/10 hover:border-white/20"
+                                        : "bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-200 hover:border-slate-300"
+                                  }`}
+                                  title={`Ejecutar ${cmd.label} (${cmd.desc})`}
+                                >
+                                  <span className={`font-bold ${isCurrent ? (isDarkMode ? "text-zinc-950" : "text-white") : (isDarkMode ? "text-white" : "text-zinc-900")}`}>
+                                    {cmd.label}
+                                  </span>
+                                  <span className="opacity-60 text-[8.5px]">
+                                    ({cmd.desc})
+                                  </span>
+                                </button>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={`pt-2 border-t text-[9px] font-mono leading-relaxed ${isDarkMode ? "border-white/10 text-zinc-500" : "border-slate-200 text-slate-500"}`}>
+                      Visor certificado para inspección. Este catálogo final refleja todas las modificaciones aplicadas y estructuradas para CET Designer.
                     </div>
                   </div>
                 </div>
@@ -1651,7 +1676,51 @@ export default function XMLActualizerViewer({
                       }`}
                     >
                       <div className="prose prose-xs max-w-none text-[10.5px] leading-relaxed">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            code({ node, inline, className, children, ...props }) {
+                              const text = String(children).trim();
+                              if (inline && text.startsWith('/')) {
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToolCommandClick(text)}
+                                    className={`alysa-cmd-btn font-mono font-bold px-1.5 py-0.5 rounded text-[10px] mx-0.5 transition-all inline-flex items-center gap-1 cursor-pointer border ${
+                                      isDarkMode
+                                        ? 'bg-white/10 hover:bg-white text-zinc-100 hover:text-zinc-950 border-white/20'
+                                        : 'bg-zinc-100 hover:bg-zinc-900 text-zinc-800 hover:text-white border-zinc-300'
+                                    }`}
+                                    title={`Ejecutar herramienta ${text}`}
+                                  >
+                                    <span>{text}</span>
+                                  </button>
+                                );
+                              }
+                              return (
+                                <code className={className} {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            a({ node, href, children, ...props }) {
+                              if (href && href.startsWith('/')) {
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToolCommandClick(href)}
+                                    className="alysa-cmd-btn font-mono font-bold underline cursor-pointer mx-0.5"
+                                  >
+                                    {children}
+                                  </button>
+                                );
+                              }
+                              return <a href={href} {...props}>{children}</a>;
+                            }
+                          }}
+                        >
+                          {msg.text}
+                        </ReactMarkdown>
                       </div>
 
                       {Array.isArray(msg.matchedSkus) && msg.matchedSkus.length > 0 && (
@@ -1715,9 +1784,112 @@ export default function XMLActualizerViewer({
               isDarkMode ? 'bg-[#09090b]/80 border-white/10' : 'bg-white/90 border-slate-200'
             }`}
           >
+            {/* Paleta flotante de Slash Commands cuando el usuario escribe '/' */}
+            <AnimatePresence>
+              {showSlashMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                  transition={{ duration: 0.16, ease: 'easeOut' }}
+                  className={`absolute bottom-[calc(100%+8px)] left-2.5 right-2.5 mx-auto ${
+                    isDarkMode
+                      ? 'bg-[#09090b]/95 border-white/[0.14] text-white shadow-[0_16px_40px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.1)]'
+                      : 'bg-white/95 border-slate-200 shadow-[0_12px_40px_rgba(0,0,0,0.08)] text-slate-800'
+                  } backdrop-blur-2xl border rounded-xl z-50 overflow-hidden`}
+                >
+                  <div className="p-2 max-h-[290px] overflow-y-auto custom-scrollbar">
+                    {filteredSlashCommands.length === 0 ? (
+                      <div className="py-3 px-3 text-center text-[10px] font-mono opacity-60">
+                        No se encontraron herramientas con &quot;{chatInput}&quot;
+                      </div>
+                    ) : (
+                      Object.entries(
+                        filteredSlashCommands.reduce((acc, cmd) => {
+                          const cat = cmd.category || 'Otras Herramientas';
+                          if (!acc[cat]) acc[cat] = [];
+                          acc[cat].push(cmd);
+                          return acc;
+                        }, {})
+                      ).map(([category, commands]) => {
+                        const isExpanded = expandedSlashCategory === null || expandedSlashCategory === category;
+                        return (
+                          <div key={category} className="mb-2 last:mb-0">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedSlashCategory(expandedSlashCategory === category ? '' : category)}
+                              className={`w-full flex items-center justify-between px-2 py-1 text-left rounded cursor-pointer transition-colors ${
+                                isDarkMode ? 'hover:bg-white/5 text-zinc-400' : 'hover:bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              <span className="text-[9.5px] font-bold uppercase tracking-wider">
+                                {category} ({commands.length})
+                              </span>
+                              <ChevronDown
+                                size={11}
+                                className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+
+                            {isExpanded && (
+                              <div className="mt-1 space-y-0.5">
+                                {commands.map((cmd) => {
+                                  const IconComp = cmd.icon || Sparkles;
+                                  return (
+                                    <button
+                                      key={cmd.id}
+                                      type="button"
+                                      onClick={() => handleToolCommandClick(cmd)}
+                                      className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group ${
+                                        isDarkMode
+                                          ? 'hover:bg-white/10 text-zinc-200 hover:text-white'
+                                          : 'hover:bg-slate-100 text-slate-700 hover:text-slate-900'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <div className={`p-1 rounded ${isDarkMode ? 'bg-white/5 text-zinc-300' : 'bg-slate-100 text-slate-600'}`}>
+                                          <IconComp size={11} />
+                                        </div>
+                                        <div className="truncate">
+                                          <span className="text-[11px] font-mono font-bold">{cmd.label}</span>
+                                          <span className="mx-1.5 opacity-40">·</span>
+                                          <span className="text-[10px] opacity-80">{cmd.displayName}</span>
+                                        </div>
+                                      </div>
+                                      <span
+                                        className={`text-[8.5px] font-mono px-1.5 py-0.5 rounded shrink-0 ${
+                                          isDarkMode ? 'bg-white/5 text-zinc-400' : 'bg-slate-100 text-slate-500'
+                                        }`}
+                                      >
+                                        {cmd.desc}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (chatInput.startsWith('/')) {
+                  const match =
+                    availableCatalogTools.find(
+                      (t) => t.label.toLowerCase() === chatInput.trim().toLowerCase()
+                    ) || filteredSlashCommands[0];
+                  if (match) {
+                    handleToolCommandClick(match);
+                    return;
+                  }
+                }
                 handleSendMatrixChat();
               }}
               className="flex items-center gap-1.5"
@@ -1741,9 +1913,22 @@ export default function XMLActualizerViewer({
 
               <input
                 type="text"
-                placeholder="Pídele a Alysa: 'filtra mesas', 'sillas', 'cuántos productos hay'..."
+                placeholder="Escribe / para ver herramientas, o filtra productos..."
                 value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setChatInput(val);
+                  if (val.startsWith('/')) {
+                    setShowSlashMenu(true);
+                  } else {
+                    setShowSlashMenu(false);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setShowSlashMenu(false);
+                  }
+                }}
                 disabled={isChatLoading}
                 className={`flex-1 min-w-0 text-[11px] px-3 py-1.5 rounded-lg border transition-all focus:outline-none ${
                   isDarkMode

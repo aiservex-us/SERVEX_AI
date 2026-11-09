@@ -2128,28 +2128,54 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         // 1. Recopilar de múltiples fuentes locales/estado para garantizar 0 fallas ante RLS
         let csvRawToSend = dbCsvRaw || (typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') : null) || null;
         let csvNewRawToSend =
-          dbCsvNewRaw ||
           (typeof window !== 'undefined'
-            ? sessionStorage.getItem('csv_new_raw') || sessionStorage.getItem('csv_edit_raw')
+            ? sessionStorage.getItem('csv_edit_raw') || sessionStorage.getItem('csv_new_raw')
             : null) ||
+          dbCsvNewRaw ||
           null;
-        let xmlRawToSend = dbXmlRaw || null;
+        let xmlRawToSend = dbXmlRaw || (typeof window !== 'undefined' ? (sessionStorage.getItem('xml_raw') || sessionStorage.getItem('XM_CET_import')) : null) || null;
 
-        // 2. Si falta alguno, enriquecer desde Supabase con la sesión activa del usuario
+        // 2. Si falta alguno, enriquecer desde Supabase con la fila maestra
         try {
-          const { data: catData } = await supabase
+          let catData = null;
+          const { data: rowMatch } = await supabase
             .from('ClientsSERVEX_General_Procces')
-            .select('csv_raw, csv_new_raw, xml_raw, XM_CET_import')
-            .eq('company_name', 'General_Procces')
-            .order('created_at', { ascending: false })
+            .select('csv_raw, csv_new_raw, csv_edit_raw, xml_raw, XM_CET_import, xml_actualizer_raw')
+            .or('company_name.eq.General_Procces,company_name.eq.General Process')
+            .order('id', { ascending: false })
             .limit(1)
             .maybeSingle();
 
+          if (rowMatch) catData = rowMatch;
+          else {
+            const { data: anyRow } = await supabase
+              .from('ClientsSERVEX_General_Procces')
+              .select('csv_raw, csv_new_raw, csv_edit_raw, xml_raw, XM_CET_import, xml_actualizer_raw')
+              .order('id', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (anyRow) catData = anyRow;
+          }
+
           if (catData) {
-            if (!csvNewRawToSend && catData.csv_new_raw) csvNewRawToSend = catData.csv_new_raw;
-            if (!csvRawToSend && catData.csv_raw) csvRawToSend = catData.csv_raw;
-            if (!xmlRawToSend && (catData.xml_raw || catData.XM_CET_import)) {
+            if (!csvNewRawToSend) csvNewRawToSend = catData.csv_edit_raw || catData.csv_new_raw;
+            if (!csvRawToSend) csvRawToSend = catData.csv_raw;
+            if (!xmlRawToSend) {
               xmlRawToSend = catData.xml_raw || catData.XM_CET_import;
+            }
+          }
+
+          // Si el registro activo aún no tiene xml_raw, buscar la fila que contenga el XML maestro
+          if (!xmlRawToSend) {
+            const { data: xmlRow } = await supabase
+              .from('ClientsSERVEX_General_Procces')
+              .select('xml_raw, XM_CET_import')
+              .not('xml_raw', 'is', null)
+              .order('id', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (xmlRow) {
+              xmlRawToSend = xmlRow.xml_raw || xmlRow.XM_CET_import;
             }
           }
         } catch (dbErr) {
