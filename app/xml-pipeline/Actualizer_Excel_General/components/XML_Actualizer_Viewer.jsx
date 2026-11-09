@@ -26,29 +26,34 @@ import {
   Tag,
   Filter,
   Eye,
-  Info
+  Info,
+  Zap,
+  Paperclip,
+  Mic,
+  HelpCircle
 } from 'lucide-react';
+import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import AlysaWordmark from '@/app/xml-pipeline/Actualizer_XML_General/components/comparePDF/REPORT/components/AlysaWordmark';
 import { applyExcelVisualStyling } from './XML_Results_General.jsx';
 import { getProductTypology, PRODUCT_TYPOLOGY_RULES } from './Catalog_Editor_General.jsx';
 
 const BASE_HEADERS = ["Model #", "List Price", "Weight", "Classic/ Premium", "Model Name"];
-
 const ROW_HEIGHT = 38;
 const OVERSCAN = 12;
 
-// Formateador de moneda profesional
-const formatCurrency = (val) => {
-  if (val === undefined || val === null || val === '') return '---';
-  const num = Number(val);
-  if (Number.isNaN(num)) return String(val);
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: num % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2
-  }).format(num);
+// Sanitizador de texto: Elimina cualquier emoji del chat (política estricta Servex)
+const stripEmojis = (str) => {
+  if (!str) return '';
+  return String(str)
+    .replace(
+      /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2702}-\u{27B0}\u{24C2}-\u{1F251}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2300}-\u{23FF}\u{200D}\u{FE0F}]/gu,
+      ''
+    )
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
 };
 
 export default function XMLActualizerViewer({
@@ -59,49 +64,115 @@ export default function XMLActualizerViewer({
   const [error, setError] = useState(null);
   const [isFallbackXml, setIsFallbackXml] = useState(false);
   const [catalogName, setCatalogName] = useState('Catalog');
-  
+
   // Contenido XML crudo
   const [xmlContent, setXmlContent] = useState('');
-  
-  // Datos matriciales extraídos del XML
-  const [matrixHeaders, setMatrixHeaders] = useState(BASE_HEADERS);
-  const [optionColumns, setOptionColumns] = useState([]);
-  const [products, setProducts] = useState([]);
-  
-  // Modos de visualización: 'matrix' | 'xml'
+
+  // Filas y columnas matriciales
+  const [headers, setHeaders] = useState(BASE_HEADERS);
+  const [rows, setRows] = useState([]);
+
+  // Modo de visualización: 'matrix' | 'xml'
   const [viewMode, setViewMode] = useState('matrix');
-  
+
   // Búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState('');
   const [xmlSearchTerm, setXmlSearchTerm] = useState('');
-  const [selectedTypology, setSelectedTypology] = useState('ALL');
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const [activeFilterBadge, setActiveFilterBadge] = useState(null);
-  const [filteredSkusSet, setFilteredSkusSet] = useState(null);
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  
-  // Copia de XML al portapapeles
+  const [selectedTypologyFilter, setSelectedTypologyFilter] = useState('');
+  const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('');
+  const [mcpActiveSkuFilter, setMcpActiveSkuFilter] = useState(null);
+  const [filterMode, setFilterMode] = useState('all'); // 'all' | 'configurable' | 'base'
+
+  // Copia de XML
   const [copiedXml, setCopiedXml] = useState(false);
-  
-  // Panel de Alysa Copilot (Solo Lectura / Filtros)
-  const [isCopilotOpen, setIsCopilotOpen] = useState(true);
-  const [copilotInput, setCopilotInput] = useState('');
-  const [copilotLoading, setCopilotLoading] = useState(false);
-  const [copilotMessages, setCopilotMessages] = useState([
-    {
-      id: 'init-msg',
-      from: 'alysa',
-      text: 'Visualizador del archivo **xml_actualizer_raw** certificado para CET Designer. Este panel opera en modo lectura e inspección. Puedes solicitar filtros por tipología ("filtra sillas", "mesas"), rango de precios o buscar modelos específicos.',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+  // Redimensionamiento del panel de Alysa (idéntico al Editor hasta 50vw)
+  const splitContainerRef = useRef(null);
+  const isResizingRef = useRef(false);
+  const [isResizingChat, setIsResizingChat] = useState(false);
+  const [isLgScreen, setIsLgScreen] = useState(true);
+  const [chatWidthPercent, setChatWidthPercent] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = sessionStorage.getItem('xml_viewer_chat_width_pct');
+        if (saved) {
+          const val = parseFloat(saved);
+          if (!Number.isNaN(val) && val >= 18 && val <= 50) return val;
+        }
+      } catch (_) {}
     }
-  ]);
+    return 28;
+  });
+
+  // Chat con Alysa (Solo Lectura y Filtros)
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
   const chatBottomRef = useRef(null);
 
-  // Virtualización de la tabla
+  // Scroll virtualizado de la tabla
   const tableContainerRef = useRef(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(600);
   const scrollRafRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const checkScreen = () => setIsLgScreen(window.innerWidth >= 1024);
+      checkScreen();
+      window.addEventListener('resize', checkScreen);
+      return () => window.removeEventListener('resize', checkScreen);
+    }
+  }, []);
+
+  const handleStartResize = useCallback((e) => {
+    e.preventDefault();
+    setIsResizingChat(true);
+    isResizingRef.current = true;
+    if (typeof document !== 'undefined') {
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    const handleMouseMove = (moveEvent) => {
+      if (!isResizingRef.current) return;
+      const container = splitContainerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const rawWidthPx = rect.right - moveEvent.clientX;
+      let newPct = (rawWidthPx / rect.width) * 100;
+      if (newPct < 18) newPct = 18;
+      if (newPct > 50) newPct = 50;
+      setChatWidthPercent(newPct);
+    };
+
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+      setIsResizingChat(false);
+      if (typeof document !== 'undefined') {
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      setChatWidthPercent((curr) => {
+        try {
+          sessionStorage.setItem('xml_viewer_chat_width_pct', String(curr.toFixed(1)));
+        } catch (_) {}
+        return curr;
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  }, []);
+
+  const handleResetResize = useCallback(() => {
+    setChatWidthPercent(28);
+    try {
+      sessionStorage.setItem('xml_viewer_chat_width_pct', '28');
+    } catch (_) {}
+  }, []);
 
   // Cargar xml_actualizer_raw desde Supabase
   const loadCertifiedXml = useCallback(async () => {
@@ -133,12 +204,11 @@ export default function XMLActualizerViewer({
       }
 
       if (!rawXmlSource || !String(rawXmlSource).trim()) {
-        throw new Error('No existe ningún archivo XML (ni xml_actualizer_raw, XM_CET_import ni xml_raw) disponible.');
+        throw new Error('No existe ningún archivo XML disponible en la base de datos.');
       }
 
       setIsFallbackXml(usedFallback);
 
-      // Resolver contenido si es [STORAGE_URL]: o http
       const resolvedXml = await resolveStorageContent(rawXmlSource);
       if (!resolvedXml || typeof resolvedXml !== 'string' || !resolvedXml.includes('<')) {
         throw new Error('El contenido recuperado no tiene formato XML válido.');
@@ -158,7 +228,7 @@ export default function XMLActualizerViewer({
     loadCertifiedXml();
   }, [loadCertifiedXml]);
 
-  // Parsear XML a matriz de productos de CET Designer
+  // Parsear XML a la matriz de productos
   const parseXmlToMatrix = (xmlText) => {
     try {
       const parser = new DOMParser();
@@ -169,7 +239,6 @@ export default function XMLActualizerViewer({
         throw new Error('Fallo al parsear estructura XML: ' + parseError.textContent.slice(0, 100));
       }
 
-      // 1. Extraer características y opciones globales
       const globalFeatures = Array.from(doc.getElementsByTagName('Feature'));
       const featureMap = new Map();
       for (const f of globalFeatures) {
@@ -192,23 +261,21 @@ export default function XMLActualizerViewer({
         return codes;
       };
 
-      // 2. Extraer todos los productos
       const productNodes = Array.from(doc.getElementsByTagName('Product'));
       if (productNodes.length === 0) {
-        setProducts([]);
-        setMatrixHeaders(BASE_HEADERS);
+        setRows([]);
+        setHeaders(BASE_HEADERS);
         return;
       }
 
-      // 3. Mapear columnas dinámicas de recargo
       const dynamicColumnsMap = new Map();
-      const parsedProducts = [];
+      const parsedRows = [];
 
       for (let i = 0; i < productNodes.length; i++) {
         const p = productNodes[i];
         const sku = p.getElementsByTagName('Code')[0]?.textContent?.trim() || `SKU-${i + 1}`;
         const description = p.getElementsByTagName('Description')[0]?.textContent?.trim() || '';
-        
+
         let classification = 'Standard';
         const classRef = p.getElementsByTagName('ClassificationRef')[0];
         if (classRef) {
@@ -247,103 +314,270 @@ export default function XMLActualizerViewer({
 
         const typology = getProductTypology(description, sku);
 
-        parsedProducts.push({
-          sku,
-          modelName: description,
-          listPrice,
-          weight,
-          classification,
-          typology,
-          optionPrices,
-          optionsCount: Object.keys(optionPrices).length
-        });
+        const rowObj = {
+          'Model #': sku,
+          'List Price': listPrice > 0 ? listPrice : '',
+          'Weight': weight,
+          'Classic/ Premium': classification,
+          'Model Name': description,
+          _typology: typology,
+          _optionsCount: Object.keys(optionPrices).length,
+          ...optionPrices
+        };
+
+        parsedRows.push(rowObj);
       }
 
       const dynCols = Array.from(dynamicColumnsMap.keys()).sort();
-      const allHeaders = [...BASE_HEADERS, ...dynCols];
+      const computedHeaders = [...BASE_HEADERS, ...dynCols];
 
-      setOptionColumns(dynCols);
-      setMatrixHeaders(allHeaders);
-      setProducts(parsedProducts);
+      setHeaders(computedHeaders);
+      setRows(parsedRows);
     } catch (e) {
       console.warn('[-] Error en parseXmlToMatrix:', e);
       setError('Error al procesar el archivo XML a matriz: ' + e.message);
     }
   };
 
-  // Estadísticas del catálogo
-  const stats = useMemo(() => {
-    if (!products || products.length === 0) {
-      return { total: 0, avgPrice: 0, minPrice: 0, maxPrice: 0, configurable: 0, typologies: {} };
+  // Facetas inteligentes (idénticas al Catalog Matrix Live Editor)
+  const catalogFacets = useMemo(() => {
+    if (!rows || rows.length === 0) {
+      return { options: [], familias: [], tipologias: [], calidad: [] };
     }
-    let sum = 0;
-    let min = Infinity;
-    let max = -Infinity;
-    let configurable = 0;
-    const typologies = {};
 
-    products.forEach((p) => {
-      const price = Number(p.listPrice) || 0;
-      sum += price;
-      if (price < min) min = price;
-      if (price > max) max = price;
-      if (p.optionsCount > 0) configurable++;
+    const optionCols = headers.filter((h) => !BASE_HEADERS.includes(h));
 
-      const t = p.typology || 'Otros';
-      typologies[t] = (typologies[t] || 0) + 1;
+    const parsedRows = rows.map((r) => {
+      const sku = String(r['Model #'] || '').trim();
+      const modelName = String(r['Model Name'] || '').trim();
+      const price = Number(r['List Price']) || 0;
+      const weight = String(r['Weight'] || '').trim();
+      const cat = String(r['Classic/ Premium'] || '').trim();
+
+      const activeOpts = [];
+      optionCols.forEach((col) => {
+        const val = r[col];
+        if (val !== undefined && val !== null && String(val).trim() !== '' && Number(val) > 0) {
+          activeOpts.push({ col, val: Number(val) });
+        }
+      });
+
+      let skuFamily = 'Otros';
+      if (sku) {
+        const match = sku.match(/^([A-Za-z0-9]{2,5})[-_]/);
+        if (match) skuFamily = match[1];
+      }
+
+      const pType = r._typology || getProductTypology(modelName, sku);
+
+      return {
+        sku,
+        skuFamily,
+        price,
+        weight,
+        cat,
+        modelName,
+        pType,
+        optsCount: activeOpts.length,
+        activeOpts
+      };
     });
 
+    // 1. Opciones comerciales XML
+    const sinOpciones = parsedRows.filter((r) => r.optsCount === 0).map((r) => r.sku);
+    const conOpciones = parsedRows.filter((r) => r.optsCount >= 1).map((r) => r.sku);
+    const multiOpciones = parsedRows.filter((r) => r.optsCount >= 2).map((r) => r.sku);
+
+    const optionsFilters = [
+      {
+        id: 'opt-base',
+        label: 'Modelos Base (Sin recargos)',
+        prompt: 'Filtra modelos base',
+        skus: sinOpciones,
+        badge: `${sinOpciones.length} SKUs · Base`
+      },
+      ...(conOpciones.length > 0
+        ? [
+            {
+              id: 'opt-configurable',
+              label: 'Modelos Configurables',
+              prompt: 'Filtra modelos configurables',
+              skus: conOpciones,
+              badge: `${conOpciones.length} SKUs · Opciones`
+            }
+          ]
+        : []),
+      ...(multiOpciones.length > 0
+        ? [
+            {
+              id: 'opt-multi',
+              label: 'Con múltiples recargos (≥2)',
+              prompt: 'Filtra modelos con múltiples recargos',
+              skus: multiOpciones,
+              badge: `${multiOpciones.length} SKUs · Multi`
+            }
+          ]
+        : [])
+    ];
+
+    optionCols.forEach((colName) => {
+      const matchingRows = parsedRows.filter((r) => r.activeOpts.some((o) => o.col === colName));
+      if (matchingRows.length === 0) return;
+
+      const colSkus = matchingRows.map((r) => r.sku);
+      const vals = [];
+      matchingRows.forEach((r) => {
+        const item = r.activeOpts.find((o) => o.col === colName);
+        if (item && item.val > 0) vals.push(item.val);
+      });
+      vals.sort((a, b) => a - b);
+      const minUp = vals.length > 0 ? vals[0] : 0;
+      const maxUp = vals.length > 0 ? vals[vals.length - 1] : 0;
+      const rangeText =
+        vals.length === 0
+          ? ''
+          : minUp === maxUp
+          ? `+$${minUp % 1 === 0 ? minUp.toFixed(0) : minUp.toFixed(2)}`
+          : `+$${minUp.toFixed(0)}–$${maxUp.toFixed(0)}`;
+      const cleanColName = colName.length > 24 ? colName.slice(0, 22) + '…' : colName;
+
+      optionsFilters.push({
+        id: `opt-dyn-${colName}`,
+        label: cleanColName,
+        targetCol: colName,
+        prompt: `Filtra productos con opción "${colName}"`,
+        skus: colSkus,
+        badge: `${colSkus.length} SKUs${rangeText ? ` · ${rangeText}` : ''}`
+      });
+    });
+
+    // 2. Tipologías de Producto
+    const tipologiaGroups = {};
+    parsedRows.forEach((r) => {
+      const t = r.pType || 'Otros';
+      if (!tipologiaGroups[t]) tipologiaGroups[t] = [];
+      tipologiaGroups[t].push(r.sku);
+    });
+
+    const TIPOLOGIA_ORDER = [
+      'Sillas',
+      'Mesas',
+      'Escritorios',
+      'Almacenamiento',
+      'Lounge / Sofás',
+      'Taburetes',
+      'Bancas',
+      'Accesorios & Paneles',
+      'Otros'
+    ];
+    const tipologiasFilters = Object.entries(tipologiaGroups)
+      .sort((a, b) => {
+        const idxA = TIPOLOGIA_ORDER.indexOf(a[0]);
+        const idxB = TIPOLOGIA_ORDER.indexOf(b[0]);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return b[1].length - a[1].length;
+      })
+      .map(([tipo, skusList]) => ({
+        id: `tipo-${tipo.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+        label: tipo,
+        prompt: `Filtra solo ${tipo.toLowerCase()}`,
+        skus: skusList,
+        badge: `${skusList.length} SKUs`
+      }));
+
+    // 3. Familias de SKU
+    const familyGroups = {};
+    parsedRows.forEach((r) => {
+      if (r.skuFamily && r.skuFamily !== 'Otros') {
+        if (!familyGroups[r.skuFamily]) familyGroups[r.skuFamily] = [];
+        familyGroups[r.skuFamily].push(r.sku);
+      }
+    });
+
+    const familiasFilters = Object.entries(familyGroups)
+      .filter(([_, skusList]) => skusList.length >= 3)
+      .sort((a, b) => b[1].length - a[1].length)
+      .slice(0, 10)
+      .map(([fam, skusList]) => ({
+        id: `fam-${fam}`,
+        label: `Familia ${fam}`,
+        prompt: `Filtra familia ${fam}`,
+        skus: skusList,
+        badge: `${skusList.length} SKUs`
+      }));
+
+    // 4. Calidad y salud de esquema
+    const sinPrecio = parsedRows.filter((r) => r.price <= 0).map((r) => r.sku);
+    const calidadFilters = [];
+    if (sinPrecio.length > 0) {
+      calidadFilters.push({
+        id: 'cal-zero-price',
+        label: 'Modelos con precio $0 o nulo',
+        prompt: 'Aislar modelos sin precio ($0)',
+        skus: sinPrecio,
+        badge: `${sinPrecio.length} SKUs`
+      });
+    }
+
     return {
-      total: products.length,
-      avgPrice: sum / products.length,
-      minPrice: min === Infinity ? 0 : min,
-      maxPrice: max === -Infinity ? 0 : max,
-      configurable,
-      typologies
+      options: optionsFilters,
+      familias: familiasFilters,
+      tipologias: tipologiasFilters,
+      calidad: calidadFilters
     };
-  }, [products]);
+  }, [rows, headers]);
 
-  // Filas filtradas
-  const filteredProducts = useMemo(() => {
-    let result = products;
+  // Filas filtradas de la tabla
+  const filteredRows = useMemo(() => {
+    let result = rows;
 
-    // Filtro por SKUs aislados (desde Alysa o facetas)
-    if (filteredSkusSet) {
-      result = result.filter((p) => filteredSkusSet.has(p.sku));
+    // Filtro por SKUs aislados
+    if (mcpActiveSkuFilter && mcpActiveSkuFilter.skuSet) {
+      result = result.filter((r) => {
+        const sku = String(r['Model #'] || '').trim();
+        return mcpActiveSkuFilter.skuSet.has(sku);
+      });
     }
 
     // Filtro por tipología
-    if (selectedTypology && selectedTypology !== 'ALL') {
-      result = result.filter((p) => p.typology === selectedTypology);
+    if (selectedTypologyFilter) {
+      result = result.filter((r) => {
+        const t = r._typology || getProductTypology(r['Model Name'], r['Model #']);
+        return t === selectedTypologyFilter;
+      });
     }
 
-    // Filtro por rango de precio
-    if (priceRange.min !== '') {
-      const minVal = parseFloat(priceRange.min);
-      if (!Number.isNaN(minVal)) {
-        result = result.filter((p) => (Number(p.listPrice) || 0) >= minVal);
-      }
-    }
-    if (priceRange.max !== '') {
-      const maxVal = parseFloat(priceRange.max);
-      if (!Number.isNaN(maxVal)) {
-        result = result.filter((p) => (Number(p.listPrice) || 0) <= maxVal);
-      }
+    // Filtro por familia
+    if (selectedFamilyFilter) {
+      const famPrefix = selectedFamilyFilter.toLowerCase();
+      result = result.filter((r) => {
+        const sku = String(r['Model #'] || '').toLowerCase();
+        return sku.startsWith(famPrefix);
+      });
     }
 
-    // Búsqueda en texto
+    // Filtro por modo
+    if (filterMode === 'configurable') {
+      result = result.filter((r) => r._optionsCount > 0);
+    } else if (filterMode === 'base') {
+      result = result.filter((r) => !r._optionsCount || r._optionsCount === 0);
+    }
+
+    // Búsqueda inteligente
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase().trim();
-      result = result.filter(
-        (p) =>
-          p.sku.toLowerCase().includes(q) ||
-          p.modelName.toLowerCase().includes(q) ||
-          (p.typology && p.typology.toLowerCase().includes(q))
-      );
+      result = result.filter((r) => {
+        const sku = String(r['Model #'] || '').toLowerCase();
+        const desc = String(r['Model Name'] || '').toLowerCase();
+        const tipo = String(r._typology || '').toLowerCase();
+        return sku.includes(q) || desc.includes(q) || tipo.includes(q);
+      });
     }
 
     return result;
-  }, [products, filteredSkusSet, selectedTypology, priceRange, searchTerm]);
+  }, [rows, mcpActiveSkuFilter, selectedTypologyFilter, selectedFamilyFilter, filterMode, searchTerm]);
 
   // Medición de viewport para scroll virtualizado
   useEffect(() => {
@@ -375,8 +609,15 @@ export default function XMLActualizerViewer({
     });
   }, []);
 
+  useEffect(() => {
+    if (tableContainerRef.current) {
+      tableContainerRef.current.scrollTop = 0;
+    }
+    setScrollTop(0);
+  }, [searchTerm, filterMode, selectedTypologyFilter, selectedFamilyFilter, mcpActiveSkuFilter]);
+
   const virtualWindow = useMemo(() => {
-    const total = filteredProducts.length;
+    const total = filteredRows.length;
     if (total === 0) {
       return { startIdx: 0, endIdx: 0, visibleRows: [], topSpacerHeight: 0, bottomSpacerHeight: 0 };
     }
@@ -386,11 +627,11 @@ export default function XMLActualizerViewer({
     return {
       startIdx,
       endIdx,
-      visibleRows: filteredProducts.slice(startIdx, endIdx),
+      visibleRows: filteredRows.slice(startIdx, endIdx),
       topSpacerHeight: startIdx * ROW_HEIGHT,
       bottomSpacerHeight: Math.max(0, (total - endIdx) * ROW_HEIGHT)
     };
-  }, [filteredProducts, scrollTop, viewportHeight]);
+  }, [filteredRows, scrollTop, viewportHeight]);
 
   // Copiar XML completo
   const handleCopyXml = async () => {
@@ -402,7 +643,7 @@ export default function XMLActualizerViewer({
     } catch (_) {}
   };
 
-  // Descargar archivo .xml
+  // Descargar archivo .xml certificado
   const handleDownloadXml = () => {
     if (!xmlContent) return;
     try {
@@ -429,29 +670,23 @@ export default function XMLActualizerViewer({
     }
   };
 
-  // Exportar matriz a Excel (.xlsx)
-  const handleExportExcel = () => {
-    if (!filteredProducts || filteredProducts.length === 0) {
+  // Exportar matriz a Excel (.xlsx) con estilos exactos
+  const exportToExcel = () => {
+    if (!filteredRows || filteredRows.length === 0) {
       alert('No hay productos para exportar.');
       return;
     }
     try {
-      const rowsForExcel = filteredProducts.map((p) => {
-        const row = {
-          'Model #': p.sku,
-          'List Price': p.listPrice,
-          'Weight': p.weight,
-          'Classic/ Premium': p.classification,
-          'Model Name': p.modelName
-        };
-        optionColumns.forEach((col) => {
-          row[col] = p.optionPrices[col] || '';
+      const rowsForExcel = filteredRows.map((r) => {
+        const obj = {};
+        headers.forEach((h) => {
+          obj[h] = r[h] !== undefined && r[h] !== null ? r[h] : '';
         });
-        return row;
+        return obj;
       });
 
-      const worksheet = XLSX.utils.json_to_sheet(rowsForExcel, { header: matrixHeaders });
-      worksheet['!cols'] = matrixHeaders.map((h, idx) => {
+      const worksheet = XLSX.utils.json_to_sheet(rowsForExcel, { header: headers });
+      worksheet['!cols'] = headers.map((h, idx) => {
         if (idx === 0) return { wch: 16 };
         if (idx === 1) return { wch: 14 };
         if (idx === 2) return { wch: 12 };
@@ -487,111 +722,111 @@ export default function XMLActualizerViewer({
     }
   };
 
-  // Motor de Consultas y Filtros de Alysa (Solo Lectura)
-  const handleCopilotSend = () => {
-    const rawTxt = copilotInput.trim();
-    if (!rawTxt || copilotLoading) return;
+  // Disparar mensaje y filtro interactivo con Alysa
+  const handleSendMatrixChat = useCallback(
+    (promptText, skusList = null, filterLabel = null, targetCol = null) => {
+      const userTxt = promptText || chatInput;
+      if (!userTxt || isChatLoading) return;
 
-    const userMsg = {
-      id: `usr-${Date.now()}`,
-      from: 'user',
-      text: rawTxt,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
+      const userMsg = {
+        id: `usr-${Date.now()}`,
+        role: 'user',
+        text: stripEmojis(userTxt),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
 
-    setCopilotMessages((prev) => [...prev, userMsg]);
-    setCopilotInput('');
-    setCopilotLoading(true);
+      setChatMessages((prev) => [...prev, userMsg]);
+      setChatInput('');
+      setIsChatLoading(true);
 
-    setTimeout(() => {
-      const q = rawTxt.toLowerCase();
-      let reply = '';
-      let newFilteredSet = null;
-      let badgeLabel = null;
+      setTimeout(() => {
+        const q = userTxt.toLowerCase().trim();
+        let reply = '';
+        let matched = skusList;
+        let matchedCol = targetCol;
 
-      // Intento de edición detectado: recordatorio de solo lectura
-      if (
-        q.includes('cambia') ||
-        q.includes('sube') ||
-        q.includes('baja') ||
-        q.includes('actualiza') ||
-        q.includes('edita') ||
-        q.includes('agrega') ||
-        q.includes('elimina') ||
-        q.includes('precio a ')
-      ) {
-        reply = 'Este visor opera en modo de **sola lectura y certificación** para `xml_actualizer_raw`. Para aplicar modificaciones o ajustes por lote, utiliza el **Catalog Matrix Live Editor** en la barra lateral.';
-      } else if (q.includes('quitar') || q.includes('limpiar') || q.includes('todos') || q.includes('reset')) {
-        setSelectedTypology('ALL');
-        setFilteredSkusSet(null);
-        setActiveFilterBadge(null);
-        setPriceRange({ min: '', max: '' });
-        setSearchTerm('');
-        reply = `Filtros restablecidos. Mostrando la totalidad de los **${products.length} productos** del XML certificado.`;
-      } else if (q.includes('silla') || q.includes('chair') || q.includes('seating')) {
-        setSelectedTypology('Sillas');
-        const count = stats.typologies['Sillas'] || 0;
-        reply = `Filtro activado: **Sillas** (${count} SKUs detectados). Tabla sincronizada en modo lectura.`;
-      } else if (q.includes('mesa') || q.includes('table')) {
-        setSelectedTypology('Mesas');
-        const count = stats.typologies['Mesas'] || 0;
-        reply = `Filtro activado: **Mesas** (${count} SKUs detectados). Tabla sincronizada en modo lectura.`;
-      } else if (q.includes('escritorio') || q.includes('desk') || q.includes('workstation')) {
-        setSelectedTypology('Escritorios');
-        const count = stats.typologies['Escritorios'] || 0;
-        reply = `Filtro activado: **Escritorios** (${count} SKUs detectados).`;
-      } else if (q.includes('almacen') || q.includes('storage') || q.includes('archiv')) {
-        setSelectedTypology('Almacenamiento');
-        const count = stats.typologies['Almacenamiento'] || 0;
-        reply = `Filtro activado: **Almacenamiento** (${count} SKUs detectados).`;
-      } else if (q.includes('lounge') || q.includes('sofa')) {
-        setSelectedTypology('Lounge / Sofás');
-        const count = stats.typologies['Lounge / Sofás'] || 0;
-        reply = `Filtro activado: **Lounge / Sofás** (${count} SKUs detectados).`;
-      } else if (q.includes('taburete') || q.includes('stool')) {
-        setSelectedTypology('Taburetes');
-        const count = stats.typologies['Taburetes'] || 0;
-        reply = `Filtro activado: **Taburetes** (${count} SKUs detectados).`;
-      } else if (q.includes('precio 0') || q.includes('sin precio') || q.includes('cero')) {
-        const matching = products.filter((p) => (Number(p.listPrice) || 0) === 0);
-        newFilteredSet = new Set(matching.map((p) => p.sku));
-        badgeLabel = `Sin Precio ($0) · ${matching.length} SKUs`;
-        setFilteredSkusSet(newFilteredSet);
-        setActiveFilterBadge(badgeLabel);
-        reply = `He aislado **${matching.length} productos** con precio de lista en $0.`;
-      } else if (q.includes('recargo') || q.includes('opcion') || q.includes('configurable')) {
-        const matching = products.filter((p) => p.optionsCount > 0);
-        newFilteredSet = new Set(matching.map((p) => p.sku));
-        badgeLabel = `Configurables · ${matching.length} SKUs`;
-        setFilteredSkusSet(newFilteredSet);
-        setActiveFilterBadge(badgeLabel);
-        reply = `He aislado **${matching.length} modelos configurables** que cuentan con opciones comerciales o recargos en el XML.`;
-      } else if (q.includes('cuanto') || q.includes('total') || q.includes('metrica') || q.includes('resumen')) {
-        reply = `El catálogo certificado cuenta con **${stats.total} productos**.\nPrecio Promedio: **${formatCurrency(stats.avgPrice)}** | Rango: **${formatCurrency(stats.minPrice)}** a **${formatCurrency(stats.maxPrice)}**.\nModelos configurables: **${stats.configurable}**.`;
-      } else {
-        // Búsqueda genérica
-        setSearchTerm(rawTxt);
-        reply = `Aplicando búsqueda por término: "${rawTxt}". Revisa las coincidencias en la matriz.`;
-      }
-
-      setCopilotMessages((prev) => [
-        ...prev,
-        {
-          id: `aly-${Date.now()}`,
-          from: 'alysa',
-          text: reply,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        // Detección de intentos de edición (modo solo lectura estricto)
+        if (
+          q.includes('cambia') ||
+          q.includes('sube') ||
+          q.includes('baja') ||
+          q.includes('actualiza') ||
+          q.includes('edita') ||
+          q.includes('precio a ') ||
+          q.includes('borra')
+        ) {
+          reply =
+            'Este visor opera exclusivamente en **modo lectura y certificación** para `xml_actualizer_raw`. Para aplicar modificaciones o ajustes por lote, utiliza la sección **Catalog Matrix Live Editor**.';
+        } else if (q.includes('quitar') || q.includes('limpiar') || q.includes('todos') || q.includes('reset')) {
+          setMcpActiveSkuFilter(null);
+          setSelectedTypologyFilter('');
+          setSelectedFamilyFilter('');
+          setFilterMode('all');
+          setSearchTerm('');
+          reply = `Filtros restablecidos. Mostrando la totalidad de los **${rows.length} productos** del XML certificado.`;
+        } else if (skusList && skusList.length > 0) {
+          matched = skusList;
+          reply = `He aislado **${skusList.length} productos** correspondientes al filtro "${filterLabel || promptText}".`;
+          setMcpActiveSkuFilter({
+            label: filterLabel || `${skusList.length} SKUs`,
+            targetCol: targetCol || null,
+            skuSet: new Set(skusList)
+          });
+        } else if (q.includes('silla') || q.includes('chair')) {
+          const match = rows.filter((r) => (r._typology || getProductTypology(r['Model Name'], r['Model #'])) === 'Sillas');
+          matched = match.map((r) => r['Model #']);
+          reply = `He aislado **${match.length} sillas** en la matriz.`;
+          setMcpActiveSkuFilter({
+            label: `Sillas (${match.length} SKUs)`,
+            targetCol: null,
+            skuSet: new Set(matched)
+          });
+        } else if (q.includes('mesa') || q.includes('table')) {
+          const match = rows.filter((r) => (r._typology || getProductTypology(r['Model Name'], r['Model #'])) === 'Mesas');
+          matched = match.map((r) => r['Model #']);
+          reply = `He aislado **${match.length} mesas** en la matriz.`;
+          setMcpActiveSkuFilter({
+            label: `Mesas (${match.length} SKUs)`,
+            targetCol: null,
+            skuSet: new Set(matched)
+          });
+        } else if (q.includes('escritorio') || q.includes('desk')) {
+          const match = rows.filter((r) => (r._typology || getProductTypology(r['Model Name'], r['Model #'])) === 'Escritorios');
+          matched = match.map((r) => r['Model #']);
+          reply = `He aislado **${match.length} escritorios** en la matriz.`;
+          setMcpActiveSkuFilter({
+            label: `Escritorios (${match.length} SKUs)`,
+            targetCol: null,
+            skuSet: new Set(matched)
+          });
+        } else {
+          setSearchTerm(userTxt);
+          reply = `Aplicando filtro de búsqueda por término: "${userTxt}". Revisa las coincidencias en la matriz.`;
         }
-      ]);
-      setCopilotLoading(false);
-    }, 400);
-  };
+
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: `aly-${Date.now()}`,
+            role: 'assistant',
+            text: stripEmojis(reply),
+            matchedSkus: matched || undefined,
+            filterLabel: filterLabel || undefined,
+            targetCol: matchedCol || undefined,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        setIsChatLoading(false);
+      }, 350);
+    },
+    [chatInput, isChatLoading, rows]
+  );
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [copilotMessages]);
+  }, [chatMessages]);
 
-  // Líneas del XML para el visor de código con numeración y búsqueda
+  // Líneas del XML crudo para el visor de código
   const xmlLines = useMemo(() => {
     if (!xmlContent) return [];
     const lines = xmlContent.split('\n');
@@ -625,19 +860,19 @@ export default function XMLActualizerViewer({
         <div className="flex items-center gap-2">
           <button
             onClick={loadCertifiedXml}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
-              isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white border-white/20' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold border cursor-pointer ${
+              isDarkMode ? 'bg-white text-zinc-950 border-white hover:bg-zinc-200' : 'bg-[#18181b] text-white border-[#18181b] hover:bg-zinc-800'
             }`}
           >
-            Reintentar
+            <RefreshCw size={12} /> Reintentar
           </button>
           <button
             onClick={onBack}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
-              isDarkMode ? 'bg-transparent hover:bg-white/5 text-zinc-400 border-white/10' : 'bg-transparent hover:bg-slate-100 text-slate-600 border-slate-200'
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold border cursor-pointer ${
+              isDarkMode ? 'bg-white/10 hover:bg-white/15 text-white border-white/15' : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-200'
             }`}
           >
-            Volver
+            <ArrowLeft size={12} /> Volver
           </button>
         </div>
       </div>
@@ -645,456 +880,397 @@ export default function XMLActualizerViewer({
   }
 
   return (
-    <div className={`w-full h-full flex flex-col overflow-hidden font-sans select-none ${isDarkMode ? 'bg-[#09090b] text-zinc-100' : 'bg-[#fafafa] text-slate-900'}`}>
-      {/* ── TOP HEADER TOOLBAR ── */}
-      <header className={`w-full flex-shrink-0 flex items-center justify-between px-3.5 py-2 border-b transition-colors z-20 ${
-        isDarkMode ? 'bg-[#09090b]/95 border-white/10 shadow-[0_1px_15px_rgba(0,0,0,0.5)]' : 'bg-white/95 border-slate-200 shadow-xs'
-      }`}>
-        <div className="flex items-center gap-3 min-w-0">
-          <button
-            type="button"
-            onClick={onBack}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-all cursor-pointer ${
-              isDarkMode ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+    <div className={`w-full h-full flex flex-col font-sans antialiased select-none ${isDarkMode ? 'text-zinc-100' : 'text-slate-900'}`}>
+      {/* ── CONTENEDOR PRINCIPAL DIVIDIDO (IDÉNTICO A EXPORT DATA CLIENT): IZQUIERDA TABLA / DERECHA CHAT ALYSA RESIZABLE ── */}
+      <div
+        ref={splitContainerRef}
+        className="flex-1 w-full min-h-0 flex flex-col lg:flex-row overflow-hidden relative"
+      >
+        {/* Overlay invisible durante el resize */}
+        {isResizingChat && (
+          <div className="fixed inset-0 z-[9999] cursor-col-resize select-none" />
+        )}
+
+        {/* ── COLUMNA IZQUIERDA: HERRAMIENTAS, TABLA INTERACTIVA O VISOR XML (IDÉNTICO EN ANCHO Y ESTILOS) ── */}
+        <div
+          style={isLgScreen ? { width: `${100 - chatWidthPercent}%` } : undefined}
+          className="w-full min-w-0 h-full flex flex-col overflow-hidden"
+        >
+          {/* ── SUB-BARRA DE HERRAMIENTAS: BÚSQUEDA, FILTROS Y ACCIONES (OCUPA EL 100% HASTA EL CHAT) ── */}
+          <div
+            className={`w-full min-w-full flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b backdrop-blur-md ${
+              isDarkMode ? 'bg-zinc-950/70 border-white/10' : 'bg-white/90 border-slate-200'
             }`}
-            title="Volver a la vista principal"
           >
-            <ArrowLeft size={12} />
-            <span className="hidden sm:inline">Volver</span>
-          </button>
-
-          <div className="flex items-center gap-2 min-w-0">
-            <span className={`text-[12px] font-bold tracking-tight truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-              Visualizador XML Certificado
-            </span>
-            <span className="hidden md:inline-block text-[10px] text-zinc-500">·</span>
-            <span className="hidden md:inline-block text-[11px] font-mono text-zinc-400 truncate max-w-[140px]">
-              {catalogName}.xml
-            </span>
-
-            {isFallbackXml ? (
-              <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border ${
-                isDarkMode ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-200'
-              }`}>
-                Base Original
-              </span>
-            ) : (
-              <span className={`text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-                isDarkMode ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              }`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                xml_actualizer_raw Certificado
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* CONTROLES CENTRALES: SWITCH MATRIZ / XML CRUDO */}
-        <div className="flex items-center gap-2">
-          <div className={`p-0.5 rounded-lg border flex items-center gap-0.5 ${
-            isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
-          }`}>
-            <button
-              type="button"
-              onClick={() => setViewMode('matrix')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                viewMode === 'matrix'
-                  ? isDarkMode
-                    ? 'bg-white text-zinc-950 shadow-sm'
-                    : 'bg-white text-slate-900 shadow-sm'
-                  : isDarkMode
-                    ? 'text-zinc-400 hover:text-white'
-                    : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <Table size={12} />
-              <span>Matriz de Productos</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('xml')}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                viewMode === 'xml'
-                  ? isDarkMode
-                    ? 'bg-white text-zinc-950 shadow-sm'
-                    : 'bg-white text-slate-900 shadow-sm'
-                  : isDarkMode
-                    ? 'text-zinc-400 hover:text-white'
-                    : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <Code2 size={12} />
-              <span>Código XML</span>
-            </button>
-          </div>
-
-          {/* BOTONES DE EXPORTACIÓN */}
-          <button
-            type="button"
-            onClick={handleDownloadXml}
-            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
-              isDarkMode ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
-            }`}
-            title="Descargar archivo xml_actualizer_raw oficial"
-          >
-            <Download size={12} />
-            <span className="hidden sm:inline">Descargar .xml</span>
-          </button>
-
-          {viewMode === 'matrix' && (
-            <button
-              type="button"
-              onClick={handleExportExcel}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
-                isDarkMode ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
-              }`}
-              title="Exportar matriz estructurada a Excel (.xlsx)"
-            >
-              <Table size={12} />
-              <span className="hidden sm:inline">Exportar Excel</span>
-            </button>
-          )}
-
-          {/* TOGGLE ALYSA COPILOT */}
-          <button
-            type="button"
-            onClick={() => setIsCopilotOpen((prev) => !prev)}
-            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
-              isCopilotOpen
-                ? isDarkMode
-                  ? 'bg-white/15 text-white border-white/30'
-                  : 'bg-slate-200 text-slate-900 border-slate-300'
-                : isDarkMode
-                  ? 'bg-white/5 text-zinc-400 border-white/10 hover:text-white'
-                  : 'bg-white text-slate-600 border-slate-200 hover:text-slate-900'
-            }`}
-            title="Mostrar / Ocultar Alysa Copilot (Filtros y consultas)"
-          >
-            <Sparkles size={12} className={isCopilotOpen ? (isDarkMode ? 'text-white' : 'text-slate-900') : 'text-zinc-400'} />
-            <span className="hidden md:inline">Alysa Filtros</span>
-          </button>
-        </div>
-      </header>
-
-      {/* ── BANNER INFORMATIVO SI ES FALLBACK ── */}
-      {isFallbackXml && (
-        <div className={`w-full px-4 py-1.5 text-[11px] flex items-center justify-between border-b ${
-          isDarkMode ? 'bg-amber-500/10 text-amber-200 border-amber-500/20' : 'bg-amber-50 text-amber-800 border-amber-200'
-        }`}>
-          <div className="flex items-center gap-2">
-            <Info size={13} className="shrink-0" />
-            <span>
-              Aún no se ha ejecutado <strong>/executeProcess</strong> en esta sesión. Mostrando el catálogo base original mientras tanto.
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* ── CUERPO PRINCIPAL DIVIDIDO: MATRIZ / XML + ALYSA COPILOT ── */}
-      <div className="w-full flex-1 min-h-0 flex overflow-hidden relative">
-        {/* ÁREA CENTRAL: VISTA MATRIZ O CÓDIGO XML */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-          {viewMode === 'matrix' ? (
-            <>
-              {/* TOOLBAR SECUNDARIA DE FILTROS EN MATRIZ */}
-              <div className={`flex-shrink-0 w-full flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 border-b ${
-                isDarkMode ? 'bg-white/[0.02] border-white/10 text-zinc-300' : 'bg-white border-slate-200 text-slate-700'
-              }`}>
-                <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                  {/* Selector rápido de Tipología */}
-                  <div className="flex items-center gap-1.5">
-                    <Tag size={12} className="text-zinc-400" />
-                    <select
-                      value={selectedTypology}
-                      onChange={(e) => setSelectedTypology(e.target.value)}
-                      className={`text-[11px] font-semibold rounded-md px-2 py-1 border transition-colors focus:outline-none cursor-pointer ${
-                        isDarkMode
-                          ? 'bg-zinc-900 border-white/15 text-zinc-200 focus:border-white/30'
-                          : 'bg-white border-slate-300 text-slate-800 focus:border-slate-400 shadow-xs'
-                      }`}
-                    >
-                      <option value="ALL">Todas las tipologías ({stats.total})</option>
-                      {Object.entries(stats.typologies).map(([typKey, count]) => (
-                        <option key={typKey} value={typKey}>
-                          {typKey} ({count})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Badges de filtros activos */}
-                  {activeFilterBadge && (
-                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                      isDarkMode ? 'bg-white/10 text-zinc-200 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-300'
-                    }`}>
-                      <span>{activeFilterBadge}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveFilterBadge(null);
-                          setFilteredSkusSet(null);
-                        }}
-                        className="hover:opacity-75 cursor-pointer ml-0.5"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  )}
-
-                  {selectedTypology !== 'ALL' && (
-                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                      isDarkMode ? 'bg-white/10 text-zinc-200 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-300'
-                    }`}>
-                      <span>Tipología: {selectedTypology}</span>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedTypology('ALL')}
-                        className="hover:opacity-75 cursor-pointer ml-0.5"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  )}
-
-                  <span className="text-[11px] text-zinc-500">
-                    {filteredProducts.length} de {stats.total} SKUs
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {/* Buscador en vivo */}
-                  <div className="relative flex items-center">
-                    <Search size={11} className="absolute left-2.5 text-zinc-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Buscar SKU o nombre..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className={`rounded-md pl-7 pr-2.5 py-1 text-[11px] w-[160px] sm:w-[200px] border transition-colors focus:outline-none ${
-                        isDarkMode
-                          ? 'bg-zinc-900 border-white/15 text-white placeholder:text-zinc-500 focus:border-white/30'
-                          : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-slate-400 shadow-xs'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Botón Filtros Drawer */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Buscador inteligente */}
+              <div className="relative flex items-center">
+                <Search size={11} className={`absolute left-2.5 ${isDarkMode ? 'text-zinc-400' : 'text-slate-400'} pointer-events-none`} />
+                <input
+                  type="text"
+                  placeholder="Buscar por Model #, descripción o tipo (mesas, sillas)..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={`rounded-md pl-7 pr-6 py-1 text-[10.5px] w-[180px] sm:w-[245px] focus:outline-none border transition-all ${
+                    isDarkMode
+                      ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
+                      : 'bg-slate-100/80 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white'
+                  }`}
+                />
+                {searchTerm && (
                   <button
                     type="button"
-                    onClick={() => setIsFilterDrawerOpen((prev) => !prev)}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
-                      isFilterDrawerOpen
-                        ? isDarkMode
-                          ? 'bg-white/15 text-white border-white/30'
-                          : 'bg-slate-200 text-slate-900 border-slate-300'
-                        : isDarkMode
-                          ? 'bg-white/5 text-zinc-300 border-white/15 hover:bg-white/10'
-                          : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                    }`}
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2 text-zinc-400 hover:text-white cursor-pointer"
                   >
-                    <SlidersHorizontal size={11} />
-                    <span>Filtros</span>
+                    <X size={10} />
                   </button>
-                </div>
+                )}
               </div>
 
-              {/* DRAWER COLAPSABLE DE FILTROS AVANZADOS */}
-              {isFilterDrawerOpen && (
-                <div className={`flex-shrink-0 w-full p-3 border-b flex flex-wrap items-center gap-4 text-xs ${
-                  isDarkMode ? 'bg-[#121215] border-white/10 text-zinc-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+              {/* Pestañas de filtro de estado */}
+              {viewMode === 'matrix' && (
+                <div className={`flex items-center border rounded-md overflow-hidden ${
+                  isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
                 }`}>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[11px]">Rango de Precio:</span>
-                    <input
-                      type="number"
-                      placeholder="Min $"
-                      value={priceRange.min}
-                      onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))}
-                      className={`w-20 px-2 py-0.5 rounded text-[11px] border ${
-                        isDarkMode ? 'bg-zinc-900 border-white/15 text-white' : 'bg-white border-slate-300 text-slate-900'
-                      }`}
-                    />
-                    <span>-</span>
-                    <input
-                      type="number"
-                      placeholder="Max $"
-                      value={priceRange.max}
-                      onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))}
-                      className={`w-20 px-2 py-0.5 rounded text-[11px] border ${
-                        isDarkMode ? 'bg-zinc-900 border-white/15 text-white' : 'bg-white border-slate-300 text-slate-900'
-                      }`}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const matching = products.filter((p) => p.optionsCount === 0);
-                        setFilteredSkusSet(new Set(matching.map((p) => p.sku)));
-                        setActiveFilterBadge(`Solo Modelos Base (${matching.length})`);
-                      }}
-                      className={`px-2 py-1 rounded text-[10.5px] font-semibold border ${
-                        isDarkMode ? 'bg-white/5 hover:bg-white/15 border-white/15' : 'bg-white hover:bg-slate-100 border-slate-300'
-                      }`}
-                    >
-                      Solo Modelos Base (Sin recargos)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const matching = products.filter((p) => p.optionsCount > 0);
-                        setFilteredSkusSet(new Set(matching.map((p) => p.sku)));
-                        setActiveFilterBadge(`Con Recargos XML (${matching.length})`);
-                      }}
-                      className={`px-2 py-1 rounded text-[10.5px] font-semibold border ${
-                        isDarkMode ? 'bg-white/5 hover:bg-white/15 border-white/15' : 'bg-white hover:bg-slate-100 border-slate-300'
-                      }`}
-                    >
-                      Con Recargos XML (&gt;0)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPriceRange({ min: '', max: '' });
-                        setFilteredSkusSet(null);
-                        setActiveFilterBadge(null);
-                        setSelectedTypology('ALL');
-                        setSearchTerm('');
-                      }}
-                      className="text-[10.5px] text-zinc-400 hover:text-white underline ml-2"
-                    >
-                      Limpiar filtros
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('all')}
+                    className={`px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer ${
+                      filterMode === 'all'
+                        ? isDarkMode
+                          ? 'bg-white text-zinc-950 font-bold'
+                          : 'bg-[#18181b] text-white font-bold'
+                        : isDarkMode
+                          ? 'text-zinc-400 hover:text-white'
+                          : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Todos ({rows.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('configurable')}
+                    className={`px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer border-l ${
+                      isDarkMode ? 'border-white/10' : 'border-slate-200'
+                    } ${
+                      filterMode === 'configurable'
+                        ? isDarkMode
+                          ? 'bg-white text-zinc-950 font-bold'
+                          : 'bg-[#18181b] text-white font-bold'
+                        : isDarkMode
+                          ? 'text-zinc-400 hover:text-white'
+                          : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Configurables ({rows.filter((r) => r._optionsCount > 0).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterMode('base')}
+                    className={`px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer border-l ${
+                      isDarkMode ? 'border-white/10' : 'border-slate-200'
+                    } ${
+                      filterMode === 'base'
+                        ? isDarkMode
+                          ? 'bg-white text-zinc-950 font-bold'
+                          : 'bg-[#18181b] text-white font-bold'
+                        : isDarkMode
+                          ? 'text-zinc-400 hover:text-white'
+                          : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Base ({rows.filter((r) => !r._optionsCount || r._optionsCount === 0).length})
+                  </button>
                 </div>
               )}
 
-              {/* TABLA VIRTUALIZADA DE PRODUCTOS (SOLO LECTURA) */}
-              <div
-                ref={tableContainerRef}
-                onScroll={handleTableScroll}
-                className="w-full flex-1 overflow-auto custom-scrollbar relative"
+              {/* Selector compacto de Tipología de Producto */}
+              {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && viewMode === 'matrix' && (
+                <div className="flex items-center gap-1">
+                  <select
+                    value={selectedTypologyFilter}
+                    onChange={(e) => {
+                      const tipoVal = e.target.value;
+                      setSelectedTypologyFilter(tipoVal);
+                      if (!tipoVal) {
+                        if (mcpActiveSkuFilter?.label?.startsWith('Tipología: ')) {
+                          setMcpActiveSkuFilter(null);
+                        }
+                      } else {
+                        const targetTipo = catalogFacets.tipologias.find((t) => t.label === tipoVal);
+                        if (targetTipo) {
+                          setMcpActiveSkuFilter({
+                            label: `Tipología: ${targetTipo.label}`,
+                            targetCol: null,
+                            skuSet: new Set(targetTipo.skus)
+                          });
+                        }
+                      }
+                    }}
+                    className={`px-2 py-1 text-[10px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
+                      selectedTypologyFilter
+                        ? isDarkMode
+                          ? 'bg-white text-zinc-950 font-bold border-white'
+                          : 'bg-zinc-900 text-white font-bold border-zinc-900'
+                        : isDarkMode
+                          ? 'bg-zinc-900 border-white/15 text-zinc-200 hover:border-white/30'
+                          : 'bg-white border-slate-200 text-slate-800 hover:border-slate-400'
+                    }`}
+                    title="Filtrar matriz por tipología (Mesas, Sillas, Escritorios...)"
+                  >
+                    <option value="" className={isDarkMode ? 'bg-zinc-900 text-zinc-300' : 'bg-white text-slate-800'}>
+                      Tipología: Todas ({catalogFacets.tipologias.length})
+                    </option>
+                    {catalogFacets.tipologias.map((t) => (
+                      <option key={t.id} value={t.label} className={isDarkMode ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-900'}>
+                        {t.label} ({t.skus.length})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Indicador de filtro activo ejecutado por MCP o Tipología */}
+              {mcpActiveSkuFilter && (
+                <div
+                  className={`flex items-center gap-1.5 px-2 py-1 border rounded-md text-[9.5px] font-mono select-none ${
+                    isDarkMode
+                      ? 'bg-white/10 border-white/20 text-white'
+                      : 'bg-slate-900 text-white border-slate-900'
+                  }`}
+                >
+                  <Sparkles size={10} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-200'} shrink-0`} />
+                  <span>Filtro activo: {mcpActiveSkuFilter.label}</span>
+                  {mcpActiveSkuFilter.targetCol && (
+                    <span className="opacity-80">
+                      · Columna: <strong className="underline underline-offset-2">{mcpActiveSkuFilter.targetCol}</strong>
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMcpActiveSkuFilter(null);
+                      setSelectedFamilyFilter('');
+                      setSelectedTypologyFilter('');
+                    }}
+                    className="ml-0.5 opacity-70 hover:opacity-100 cursor-pointer"
+                    title="Quitar filtro de la tabla"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Acciones de la barra: Switch Vista Matriz / Código XML, Descargar XML, Exportar Excel y Volver */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {/* Botón Switch Modo de Vista */}
+              <button
+                type="button"
+                onClick={() => setViewMode(viewMode === 'matrix' ? 'xml' : 'matrix')}
+                className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15'
+                    : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'
+                }`}
+                title={viewMode === 'matrix' ? 'Ver código XML sin procesar' : 'Ver matriz visual de productos'}
               >
-                <table className="w-full border-collapse text-left text-[11px]">
-                  <thead className={`sticky top-0 z-10 text-[10.5px] font-bold uppercase tracking-wider border-b ${
-                    isDarkMode ? 'bg-[#121215] text-zinc-400 border-white/10' : 'bg-slate-100 text-slate-600 border-slate-200'
-                  }`}>
+                {viewMode === 'matrix' ? <Code2 size={11} /> : <Table size={11} />}
+                <span>{viewMode === 'matrix' ? 'Ver Código XML' : 'Ver Matriz'}</span>
+              </button>
+
+              {/* Botón Descargar XML oficial */}
+              <button
+                type="button"
+                onClick={handleDownloadXml}
+                className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isDarkMode
+                    ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15'
+                    : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'
+                }`}
+                title="Descargar archivo XML certificado"
+              >
+                <Download size={11} />
+                <span>Descargar .xml</span>
+              </button>
+
+              {/* Botón oficial de Exportar a Excel (.xlsx) */}
+              {viewMode === 'matrix' && (
+                <button
+                  type="button"
+                  onClick={exportToExcel}
+                  className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                    isDarkMode
+                      ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white font-bold'
+                      : 'bg-[#18181b] text-white hover:bg-zinc-800 border-[#18181b] font-bold'
+                  }`}
+                  title="Descargar matriz en formato Excel (.xlsx)"
+                >
+                  <Download size={11} />
+                  <span>Export Excel</span>
+                </button>
+              )}
+
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
+                    isDarkMode
+                      ? 'bg-white/5 hover:bg-white/15 text-zinc-300 border-white/15'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
+                  title="Volver al proceso principal"
+                >
+                  <ArrowLeft size={11} />
+                  <span className="hidden sm:inline">Volver</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* BANNER DE AVISO SI ES FALLBACK */}
+          {isFallbackXml && (
+            <div className={`w-full px-3 py-1.5 text-[10px] font-mono flex items-center justify-between border-b ${
+              isDarkMode ? 'bg-amber-500/10 text-amber-200 border-amber-500/20' : 'bg-amber-50 text-amber-800 border-amber-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <Info size={12} className="shrink-0" />
+                <span>Catálogo base original mostrado. Ejecuta <strong>/executeProcess</strong> para generar la versión certificada.</span>
+              </div>
+            </div>
+          )}
+
+          {/* ── CUERPO: TABLA MATRICIAL VIRTUALIZADA O VISOR DE CÓDIGO XML ── */}
+          {viewMode === 'matrix' ? (
+            <div
+              ref={tableContainerRef}
+              onScroll={handleTableScroll}
+              className={`flex-1 min-h-0 w-full overflow-auto custom-scrollbar relative ${
+                isDarkMode ? 'bg-transparent' : 'bg-white/40'
+              }`}
+            >
+              {filteredRows.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <Table size={28} className="opacity-30 mb-2" />
+                  <p className="text-xs font-semibold opacity-70">No hay productos que coincidan con los filtros aplicados</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setMcpActiveSkuFilter(null);
+                      setSelectedTypologyFilter('');
+                      setSelectedFamilyFilter('');
+                      setFilterMode('all');
+                    }}
+                    className={`mt-2 px-2.5 py-1 rounded text-[10px] font-semibold border cursor-pointer ${
+                      isDarkMode ? 'bg-white/5 hover:bg-white/10 border-white/10' : 'bg-white hover:bg-slate-100 border-slate-300'
+                    }`}
+                  >
+                    Restablecer filtros
+                  </button>
+                </div>
+              ) : (
+                <table className="w-full border-collapse text-left font-mono text-[10.5px]">
+                  <thead
+                    className={`sticky top-0 z-20 backdrop-blur-md border-b select-none ${
+                      isDarkMode
+                        ? 'bg-[#09090b]/95 border-white/10 text-zinc-300'
+                        : 'bg-white/95 border-slate-200 text-slate-700'
+                    }`}
+                  >
                     <tr>
-                      <th className="py-2 px-3 w-12 text-center border-r border-transparent">#</th>
-                      <th className="py-2 px-3 min-w-[130px] border-r border-transparent">Model # (SKU)</th>
-                      <th className="py-2 px-3 min-w-[110px] text-right border-r border-transparent">List Price</th>
-                      <th className="py-2 px-3 min-w-[80px] border-r border-transparent">Weight</th>
-                      <th className="py-2 px-3 min-w-[130px] border-r border-transparent">Tipología</th>
-                      <th className="py-2 px-3 min-w-[240px] border-r border-transparent">Model Name</th>
-                      {optionColumns.map((col) => (
-                        <th key={col} className="py-2 px-3 min-w-[110px] text-right font-mono text-[10px] border-r border-transparent">
-                          {col}
+                      <th className="py-2 px-2.5 text-[9.5px] font-bold uppercase tracking-wider text-center w-10 border-r border-transparent">
+                        #
+                      </th>
+                      {headers.map((h, colIdx) => (
+                        <th
+                          key={h}
+                          className={`py-2 px-3 text-[9.5px] font-bold uppercase tracking-wider border-r border-transparent ${
+                            h === 'List Price' || !BASE_HEADERS.includes(h) ? 'text-right' : 'text-left'
+                          } ${colIdx < 5 ? 'font-sans' : 'font-mono text-zinc-400'}`}
+                        >
+                          {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Espaciador superior virtual */}
                     {virtualWindow.topSpacerHeight > 0 && (
-                      <tr style={{ height: `${virtualWindow.topSpacerHeight}px` }}>
-                        <td colSpan={6 + optionColumns.length} />
+                      <tr aria-hidden="true" style={{ height: `${virtualWindow.topSpacerHeight}px` }}>
+                        <td colSpan={headers.length + 1} className="p-0 border-0" />
                       </tr>
                     )}
 
-                    {virtualWindow.visibleRows.length === 0 ? (
-                      <tr>
-                        <td colSpan={6 + optionColumns.length} className="py-12 text-center text-zinc-500">
-                          No se encontraron productos que coincidan con los filtros actuales.
-                        </td>
-                      </tr>
-                    ) : (
-                      virtualWindow.visibleRows.map((prod, idx) => {
-                        const globalIdx = virtualWindow.startIdx + idx + 1;
-                        const isEven = globalIdx % 2 === 0;
-                        return (
-                          <tr
-                            key={prod.sku}
-                            className={`border-b transition-colors ${
-                              isEven
-                                ? isDarkMode
-                                  ? 'bg-white/[0.015]'
-                                  : 'bg-slate-50/60'
-                                : 'bg-transparent'
-                            } ${
-                              isDarkMode
-                                ? 'border-white/5 hover:bg-white/[0.04]'
-                                : 'border-slate-100 hover:bg-slate-100/70'
-                            }`}
-                            style={{ height: `${ROW_HEIGHT}px` }}
-                          >
-                            <td className="py-1.5 px-3 text-center text-zinc-500 text-[10px]">
-                              {globalIdx}
-                            </td>
-                            <td className="py-1.5 px-3 font-mono font-semibold text-zinc-200">
-                              {prod.sku}
-                            </td>
-                            <td className="py-1.5 px-3 text-right font-mono font-semibold text-emerald-400">
-                              {formatCurrency(prod.listPrice)}
-                            </td>
-                            <td className="py-1.5 px-3 text-zinc-400">
-                              {prod.weight}
-                            </td>
-                            <td className="py-1.5 px-3">
-                              <span className={`px-2 py-0.5 rounded text-[9.5px] font-semibold border ${
-                                isDarkMode ? 'bg-white/5 text-zinc-300 border-white/10' : 'bg-slate-100 text-slate-700 border-slate-200'
-                              }`}>
-                                {prod.typology || 'Otros'}
-                              </span>
-                            </td>
-                            <td className="py-1.5 px-3 text-zinc-300 max-w-[320px] truncate" title={prod.modelName}>
-                              {prod.modelName || '---'}
-                            </td>
-                            {optionColumns.map((col) => {
-                              const val = prod.optionPrices[col];
-                              return (
-                                <td key={col} className="py-1.5 px-3 text-right font-mono text-[10px] text-zinc-400">
-                                  {val !== undefined ? formatCurrency(val) : '---'}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        );
-                      })
-                    )}
+                    {virtualWindow.visibleRows.map((row, idx) => {
+                      const globalRowIdx = virtualWindow.startIdx + idx + 1;
+                      const isEven = globalRowIdx % 2 === 0;
 
-                    {/* Espaciador inferior virtual */}
+                      return (
+                        <tr
+                          key={row['Model #'] || globalRowIdx}
+                          className={`border-b transition-colors ${
+                            isEven
+                              ? isDarkMode ? 'bg-white/[0.015]' : 'bg-slate-50/60'
+                              : 'bg-transparent'
+                          } ${
+                            isDarkMode ? 'border-white/5 hover:bg-white/[0.04]' : 'border-slate-100 hover:bg-slate-100/70'
+                          }`}
+                          style={{ height: `${ROW_HEIGHT}px` }}
+                        >
+                          {/* Columna de numeración */}
+                          <td className="py-1.5 px-2 text-center text-[9px] text-zinc-500 font-mono select-none">
+                            {globalRowIdx}
+                          </td>
+
+                          {/* Celdas de datos en modo solo lectura */}
+                          {headers.map((colKey) => {
+                            const val = row[colKey];
+                            const isPrice = colKey === 'List Price' || !BASE_HEADERS.includes(colKey);
+                            const isModel = colKey === 'Model #';
+
+                            let displayVal = val !== undefined && val !== null ? String(val) : '';
+                            if (isPrice && displayVal !== '' && !Number.isNaN(Number(displayVal)) && Number(displayVal) > 0) {
+                              displayVal = `$${Number(displayVal).toLocaleString('en-US', { minimumFractionDigits: Number(displayVal) % 1 === 0 ? 0 : 2 })}`;
+                            }
+
+                            return (
+                              <td
+                                key={colKey}
+                                className={`py-1.5 px-3 truncate ${
+                                  isPrice ? 'text-right font-mono' : 'text-left font-sans'
+                                } ${
+                                  isModel
+                                    ? isDarkMode ? 'font-bold text-white font-mono' : 'font-bold text-slate-900 font-mono'
+                                    : colKey === 'List Price'
+                                    ? 'text-emerald-400 font-semibold'
+                                    : isDarkMode ? 'text-zinc-300' : 'text-slate-700'
+                                }`}
+                                title={String(val || '')}
+                              >
+                                {displayVal || '---'}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+
                     {virtualWindow.bottomSpacerHeight > 0 && (
-                      <tr style={{ height: `${virtualWindow.bottomSpacerHeight}px` }}>
-                        <td colSpan={6 + optionColumns.length} />
+                      <tr aria-hidden="true" style={{ height: `${virtualWindow.bottomSpacerHeight}px` }}>
+                        <td colSpan={headers.length + 1} className="p-0 border-0" />
                       </tr>
                     )}
                   </tbody>
                 </table>
-              </div>
-
-              {/* FOOTER METRICAS MATRIZ */}
-              <footer className={`flex-shrink-0 px-3.5 py-1.5 border-t text-[10.5px] flex items-center justify-between ${
-                isDarkMode ? 'bg-[#09090b] border-white/10 text-zinc-400' : 'bg-white border-slate-200 text-slate-600'
-              }`}>
-                <div className="flex items-center gap-3">
-                  <span>Total: <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{stats.total}</strong> SKUs</span>
-                  <span>·</span>
-                  <span>Promedio: <strong className="text-emerald-400">{formatCurrency(stats.avgPrice)}</strong></span>
-                  <span>·</span>
-                  <span>Rango: {formatCurrency(stats.minPrice)} – {formatCurrency(stats.maxPrice)}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-zinc-500 font-mono">Modo Solo Lectura · Inyección Verificada</span>
-                </div>
-              </footer>
-            </>
+              )}
+            </div>
           ) : (
             /* VISTA DE CÓDIGO XML CRUDO */
-            <div className="w-full flex-1 flex flex-col min-h-0 overflow-hidden">
-              {/* Barra de herramientas para XML crudo */}
-              <div className={`flex-shrink-0 px-3.5 py-2 border-b flex items-center justify-between ${
-                isDarkMode ? 'bg-white/[0.02] border-white/10 text-zinc-300' : 'bg-white border-slate-200 text-slate-700'
+            <div className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
+              <div className={`px-3 py-1.5 border-b flex items-center justify-between text-[10.5px] ${
+                isDarkMode ? 'bg-zinc-950/70 border-white/10 text-zinc-400' : 'bg-white/90 border-slate-200 text-slate-600'
               }`}>
                 <div className="flex items-center gap-3">
                   <div className="relative flex items-center">
@@ -1104,48 +1280,35 @@ export default function XMLActualizerViewer({
                       placeholder="Buscar en XML..."
                       value={xmlSearchTerm}
                       onChange={(e) => setXmlSearchTerm(e.target.value)}
-                      className={`rounded-md pl-7 pr-2.5 py-1 text-[11px] w-[200px] border transition-colors focus:outline-none ${
+                      className={`rounded-md pl-7 pr-2.5 py-0.5 text-[10px] w-[180px] border transition-colors focus:outline-none ${
                         isDarkMode
                           ? 'bg-zinc-900 border-white/15 text-white placeholder:text-zinc-500 focus:border-white/30'
-                          : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-slate-400 shadow-xs'
+                          : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-slate-400'
                       }`}
                     />
                   </div>
-                  <span className="text-[11px] text-zinc-500 font-mono">
+                  <span className="font-mono text-[9.5px]">
                     {xmlLines.length} líneas · {(xmlContent.length / 1024).toFixed(1)} KB
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleCopyXml}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
-                      copiedXml
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                        : isDarkMode
-                          ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15'
-                          : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
-                    }`}
-                  >
-                    {copiedXml ? <Check size={12} /> : <Copy size={12} />}
-                    <span>{copiedXml ? 'Copiado' : 'Copiar XML'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadXml}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
-                      isDarkMode ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
-                    }`}
-                  >
-                    <Download size={12} />
-                    <span>Descargar</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyXml}
+                  className={`px-2.5 py-1 rounded text-[10px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
+                    copiedXml
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : isDarkMode
+                        ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15'
+                        : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
+                  }`}
+                >
+                  {copiedXml ? <Check size={11} /> : <Copy size={11} />}
+                  <span>{copiedXml ? 'Copiado' : 'Copiar XML'}</span>
+                </button>
               </div>
 
-              {/* Visor de código con scroll y numeración */}
-              <div className={`w-full flex-1 overflow-auto font-mono text-[11px] leading-5 p-3 custom-scrollbar ${
+              <div className={`flex-1 overflow-auto font-mono text-[11px] leading-5 p-3 custom-scrollbar ${
                 isDarkMode ? 'bg-[#060608] text-zinc-300' : 'bg-slate-900 text-slate-200'
               }`}>
                 {xmlLines.map((line) => (
@@ -1155,7 +1318,7 @@ export default function XMLActualizerViewer({
                       line.matched ? (isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/30') : ''
                     }`}
                   >
-                    <span className="w-12 text-right pr-4 text-zinc-600 select-none shrink-0">
+                    <span className="w-12 text-right pr-4 text-zinc-600 select-none shrink-0 font-mono text-[10px]">
                       {line.num}
                     </span>
                     <pre className="whitespace-pre overflow-x-visible font-mono">
@@ -1166,158 +1329,547 @@ export default function XMLActualizerViewer({
               </div>
             </div>
           )}
+
+          {/* ── BARRA DE ESTADO INFERIOR (IDÉNTICA A EXPORT DATA CLIENT) ── */}
+          <div
+            className={`w-full flex items-center justify-between py-1.5 px-3 bg-transparent border-t text-[10px] font-medium select-none ${
+              isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-500'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span>
+                Cols: <strong className={isDarkMode ? 'text-zinc-200' : 'text-slate-700'}>{headers.length}</strong>
+              </span>
+              <span className={isDarkMode ? 'text-white/20' : 'text-slate-300'}>•</span>
+              <span>
+                Showing <strong className={isDarkMode ? 'text-zinc-200' : 'text-slate-700'}>{filteredRows.length}</strong> of{' '}
+                <strong className={isDarkMode ? 'text-zinc-200' : 'text-slate-700'}>{rows.length}</strong> rows
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 font-mono text-[9.5px] opacity-80">
+              <span>
+                {filteredRows.length > 0
+                  ? `${virtualWindow.startIdx + 1}–${virtualWindow.endIdx} rendered`
+                  : '0 rendered'}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* ── PANEL LATERAL DE ALYSA COPILOT (SOLO LECTURA Y FILTROS) ── */}
-        {isCopilotOpen && (
-          <aside className={`w-[320px] sm:w-[350px] flex-shrink-0 h-full flex flex-col border-l transition-all z-10 ${
-            isDarkMode ? 'bg-[#0d0d10] border-white/10' : 'bg-white border-slate-200'
-          }`}>
-            {/* Header del Chat */}
-            <div className={`px-3.5 py-2.5 border-b flex items-center justify-between ${
-              isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-200 bg-slate-50'
-            }`}>
-              <div className="flex items-center gap-2">
-                <AlysaWordmark size={14} isDarkMode={isDarkMode} />
-                <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase tracking-widest ${
-                  isDarkMode ? 'bg-white/10 text-zinc-300 border-white/20' : 'bg-slate-200 text-slate-800 border-slate-300'
-                }`}>
-                  Filtros &amp; RAG
-                </span>
+        {/* ── SEPARADOR INTERACTIVO ARRASTRABLE (SPLITTER REDIMENSIONABLE HASTA 50VW) ── */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          onMouseDown={handleStartResize}
+          onDoubleClick={handleResetResize}
+          className={`hidden lg:flex flex-col items-center justify-center w-2 relative z-30 shrink-0 cursor-col-resize select-none group transition-colors ${
+            isResizingChat
+              ? isDarkMode ? 'bg-white/10' : 'bg-slate-300'
+              : isDarkMode ? 'bg-transparent hover:bg-white/5' : 'bg-transparent hover:bg-slate-100'
+          }`}
+          title="Arrastra para redimensionar el panel de Alysa (hasta 50vw). Doble clic para restablecer (28%)."
+        >
+          <div
+            className={`w-px h-full transition-colors ${
+              isResizingChat
+                ? isDarkMode ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]' : 'bg-zinc-900'
+                : isDarkMode ? 'bg-white/10 group-hover:bg-white/30' : 'bg-slate-200 group-hover:bg-slate-400'
+            }`}
+          />
+          <div
+            className={`absolute w-1 h-9 rounded-full transition-all duration-150 pointer-events-none ${
+              isResizingChat
+                ? isDarkMode ? 'bg-white scale-y-125' : 'bg-zinc-950 scale-y-125'
+                : isDarkMode
+                  ? 'bg-zinc-600 group-hover:bg-zinc-300'
+                  : 'bg-slate-400 group-hover:bg-slate-700'
+            }`}
+          />
+        </div>
+
+        {/* ── COLUMNA DERECHA: INTERFAZ DE CHAT ALYSA (IDÉNTICO A EXPORT DATA CLIENT, MODO LECTURA Y FILTROS) ── */}
+        <aside
+          style={isLgScreen ? { width: `${chatWidthPercent}%` } : undefined}
+          className={`w-full shrink-0 h-[340px] lg:h-full border-t lg:border-t-0 flex flex-col overflow-hidden relative ${
+            isDarkMode ? 'bg-transparent' : 'bg-white/60'
+          }`}
+        >
+          {/* Área de mensajes con scroll */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-3.5 py-4 space-y-3.5 custom-scrollbar select-text cursor-text">
+            {/* Mensaje de bienvenida oficial con el avatar SVG de Alysa */}
+            <div className="flex items-start gap-2.5">
+              <div className="flex-shrink-0 flex items-center justify-center pt-0.5">
+                <svg
+                  viewBox="60 180 870 640"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 flex-shrink-0 drop-shadow-sm"
+                >
+                  <rect x="593" y="197" width="153" height="149" rx="32" fill={isDarkMode ? '#d4d4d8' : '#27272a'} />
+                  <rect x="766" y="232" width="106" height="101" rx="22" fill="#a1a1aa" />
+                  <rect x="740" y="350" width="176" height="174" rx="36" fill={isDarkMode ? '#ffffff' : '#18181b'} />
+                  <path
+                    d="M 353 202 L 340 221 L 223 471 L 72 773 L 69 784 L 72 795 L 88 805 L 258 805 L 269 801 L 278 791 L 440 452 L 445 449 L 527 606 L 389 608 L 383 611 L 375 626 L 371 697 L 377 706 L 567 707 L 581 718 L 621 793 L 629 801 L 640 805 L 840 804 L 847 799 L 852 789 L 849 776 L 702 542 L 590 356 L 506 205 L 491 197 L 365 197 Z"
+                    fill={isDarkMode ? '#ffffff' : '#18181b'}
+                  />
+                </svg>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsCopilotOpen(false)}
-                className="text-zinc-400 hover:text-white cursor-pointer"
-                title="Cerrar panel"
-              >
-                <X size={14} />
-              </button>
-            </div>
 
-            {/* Mensajes del Chat */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar text-[11px]">
-              {copilotMessages.map((msg) => (
+              <div className="flex flex-col min-w-0 flex-1 gap-1.5">
+                <div className="flex items-baseline gap-1.5 px-0.5">
+                  <span className={`text-[10px] font-bold tracking-wide ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                    Alysa
+                  </span>
+                  <span className={`text-[9px] font-mono ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
+                    xml_actualizer_raw + RAG (Modo Lectura)
+                  </span>
+                </div>
+
                 <div
-                  key={msg.id}
-                  className={`flex flex-col ${msg.from === 'user' ? 'items-end' : 'items-start'}`}
-                >
-                  <div
-                    className={`max-w-[90%] p-2.5 rounded-lg border leading-relaxed ${
-                      msg.from === 'user'
-                        ? isDarkMode
-                          ? 'bg-white text-zinc-950 font-medium border-white'
-                          : 'bg-slate-900 text-white font-medium border-slate-900'
-                        : isDarkMode
-                          ? 'bg-white/[0.04] text-zinc-200 border-white/10'
-                          : 'bg-slate-50 text-slate-800 border-slate-200'
-                    }`}
-                  >
-                    <p className="whitespace-pre-line">{msg.text}</p>
-                  </div>
-                  <span className="text-[9px] text-zinc-500 mt-1 px-1">{msg.time}</span>
-                </div>
-              ))}
-              {copilotLoading && (
-                <div className="flex items-center gap-1.5 text-zinc-400 text-[10px] pl-1">
-                  <RefreshCw size={10} className="animate-spin" />
-                  <span>Alysa procesando consulta...</span>
-                </div>
-              )}
-              <div ref={chatBottomRef} />
-            </div>
-
-            {/* Chips de Sugerencia Rápida */}
-            <div className={`p-2 border-t flex flex-wrap gap-1 ${
-              isDarkMode ? 'border-white/10 bg-white/[0.01]' : 'border-slate-200 bg-slate-50'
-            }`}>
-              <button
-                type="button"
-                onClick={() => {
-                  setCopilotInput('filtra solo las sillas');
-                }}
-                className={`text-[9.5px] px-2 py-0.5 rounded-md border cursor-pointer transition-colors ${
-                  isDarkMode ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
-                }`}
-              >
-                Sillas
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setCopilotInput('filtra mesas');
-                }}
-                className={`text-[9.5px] px-2 py-0.5 rounded-md border cursor-pointer transition-colors ${
-                  isDarkMode ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
-                }`}
-              >
-                Mesas
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setCopilotInput('muestra modelos con recargo');
-                }}
-                className={`text-[9.5px] px-2 py-0.5 rounded-md border cursor-pointer transition-colors ${
-                  isDarkMode ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
-                }`}
-              >
-                Con recargo
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setCopilotInput('limpiar filtros');
-                }}
-                className={`text-[9.5px] px-2 py-0.5 rounded-md border cursor-pointer transition-colors ${
-                  isDarkMode ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
-                }`}
-              >
-                Restablecer
-              </button>
-            </div>
-
-            {/* Input de Consulta */}
-            <div className={`p-2.5 border-t ${
-              isDarkMode ? 'border-white/10 bg-[#09090b]' : 'border-slate-200 bg-white'
-            }`}>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleCopilotSend();
-                }}
-                className="flex items-center gap-1.5"
-              >
-                <input
-                  type="text"
-                  placeholder="Pídele a Alysa: 'filtra mesas', 'resumen'..."
-                  value={copilotInput}
-                  onChange={(e) => setCopilotInput(e.target.value)}
-                  className={`flex-1 text-[11px] px-2.5 py-1.5 rounded-md border focus:outline-none transition-colors ${
+                  className={`p-3 border rounded-xl text-[11px] leading-relaxed space-y-2 shadow-sm ${
                     isDarkMode
-                      ? 'bg-zinc-900 border-white/15 text-white placeholder:text-zinc-500 focus:border-white/30'
-                      : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-slate-400'
-                  }`}
-                />
-                <button
-                  type="submit"
-                  disabled={!copilotInput.trim() || copilotLoading}
-                  className={`p-1.5 rounded-md border transition-all cursor-pointer ${
-                    copilotInput.trim() && !copilotLoading
-                      ? isDarkMode
-                        ? 'bg-white text-zinc-950 border-white font-bold'
-                        : 'bg-slate-900 text-white border-slate-900 font-bold'
-                      : 'opacity-40 cursor-not-allowed border-transparent text-zinc-500'
+                      ? 'bg-[#09090b]/80 border-white/10 text-zinc-300 shadow-[0_4px_20px_rgba(0,0,0,0.35)]'
+                      : 'bg-white border-slate-200 text-gray-700 shadow-xs'
                   }`}
                 >
-                  <SendHorizonal size={12} />
-                </button>
-              </form>
+                  <p>
+                    Bienvenido al visor certificado del archivo <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>xml_actualizer_raw</code>. Estoy conectada para asistirte con filtros y consultas de inspección sobre el catálogo final para CET Designer.
+                  </p>
+
+                  {/* SELECTOR INTERACTIVO Y CATEGORIZADO DE FILTROS MCP */}
+                  <div className="pt-2 space-y-2 border-t border-white/10">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
+                        <SlidersHorizontal size={11} />
+                        Opciones de Recargo & Tiers XML
+                        <span className="opacity-60 text-[9px]">({(catalogFacets.options || []).length} filtros)</span>
+                      </span>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <label className="text-[9px] font-mono opacity-60">Tipo:</label>
+                            <select
+                              value={selectedTypologyFilter}
+                              onChange={(e) => {
+                                const tipoVal = e.target.value;
+                                setSelectedTypologyFilter(tipoVal);
+                                if (!tipoVal) {
+                                  if (mcpActiveSkuFilter?.label?.startsWith('Tipología: ')) {
+                                    setMcpActiveSkuFilter(null);
+                                  }
+                                } else {
+                                  const targetTipo = catalogFacets.tipologias.find((t) => t.label === tipoVal);
+                                  if (targetTipo) {
+                                    setMcpActiveSkuFilter({
+                                      label: `Tipología: ${targetTipo.label}`,
+                                      targetCol: null,
+                                      skuSet: new Set(targetTipo.skus)
+                                    });
+                                  }
+                                }
+                              }}
+                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
+                                selectedTypologyFilter
+                                  ? isDarkMode
+                                    ? 'bg-white text-zinc-950 font-bold border-white'
+                                    : 'bg-zinc-900 text-white font-bold border-zinc-900'
+                                  : isDarkMode
+                                    ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
+                                    : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
+                              }`}
+                            >
+                              <option value="">Todas las tipologías ({catalogFacets.tipologias.length})</option>
+                              {catalogFacets.tipologias.map((t) => (
+                                <option key={t.id} value={t.label}>
+                                  {t.label} ({t.badge})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {Array.isArray(catalogFacets.familias) && catalogFacets.familias.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <label className="text-[9px] font-mono opacity-60">Familia:</label>
+                            <select
+                              value={selectedFamilyFilter}
+                              onChange={(e) => {
+                                const famVal = e.target.value;
+                                setSelectedFamilyFilter(famVal);
+                                if (!famVal) {
+                                  if (mcpActiveSkuFilter?.label?.startsWith('Familia ')) {
+                                    setMcpActiveSkuFilter(null);
+                                  }
+                                } else {
+                                  const targetFam = catalogFacets.familias.find((f) => f.label === `Familia ${famVal}`);
+                                  if (targetFam) {
+                                    handleSendMatrixChat(targetFam.prompt, targetFam.skus, targetFam.label);
+                                  }
+                                }
+                              }}
+                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
+                                selectedFamilyFilter
+                                  ? isDarkMode
+                                    ? 'bg-white text-zinc-950 font-bold border-white'
+                                    : 'bg-zinc-900 text-white font-bold border-zinc-900'
+                                  : isDarkMode
+                                    ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
+                                    : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
+                              }`}
+                            >
+                              <option value="">Todas las familias ({catalogFacets.familias.length})</option>
+                              {catalogFacets.familias.map((f) => {
+                                const cleanName = f.label.replace('Familia ', '');
+                                return (
+                                  <option key={f.id} value={cleanName}>
+                                    {cleanName} ({f.badge})
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Chips interactivos de Tipologías */}
+                    {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 pt-1 pb-1 border-b border-white/10">
+                        <span className={`text-[9px] font-mono opacity-60 mr-1 flex items-center gap-1 shrink-0 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
+                          <Layers size={10} /> Tipologías:
+                        </span>
+                        {catalogFacets.tipologias.map((t) => {
+                          const isApplied = mcpActiveSkuFilter?.label === `Tipología: ${t.label}` || selectedTypologyFilter === t.label;
+                          return (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => {
+                                if (isApplied) {
+                                  setMcpActiveSkuFilter(null);
+                                  setSelectedTypologyFilter('');
+                                } else {
+                                  setMcpActiveSkuFilter({
+                                    label: `Tipología: ${t.label}`,
+                                    targetCol: null,
+                                    skuSet: new Set(t.skus)
+                                  });
+                                  setSelectedTypologyFilter(t.label);
+                                }
+                              }}
+                              title={`Filtrar ${t.label} (${t.skus.length} productos)`}
+                              className={`px-2 py-0.5 rounded text-[9px] font-mono border transition-all cursor-pointer flex items-center gap-1 ${
+                                isApplied
+                                  ? isDarkMode
+                                    ? 'bg-white text-zinc-950 font-bold border-white shadow-sm'
+                                    : 'bg-zinc-900 text-white font-bold border-zinc-900 shadow-sm'
+                                  : isDarkMode
+                                    ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'
+                                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+                              }`}
+                            >
+                              <span>{t.label}</span>
+                              <span className={`text-[8px] opacity-75 ${isApplied ? 'font-bold' : ''}`}>
+                                ({t.skus.length})
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Banner de Auditoría de Salud del XML */}
+                    {Array.isArray(catalogFacets.calidad) && catalogFacets.calidad.length > 0 ? (
+                      <div className={`p-1.5 border rounded-md text-[9.5px] font-mono flex flex-wrap items-center justify-between gap-1.5 ${
+                        isDarkMode
+                          ? 'bg-white/5 border-white/15 text-zinc-200'
+                          : 'bg-zinc-100 border-zinc-300 text-zinc-800'
+                      }`}>
+                        <div className="flex items-center gap-1.5">
+                          <AlertCircle size={11} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} shrink-0`} />
+                          <span className="font-bold">Modelos con precio $0:</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1">
+                          {catalogFacets.calidad.map((f) => (
+                            <button
+                              key={f.id}
+                              type="button"
+                              onClick={() => handleSendMatrixChat(f.prompt, f.skus, f.label)}
+                              className={`px-1.5 py-0.5 rounded border text-[8.5px] cursor-pointer flex items-center gap-1 transition-all ${
+                                isDarkMode
+                                  ? 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                                  : 'bg-white hover:bg-zinc-200 border-zinc-300 text-zinc-900'
+                              }`}
+                            >
+                              <span>{f.label}</span>
+                              <span className="font-bold">({f.badge})</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className={`flex items-center gap-1.5 text-[9px] font-mono pt-0.5 ${
+                        isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
+                      }`}>
+                        <CheckCircle2 size={10.5} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'} shrink-0`} />
+                        <span>Esquema XML 100% íntegro (Precios base, pesos y descripciones validados)</span>
+                      </div>
+                    )}
+
+                    {/* Chips inteligentes de recargos y opciones */}
+                    <div className="flex flex-wrap gap-1.5 pt-1 max-h-[190px] overflow-y-auto custom-scrollbar pr-0.5">
+                      {(catalogFacets.options || []).map((f) => {
+                        const isCurrentlyApplied = mcpActiveSkuFilter?.label === f.label;
+                        return (
+                          <div
+                            key={f.id}
+                            className={`flex items-center border rounded-md overflow-hidden transition-all ${
+                              isCurrentlyApplied
+                                ? isDarkMode
+                                  ? 'bg-white text-zinc-950 border-white shadow-sm font-bold'
+                                  : 'bg-zinc-900 text-white border-zinc-900 shadow-sm font-bold'
+                                : isDarkMode
+                                  ? 'bg-white/5 border-white/10 hover:border-white/20'
+                                  : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleSendMatrixChat(f.prompt, f.skus, f.label, f.targetCol)}
+                              className="px-2 py-1 text-left flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <span className="text-[10px] truncate max-w-[150px]">{f.label}</span>
+                              <span
+                                className={`px-1 py-0.2 rounded text-[8.5px] ${
+                                  isCurrentlyApplied
+                                    ? isDarkMode
+                                      ? 'bg-zinc-950 text-white font-bold'
+                                      : 'bg-white text-zinc-900 font-bold'
+                                    : isDarkMode
+                                      ? 'bg-white/10 text-zinc-200'
+                                      : 'bg-slate-200 text-slate-700 font-semibold'
+                                }`}
+                              >
+                                {f.badge}
+                              </span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isCurrentlyApplied) {
+                                  setMcpActiveSkuFilter(null);
+                                } else {
+                                  setMcpActiveSkuFilter({
+                                    label: f.label,
+                                    targetCol: f.targetCol || null,
+                                    skuSet: new Set(f.skus)
+                                  });
+                                }
+                              }}
+                              title={isCurrentlyApplied ? 'Quitar filtro de la tabla' : `Aislar ${f.badge} directamente en la tabla`}
+                              className={`px-1.5 py-1 border-l transition-colors cursor-pointer flex items-center gap-0.5 ${
+                                isCurrentlyApplied
+                                  ? isDarkMode
+                                    ? 'bg-zinc-200 text-zinc-950 border-zinc-300 hover:bg-white font-bold'
+                                    : 'bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700 font-bold'
+                                  : isDarkMode
+                                    ? 'border-white/10 hover:bg-white/20 text-zinc-300 hover:text-white'
+                                    : 'border-slate-200 hover:bg-slate-200 text-slate-600 hover:text-black'
+                              }`}
+                            >
+                              {isCurrentlyApplied ? <Check size={10} /> : <Zap size={10} />}
+                              <span className="text-[8.5px] font-sans uppercase font-bold tracking-wider">
+                                {isCurrentlyApplied ? 'Activo' : 'Tabla'}
+                              </span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </aside>
-        )}
+
+            {/* Historial de mensajes dinámicos */}
+            {chatMessages.map((msg) => {
+              if (msg.role === 'user') {
+                return (
+                  <div key={msg.id} className="flex justify-end">
+                    <div
+                      className={`max-w-[88%] px-3 py-2 border rounded-xl text-[11px] leading-relaxed ${
+                        isDarkMode
+                          ? 'bg-white text-zinc-950 border-white font-medium'
+                          : 'bg-[#18181b] text-white border-[#18181b] font-medium'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap break-words">{msg.text}</p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={msg.id} className="flex items-start gap-2.5">
+                  <div className="flex-shrink-0 flex items-center justify-center pt-0.5">
+                    <svg
+                      viewBox="60 180 870 640"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5 flex-shrink-0 drop-shadow-sm"
+                    >
+                      <rect x="593" y="197" width="153" height="149" rx="32" fill={isDarkMode ? '#d4d4d8' : '#27272a'} />
+                      <rect x="766" y="232" width="106" height="101" rx="22" fill="#a1a1aa" />
+                      <rect x="740" y="350" width="176" height="174" rx="36" fill={isDarkMode ? '#ffffff' : '#18181b'} />
+                      <path
+                        d="M 353 202 L 340 221 L 223 471 L 72 773 L 69 784 L 72 795 L 88 805 L 258 805 L 269 801 L 278 791 L 440 452 L 445 449 L 527 606 L 389 608 L 383 611 L 375 626 L 371 697 L 377 706 L 567 707 L 581 718 L 621 793 L 629 801 L 640 805 L 840 804 L 847 799 L 852 789 L 849 776 L 702 542 L 590 356 L 506 205 L 491 197 L 365 197 Z"
+                        fill={isDarkMode ? '#ffffff' : '#18181b'}
+                      />
+                    </svg>
+                  </div>
+
+                  <div className="flex flex-col min-w-0 flex-1 gap-1.5">
+                    <div className="flex items-baseline justify-between gap-1.5 px-0.5">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className={`text-[10px] font-bold tracking-wide ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                          Alysa
+                        </span>
+                        <span className={`text-[9px] font-mono ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
+                          {msg.time}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`p-3 border rounded-xl text-[11px] leading-relaxed space-y-2 shadow-sm overflow-x-auto ${
+                        isDarkMode
+                          ? 'bg-[#09090b]/80 border-white/10 text-zinc-300 shadow-[0_4px_20px_rgba(0,0,0,0.35)]'
+                          : 'bg-white border-slate-200 text-gray-700 shadow-xs'
+                      }`}
+                    >
+                      <div className="prose prose-xs max-w-none text-[10.5px] leading-relaxed">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                      </div>
+
+                      {Array.isArray(msg.matchedSkus) && msg.matchedSkus.length > 0 && (
+                        <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const targetLabel = msg.filterLabel || `${msg.matchedSkus.length} SKUs`;
+                              if (mcpActiveSkuFilter?.label === targetLabel) {
+                                setMcpActiveSkuFilter(null);
+                              } else {
+                                setMcpActiveSkuFilter({
+                                  label: targetLabel,
+                                  targetCol: msg.targetCol || null,
+                                  skuSet: new Set(msg.matchedSkus)
+                                });
+                              }
+                            }}
+                            className={`px-2 py-0.5 text-[9.5px] font-mono border rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                              mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`)
+                                ? isDarkMode
+                                  ? 'bg-white text-zinc-950 border-white shadow-sm font-bold'
+                                  : 'bg-zinc-900 text-white border-zinc-900 shadow-sm font-bold'
+                                : isDarkMode
+                                  ? 'bg-white/5 text-zinc-300 border-white/10 hover:text-white hover:bg-white/10'
+                                  : 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:text-black hover:bg-zinc-200'
+                            }`}
+                          >
+                            {mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`) ? (
+                              <>
+                                <Check size={10} className="shrink-0 text-white" />
+                                <span>Filtro activo en tabla ({msg.matchedSkus.length} SKUs) · Quitar</span>
+                              </>
+                            ) : (
+                              <>
+                                <Filter size={10} className="shrink-0" />
+                                <span>Aislar en tabla ({msg.matchedSkus.length} SKUs)</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {isChatLoading && (
+              <div className="flex items-center gap-2 text-zinc-400 text-[10px] pl-8">
+                <RefreshCw size={11} className="animate-spin text-zinc-400" />
+                <span className="font-mono">Alysa procesando consulta en xml_actualizer_raw...</span>
+              </div>
+            )}
+            <div ref={chatBottomRef} />
+          </div>
+
+          {/* ── BARRA INFERIOR DE INPUT DE CHAT (IDÉNTICA A EXPORT DATA CLIENT) ── */}
+          <div
+            className={`p-2.5 border-t relative z-10 backdrop-blur-md ${
+              isDarkMode ? 'bg-[#09090b]/80 border-white/10' : 'bg-white/90 border-slate-200'
+            }`}
+          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMatrixChat();
+              }}
+              className="flex items-center gap-1.5"
+            >
+              <div className="flex items-center gap-1 text-zinc-400">
+                <button
+                  type="button"
+                  title="Filtros por voz no disponibles"
+                  className="p-1 rounded hover:text-zinc-200 opacity-50 cursor-not-allowed"
+                >
+                  <Mic size={13} />
+                </button>
+                <button
+                  type="button"
+                  title="Adjuntar archivo deshabilitado en modo lectura"
+                  className="p-1 rounded hover:text-zinc-200 opacity-50 cursor-not-allowed"
+                >
+                  <Paperclip size={13} />
+                </button>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Pídele a Alysa: 'filtra mesas', 'sillas', 'cuántos productos hay'..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                disabled={isChatLoading}
+                className={`flex-1 min-w-0 text-[11px] px-3 py-1.5 rounded-lg border transition-all focus:outline-none ${
+                  isDarkMode
+                    ? 'bg-white/5 border-white/15 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
+                    : 'bg-slate-100 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white'
+                }`}
+              />
+
+              <button
+                type="submit"
+                disabled={!chatInput.trim() || isChatLoading}
+                className={`px-3 py-1.5 rounded-lg border text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  chatInput.trim() && !isChatLoading
+                    ? isDarkMode
+                      ? 'bg-white text-zinc-950 border-white hover:bg-zinc-200'
+                      : 'bg-[#18181b] text-white border-[#18181b] hover:bg-zinc-800'
+                    : 'opacity-40 cursor-not-allowed border-transparent text-zinc-500'
+                }`}
+              >
+                <SendHorizonal size={12} />
+              </button>
+            </form>
+          </div>
+        </aside>
       </div>
     </div>
   );
 }
-
