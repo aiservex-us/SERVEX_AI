@@ -1839,23 +1839,6 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 <span>Nuevo Producto</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => setShowBulkBar((v) => !v)}
-                className={`px-2.5 py-1 rounded-md text-[10.5px] font-semibold border flex items-center gap-1 transition-all cursor-pointer ${
-                  showBulkBar
-                    ? isDarkMode
-                      ? 'bg-white text-zinc-950 border-white'
-                      : 'bg-[#18181b] text-white border-[#18181b]'
-                    : isDarkMode
-                      ? 'bg-white/5 hover:bg-white/15 text-zinc-200 border-white/15'
-                      : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
-                }`}
-              >
-                <SlidersHorizontal size={11} />
-                <span>Ajuste en Lote</span>
-              </button>
-
               {/* Botón directo de Ejecutar Proceso / Comparación en Vivo */}
               <button
                 type="button"
