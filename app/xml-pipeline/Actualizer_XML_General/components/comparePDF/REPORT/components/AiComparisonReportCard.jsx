@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   Table,
   Copy,
-  Check
+  Check,
+  FileCode2
 } from 'lucide-react';
 import Papa from 'papaparse';
 
@@ -128,6 +129,52 @@ export default function AiComparisonReportCard({
     URL.revokeObjectURL(url);
   };
 
+  const [isDownloadingXml, setIsDownloadingXml] = useState(false);
+
+  const handleDownloadUpdatedXml = async () => {
+    try {
+      setIsDownloadingXml(true);
+      let xmlContent = typeof window !== 'undefined' ? sessionStorage.getItem('xml_actualizer_raw') : null;
+      if (!xmlContent) {
+        const { supabase } = await import('@/app/lib/supabaseClient');
+        const { data } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('xml_actualizer_raw, xml_raw, XM_CET_import')
+          .eq('company_name', 'General_Procces')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        xmlContent = data?.xml_actualizer_raw || data?.xml_raw || data?.XM_CET_import;
+      }
+
+      if (!xmlContent) {
+        alert("No se encontró contenido XML disponible para descargar.");
+        setIsDownloadingXml(false);
+        return;
+      }
+
+      if (typeof xmlContent === 'string' && (xmlContent.startsWith('http://') || xmlContent.startsWith('https://') || xmlContent.startsWith('[STORAGE_URL]:'))) {
+        const cleanUrl = xmlContent.replace('[STORAGE_URL]:', '').trim();
+        const res = await fetch(cleanUrl);
+        if (res.ok) xmlContent = await res.text();
+      }
+
+      const blob = new Blob([xmlContent], { type: 'application/xml;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `General_Procces_actualizado_${new Date().toISOString().slice(0, 10)}.xml`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("[-] Error descargando XML actualizado:", err);
+    } finally {
+      setIsDownloadingXml(false);
+    }
+  };
+
   return (
     <div className={`mt-3 space-y-3 font-sans text-left text-[13px] md:text-[13.5px] leading-relaxed  ${
       isDarkMode ? 'text-zinc-100' : 'text-gray-800'
@@ -151,30 +198,54 @@ export default function AiComparisonReportCard({
                 <h3 className={`text-[13.5px] font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
                   Auditoría Comparativa Matricial
                 </h3>
-                <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold ${
-                  isDarkMode ? 'bg-white/10 text-zinc-100 border border-white/15' : 'bg-slate-200 text-slate-800'
-                }`}>
-                  <ShieldCheck size={11} className="inline mr-1 opacity-70" /> XML Intacto
-                </span>
+                {changes.length > 0 ? (
+                  <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
+                    isDarkMode ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  }`}>
+                    <CheckCircle2 size={11} className="inline mr-0.5 text-emerald-400" /> xml_actualizer_raw Actualizado ({changes.length})
+                  </span>
+                ) : (
+                  <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
+                    isDarkMode ? 'bg-white/10 text-zinc-300 border border-white/15' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    <ShieldCheck size={11} className="inline mr-0.5 opacity-70" /> Catálogo Sincronizado
+                  </span>
+                )}
               </div>
               <p className={`text-xs mt-1 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                 Cotejo celda por celda entre catálogo base original y catálogo actualizado.
               </p>
             </div>
 
-            <button
-              onClick={handleDownloadDiffCsv}
-              disabled={!changes.length}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${
-                isDarkMode
-                  ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
-                  : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
-              }`}
-              title="Descargar solo las diferencias detectadas en CSV"
-            >
-              <Download size={13} />
-              <span>Exportar Discrepancias (.csv)</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleDownloadDiffCsv}
+                disabled={!changes.length}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${
+                  isDarkMode
+                    ? 'bg-zinc-900 text-zinc-200 hover:bg-zinc-800 border-zinc-700'
+                    : 'bg-white text-zinc-800 hover:bg-zinc-100 border-zinc-300'
+                }`}
+                title="Descargar solo las diferencias detectadas en CSV"
+              >
+                <Download size={13} />
+                <span>Exportar Discrepancias (.csv)</span>
+              </button>
+
+              <button
+                onClick={handleDownloadUpdatedXml}
+                disabled={isDownloadingXml}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
+                  isDarkMode
+                    ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
+                    : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
+                }`}
+                title="Descargar el XML maestro con las modificaciones inyectadas listo para CET Designer"
+              >
+                <FileCode2 size={13} />
+                <span>{isDownloadingXml ? 'Descargando...' : 'Descargar .xml Actualizado'}</span>
+              </button>
+            </div>
           </div>
         </div>
 

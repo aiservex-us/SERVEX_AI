@@ -225,6 +225,23 @@ export default function XMLActualizerViewer({
     loadCertifiedXml();
   }, [loadCertifiedXml]);
 
+  useEffect(() => {
+    const handleXmlActualizerUpdate = (event) => {
+      const updatedXml = event?.detail?.xml;
+      if (updatedXml && typeof updatedXml === 'string') {
+        setXmlContent(updatedXml);
+        parseXmlToMatrix(updatedXml);
+        setIsFallbackXml(false);
+      } else {
+        loadCertifiedXml();
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('xmlActualizerUpdated', handleXmlActualizerUpdate);
+      return () => window.removeEventListener('xmlActualizerUpdated', handleXmlActualizerUpdate);
+    }
+  }, [loadCertifiedXml]);
+
   // Parsear XML a la matriz de productos
   const parseXmlToMatrix = (xmlText) => {
     try {
