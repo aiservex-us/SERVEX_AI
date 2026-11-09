@@ -60,6 +60,87 @@ const stripEmojis = (str) => {
     .trim();
 };
 
+export const PRODUCT_TYPOLOGY_RULES = [
+  {
+    key: 'Sillas',
+    label: 'Sillas',
+    matchRegex: /(chair|chairs|seating|seat|seats|task chair|guest chair|stacker|stacking|side chair|armchair|silla|sillas|asiento|asientos|sillón|sillon|sillones)/i,
+    queryKeywords: ['silla', 'sillas', 'chair', 'chairs', 'seating', 'seat', 'asiento', 'asientos', 'sillon', 'sillones', 'sillón']
+  },
+  {
+    key: 'Mesas',
+    label: 'Mesas',
+    matchRegex: /(table|tables|mesa|mesas|conference table|meeting table|coffee table|side table|dining table|mesa redonda|mesa rectangular|occasional table)/i,
+    queryKeywords: ['mesa', 'mesas', 'table', 'tables', 'conferencia', 'conference']
+  },
+  {
+    key: 'Escritorios',
+    label: 'Escritorios',
+    matchRegex: /(desk|desks|workstation|workstations|credenza|credenzas|escritorio|escritorios|puesto de trabajo)/i,
+    queryKeywords: ['escritorio', 'escritorios', 'desk', 'desks', 'workstation', 'workstations', 'credenza']
+  },
+  {
+    key: 'Almacenamiento',
+    label: 'Almacenamiento',
+    matchRegex: /(storage|cabinet|cabinets|pedestal|pedestals|bookcase|bookcases|file|filing|lateral|locker|lockers|wardrobe|almacenamiento|archivero|archiveros|gabinete|gabinetes|armario|armarios|cajonera|cajoneras)/i,
+    queryKeywords: ['almacenamiento', 'archivo', 'archivos', 'archivero', 'archiveros', 'storage', 'cabinet', 'cabinets', 'file', 'pedestal', 'gabinete', 'locker', 'lockers', 'armario']
+  },
+  {
+    key: 'Lounge / Sofás',
+    label: 'Lounge / Sofás',
+    matchRegex: /(lounge|lounges|sofa|sofas|sofá|sofás|settee|settees|ottoman|ottomans|couch|couchs|puff|puffs|modular seating)/i,
+    queryKeywords: ['sofa', 'sofas', 'sofá', 'sofás', 'lounge', 'lounges', 'settee', 'ottoman', 'puff', 'couch']
+  },
+  {
+    key: 'Taburetes',
+    label: 'Taburetes',
+    matchRegex: /(stool|stools|taburete|taburetes|barstool|barstools|counter stool)/i,
+    queryKeywords: ['taburete', 'taburetes', 'stool', 'stools', 'barstool']
+  },
+  {
+    key: 'Bancas',
+    label: 'Bancas',
+    matchRegex: /(bench|benches|benching|banca|bancas|banqueta|banquetas)/i,
+    queryKeywords: ['banca', 'bancas', 'bench', 'benches', 'banqueta']
+  },
+  {
+    key: 'Accesorios & Paneles',
+    label: 'Accesorios & Paneles',
+    matchRegex: /(panel|panels|screen|screens|divider|dividers|pantalla|pantallas|divisor|divisores|accessory|accessories|accesorio|accesorios)/i,
+    queryKeywords: ['panel', 'paneles', 'pantalla', 'pantallas', 'screen', 'screens', 'divisor', 'accesorio', 'accesorios']
+  }
+];
+
+export const getProductTypology = (modelName = '', sku = '') => {
+  const text = `${modelName} ${sku}`.toLowerCase();
+  
+  if (/(stool|stools|taburete|taburetes|barstool|barstools)/i.test(text)) {
+    return 'Taburetes';
+  }
+  if (/(banca|bancas|banqueta|banquetas)/i.test(text) || (/\bbench\b/i.test(text) && !/\bdesk\b/i.test(text))) {
+    return 'Bancas';
+  }
+  
+  for (const rule of PRODUCT_TYPOLOGY_RULES) {
+    if (rule.matchRegex.test(text)) {
+      return rule.key;
+    }
+  }
+  return 'Otros';
+};
+
+export const matchTypologiesForQuery = (query = '') => {
+  const q = String(query || '').trim().toLowerCase();
+  if (!q) return [];
+  const matched = [];
+  for (const rule of PRODUCT_TYPOLOGY_RULES) {
+    if (rule.queryKeywords.some((kw) => kw === q || q.startsWith(`${kw} `) || q.endsWith(` ${kw}`))) {
+      matched.push(rule.key);
+    }
+  }
+  return matched;
+};
+
 export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunComparison }) {
   const [headers, setHeaders] = useState(BASE_HEADERS);
   const [baseRows, setBaseRows] = useState([]);
@@ -99,6 +180,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
   const [isMcpThinking, setIsMcpThinking] = useState(false);
   const [mcpActiveSkuFilter, setMcpActiveSkuFilter] = useState(null);
   const [selectedFamilyFilter, setSelectedFamilyFilter] = useState('');
+  const [selectedTypologyFilter, setSelectedTypologyFilter] = useState('');
   const chatScrollEndRef = useRef(null);
   const lastFilteredSkusRef = useRef([]);
 
@@ -718,15 +800,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         if (match) skuFamily = match[1];
       }
 
-      const lowerName = modelName.toLowerCase();
-      let pType = 'Otros';
-      if (/chair|seating|seat|task|guest|stacker|silla/.test(lowerName)) pType = 'Sillas';
-      else if (/stool|taburete/.test(lowerName)) pType = 'Taburetes';
-      else if (/bench|benching|banca/.test(lowerName)) pType = 'Bancas';
-      else if (/desk|workstation|credenza|escritorio/.test(lowerName)) pType = 'Escritorios';
-      else if (/table|mesa|conference/.test(lowerName)) pType = 'Mesas';
-      else if (/lounge|sofa|settee|ottoman/.test(lowerName)) pType = 'Lounge / Sofás';
-      else if (/storage|cabinet|pedestal|bookcase|file|lateral|almacenamiento/.test(lowerName)) pType = 'Almacenamiento';
+      const pType = getProductTypology(modelName, sku);
 
       return {
         sku,
@@ -811,7 +885,34 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       });
     });
 
-    // 2. FAMILIAS DE MODELO XML (Col #1 Model #) para selector compacto
+    // 2. TIPOLOGÍAS DE PRODUCTO XML (Mesas, Sillas, Escritorios, Almacenamiento, Lounge, etc.)
+    const tipologiaGroups = {};
+    parsedRows.forEach((r) => {
+      const t = r.pType || 'Otros';
+      if (!tipologiaGroups[t]) tipologiaGroups[t] = [];
+      tipologiaGroups[t].push(r.sku);
+    });
+
+    const TIPOLOGIA_ORDER = ['Sillas', 'Mesas', 'Escritorios', 'Almacenamiento', 'Lounge / Sofás', 'Taburetes', 'Bancas', 'Accesorios & Paneles', 'Otros'];
+    const tipologiasFilters = Object.entries(tipologiaGroups)
+      .sort((a, b) => {
+        const idxA = TIPOLOGIA_ORDER.indexOf(a[0]);
+        const idxB = TIPOLOGIA_ORDER.indexOf(b[0]);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return b[1].length - a[1].length;
+      })
+      .map(([tipo, skus]) => ({
+        id: `tipo-${tipo}`,
+        label: tipo,
+        prompt: `Filtra productos pertenecientes a la tipología "${tipo}" en el catálogo XML`,
+        skus,
+        badge: `${skus.length} SKUs`,
+        toolCall: { name: 'mcp::csv_edit_matrix.filter_by_category', parameters: { category: tipo } }
+      }));
+
+    // 3. FAMILIAS DE MODELO XML (Col #1 Model #) para selector compacto
     const familyGroups = {};
     parsedRows.forEach((r) => {
       const fam = r.skuFamily || 'GENERAL';
@@ -830,7 +931,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { families: [fam], sku_prefix: fam.toLowerCase() } }
       }));
 
-    // 3. AUDITORÍA ESQUEMA XML (Validación contra las 5 columnas base y recargos)
+    // 4. AUDITORÍA ESQUEMA XML (Validación contra las 5 columnas base y recargos)
     const sinPrecio = parsedRows.filter((r) => r.price <= 0).map((r) => r.sku);
     const sinPeso = parsedRows.filter((r) => r.weight <= 0).map((r) => r.sku);
     const sinCat = parsedRows.filter((r) => !r.cat).map((r) => r.sku);
@@ -876,15 +977,18 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     ];
 
     return {
+      tipologias: tipologiasFilters.filter((f) => f.skus.length > 0),
       options: optionsFilters.filter((f) => f.skus.length > 0),
       familias: familiasFilters.filter((f) => f.skus.length > 0),
       calidad: calidadFilters.filter((f) => f.skus.length > 0)
     };
   }, [editRows, headers, deletedSkus]);
 
-  // Filtrado de filas según búsqueda, pestaña activa y filtro MCP devuelto por el backend
+  // Filtrado de filas según búsqueda inteligente, tipologías, pestaña activa y filtro MCP devuelto por el backend
   const filteredRows = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
+    const rawQ = searchTerm.trim().toLowerCase();
+    const matchedTypoKeys = rawQ ? matchTypologiesForQuery(rawQ) : [];
+
     return editRows
       .map((row, originalIdx) => ({ row, originalIdx }))
       .filter(({ row }) => {
@@ -900,12 +1004,37 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         if (filterMode === 'modified' && !isMod && !isDeleted) return false;
         if (filterMode === 'new_deleted' && !isNew && !isDeleted) return false;
 
-        if (!q) return true;
-        return (
-          sku.toLowerCase().includes(q) ||
-          String(row['Model Name'] || '').toLowerCase().includes(q) ||
-          String(row['Classic/ Premium'] || '').toLowerCase().includes(q)
-        );
+        if (!rawQ) return true;
+
+        const modelName = String(row['Model Name'] || '');
+        const classicPrem = String(row['Classic/ Premium'] || '');
+
+        // 1. Coincidencia directa de subcadena
+        if (
+          sku.toLowerCase().includes(rawQ) ||
+          modelName.toLowerCase().includes(rawQ) ||
+          classicPrem.toLowerCase().includes(rawQ)
+        ) {
+          return true;
+        }
+
+        // 2. Coincidencia semántica de tipología (ej. "mesas", "sillas", "escritorios")
+        if (matchedTypoKeys.length > 0) {
+          const rowTypo = getProductTypology(modelName, sku);
+          if (matchedTypoKeys.includes(rowTypo)) {
+            const words = rawQ.split(/\s+/).filter(Boolean);
+            const nonTypoWords = words.filter((w) => {
+              return !PRODUCT_TYPOLOGY_RULES.some((r) => r.queryKeywords.includes(w));
+            });
+            if (nonTypoWords.length === 0) {
+              return true;
+            }
+            const rowText = `${sku} ${modelName} ${classicPrem}`.toLowerCase();
+            return nonTypoWords.every((nw) => rowText.includes(nw));
+          }
+        }
+
+        return false;
       });
   }, [editRows, searchTerm, filterMode, deletedSkus, baseRowMap, diffMetrics.modifiedSkuSet, mcpActiveSkuFilter]);
 
@@ -937,6 +1066,32 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       const rawText = overridePrompt !== null ? overridePrompt : chatInputUi;
       const query = String(rawText || '').trim();
       if (!query || isMcpThinking) return;
+
+      const qLower = query.toLowerCase();
+
+      // Detección proactiva de tipologías solicitadas en lenguaje natural (ej. "filtra las mesas", "pásame las sillas")
+      let naturalTypoMatch = null;
+      if (Array.isArray(catalogFacets.tipologias)) {
+        for (const t of catalogFacets.tipologias) {
+          const tLow = t.label.toLowerCase();
+          const baseKey = tLow.replace(/s$/, '');
+          const ptn = new RegExp(`\\b(${tLow}|${baseKey}|${baseKey}s)\\b`, 'i');
+          if (ptn.test(qLower)) {
+            naturalTypoMatch = t;
+            break;
+          }
+        }
+      }
+
+      const isFilterIntent = /\b(filtra|filtrar|filtro|muestra|muestrame|mostrar|tabla|solo\s+los|solo\s+las|pasame|pásame|dame|aislar)\b/i.test(qLower);
+      if (naturalTypoMatch && isFilterIntent) {
+        if (!precomputedSkus || precomputedSkus.length === 0) {
+          precomputedSkus = naturalTypoMatch.skus;
+        }
+        if (!filterLabelOverride) {
+          filterLabelOverride = `Tipología: ${naturalTypoMatch.label}`;
+        }
+      }
 
       const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const userMsg = {
@@ -1077,10 +1232,9 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           null;
 
         // Si el usuario solicitó filtrar o aislar los productos en la tabla, activar filtro automáticamente
-        const qLower = query.toLowerCase();
         if (
           matchedSkus.length > 0 &&
-          /\b(filtra|filtrar|filtro|muestra|muestrame|mostrar|tabla|solo\s+los|deja\s+solo|aislar)\b/.test(qLower)
+          /\b(filtra|filtrar|filtro|muestra|muestrame|mostrar|tabla|solo\s+los|solo\s+las|deja\s+solo|pasame|pásame|dame|aislar)\b/.test(qLower)
         ) {
           const filterTag = filterLabelOverride || (primaryFilter
             ? `${primaryFilter.tool.replace('mcp::csv_edit_matrix.', '')} (${matchedSkus.length})`
@@ -1090,12 +1244,17 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             targetCol: resolvedTargetCol,
             skuSet: new Set(matchedSkus)
           });
+          if (naturalTypoMatch) {
+            setSelectedTypologyFilter(naturalTypoMatch.label);
+          }
         }
 
         const botMsg = {
           id: `mcp-b-${Date.now()}`,
           role: 'assistant',
-          text: stripEmojis(data?.reply) || 'Consulta procesada sobre `csv_edit_raw`.',
+          text: stripEmojis(data?.reply) || (naturalTypoMatch && isFilterIntent
+            ? `He aislado en la matriz los ${matchedSkus.length} productos pertenecientes a la tipología ${naturalTypoMatch.label}.`
+            : 'Consulta procesada sobre `csv_edit_raw`.'),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           mcpTraces,
           matchedSkus,
@@ -1107,17 +1266,38 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
         setChatMessages((prev) => [...prev, botMsg]);
       } catch (err) {
-        setChatMessages((prev) => [
-          ...prev,
-          {
-            id: `mcp-err-${Date.now()}`,
-            role: 'assistant',
-            text: `Error consultando el MCP en el backend: ${err?.message || 'Fallo de red'}`,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            mcpTraces: [],
-            matchedSkus: []
-          }
-        ]);
+        if (naturalTypoMatch && isFilterIntent && precomputedSkus?.length > 0) {
+          setMcpActiveSkuFilter({
+            label: `Tipología: ${naturalTypoMatch.label}`,
+            targetCol: null,
+            skuSet: new Set(precomputedSkus)
+          });
+          setSelectedTypologyFilter(naturalTypoMatch.label);
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              id: `mcp-b-${Date.now()}`,
+              role: 'assistant',
+              text: `He aislado determinísticamente en la matriz los ${precomputedSkus.length} productos de la tipología ${naturalTypoMatch.label}.`,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              mcpTraces: [],
+              matchedSkus: precomputedSkus,
+              filterLabel: `Tipología: ${naturalTypoMatch.label} (${precomputedSkus.length} SKUs)`
+            }
+          ]);
+        } else {
+          setChatMessages((prev) => [
+            ...prev,
+            {
+              id: `mcp-err-${Date.now()}`,
+              role: 'assistant',
+              text: `Error consultando el MCP en el backend: ${err?.message || 'Fallo de red'}`,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              mcpTraces: [],
+              matchedSkus: []
+            }
+          ]);
+        }
       } finally {
         setIsMcpThinking(false);
         setTimeout(() => {
@@ -1125,7 +1305,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         }, 60);
       }
     },
-    [chatInputUi, isMcpThinking, apiURL, chatMessages, serializeRowsToCsv, mcpActiveSkuFilter]
+    [chatInputUi, isMcpThinking, apiURL, chatMessages, serializeRowsToCsv, mcpActiveSkuFilter, catalogFacets]
   );
 
   // Medición de viewport y scroll virtualizado con requestAnimationFrame
@@ -1714,15 +1894,15 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             }`}
           >
             <div className="flex flex-wrap items-center gap-2">
-              {/* Buscador */}
+              {/* Buscador inteligente */}
               <div className="relative flex items-center">
                 <Search size={11} className={`absolute left-2.5 ${isDarkMode ? 'text-zinc-400' : 'text-slate-400'} pointer-events-none`} />
                 <input
                   type="text"
-                  placeholder="Buscar por Model # o descripción..."
+                  placeholder="Buscar por Model #, descripción o tipo (mesas, sillas)..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`rounded-md pl-7 pr-6 py-1 text-[10.5px] w-[170px] sm:w-[220px] focus:outline-none border transition-all ${
+                  className={`rounded-md pl-7 pr-6 py-1 text-[10.5px] w-[180px] sm:w-[245px] focus:outline-none border transition-all ${
                     isDarkMode
                       ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
                       : 'bg-slate-100/80 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white'
@@ -1739,7 +1919,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 )}
               </div>
 
-              {/* Pestañas de filtro */}
+              {/* Pestañas de filtro de estado */}
               <div className={`flex items-center border rounded-md overflow-hidden ${
                 isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
               }`}>
@@ -1796,7 +1976,53 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 )}
               </div>
 
-              {/* Indicador de filtro activo ejecutado por el MCP */}
+              {/* Selector compacto de Tipología de Producto en barra principal */}
+              {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <select
+                    value={selectedTypologyFilter}
+                    onChange={(e) => {
+                      const tipoVal = e.target.value;
+                      setSelectedTypologyFilter(tipoVal);
+                      if (!tipoVal) {
+                        if (mcpActiveSkuFilter?.label?.startsWith('Tipología: ')) {
+                          setMcpActiveSkuFilter(null);
+                        }
+                      } else {
+                        const targetTipo = catalogFacets.tipologias.find((t) => t.label === tipoVal);
+                        if (targetTipo) {
+                          setMcpActiveSkuFilter({
+                            label: `Tipología: ${targetTipo.label}`,
+                            targetCol: null,
+                            skuSet: new Set(targetTipo.skus)
+                          });
+                        }
+                      }
+                    }}
+                    className={`px-2 py-1 text-[10px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
+                      selectedTypologyFilter
+                        ? isDarkMode
+                          ? 'bg-white text-zinc-950 font-bold border-white'
+                          : 'bg-zinc-900 text-white font-bold border-zinc-900'
+                        : isDarkMode
+                          ? 'bg-zinc-900 border-white/15 text-zinc-200 hover:border-white/30'
+                          : 'bg-white border-slate-200 text-slate-800 hover:border-slate-400'
+                    }`}
+                    title="Filtrar matriz por tipología (Mesas, Sillas, Escritorios...)"
+                  >
+                    <option value="" className={isDarkMode ? 'bg-zinc-900 text-zinc-300' : 'bg-white text-slate-800'}>
+                      Tipología: Todas ({catalogFacets.tipologias.length})
+                    </option>
+                    {catalogFacets.tipologias.map((t) => (
+                      <option key={t.id} value={t.label} className={isDarkMode ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-900'}>
+                        {t.label} ({t.skus.length})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Indicador de filtro activo ejecutado por el MCP o Tipología */}
               {mcpActiveSkuFilter && (
                 <div
                   className={`flex items-center gap-1.5 px-2 py-1 border rounded-md text-[9.5px] font-mono select-none ${
@@ -1806,7 +2032,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   }`}
                 >
                   <Sparkles size={10} className={`${isDarkMode ? 'text-zinc-300' : 'text-zinc-200'} shrink-0`} />
-                  <span>Filtro MCP: {mcpActiveSkuFilter.label}</span>
+                  <span>Filtro activo: {mcpActiveSkuFilter.label}</span>
                   {mcpActiveSkuFilter.targetCol && (
                     <span className="opacity-80">
                       · Columna: <strong className="underline underline-offset-2">{mcpActiveSkuFilter.targetCol}</strong>
@@ -1814,9 +2040,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   )}
                   <button
                     type="button"
-                    onClick={() => setMcpActiveSkuFilter(null)}
+                    onClick={() => {
+                      setMcpActiveSkuFilter(null);
+                      setSelectedFamilyFilter('');
+                      setSelectedTypologyFilter('');
+                    }}
                     className="ml-0.5 opacity-70 hover:opacity-100 cursor-pointer"
-                    title="Quitar filtro MCP de la tabla"
+                    title="Quitar filtro de la tabla"
                   >
                     <X size={10} />
                   </button>
@@ -2441,45 +2671,141 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                         <span className="opacity-60 text-[9px]">({(catalogFacets.options || []).length} filtros)</span>
                       </span>
 
-                      {/* Selector compacto de Familias de Modelo XML */}
-                      {Array.isArray(catalogFacets.familias) && catalogFacets.familias.length > 0 && (
-                        <div className="flex items-center gap-1">
-                          <label className="text-[9px] font-mono opacity-60">Familia:</label>
-                          <select
-                            value={selectedFamilyFilter}
-                            onChange={(e) => {
-                              const famVal = e.target.value;
-                              setSelectedFamilyFilter(famVal);
-                              if (!famVal) {
-                                if (mcpActiveSkuFilter?.label?.startsWith('Familia ')) {
-                                  setMcpActiveSkuFilter(null);
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Selector compacto de Tipologías de Producto */}
+                        {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <label className="text-[9px] font-mono opacity-60">Tipo:</label>
+                            <select
+                              value={selectedTypologyFilter}
+                              onChange={(e) => {
+                                const tipoVal = e.target.value;
+                                setSelectedTypologyFilter(tipoVal);
+                                if (!tipoVal) {
+                                  if (mcpActiveSkuFilter?.label?.startsWith('Tipología: ')) {
+                                    setMcpActiveSkuFilter(null);
+                                  }
+                                } else {
+                                  const targetTipo = catalogFacets.tipologias.find((t) => t.label === tipoVal);
+                                  if (targetTipo) {
+                                    setMcpActiveSkuFilter({
+                                      label: `Tipología: ${targetTipo.label}`,
+                                      targetCol: null,
+                                      skuSet: new Set(targetTipo.skus)
+                                    });
+                                  }
                                 }
-                              } else {
-                                const targetFam = catalogFacets.familias.find((f) => f.label === `Familia ${famVal}`);
-                                if (targetFam) {
-                                  handleSendMatrixChat(targetFam.prompt, targetFam.toolCall, targetFam.skus, targetFam.label);
-                                }
-                              }
-                            }}
-                            className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
-                              isDarkMode
-                                ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
-                                : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
-                            }`}
-                          >
-                            <option value="">Todas las familias ({catalogFacets.familias.length})</option>
-                            {catalogFacets.familias.map((f) => {
-                              const cleanName = f.label.replace('Familia ', '');
-                              return (
-                                <option key={f.id} value={cleanName}>
-                                  {cleanName} ({f.badge})
+                              }}
+                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
+                                selectedTypologyFilter
+                                  ? isDarkMode
+                                    ? 'bg-white text-zinc-950 font-bold border-white'
+                                    : 'bg-zinc-900 text-white font-bold border-zinc-900'
+                                  : isDarkMode
+                                    ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
+                                    : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
+                              }`}
+                            >
+                              <option value="">Todas las tipologías ({catalogFacets.tipologias.length})</option>
+                              {catalogFacets.tipologias.map((t) => (
+                                <option key={t.id} value={t.label}>
+                                  {t.label} ({t.badge})
                                 </option>
-                              );
-                            })}
-                          </select>
-                        </div>
-                      )}
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {/* Selector compacto de Familias de Modelo XML */}
+                        {Array.isArray(catalogFacets.familias) && catalogFacets.familias.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <label className="text-[9px] font-mono opacity-60">Familia:</label>
+                            <select
+                              value={selectedFamilyFilter}
+                              onChange={(e) => {
+                                const famVal = e.target.value;
+                                setSelectedFamilyFilter(famVal);
+                                if (!famVal) {
+                                  if (mcpActiveSkuFilter?.label?.startsWith('Familia ')) {
+                                    setMcpActiveSkuFilter(null);
+                                  }
+                                } else {
+                                  const targetFam = catalogFacets.familias.find((f) => f.label === `Familia ${famVal}`);
+                                  if (targetFam) {
+                                    handleSendMatrixChat(targetFam.prompt, targetFam.toolCall, targetFam.skus, targetFam.label);
+                                  }
+                                }
+                              }}
+                              className={`px-1.5 py-0.5 text-[9px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
+                                selectedFamilyFilter
+                                  ? isDarkMode
+                                    ? 'bg-white text-zinc-950 font-bold border-white'
+                                    : 'bg-zinc-900 text-white font-bold border-zinc-900'
+                                  : isDarkMode
+                                    ? 'bg-zinc-900 border-white/20 text-zinc-200 hover:border-white/40'
+                                    : 'bg-white border-slate-300 text-slate-800 hover:border-slate-500'
+                              }`}
+                            >
+                              <option value="">Todas las familias ({catalogFacets.familias.length})</option>
+                              {catalogFacets.familias.map((f) => {
+                                const cleanName = f.label.replace('Familia ', '');
+                                return (
+                                  <option key={f.id} value={cleanName}>
+                                    {cleanName} ({f.badge})
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Chips interactivos de Tipologías de Producto detectadas */}
+                    {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 pt-1 pb-1 border-b border-white/10">
+                        <span className={`text-[9px] font-mono opacity-60 mr-1 flex items-center gap-1 shrink-0 ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
+                          <Layers size={10} /> Tipologías:
+                        </span>
+                        {catalogFacets.tipologias.map((t) => {
+                          const isApplied = mcpActiveSkuFilter?.label === `Tipología: ${t.label}` || selectedTypologyFilter === t.label;
+                          return (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => {
+                                if (isApplied) {
+                                  setMcpActiveSkuFilter(null);
+                                  setSelectedTypologyFilter('');
+                                } else {
+                                  setMcpActiveSkuFilter({
+                                    label: `Tipología: ${t.label}`,
+                                    targetCol: null,
+                                    skuSet: new Set(t.skus)
+                                  });
+                                  setSelectedTypologyFilter(t.label);
+                                }
+                              }}
+                              title={`Filtrar ${t.label} (${t.skus.length} productos)`}
+                              className={`px-2 py-0.5 rounded text-[9px] font-mono border transition-all cursor-pointer flex items-center gap-1 ${
+                                isApplied
+                                  ? isDarkMode
+                                    ? 'bg-white text-zinc-950 font-bold border-white shadow-sm'
+                                    : 'bg-zinc-900 text-white font-bold border-zinc-900 shadow-sm'
+                                  : isDarkMode
+                                    ? 'bg-white/5 hover:bg-white/10 text-zinc-300 border-white/10'
+                                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+                              }`}
+                            >
+                              <span>{t.label}</span>
+                              <span className={`text-[8px] opacity-75 ${isApplied ? 'font-bold' : ''}`}>
+                                ({t.skus.length})
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     {/* Banner de Auditoría de Esquema XML: Alerta preventiva o indicador de salud */}
                     {Array.isArray(catalogFacets.calidad) && catalogFacets.calidad.length > 0 ? (
