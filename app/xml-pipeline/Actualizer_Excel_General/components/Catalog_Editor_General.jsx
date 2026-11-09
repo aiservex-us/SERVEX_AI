@@ -1976,52 +1976,6 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 )}
               </div>
 
-              {/* Selector compacto de Tipología de Producto en barra principal */}
-              {Array.isArray(catalogFacets.tipologias) && catalogFacets.tipologias.length > 0 && (
-                <div className="flex items-center gap-1">
-                  <select
-                    value={selectedTypologyFilter}
-                    onChange={(e) => {
-                      const tipoVal = e.target.value;
-                      setSelectedTypologyFilter(tipoVal);
-                      if (!tipoVal) {
-                        if (mcpActiveSkuFilter?.label?.startsWith('Tipología: ')) {
-                          setMcpActiveSkuFilter(null);
-                        }
-                      } else {
-                        const targetTipo = catalogFacets.tipologias.find((t) => t.label === tipoVal);
-                        if (targetTipo) {
-                          setMcpActiveSkuFilter({
-                            label: `Tipología: ${targetTipo.label}`,
-                            targetCol: null,
-                            skuSet: new Set(targetTipo.skus)
-                          });
-                        }
-                      }
-                    }}
-                    className={`px-2 py-1 text-[10px] font-mono border rounded-md cursor-pointer outline-none transition-colors ${
-                      selectedTypologyFilter
-                        ? isDarkMode
-                          ? 'bg-white text-zinc-950 font-bold border-white'
-                          : 'bg-zinc-900 text-white font-bold border-zinc-900'
-                        : isDarkMode
-                          ? 'bg-zinc-900 border-white/15 text-zinc-200 hover:border-white/30'
-                          : 'bg-white border-slate-200 text-slate-800 hover:border-slate-400'
-                    }`}
-                    title="Filtrar matriz por tipología (Mesas, Sillas, Escritorios...)"
-                  >
-                    <option value="" className={isDarkMode ? 'bg-zinc-900 text-zinc-300' : 'bg-white text-slate-800'}>
-                      Tipología: Todas ({catalogFacets.tipologias.length})
-                    </option>
-                    {catalogFacets.tipologias.map((t) => (
-                      <option key={t.id} value={t.label} className={isDarkMode ? 'bg-zinc-900 text-zinc-100' : 'bg-white text-slate-900'}>
-                        {t.label} ({t.skus.length})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
               {/* Indicador de filtro activo ejecutado por el MCP o Tipología */}
               {mcpActiveSkuFilter && (
                 <div
