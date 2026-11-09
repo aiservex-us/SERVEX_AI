@@ -1977,8 +1977,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (csvNewRawToSend) {
           formData.append('csv_new_raw', typeof csvNewRawToSend === 'string' ? csvNewRawToSend : JSON.stringify(csvNewRawToSend));
         }
-        // Solo enviar xml_raw como fallback si no se dispone del csv_raw base
-        if (xmlRawToSend && !csvRawToSend) {
+        // Enviar xml_raw disponible para garantizar la inyección exacta en xml_actualizer_raw
+        if (xmlRawToSend) {
           formData.append('xml_raw', typeof xmlRawToSend === 'string' ? xmlRawToSend : JSON.stringify(xmlRawToSend));
         }
 
@@ -2037,9 +2037,10 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const hasDifferences = changesCount > 0 || newCount > 0 || deletedCount > 0;
         const botReplyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+        const xmlUpdatesCount = resData.xml_updates_count ?? 0;
         const summaryText = hasDifferences
-          ? `He completado la **auditoría comparativa matricial** entre el catálogo base (\`csv_raw\`) y el archivo actualizado (\`csv_new_raw\`).\n\nHe identificado **${changesCount} cambios en precios/celdas**, **${newCount} productos nuevos agregados** y **${deletedCount} productos dados de baja** sobre un total de **${totalEvaluated} modelos comunes evaluados**.\n\n*(Nota: El archivo XML maestro permanece 100% intacto y sin modificar).* Puedes revisar las discrepancias celda por celda en la tarjeta interactiva a continuación:`
-          : `He completado la **auditoría comparativa matricial**. Ambas matrices de datos son **100% idénticas** (${totalEvaluated} modelos evaluados). No se detectaron discrepancias de precios ni altas/bajas de productos.`;
+          ? `He completado la **auditoría comparativa matricial e inyección XML** entre el catálogo base (\`csv_raw\`) y el archivo editado (\`csv_new_raw\`).\n\nHe identificado **${changesCount} cambios en precios/celdas**, **${newCount} productos nuevos** y **${deletedCount} productos dados de baja** (${totalEvaluated} modelos evaluados).\n\n**Actualización de Catálogo XML:** Se inyectaron **${xmlUpdatesCount} modificaciones de forma precisa** en el árbol XML maestro. El archivo resultante quedó guardado en \`xml_actualizer_raw\` con su estructura, etiquetas y namespaces íntegros, **100% listo para CET Designer**.`
+          : `He completado la **auditoría comparativa matricial**. Ambas matrices de datos son **100% idénticas** (${totalEvaluated} modelos evaluados). El archivo XML en \`xml_actualizer_raw\` está verificado y listo para CET Designer.`;
 
         setMessages(prev => [
           ...prev,

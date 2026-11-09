@@ -1,5 +1,5 @@
 'use client';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, resolveStorageContent } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search, AlertCircle, Play } from 'lucide-react';
 
@@ -144,8 +144,10 @@ export default function CETComparator() {
       // Simulate slight delay for massive XMLs so UI doesn't completely freeze without feedback
       await new Promise(resolve => setTimeout(resolve, 100)); 
 
-      const baseMap = parseXMLToMap(activeRecord.xml_actualizer_raw);
-      const modMap = parseXMLToMap(activeRecord.XM_CET_import);
+      const rawBase = await resolveStorageContent(activeRecord.xml_actualizer_raw);
+      const rawMod = await resolveStorageContent(activeRecord.XM_CET_import);
+      const baseMap = parseXMLToMap(rawBase);
+      const modMap = parseXMLToMap(rawMod);
 
       const listPriceChanges = [];
       const optionPriceChanges = [];
