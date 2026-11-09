@@ -1544,76 +1544,8 @@ export default function XMLActualizerViewer({
                     Bienvenido al visor certificado del archivo <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>xml_actualizer_raw</code>. Estoy conectada para asistirte con filtros y consultas de inspección sobre el catálogo final para CET Designer.
                   </p>
 
-                  {/* Comandos y Herramientas del Catálogo XML (Slash Commands interactivos) */}
-                  <div className="pt-2.5 space-y-2.5 border-t border-white/10">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? "text-zinc-300" : "text-slate-700"}`}>
-                        <Sparkles size={11} />
-                        Herramientas & Comandos de Catálogo
-                      </span>
-                      <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${isDarkMode ? "bg-white/5 border-white/10 text-zinc-400" : "bg-slate-100 border-slate-200 text-slate-600"}`}>
-                        Escribe <strong className="font-bold">/</strong> en el chat
-                      </span>
-                    </div>
-
-                    <p className={`text-[10px] leading-relaxed ${isDarkMode ? "text-zinc-400" : "text-slate-500"}`}>
-                      Haz clic en cualquier herramienta para aislar productos en la matriz y activar análisis inmediato de inspección:
-                    </p>
-
-                    {/* Agrupaciones de Herramientas categorizadas tipo Slash Command */}
-                    <div className="space-y-2 max-h-[260px] overflow-y-auto custom-scrollbar pr-1">
-                      {Object.entries(
-                        availableCatalogTools.reduce((acc, cmd) => {
-                          const cat = cmd.category || "Otras Herramientas";
-                          if (!acc[cat]) acc[cat] = [];
-                          acc[cat].push(cmd);
-                          return acc;
-                        }, {})
-                      ).map(([category, commands]) => (
-                        <div key={category} className="space-y-1">
-                          <span className={`text-[9px] font-mono font-bold uppercase tracking-wider block ${isDarkMode ? "text-zinc-400" : "text-slate-500"}`}>
-                            {category}
-                          </span>
-                          <div className="flex flex-wrap gap-1">
-                            {commands.map((cmd) => {
-                              const isCurrent =
-                                (cmd.label === "/todos" && !mcpActiveSkuFilter) ||
-                                (cmd.filterLabel && mcpActiveSkuFilter?.label === cmd.filterLabel) ||
-                                (mcpActiveSkuFilter?.label && cmd.displayName && mcpActiveSkuFilter.label.includes(cmd.displayName));
-
-                              return (
-                                <button
-                                  key={cmd.id}
-                                  type="button"
-                                  onClick={() => handleToolCommandClick(cmd)}
-                                  className={`alysa-cmd-btn group inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[9.5px] font-mono border transition-all cursor-pointer ${
-                                    isCurrent
-                                      ? isDarkMode
-                                        ? "bg-white text-zinc-950 font-bold border-white shadow-sm"
-                                        : "bg-zinc-900 text-white font-bold border-zinc-900 shadow-sm"
-                                      : isDarkMode
-                                        ? "bg-white/5 hover:bg-white/15 text-zinc-200 hover:text-white border-white/10 hover:border-white/20"
-                                        : "bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-200 hover:border-slate-300"
-                                  }`}
-                                  title={`Ejecutar ${cmd.label} (${cmd.desc})`}
-                                >
-                                  <span className={`font-bold ${isCurrent ? (isDarkMode ? "text-zinc-950" : "text-white") : (isDarkMode ? "text-white" : "text-zinc-900")}`}>
-                                    {cmd.label}
-                                  </span>
-                                  <span className="opacity-60 text-[8.5px]">
-                                    ({cmd.desc})
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className={`pt-2 border-t text-[9px] font-mono leading-relaxed ${isDarkMode ? "border-white/10 text-zinc-500" : "border-slate-200 text-slate-500"}`}>
-                      Visor certificado para inspección. Este catálogo final refleja todas las modificaciones aplicadas y estructuradas para CET Designer.
-                    </div>
+                  <div className={`pt-2 border-t text-[10px] font-mono leading-relaxed ${isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-600'}`}>
+                    Escribe <strong className={`font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>/</strong> en el chat para desplegar la paleta de herramientas de inspección por tipología, recargo u opciones XML.
                   </div>
                 </div>
               </div>
