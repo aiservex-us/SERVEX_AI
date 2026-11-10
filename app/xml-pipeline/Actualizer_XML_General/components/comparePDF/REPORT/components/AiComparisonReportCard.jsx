@@ -16,7 +16,8 @@ import {
   Table,
   Copy,
   Check,
-  FileCode2
+  FileCode2,
+  AlertCircle
 } from 'lucide-react';
 import Papa from 'papaparse';
 
