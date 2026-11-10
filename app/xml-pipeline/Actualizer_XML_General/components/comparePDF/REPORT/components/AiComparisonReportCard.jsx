@@ -32,7 +32,9 @@ import Papa from 'papaparse';
 export default function AiComparisonReportCard({
   data,
   onCommandSelect,
-  isDarkMode = true
+  isDarkMode = true,
+  isXmlInjected = false,
+  onInjectXml = null
 }) {
   const [activeTab, setActiveTab] = useState('changes'); // 'changes' | 'added' | 'deleted'
   const [searchTerm, setSearchTerm] = useState('');
@@ -199,11 +201,19 @@ export default function AiComparisonReportCard({
                   Auditoría Comparativa Matricial
                 </h3>
                 {changes.length > 0 ? (
-                  <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
-                    isDarkMode ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                  }`}>
-                    <CheckCircle2 size={11} className="inline mr-0.5 text-emerald-400" /> xml_actualizer_raw Actualizado ({changes.length})
-                  </span>
+                  isXmlInjected ? (
+                    <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
+                      isDarkMode ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    }`}>
+                      <CheckCircle2 size={11} className="inline mr-0.5 text-emerald-400" /> xml_actualizer_raw Actualizado ({changes.length})
+                    </span>
+                  ) : (
+                    <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
+                      isDarkMode ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : 'bg-amber-50 text-amber-800 border border-amber-200'
+                    }`}>
+                      <AlertCircle size={11} className="inline mr-0.5 text-amber-400" /> {changes.length} Cambios Detectados (Paso 1)
+                    </span>
+                  )
                 ) : (
                   <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
                     isDarkMode ? 'bg-white/10 text-zinc-300 border border-white/15' : 'bg-slate-200 text-slate-700'
@@ -232,19 +242,34 @@ export default function AiComparisonReportCard({
                 <span>Exportar Discrepancias (.csv)</span>
               </button>
 
-              <button
-                onClick={handleDownloadUpdatedXml}
-                disabled={isDownloadingXml}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                  isDarkMode
-                    ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
-                    : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
-                }`}
-                title="Descargar el XML maestro con las modificaciones inyectadas listo para CET Designer"
-              >
-                <FileCode2 size={13} />
-                <span>{isDownloadingXml ? 'Descargando...' : 'Descargar .xml Actualizado'}</span>
-              </button>
+              {changes.length > 0 && !isXmlInjected && onInjectXml ? (
+                <button
+                  onClick={onInjectXml}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
+                    isDarkMode
+                      ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white font-bold'
+                      : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900 font-bold'
+                  }`}
+                  title="Inyectar las modificaciones en el árbol XML maestro para generar xml_actualizer_raw"
+                >
+                  <FileCode2 size={13} />
+                  <span>Inyectar al XML ({changes.length})</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleDownloadUpdatedXml}
+                  disabled={isDownloadingXml}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
+                    isDarkMode
+                      ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
+                      : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
+                  }`}
+                  title="Descargar el XML maestro con las modificaciones inyectadas listo para CET Designer"
+                >
+                  <FileCode2 size={13} />
+                  <span>{isDownloadingXml ? 'Descargando...' : 'Descargar .xml Actualizado'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -37,12 +37,11 @@ export const stripEmojis = (str) => {
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
-  { id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed CET CSV', phase: 4, category: 'Export Data From CET or Client' },
-
+  { id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Exportar catálogo procesado en CSV/Excel', phase: 4, category: 'Export Data From CET or Client' },
   { id: 'import', icon: Database, label: '/importBase', desc: 'Subir matriz CSV de nuevos precios (csv_new_raw)', phase: 1, category: 'Step 1: Data Ingestion' },
   { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2, category: 'Step 1: Data Ingestion' },
-
-  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Restructure XML and compare catalog (Step 2)', phase: 3, category: 'Step 2: XML ETL Engine' }
+  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Comparar matrices y auditar catálogo (Paso 1)', phase: 3, category: 'Step 2: XML ETL Engine' },
+  { id: 'injectXML', icon: FileCode2, label: '/injectXML', desc: 'Inyectar discrepancias detectadas al XML maestro (Paso 2)', phase: 3, category: 'Step 2: XML ETL Engine' }
 ];
 
 // Cache en memoria para evitar re-parsear el mismo XML con DOMParser más de una vez
@@ -1397,7 +1396,7 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
     }
 
     // Inyectar botones interactivos para comandos de barra después del markdown
-    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|exportExcel|downloadExcel|importBase|saveCatalog|deleteData|executeProcess))\b/gi;
+    const COMMANDS_REGEX = /(\/(?:SaveXMLcet|exportCETcsv|exportExcel|downloadExcel|importBase|saveCatalog|deleteData|executeProcess|injectXML))\b/gi;
     const btnClass = isDarkMode
       ? 'text-zinc-100 hover:text-white font-semibold underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none'
       : 'text-[#18181b] hover:text-[#27272a] font-semibold hover:underline cursor-pointer inline-flex items-center mx-0.5 alysa-cmd-btn bg-transparent p-0 border-none shadow-none';
@@ -1706,6 +1705,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const activeCatalogRef = useRef('General Process.xml');
   const [showSlashMenu, setShowSlashMenu] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState(null);
+  const [isInjectingXml, setIsInjectingXml] = useState(false);
+  const pendingComparisonDataRef = useRef(null);
+  const lastComparisonReportRef = useRef(null);
 
   // Estados de Guía IA y Micrófono STT
   const [showAiGuideModal, setShowAiGuideModal] = useState(false);
@@ -1970,15 +1972,196 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
   const sendMessageRef = useRef(null);
 
+  // ── PASO 2: INYECCIÓN CONTROLADA AL CATÁLOGO XML MAESTRO (/injectXML) ──
+  const handleExecuteXmlInjection = useCallback(async (compDataOverride = null) => {
+    if (isInjectingXml) return;
+    setIsInjectingXml(true);
+
+    let targetCompData = compDataOverride || pendingComparisonDataRef.current || lastComparisonReportRef.current;
+    if (!targetCompData && typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('pending_comparison_changes');
+        if (stored) {
+          targetCompData = { detected_changes: JSON.parse(stored) };
+        }
+      } catch (_) {}
+    }
+
+    if (!targetCompData?.detected_changes?.length) {
+      try {
+        const { data: dbRec } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('audit_report_json')
+          .or('company_name.eq.General_Procces,company_name.eq.General Process')
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (dbRec?.audit_report_json?.detected_changes?.length) {
+          targetCompData = dbRec.audit_report_json;
+        }
+      } catch (_) {}
+    }
+
+    const detectedChangesList = targetCompData?.detected_changes || [];
+
+    if (!detectedChangesList || detectedChangesList.length === 0) {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `no-changes-${Date.now()}`,
+          from: "bot",
+          role: "assistant",
+          text: "No se encontraron modificaciones pendientes para inyectar al catálogo XML maestro. Ejecuta primero **/executeProcess** para auditar el catálogo.",
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+      setIsInjectingXml(false);
+      return;
+    }
+
+    const startMsgTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages(prev => [
+      ...prev,
+      {
+        id: `injecting-start-${Date.now()}`,
+        from: "bot",
+        role: "assistant",
+        text: `Iniciando **inyección precisa de ${detectedChangesList.length} modificaciones** en el árbol XML maestro original... Preservando 100% de la estructura, namespaces y etiquetas comerciales.`,
+        time: startMsgTime
+      }
+    ]);
+
+    try {
+      // 1. Obtener xml_raw disponible (desde DB o sessionStorage o Storage)
+      let xmlRawToSend = dbXmlRaw || (typeof window !== 'undefined' ? (sessionStorage.getItem('xml_raw') || sessionStorage.getItem('XM_CET_import')) : null) || null;
+
+      if (!xmlRawToSend) {
+        const { data: xmlRow } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('xml_raw, XM_CET_import')
+          .or('company_name.eq.General_Procces,company_name.eq.General Process')
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (xmlRow) {
+          xmlRawToSend = xmlRow.xml_raw || xmlRow.XM_CET_import;
+        }
+      }
+
+      if (!xmlRawToSend) {
+        const { data: anyXml } = await supabase
+          .from('ClientsSERVEX_General_Procces')
+          .select('xml_raw, XM_CET_import')
+          .not('xml_raw', 'is', null)
+          .order('id', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (anyXml) {
+          xmlRawToSend = anyXml.xml_raw || anyXml.XM_CET_import;
+        }
+      }
+
+      if (!xmlRawToSend) {
+        throw new Error("No se localizó el archivo XML maestro ('xml_raw') en la base de datos para inyectar las modificaciones. Por favor asegúrate de haber cargado el catálogo XML.");
+      }
+
+      let baseXmlStr = xmlRawToSend;
+      if (typeof baseXmlStr === 'string' && (baseXmlStr.startsWith('http://') || baseXmlStr.startsWith('https://') || baseXmlStr.startsWith('[STORAGE_URL]:'))) {
+        const cleanUrl = baseXmlStr.replace('[STORAGE_URL]:', '').trim();
+        const urlResp = await fetch(cleanUrl);
+        if (urlResp.ok) {
+          baseXmlStr = await urlResp.text();
+        }
+      }
+
+      // 2. Inyección exacta de cambios sobre el árbol DOM XML
+      const finalUpdatedXml = injectChangesIntoXml(baseXmlStr, detectedChangesList);
+      const appliedXmlCount = detectedChangesList.length;
+
+      // 3. Persistencia segura en Supabase: Si es un archivo masivo (> 500KB), se sube a Storage para evitar límite de PostgREST
+      let xmlRefToPersist = finalUpdatedXml;
+      if (finalUpdatedXml && finalUpdatedXml.length > 500_000) {
+        try {
+          const fileName = `General_Procces_actualizer_${Date.now()}.xml`;
+          const storageUrl = await uploadToCatalogsStorage(finalUpdatedXml, fileName, 'application/xml');
+          if (storageUrl) {
+            xmlRefToPersist = storageUrl;
+            console.log('[+] Catálogo masivo guardado en Storage:', storageUrl);
+          }
+        } catch (storageErr) {
+          console.warn('[-] Advertencia subiendo catálogo a Storage, intentando guardado directo:', storageErr);
+        }
+      }
+
+      await upsertGeneralProcessRecord({
+        xml_actualizer_raw: xmlRefToPersist
+      }, 'General_Procces');
+
+      // 4. Persistencia local segura en sessionStorage (con try/catch para evitar fallo por límite de cuota de 5MB)
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('xml_actualizer_raw', finalUpdatedXml);
+        } catch (quotaErr) {
+          console.warn('[-] Cuota de sessionStorage excedida (catálogo masivo), conservado en memoria y Supabase:', quotaErr);
+        }
+        window.dispatchEvent(new CustomEvent('xmlActualizerUpdated', {
+          detail: {
+            xml: finalUpdatedXml,
+            changesCount: appliedXmlCount
+          }
+        }));
+      }
+
+      // 5. Marcar los reportes de mensajes como inyectados
+      setMessages(prev =>
+        prev.map(m => (m.comparisonReport ? { ...m, isXmlInjected: true } : m))
+      );
+
+      if (unlockedPhase < 4) updatePhase(4);
+
+      const successTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `inject-success-${Date.now()}`,
+          from: "bot",
+          role: "assistant",
+          text: `**Actualización de Catálogo XML Completada (Paso 2 de 2)**\n\nSe inyectaron **${appliedXmlCount} modificaciones de forma precisa** en el árbol XML maestro original. El archivo resultante quedó guardado en \`xml_actualizer_raw\` con su estructura, etiquetas y namespaces íntegros, **100% listo para CET Designer**.\n\nPuedes descargarlo directamente a continuación o abrirlo en **XML Actualizer Viewer** desde el menú lateral.`,
+          isXmlSuccess: true,
+          xmlDownloadAvailable: true,
+          time: successTime
+        }
+      ]);
+    } catch (err) {
+      console.error('[-] Error en inyección XML:', err);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `inject-err-${Date.now()}`,
+          from: "bot",
+          role: "assistant",
+          text: `**Error durante la inyección de cambios al XML**\n\n${err.message}`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    } finally {
+      setIsInjectingXml(false);
+    }
+  }, [isInjectingXml, dbXmlRaw, unlockedPhase, updatePhase]);
+
   const handleCommandSelect = useCallback((cmdLabel) => {
     setInput("");
     setShowSlashMenu(false);
+    if (cmdLabel === '/injectXML' || cmdLabel === '/injectxml') {
+      handleExecuteXmlInjection();
+      return;
+    }
     setTimeout(() => {
       if (sendMessageRef.current) {
         sendMessageRef.current(cmdLabel);
       }
     }, 50);
-  }, []);
+  }, [handleExecuteXmlInjection]);
 
   const sendMessage = async (overrideText) => {
     // Interrumpir cualquier captura de voz activa
@@ -2020,8 +2203,15 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     // CONTROLADORES DE HERRAMIENTAS Y COMANDOS DE BARRA
     const qLower = queryToSend.toLowerCase();
     if (qLower === '/importbase' && unlockedPhase < 2) updatePhase(2);
-    if (qLower === '/executeprocess' && unlockedPhase < 4) updatePhase(4);
+    if (qLower === '/executeprocess' && unlockedPhase < 3) updatePhase(3);
+    if (qLower === '/injectxml' && unlockedPhase < 4) updatePhase(4);
     if (qLower === '/deletedata') updatePhase(1);
+
+    if (qLower === '/injectxml' || qLower === '/inyectarxml') {
+      await handleExecuteXmlInjection();
+      setIsLoading(false);
+      return;
+    }
 
     if (qLower === '/deletedata') {
       setTimeout(() => {
@@ -2038,7 +2228,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           ...prev,
           {
             from: 'bot',
-            text: '**Carga Directa de Catálogo XML Maestro**\n\nEl comando `/importCETxml` ha sido retirado. Ahora el catálogo XML se sube y desestructura directamente desde la opción del input (haciendo clic en el icono 📎 o arrastrando y soltando tu archivo `.xml` aquí).',
+            text: '**Carga Directa de Catálogo XML Maestro**\n\nEl comando `/importCETxml` ha sido retirado. Ahora el catálogo XML se sube y desestructura directamente desde la opción del input (haciendo clic en el icono de adjunto o arrastrando y soltando tu archivo `.xml` aquí).',
             needs_upload: true,
             isNew: true
           }
@@ -2190,10 +2380,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (csvNewRawToSend) {
           formData.append('csv_new_raw', typeof csvNewRawToSend === 'string' ? csvNewRawToSend : JSON.stringify(csvNewRawToSend));
         }
-        // Enviar xml_raw disponible para garantizar la inyección exacta en xml_actualizer_raw
-        if (xmlRawToSend) {
-          formData.append('xml_raw', typeof xmlRawToSend === 'string' ? xmlRawToSend : JSON.stringify(xmlRawToSend));
-        }
+        // NOTA DE OPTIMIZACIÓN CRÍTICA: NO enviamos xml_raw al backend en el Paso 1
+        // para que la comparación sea ultrarrápida (menos de 1 segundo incluso con miles de modelos)
 
         const headers = {};
         try {
@@ -2224,35 +2412,16 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const deletedCount = resData.deleted_models_count ?? (resData.summary?.deleted_models_detected_count || 0);
         const totalEvaluated = resData.total_evaluated ?? (resData.summary?.total_common_models_evaluated || 0);
 
-        // ── INYECCIÓN Y RESOLUCIÓN DE xml_actualizer_raw (PRESERVANDO 100% ESTRUCTURA XML) ──
-        let finalUpdatedXml = null;
-        let appliedXmlCount = resData.xml_updates_count ?? 0;
-
-        if (resData.updated_xml && typeof resData.updated_xml === 'string' && resData.updated_xml.includes('<')) {
-          finalUpdatedXml = resData.updated_xml;
-        }
-
-        const detectedChangesList = resData.detected_changes || [];
-        if (!finalUpdatedXml && xmlRawToSend && detectedChangesList.length > 0) {
+        // Guardar referencia de cambios detectados para el Paso 2 (Inyección XML)
+        pendingComparisonDataRef.current = resData;
+        lastComparisonReportRef.current = resData;
+        if (typeof window !== 'undefined') {
           try {
-            let baseXmlStr = xmlRawToSend;
-            if (typeof baseXmlStr === 'string' && (baseXmlStr.startsWith('http://') || baseXmlStr.startsWith('https://') || baseXmlStr.startsWith('[STORAGE_URL]:'))) {
-              const cleanUrl = baseXmlStr.replace('[STORAGE_URL]:', '').trim();
-              const urlResp = await fetch(cleanUrl);
-              if (urlResp.ok) {
-                baseXmlStr = await urlResp.text();
-              }
-            }
-            finalUpdatedXml = injectChangesIntoXml(baseXmlStr, detectedChangesList);
-            appliedXmlCount = detectedChangesList.length;
-          } catch (injErr) {
-            console.warn('[-] Error durante la inyección client-side de XML:', injErr);
-          }
-        } else if (!finalUpdatedXml && xmlRawToSend) {
-          finalUpdatedXml = xmlRawToSend;
+            sessionStorage.setItem('pending_comparison_changes', JSON.stringify(resData.detected_changes || []));
+          } catch (_) {}
         }
 
-        // ── PERSISTENCIA GARANTIZADA DE xml_actualizer_raw Y AUDITORÍA EN SUPABASE ──
+        // ── PERSISTENCIA EXCLUSIVA DE LA AUDITORÍA EN SUPABASE (SIN TOCAR xml_actualizer_raw EN EL PASO 1) ──
         (async () => {
           try {
             const { data: authUser } = await supabase.auth.getUser().catch(() => ({ data: {} }));
@@ -2262,38 +2431,21 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               audit_summary_markdown1: resData.markdown_report_1,
               audit_report_json: resData
             };
-            if (finalUpdatedXml) {
-              persistencePayload.xml_actualizer_raw = finalUpdatedXml;
-            }
             if (currentUserId) persistencePayload.user_id = currentUserId;
 
             await upsertGeneralProcessRecord(persistencePayload, 'General_Procces');
-            console.log('[+] xml_actualizer_raw y auditoría sincronizados con éxito en ClientsSERVEX_General_Procces');
+            console.log('[+] Auditoría comparativa matricial sincronizada con éxito en ClientsSERVEX_General_Procces');
           } catch (syncErr) {
-            console.warn('[-] Advertencia persistiendo en Supabase desde cliente:', syncErr);
+            console.warn('[-] Advertencia persistiendo auditoría en Supabase:', syncErr);
           }
         })();
-
-        // ── PERSISTENCIA LOCAL Y EVENTO GLOBAL PARA XML_Actualizer_Viewer ──
-        if (finalUpdatedXml && typeof window !== 'undefined') {
-          sessionStorage.setItem('xml_actualizer_raw', finalUpdatedXml);
-          window.dispatchEvent(new CustomEvent('xmlActualizerUpdated', {
-            detail: {
-              xml: finalUpdatedXml,
-              changesCount: appliedXmlCount
-            }
-          }));
-        }
-
-        if (unlockedPhase < 4) updatePhase(4);
 
         const hasDifferences = changesCount > 0 || newCount > 0 || deletedCount > 0;
         const botReplyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        const xmlUpdatesCount = appliedXmlCount || resData.xml_updates_count || (hasDifferences ? changesCount : 0);
         const summaryText = hasDifferences
-          ? `He completado la **auditoría comparativa matricial e inyección XML** entre el catálogo base (\`csv_raw\`) y el archivo editado (\`csv_new_raw\`).\n\nHe identificado **${changesCount} cambios en precios/celdas**, **${newCount} productos nuevos** y **${deletedCount} productos dados de baja** (${totalEvaluated} modelos evaluados).\n\n**Actualización de Catálogo XML:** Se inyectaron **${xmlUpdatesCount} modificaciones de forma precisa** en el árbol XML maestro. El archivo resultante quedó guardado en \`xml_actualizer_raw\` con su estructura, etiquetas y namespaces íntegros, **100% listo para CET Designer**.`
-          : `He completado la **auditoría comparativa matricial**. Ambas matrices de datos son **100% idénticas** (${totalEvaluated} modelos evaluados). El archivo XML en \`xml_actualizer_raw\` está verificado y listo para CET Designer.`;
+          ? `He completado la **auditoría comparativa matricial** (Paso 1 de 2).\n\nHe identificado **${changesCount} cambios en precios/celdas**, **${newCount} productos nuevos** y **${deletedCount} productos dados de baja** (${totalEvaluated} modelos evaluados).\n\nRevisa las discrepancias en el reporte inferior. Para transferir e inyectar estas modificaciones en el árbol XML maestro original, pulsa el botón **Inyectar Cambios al XML** o escribe **/injectXML**.`
+          : `He completado la **auditoría comparativa matricial**. Ambas matrices de datos son **100% idénticas** (${totalEvaluated} modelos evaluados). El catálogo base está sincronizado y no requiere modificaciones.`;
 
         setMessages(prev => [
           ...prev,
@@ -2303,6 +2455,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             role: "assistant",
             text: summaryText,
             comparisonReport: resData,
+            isXmlInjected: false,
             time: botReplyTime
           }
         ]);
@@ -2982,13 +3135,64 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   sendMessageRef.current = sendMessage;
 
   // Descarga directa del XML actualizado
-  const handleDownloadXml = useCallback(() => {
+  const handleDownloadXml = useCallback(async () => {
     recordClientAction({
       companyName: 'General_Procces',
       eventType: 'DOWNLOAD_RESULT_XML',
       title: 'Descarga de Catálogo XML',
       description: 'El usuario descargó el archivo XML actualizado certificado.'
     });
+
+    // 1. Intentar descargar directamente desde sessionStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const localXml = sessionStorage.getItem('xml_actualizer_raw');
+        if (localXml && !localXml.startsWith('http://') && !localXml.startsWith('https://') && !localXml.startsWith('[STORAGE_URL]:')) {
+          const blob = new Blob([localXml], { type: 'application/xml;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `General_Process_actualizer_${Date.now()}.xml`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          return;
+        }
+      } catch (_) {}
+    }
+
+    // 2. Intentar recuperar desde Supabase (texto o URL de Storage)
+    try {
+      const { data: row } = await supabase
+        .from('ClientsSERVEX_General_Procces')
+        .select('xml_actualizer_raw, xml_raw')
+        .or('company_name.eq.General_Procces,company_name.eq.General Process')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const xmlContent = row?.xml_actualizer_raw || row?.xml_raw;
+      if (xmlContent) {
+        if (xmlContent.startsWith('http://') || xmlContent.startsWith('https://') || xmlContent.startsWith('[STORAGE_URL]:')) {
+          const cleanUrl = xmlContent.replace('[STORAGE_URL]:', '').trim();
+          window.open(cleanUrl, '_blank');
+          return;
+        }
+        const blob = new Blob([xmlContent], { type: 'application/xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `General_Process_actualizer_${Date.now()}.xml`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return;
+      }
+    } catch (_) {}
+
+    // 3. Fallback al endpoint del backend
     const url = `${apiURL}/api/v1/General_Procces/agent/download-xml?company_name=General_Procces`;
     window.open(url, '_blank');
   }, [apiURL]);
@@ -3368,6 +3572,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                               data={msg.comparisonReport}
                               onCommandSelect={handleCommandSelect}
                               isDarkMode={isDarkMode}
+                              isXmlInjected={msg.isXmlInjected}
+                              onInjectXml={() => handleExecuteXmlInjection(msg.comparisonReport)}
                             />
                           </motion.div>
                           <motion.div
@@ -3392,6 +3598,56 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                               isDarkMode={isDarkMode}
                             />
                           </motion.div>
+
+                          {/* ── PASO 2: BOTÓN DE ACCIÓN PARA INYECTAR CAMBIOS AL XML MAESTRO ── */}
+                          {!msg.isXmlInjected && msg.comparisonReport?.detected_changes?.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.26, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                              className={`p-4 border rounded-none ${
+                                isDarkMode
+                                  ? 'bg-[#09090b]/90 border-white/20 text-zinc-100 shadow-md'
+                                  : 'bg-white border-zinc-300 text-zinc-900 shadow-sm'
+                              }`}
+                            >
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-amber-400 shrink-0" />
+                                    <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}`}>
+                                      Paso 2 de 2: Inyección al Catálogo XML
+                                    </span>
+                                  </div>
+                                  <p className={`text-[11.5px] mt-1 ${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                                    Se auditaron y cotejaron {msg.comparisonReport.detected_changes.length} modificaciones comerciales. Haz clic para inyectar estos cambios en el archivo XML maestro (<span className="font-mono text-zinc-300">xml_actualizer_raw</span>) preservando la estructura y namespaces de CET.
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleExecuteXmlInjection(msg.comparisonReport)}
+                                  disabled={isInjectingXml}
+                                  className={`px-4 py-2.5 text-xs font-mono font-bold tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 ${
+                                    isDarkMode
+                                      ? 'bg-white hover:bg-zinc-200 text-zinc-950 disabled:bg-zinc-700 disabled:text-zinc-400'
+                                      : 'bg-zinc-950 hover:bg-zinc-800 text-white disabled:bg-zinc-300 disabled:text-zinc-500'
+                                  }`}
+                                >
+                                  {isInjectingXml ? (
+                                    <>
+                                      <RefreshCw size={13} className="animate-spin" />
+                                      <span>Inyectando al XML...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Zap size={13} />
+                                      <span>Inyectar {msg.comparisonReport.detected_changes.length} Cambios al XML</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
                         </div>
                       )}
 
@@ -3549,29 +3805,33 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                       )}
 
                       {/* ── CARD DIRECTA DE DESCARGA FINAL EN EL CHAT ── */}
-                      {msg.showDownloadCard && (
+                      {(msg.showDownloadCard || msg.xmlDownloadAvailable || msg.isXmlSuccess) && (
                         <motion.div
                           initial={{ opacity: 0, y: 10, scale: 0.99 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ delay: 0.1, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                          className={`mt-3 p-3.5 border rounded-xl flex items-center justify-between ${isDarkMode ? 'bg-[#09090b]/65 border-white/10 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'bg-[#18181b]/6 border-[#18181b]/20'}`}
+                          className={`mt-3 p-3.5 border rounded-none flex items-center justify-between ${
+                            isDarkMode
+                              ? 'bg-[#09090b]/85 border-white/20 text-zinc-100 shadow-md'
+                              : 'bg-zinc-50 border-zinc-300 text-zinc-900 shadow-sm'
+                          }`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 rounded-lg ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs`}>
-                              <CheckCheck size={16} />
+                            <div className={`w-8 h-8 ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs shrink-0`}>
+                              <FileCode2 size={16} />
                             </div>
                             <div>
-                              <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
-                                Catálogo XML Certificado y Actualizado
+                              <h4 className={`text-xs font-mono font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
+                                Catálogo XML Certificado y Actualizado (xml_actualizer_raw)
                               </h4>
                               <p className={`text-[10.5px] ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'} font-medium`}>
-                                Listo para importar directamente en CET Designer sin errores de formato.
+                                Árbol XML 100% íntegro con estructura y namespaces válidos para CET Designer.
                               </p>
                             </div>
                           </div>
                           <button
                             onClick={handleDownloadXml}
-                            className={`px-3.5 py-1.5 ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-xs font-bold rounded-md shadow-xs flex items-center gap-1.5 transition-all cursor-pointer`}
+                            className={`px-3.5 py-1.5 ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0`}
                           >
                             <Download size={13} />
                             Descargar .XML
@@ -3671,7 +3931,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         </motion.div>
       );
     });
-  }, [messages, isDarkMode, dbCsvRaw, dbXmlRaw, activeCatalogName, context, renderTool, handleCommandSelect, handleDownloadXml]);
+  }, [messages, isDarkMode, dbCsvRaw, dbXmlRaw, activeCatalogName, context, renderTool, handleCommandSelect, handleDownloadXml, handleExecuteXmlInjection, isInjectingXml]);
 
   return (
     <div
