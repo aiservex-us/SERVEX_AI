@@ -1242,12 +1242,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
               ? Array.from(mcpActiveSkuFilter.skuSet)
               : lastFilteredSkusRef.current);
           const targetCol = batchTrace?.applied_column || batchInfo.target_column || activeTargetColToSend || 'List Price';
+          const targetCols = batchTrace?.columns_modified || null;
           const targetMode = batchTrace?.mode || batchInfo.mode || 'percent';
           const targetVal =
             batchTrace?.value !== undefined ? batchTrace.value : batchInfo.value;
 
           if (targetSkus.length > 0 && targetVal !== undefined && targetVal !== null) {
-            handleApplyBulkUpdate(targetSkus, targetCol, targetMode, targetVal);
+            handleApplyBulkUpdate(targetSkus, targetCols && targetCols.length > 0 ? targetCols : targetCol, targetMode, targetVal, targetCols);
           }
         }
 
@@ -1864,18 +1865,27 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     persistCsvEditRaw(currentList, nextDeleted, headersRef.current, true);
   };
 
-  // Aplicar ajuste masivo sobre las filas filtradas actualmente o sobre un lote de SKUs específico
-  const handleApplyBulkUpdate = (overrideSkus = null, overrideCol = null, overrideMode = null, overrideVal = null) => {
-    let activeCol = overrideCol || bulkColumn;
-    if (overrideCol) {
-      const match = (headersRef.current || []).find(
-        (h) =>
-          h.toLowerCase() === overrideCol.toLowerCase() ||
-          h.toLowerCase().includes(overrideCol.toLowerCase()) ||
-          overrideCol.toLowerCase().includes(h.toLowerCase())
-      );
-      if (match) activeCol = match;
+  // Aplicar ajuste masivo sobre las filas filtradas actualmente o sobre un lote de SKUs específico (soporta una o múltiples columnas)
+  const handleApplyBulkUpdate = (overrideSkus = null, overrideCol = null, overrideMode = null, overrideVal = null, overrideCols = null) => {
+    let targetColsList = null;
+    if (Array.isArray(overrideCols) && overrideCols.length > 0) {
+      targetColsList = overrideCols;
+    } else if (Array.isArray(overrideCol) && overrideCol.length > 0) {
+      targetColsList = overrideCol;
+    } else {
+      let activeCol = overrideCol || bulkColumn;
+      if (overrideCol) {
+        const match = (headersRef.current || []).find(
+          (h) =>
+            h.toLowerCase() === overrideCol.toLowerCase() ||
+            h.toLowerCase().includes(overrideCol.toLowerCase()) ||
+            overrideCol.toLowerCase().includes(h.toLowerCase())
+        );
+        if (match) activeCol = match;
+      }
+      targetColsList = [activeCol];
     }
+
     const activeMode = overrideMode || bulkMode;
     const rawVal = overrideVal !== null && overrideVal !== undefined ? overrideVal : bulkValue;
     const numVal = parseFloat(rawVal);
@@ -1901,24 +1911,26 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       const sku = String(row['Model #'] || '').trim();
       if (deletedSkusRef.current.has(sku)) return row;
 
-      const currentRaw = row[activeCol];
-      const currentNum = parseFloat(currentRaw || '0') || 0;
-      let updatedNum = currentNum;
+      const updatedRow = { ...row };
+      targetColsList.forEach((colName) => {
+        const currentRaw = row[colName];
+        const currentNum = parseFloat(currentRaw || '0') || 0;
+        let updatedNum = currentNum;
 
-      if (activeMode === 'percent') {
-        if (currentNum <= 0) return row;
-        updatedNum = Math.round(currentNum * (1 + numVal / 100) * 100) / 100;
-      } else if (activeMode === 'add') {
-        if (currentNum <= 0 && numVal <= 0) return row;
-        updatedNum = Math.round((currentNum + numVal) * 100) / 100;
-      } else if (activeMode === 'set') {
-        updatedNum = Math.round(numVal * 100) / 100;
-      }
+        if (activeMode === 'percent') {
+          if (currentNum <= 0) return;
+          updatedNum = Math.round(currentNum * (1 + numVal / 100) * 100) / 100;
+        } else if (activeMode === 'add') {
+          if (currentNum <= 0 && numVal <= 0) return;
+          updatedNum = Math.round((currentNum + numVal) * 100) / 100;
+        } else if (activeMode === 'set') {
+          updatedNum = Math.round(numVal * 100) / 100;
+        }
 
-      return {
-        ...row,
-        [activeCol]: updatedNum > 0 ? updatedNum : ''
-      };
+        updatedRow[colName] = updatedNum > 0 ? updatedNum : '';
+      });
+
+      return updatedRow;
     });
 
     editRowsRef.current = next;
@@ -1926,11 +1938,15 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     markLiveEditActive();
     persistCsvEditRaw(next, deletedSkusRef.current, headersRef.current, true);
 
+    const appliedColsDesc = targetColsList.length > 1
+      ? `${targetColsList.length} columnas (${targetColsList.slice(0, 3).join(', ')}...)`
+      : `"${targetColsList[0]}"`;
+
     recordClientAction({
       companyName: 'General_Procces',
       eventType: 'BULK_EDIT_MATRIX',
       title: 'Edición Masiva en Matriz (csv_edit_raw)',
-      description: `Ajuste masivo (${activeMode}: ${rawVal}) aplicado en columna "${activeCol}" sobre ${targetIndices.size} productos.`
+      description: `Ajuste masivo (${activeMode}: ${rawVal}) aplicado en ${appliedColsDesc} sobre ${targetIndices.size} productos.`
     });
     if (!overrideSkus) {
       setBulkValue('');
