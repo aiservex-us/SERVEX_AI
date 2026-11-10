@@ -1,4 +1,4 @@
-import { supabase, upsertGeneralProcessRecord } from './supabaseClient';
+import { supabase, upsertGeneralProcessRecord, resolveTenantKey, getActiveUserIdSync } from './supabaseClient';
 
 /**
  * Registra una acción del usuario en el seguimiento cronológico (seguimiento_client).
@@ -21,11 +21,12 @@ export async function recordClientAction({
     process.env.NEXT_PUBLIC_BACKEND_URL ||
     'https://servex-ai-back.onrender.com';
 
-  const cleanCo = (companyName || 'General_Procces').trim();
+  const cleanCo = await resolveTenantKey(companyName);
+  const currentUserId = getActiveUserIdSync();
 
   // 1. Envío asíncrono al backend MCP
   try {
-    fetch(`${backendUrl}/api/v1/cet-ai-engine/tracking/event`, {
+    fetch(`${backendUrl}/api/v1/${encodeURIComponent(cleanCo)}/agent/tracking/record-event`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -34,7 +35,8 @@ export async function recordClientAction({
         title: title || 'Acción de Usuario',
         description,
         actor: 'user',
-        details
+        details,
+        user_id: currentUserId || undefined
       }),
       keepalive: true
     }).catch(() => {});
@@ -42,8 +44,11 @@ export async function recordClientAction({
 
   // 2. Persistencia directa en Supabase desde el cliente autenticado
   try {
-    const { data: authData } = await supabase.auth.getUser().catch(() => ({ data: {} }));
-    const currentUserId = authData?.user?.id;
+    let resolvedUid = currentUserId;
+    if (!resolvedUid) {
+      const { data: authData } = await supabase.auth.getUser().catch(() => ({ data: {} }));
+      resolvedUid = authData?.user?.id || null;
+    }
 
     const { data: row } = await supabase
       .from('ClientsSERVEX_General_Procces')
@@ -114,7 +119,7 @@ export async function recordClientAction({
         company_name: cleanCo,
         seguimiento_client: updatedTracking
       };
-      if (currentUserId) payload.user_id = currentUserId;
+      if (resolvedUid) payload.user_id = resolvedUid;
       await upsertGeneralProcessRecord(payload, cleanCo);
     }
   } catch (err) {
@@ -126,14 +131,14 @@ export async function recordClientAction({
  * Reinicia la estructura de seguimiento cuando se purga la base de datos.
  */
 export async function resetClientTracking(companyName = 'General_Procces') {
-  const cleanCo = (companyName || 'General_Procces').trim();
+  const cleanCo = await resolveTenantKey(companyName);
   const backendUrl =
     process.env.NEXT_PUBLIC_API_URL ||
     process.env.NEXT_PUBLIC_BACKEND_URL ||
     'https://servex-ai-back.onrender.com';
 
   try {
-    fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session`, {
+    fetch(`${backendUrl}/api/v1/${encodeURIComponent(cleanCo)}/clear-session?skip_db=1`, {
       method: 'POST',
       keepalive: true
     }).catch(() => {});

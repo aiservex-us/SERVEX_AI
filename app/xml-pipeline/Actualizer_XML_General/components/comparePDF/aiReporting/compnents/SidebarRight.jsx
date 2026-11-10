@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import * as PH from "@phosphor-icons/react";
 import { ChevronRight, Cpu, Boxes, Search, Package } from 'lucide-react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '@/app/lib/supabaseClient';
 
 // --- SUBCOMPONENT: STAT ITEM (SIEMPRE ABIERTO Y COLOR ACTUALIZADO) ---
 const StatItem = ({ icon, label, value, description }) => (
@@ -61,12 +61,14 @@ const SidebarTeams = () => {
     const fetchCSV = async () => {
       setLoading(true);
       try {
+        const tenantKey = await getActiveTenantKey();
         const { data, error } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('csv_raw')
+          .eq('company_name', tenantKey)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (!error && data?.csv_raw) {
           const lines = data.csv_raw.replace(/\r\n/g, '\n').trim().split('\n');

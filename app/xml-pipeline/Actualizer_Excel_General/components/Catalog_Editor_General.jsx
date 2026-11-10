@@ -6,7 +6,9 @@ import {
   supabase,
   resolveStorageContent,
   uploadToCatalogsStorage,
-  upsertGeneralProcessRecord
+  upsertGeneralProcessRecord,
+  getActiveTenantKey,
+  getActiveTenantKeySync
 } from '@/app/lib/supabaseClient';
 import { recordClientAction } from '@/app/lib/trackingClient';
 import {
@@ -410,20 +412,23 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       const csvString = serializeRowsToCsv(rowsSnapshot, deletedSnapshot, colsSnapshot);
       if (!csvString) return '';
 
+      const tenantKey = getActiveTenantKeySync();
+
       if (typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('csv_edit_raw', csvString);
-          localStorage.setItem('csv_edit_raw_General_Procces', csvString);
+          localStorage.setItem(`csv_edit_raw_${tenantKey}`, csvString);
         } catch (_) {}
       }
 
       const runCloudSave = async () => {
         setSyncStatus('saving');
         try {
+          const resolvedTenant = await getActiveTenantKey();
           await supabase
             .from('ClientsSERVEX_General_Procces')
             .update({ csv_edit_raw: csvString })
-            .eq('company_name', 'General_Procces');
+            .eq('company_name', resolvedTenant);
 
           setSyncStatus('synced');
           setLastSavedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
@@ -612,37 +617,18 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       let hasEditInDb = false;
 
       try {
+        const tenantKey = await getActiveTenantKey();
         let dbRecord = null;
         const { data: rowMatch } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('csv_raw, csv_edit_raw, xml_name, file_name, XM_CET_import, xml_raw')
-          .or('company_name.eq.General_Procces,company_name.eq.General Process')
+          .eq('company_name', tenantKey)
           .order('id', { ascending: false })
           .limit(1)
           .maybeSingle();
 
         if (rowMatch) {
           dbRecord = rowMatch;
-        } else {
-          const { data: anyRow } = await supabase
-            .from('ClientsSERVEX_General_Procces')
-            .select('csv_raw, csv_edit_raw, xml_name, file_name, XM_CET_import, xml_raw')
-            .order('id', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          if (anyRow) dbRecord = anyRow;
-        }
-
-        // Si la fila activa no tiene csv_raw ni xml_raw, buscar la fila que contenga el catálogo
-        if (dbRecord && !dbRecord.csv_raw && !dbRecord.csv_edit_raw && !dbRecord.XM_CET_import && !dbRecord.xml_raw) {
-          const { data: catRow } = await supabase
-            .from('ClientsSERVEX_General_Procces')
-            .select('csv_raw, csv_edit_raw, xml_name, file_name, XM_CET_import, xml_raw')
-            .not('csv_raw', 'is', null)
-            .order('id', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          if (catRow) dbRecord = catRow;
         }
 
         if (dbRecord) {
@@ -663,11 +649,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 rawEditCsv = parsedXmlCsv;
                 upsertGeneralProcessRecord(
                   {
-                    company_name: 'General_Procces',
+                    company_name: tenantKey,
                     csv_raw: parsedXmlCsv,
                     csv_edit_raw: parsedXmlCsv
                   },
-                  'General_Procces'
+                  tenantKey
                 ).catch(() => {});
               }
             }
@@ -679,7 +665,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         rawBaseCsv = sessionStorage.getItem('csv_raw') || '';
       }
       if (!rawEditCsv && typeof window !== 'undefined') {
-        rawEditCsv = sessionStorage.getItem('csv_edit_raw') || localStorage.getItem('csv_edit_raw_General_Procces') || '';
+        const tKeySync = getActiveTenantKeySync();
+        rawEditCsv = sessionStorage.getItem('csv_edit_raw') || localStorage.getItem(`csv_edit_raw_${tKeySync}`) || '';
       }
 
       if (!rawBaseCsv && rawEditCsv) {
@@ -1158,14 +1145,16 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           mcpActiveSkuFilter?.targetCol ||
           null;
 
-        // 1. Intentar endpoint dedicado del nuevo MCP en el backend
+        const tenantKey = await getActiveTenantKey();
+
+        // 1. Intentar endpoint dedicado del nuevo MCP en el backend (aislado por tenant)
         try {
-          const res = await fetch(`${apiURL}/api/v1/General_Procces/matrix-editor/mcp-chat`, {
+          const res = await fetch(`${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/matrix-editor/mcp-chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               message: query,
-              company_name: 'General_Procces',
+              company_name: tenantKey,
               history: chatMessages.slice(-6).map((m) => ({
                 role: m.role,
                 content: m.text
@@ -1184,7 +1173,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
 
         // 2. Si el endpoint dedicado aún no responde (o en despliegue), usar el endpoint unificado con sección del editor
         if (!data || !data.reply) {
-          const fallbackRes = await fetch(`${apiURL}/api/v1/General_Procces/agent/chat`, {
+          const fallbackRes = await fetch(`${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/agent/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1195,7 +1184,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 })),
                 { role: 'user', content: query }
               ],
-              company_name: 'General_Procces',
+              company_name: tenantKey,
               current_section: 'catalog_matrix_live_editor'
             })
           });
@@ -1943,7 +1932,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       : `"${targetColsList[0]}"`;
 
     recordClientAction({
-      companyName: 'General_Procces',
+      companyName: getActiveTenantKeySync(),
       eventType: 'BULK_EDIT_MATRIX',
       title: 'Edición Masiva en Matriz (csv_edit_raw)',
       description: `Ajuste masivo (${activeMode}: ${rawVal}) aplicado en ${appliedColsDesc} sobre ${targetIndices.size} productos.`
@@ -1999,11 +1988,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         process.env.NEXT_PUBLIC_BACKEND_URL ||
         'https://servex-ai-back.onrender.com';
 
+      const tenantKey = await getActiveTenantKey();
+
       try {
         const fd = new FormData();
-        fd.append('company_name', 'General_Procces');
+        fd.append('company_name', tenantKey);
         fd.append('csv_new_raw', finalEditedCsv);
-        await fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-new`, {
+        await fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenantKey)}/pipeline/cache-csv-new`, {
           method: 'POST',
           body: fd
         });
@@ -2017,10 +2008,10 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           csv_new_raw: finalEditedCsv,
           CSV_final: finalEditedCsv
         })
-        .eq('company_name', 'General_Procces');
+        .eq('company_name', tenantKey);
 
       recordClientAction({
-        companyName: 'General_Procces',
+        companyName: tenantKey,
         eventType: 'EXECUTE_COMPARISON_FROM_EDITOR',
         title: 'Auditoría Comparativa desde Editor en Vivo',
         description: `El usuario finalizó la edición en csv_edit_raw (${diffMetrics.totalChanges} cambios) y ejecutó la comparación contra csv_raw.`

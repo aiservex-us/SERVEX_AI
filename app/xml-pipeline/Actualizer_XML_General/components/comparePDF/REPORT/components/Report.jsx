@@ -1,5 +1,5 @@
 'use client';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, Zap, Database, BrainCircuit, Activity, PlusCircle, MinusCircle, FileText, ArrowRight, Search, TrendingUp, TrendingDown, AlertTriangle, Layers, AlertOctagon, ShieldAlert } from 'lucide-react';
 
@@ -23,10 +23,12 @@ export default function AuditReportViewer({ isDarkMode = true }) {
   useEffect(() => {
     async function fetchAuditData() {
       setLoading(true);
-      // Apuntando de manera precisa a la tabla de la entidad General Process
+      const tenantKey = await getActiveTenantKey();
+      // Apuntando de manera precisa al registro exclusivo del usuario/tenant actual
       const { data } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('id, company_name, audit_report_json, created_at')
+        .eq('company_name', tenantKey)
         .order('created_at', { ascending: false });
       
       setRecords(data || []);

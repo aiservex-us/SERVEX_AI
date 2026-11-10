@@ -12,13 +12,23 @@ import {
   FileSpreadsheet, 
   Sparkles 
 } from 'lucide-react';
-import { supabase, ensureGeneralProcessBaseRecord } from '@/app/lib/supabaseClient';
+import {
+  supabase,
+  ensureGeneralProcessBaseRecord,
+  resolveTenantKeySync,
+  resolveTenantKey,
+  getActiveUserIdSync,
+  getActiveAccessTokenSync
+} from '@/app/lib/supabaseClient';
 import { resetClientTracking } from '@/app/lib/trackingClient';
 
 export const purgeTenantDataBeacon = (currentTenant = 'General_Procces') => {
   if (typeof window === 'undefined') return;
 
-  const payload = JSON.stringify({ tenant: currentTenant });
+  const effectiveTenant = resolveTenantKeySync(currentTenant);
+  const uid = getActiveUserIdSync();
+  const token = getActiveAccessTokenSync();
+  const payload = JSON.stringify({ tenant: effectiveTenant, user_id: uid || undefined });
 
   // 1. Next.js internal API via sendBeacon
   try {
@@ -38,39 +48,42 @@ export const purgeTenantDataBeacon = (currentTenant = 'General_Procces') => {
     }).catch(() => {});
   } catch (_) {}
 
-  // 3. Purga directa a REST de Supabase con keepalive
+  // 3. Purga directa a REST de Supabase con keepalive (EXCLUSIVO para effectiveTenant)
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zotgxyupuiifnbuwwjkl.supabase.co';
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_usgTKwhsIpmNIiGa_F4tiw_ah3THCTJ';
-    fetch(`${supabaseUrl}/rest/v1/ClientsSERVEX_General_Procces?id=neq.0`, {
+    fetch(`${supabaseUrl}/rest/v1/ClientsSERVEX_General_Procces?company_name=eq.${encodeURIComponent(effectiveTenant)}`, {
       method: 'DELETE',
       headers: {
         'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
+        'Authorization': `Bearer ${token || supabaseKey}`,
         'Prefer': 'return=minimal'
       },
       keepalive: true
     }).catch(() => {});
   } catch (_) {}
 
-  // 4. Backend clear session con keepalive
+  // 4. Backend clear session con keepalive (aislado por tenant, sin borrar filas de otros usuarios)
   const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
   try {
-    fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session`, { method: 'POST', keepalive: true }).catch(() => {});
-    fetch(`${backendUrl}/api/v1/${encodeURIComponent(currentTenant)}/clear-session`, { method: 'POST', keepalive: true }).catch(() => {});
-    fetch(`${backendUrl}/api/v1/${encodeURIComponent(currentTenant)}/agent/history`, { method: 'DELETE', keepalive: true }).catch(() => {});
+    fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session?company_name=${encodeURIComponent(effectiveTenant)}&skip_db=1`, { method: 'POST', keepalive: true }).catch(() => {});
+    fetch(`${backendUrl}/api/v1/${encodeURIComponent(effectiveTenant)}/clear-session?skip_db=1`, { method: 'POST', keepalive: true }).catch(() => {});
+    fetch(`${backendUrl}/api/v1/${encodeURIComponent(effectiveTenant)}/agent/history`, { method: 'DELETE', keepalive: true }).catch(() => {});
   } catch (_) {}
 };
 
 export const purgeTenantData = async (currentTenant = 'General_Procces') => {
-  resetClientTracking(currentTenant);
+  const effectiveTenant = await resolveTenantKey(currentTenant);
+  const uid = getActiveUserIdSync();
+  resetClientTracking(effectiveTenant);
 
   // Limpiar almacenamiento local inmediatamente de forma sincrónica
   if (typeof window !== 'undefined') {
     try {
       sessionStorage.clear();
-      localStorage.removeItem('csv_edit_raw_' + currentTenant);
-      localStorage.removeItem('chat_history_' + currentTenant);
+      localStorage.removeItem('csv_edit_raw_' + effectiveTenant);
+      localStorage.removeItem('csv_edit_raw_General_Procces');
+      localStorage.removeItem('chat_history_' + effectiveTenant);
       localStorage.removeItem('cet_active_messages');
       localStorage.removeItem('general_procces_chat');
       localStorage.removeItem('active_process_phase');
@@ -81,22 +94,21 @@ export const purgeTenantData = async (currentTenant = 'General_Procces') => {
     } catch (_) {}
   }
 
-  // 1. Ejecución paralela de máxima prioridad: borrado directo de DB en Supabase + endpoint Next.js interno
+  // 1. Ejecución paralela: borrado EXCLUSIVO de la fila de este usuario/tenant
   const dbPurgePromise = Promise.allSettled([
-    supabase.from('ClientsSERVEX_General_Procces').delete().neq('id', 0),
-    supabase.from('ClientsSERVEX_General_Procces').delete().eq('company_name', currentTenant),
+    supabase.from('ClientsSERVEX_General_Procces').delete().eq('company_name', effectiveTenant),
     fetch('/api/purge-pipeline', {
       method: 'POST',
-      body: JSON.stringify({ tenant: currentTenant }),
+      body: JSON.stringify({ tenant: effectiveTenant, user_id: uid || undefined }),
       headers: { 'Content-Type': 'application/json' },
       signal: AbortSignal.timeout(1800)
     }).catch(() => {})
   ]);
 
-  // 2. Limpieza de storage en paralelo no bloqueante
+  // 2. Limpieza de storage en paralelo no bloqueante (exclusiva del tenant)
   const storageCleanupPromise = (async () => {
     try {
-      const prefixes = [currentTenant, `csv_matrices/${currentTenant}`, `xml_results/${currentTenant}`, `xml_originals/${currentTenant}`];
+      const prefixes = [effectiveTenant, `csv_matrices/${effectiveTenant}`, `xml_results/${effectiveTenant}`, `xml_originals/${effectiveTenant}`];
       await Promise.allSettled(
         prefixes.map(async (prefix) => {
           try {
@@ -111,12 +123,12 @@ export const purgeTenantData = async (currentTenant = 'General_Procces') => {
     } catch (_) {}
   })();
 
-  // 3. Notificación al backend en paralelo con timeout rápido
+  // 3. Notificación al backend en paralelo (aislada al tenant)
   const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
   const backendPromise = Promise.allSettled([
-    fetch(backendUrl + '/api/v1/cet-ai-engine/clear-session', { method: 'POST', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {}),
-    fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/clear-session', { method: 'POST', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {}),
-    fetch(backendUrl + '/api/v1/' + encodeURIComponent(currentTenant) + '/agent/history', { method: 'DELETE', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {})
+    fetch(backendUrl + '/api/v1/cet-ai-engine/clear-session?company_name=' + encodeURIComponent(effectiveTenant) + '&skip_db=1', { method: 'POST', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {}),
+    fetch(backendUrl + '/api/v1/' + encodeURIComponent(effectiveTenant) + '/clear-session?skip_db=1', { method: 'POST', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {}),
+    fetch(backendUrl + '/api/v1/' + encodeURIComponent(effectiveTenant) + '/agent/history', { method: 'DELETE', keepalive: true, signal: AbortSignal.timeout(1200) }).catch(() => {})
   ]);
 
   // Esperar el borrado de base de datos con un límite de tiempo de 1.8 segundos para máxima fluidez
@@ -126,10 +138,10 @@ export const purgeTenantData = async (currentTenant = 'General_Procces') => {
     timeoutPromise
   ]);
 
-  // 4. Montar inmediatamente la fila base con toda su estructura de columnas para que la DB NUNCA quede vacía
-  ensureGeneralProcessBaseRecord(currentTenant).catch(() => {});
+  // 4. Montar inmediatamente la fila base con toda su estructura de columnas para que la DB de este usuario NUNCA quede vacía
+  await ensureGeneralProcessBaseRecord(effectiveTenant).catch(() => {});
   // Pre-calentar backend en segundo plano tras el reinicio
-  fetch(`${backendUrl}/api/v1/${encodeURIComponent(currentTenant)}/agent/warmup`, { method: 'POST', keepalive: true }).catch(() => {});
+  fetch(`${backendUrl}/api/v1/${encodeURIComponent(effectiveTenant)}/agent/warmup`, { method: 'POST', keepalive: true }).catch(() => {});
 };
 
 const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) => {
@@ -152,12 +164,15 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModalOpen, isDeleting]);
 
-  const displayTenant = currentTenant === 'General_Procces' ? 'XML Pipeline' : currentTenant;
+  const effectiveTenant = resolveTenantKeySync(currentTenant);
+  const displayTenant = (!currentTenant || currentTenant === 'General_Procces' || effectiveTenant.startsWith('General_Procces'))
+    ? 'XML Pipeline'
+    : currentTenant;
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await purgeTenantData(currentTenant);
+      await purgeTenantData(effectiveTenant);
       setIsModalOpen(false);
       if (onDeleted) onDeleted();
       window.location.href = '/xml-pipeline';

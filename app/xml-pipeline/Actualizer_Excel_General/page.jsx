@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient.js';
+import { supabase, getActiveTenantKeySync, getActiveTenantKey } from '../../lib/supabaseClient.js';
 import { X, AlertCircle } from 'lucide-react';
 import CriticalExcelModal from '../../components/CriticalExcelModal.jsx';
 
@@ -23,8 +23,13 @@ export default function ExcelActualizer() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [exitActionType, setExitActionType] = useState('exit');
   const [isMobileScreen, setIsMobileScreen] = useState(false);
+  const [activeTenant, setActiveTenant] = useState(() => getActiveTenantKeySync());
 
   const router = useRouter();
+
+  useEffect(() => {
+    getActiveTenantKey().then((tKey) => setActiveTenant(tKey)).catch(() => {});
+  }, []);
 
   /* 🔒 PROTECCIÓN DE RUTA DEL MÓDULO (Temporalmente comentada para desarrollo local)
   useEffect(() => {
@@ -97,7 +102,7 @@ export default function ExcelActualizer() {
     };
 
     const handlePageHide = () => {
-      purgeTenantDataBeacon('General_Procces');
+      purgeTenantDataBeacon(getActiveTenantKeySync());
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -135,7 +140,7 @@ export default function ExcelActualizer() {
   const renderContent = () => {
     switch (active) {
       case 'reporting': return <AIReporting />;
-      case 'incert_delete': return <IncertData moduleName="General_Procces" />;
+      case 'incert_delete': return <IncertData moduleName={activeTenant} />;
       case 'xml_results': return <XMLResultsGeneral />;
       case 'cet_comparator': return <CETComparator />;
       case 'csv_final': return <CSVFinalResultsGeneral />;
@@ -153,7 +158,7 @@ export default function ExcelActualizer() {
         isOpen={showExitModal}
         onClose={() => setShowExitModal(false)}
         exitType={exitActionType}
-        currentTenant="General_Procces"
+        currentTenant={activeTenant}
       />
 
       <main className="w-full h-full p-0 m-0 flex relative overflow-hidden flex-1 min-h-0">

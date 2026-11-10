@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase, resolveXmlContent } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent, getActiveTenantKey, getActiveTenantKeySync } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Database, 
@@ -32,11 +32,12 @@ const WBDDataMatrix = () => {
       setLoading(true);
       setError(null);
 
-      // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad General Process
+      const tenantKey = await getActiveTenantKey();
+      // Ingestión desde la tabla correcta configurada en Supabase filtrando exclusivamente por el usuario/tenant actual
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('xml_actualizer_raw')
-        .eq('company_name', 'General_Procces')
+        .eq('company_name', tenantKey)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -90,7 +91,7 @@ const WBDDataMatrix = () => {
 
       // Registrar evento en seguimiento_client
       recordClientAction({
-        companyName: 'General_Procces',
+        companyName: getActiveTenantKeySync(),
         eventType: 'VIEW_POST_PROCESS_MATRIX',
         title: 'Visualización de Matriz XML Actualizada',
         description: `El usuario abrió la vista previa del XML post-proceso (${productsXML.length} productos).`,

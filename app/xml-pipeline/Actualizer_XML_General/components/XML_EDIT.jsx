@@ -15,7 +15,7 @@ import {
   FiXCircle 
 } from 'react-icons/fi';
 import { BsFileEarmarkArrowUp } from 'react-icons/bs';
-import { supabase, resolveXmlContent } from '../../lib/supabaseClient';
+import { supabase, resolveXmlContent, getActiveTenantKey } from '../../lib/supabaseClient';
 
 const SVXUnifiedEnterprise = () => {
   // --- ESTADOS DE AUDITORÍA (CSV) ---
@@ -104,9 +104,13 @@ const SVXUnifiedEnterprise = () => {
     if (data.length === 0) return;
     setIsAnalyzing(true);
     try {
+      const tenantKey = await getActiveTenantKey();
       const { data: dbRows, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
-        .select('csv_raw').not('csv_raw', 'is', null).limit(1);
+        .select('csv_raw')
+        .eq('company_name', tenantKey)
+        .not('csv_raw', 'is', null)
+        .limit(1);
 
       if (error || !dbRows[0]) throw new Error("No master data");
 

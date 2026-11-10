@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../../../lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '../../../../lib/supabaseClient';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Bot, Sparkles, Zap, FileText, Shield, Cloud, RefreshCw } from 'lucide-react';
@@ -15,9 +15,11 @@ const AgentInfo = () => {
     const fetchAgentInfo = async () => {
       try {
         setLoading(true);
+        const tenantKey = await getActiveTenantKey();
         const { data, error: supabaseError } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('informa_agent_raw')
+          .eq('company_name', tenantKey)
           .maybeSingle();
 
         if (supabaseError) throw supabaseError;

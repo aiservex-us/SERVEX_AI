@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 // Importación de la instancia del cliente de Supabase
-import { supabase, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
+import { supabase, upsertGeneralProcessRecord, getActiveTenantKeySync, getActiveTenantKey } from '@/app/lib/supabaseClient';
 
 // IMPORTACIÓN DE COMPONENTES EXTERNOS
 import EJECUTOR_PLAY from './EJECUTOR_PLAY';
@@ -23,8 +23,12 @@ import EJECUTOR_PLAY from './EJECUTOR_PLAY';
 
 const SVXUnifiedPlatform = () => {
   // --- CONFIGURACIÓN MULTI-TENANT DINÁMICA ---
-  const [currentTenant] = useState('General_Procces'); 
+  const [currentTenant, setCurrentTenant] = useState(() => getActiveTenantKeySync());
   const [targetTableName] = useState('ClientsSERVEX_General_Procces');
+
+  useEffect(() => {
+    getActiveTenantKey().then((tKey) => setCurrentTenant(tKey)).catch(() => {});
+  }, []);
 
   // --- TUTORIAL ALERT STATE ---
   const [showTutorial, setShowTutorial] = useState(false);

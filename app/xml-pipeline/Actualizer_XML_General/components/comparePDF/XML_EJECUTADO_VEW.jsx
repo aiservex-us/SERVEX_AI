@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { FiSearch, FiCheckCircle, FiPackage, FiPlusCircle } from 'react-icons/fi';
 import { Database, Table as TableIcon } from "lucide-react";
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '../../../lib/supabaseClient';
 
 // --- COMPONENTE CONTENEDOR INDEPENDIENTE ---
 const IndependentLESROVisualizer = () => {
@@ -14,11 +14,12 @@ const IndependentLESROVisualizer = () => {
   useEffect(() => {
     const fetchIndependentData = async () => {
       try {
+        const tenantKey = await getActiveTenantKey();
         const { data, error } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('xml_updated_raw')
-          .eq('company_name', 'General_Procces')
-          .single();
+          .eq('company_name', tenantKey)
+          .maybeSingle();
 
         if (error) throw error;
         if (data) setXmlString(data.xml_updated_raw);

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { supabase, resolveStorageContent } from '@/app/lib/supabaseClient';
+import { supabase, resolveStorageContent, resolveTenantKey } from '@/app/lib/supabaseClient';
 import { Download, Loader2 } from 'lucide-react';
 
 const DownloadResultXML = ({ moduleName = 'General_Procces' }) => {
@@ -10,10 +10,14 @@ const DownloadResultXML = ({ moduleName = 'General_Procces' }) => {
   const handleDownload = async () => {
     setIsDownloading(true);
     try {
+      const isGeneral = !moduleName || moduleName.startsWith('General_Procces') || moduleName === 'General Process';
+      const targetKey = isGeneral ? await resolveTenantKey(moduleName) : moduleName;
+      const targetTable = isGeneral ? 'ClientsSERVEX_General_Procces' : `ClientsSERVEX_${moduleName}`;
+
       const { data, error } = await supabase
-        .from(`ClientsSERVEX_${moduleName}`)
+        .from(targetTable)
         .select('xml_actualizer_raw')
-        .eq('company_name', moduleName)
+        .eq('company_name', targetKey)
         .single();
 
       if (error) throw error;

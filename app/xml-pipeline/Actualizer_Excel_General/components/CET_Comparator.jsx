@@ -1,5 +1,5 @@
 'use client';
-import { supabase, resolveStorageContent } from '@/app/lib/supabaseClient';
+import { supabase, resolveStorageContent, getActiveTenantKey } from '@/app/lib/supabaseClient';
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCw, Zap, Database, Activity, PlusCircle, MinusCircle, Search, AlertCircle, Play } from 'lucide-react';
 
@@ -34,10 +34,11 @@ export default function CETComparator() {
 
   const fetchRecord = async () => {
     setLoading(true);
+    const tenantKey = await getActiveTenantKey();
     const { data, error } = await supabase
       .from('ClientsSERVEX_General_Procces')
       .select('id, company_name, xml_actualizer_raw, XM_CET_import, Anormals_raw, created_at')
-      .eq('company_name', 'General_Procces')
+      .eq('company_name', tenantKey)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();

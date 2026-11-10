@@ -25,6 +25,104 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
+// =============================================================================
+// AISLAMIENTO MULTI-USUARIO (TENANT KEY POR USUARIO SIN ALTERAR EL ESQUEMA SQL)
+// =============================================================================
+let _cachedTenantUserId = null;
+
+if (typeof window !== 'undefined') {
+  try {
+    supabase.auth.onAuthStateChange((_event, session) => {
+      _cachedTenantUserId = session?.user?.id || null;
+    });
+  } catch (_) {}
+}
+
+export function getActiveUserIdSync() {
+  if (_cachedTenantUserId) return _cachedTenantUserId;
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('sb-worker-session');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const uid = parsed?.user?.id || parsed?.currentSession?.user?.id || parsed?.session?.user?.id || null;
+      if (uid) {
+        _cachedTenantUserId = uid;
+        return uid;
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
+export function getActiveAccessTokenSync() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('sb-worker-session');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token || null;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function _getOrCreateGuestTenantId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let gid = localStorage.getItem('servex_guest_tenant_id');
+    if (!gid) {
+      gid = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+        ? crypto.randomUUID().slice(0, 12)
+        : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+      localStorage.setItem('servex_guest_tenant_id', gid);
+    }
+    return gid;
+  } catch (_) {
+    return null;
+  }
+}
+
+export function getActiveTenantKeySync() {
+  const uid = getActiveUserIdSync();
+  if (uid) return `General_Procces_${uid}`;
+  if (typeof window === 'undefined') return 'General_Procces';
+  const gid = _getOrCreateGuestTenantId();
+  return gid ? `General_Procces_guest_${gid}` : 'General_Procces';
+}
+
+export async function getActiveTenantKey() {
+  const syncUid = getActiveUserIdSync();
+  if (syncUid) return `General_Procces_${syncUid}`;
+  try {
+    const { data } = await supabase.auth.getSession();
+    const uid = data?.session?.user?.id || null;
+    if (uid) {
+      _cachedTenantUserId = uid;
+      return `General_Procces_${uid}`;
+    }
+  } catch (_) {}
+  if (typeof window === 'undefined') return 'General_Procces';
+  const gid = _getOrCreateGuestTenantId();
+  return gid ? `General_Procces_guest_${gid}` : 'General_Procces';
+}
+
+export function resolveTenantKeySync(companyName) {
+  const raw = (companyName || '').trim();
+  if (!raw || raw === 'General_Procces' || raw === 'General Process') {
+    return getActiveTenantKeySync();
+  }
+  return raw;
+}
+
+export async function resolveTenantKey(companyName) {
+  const raw = (companyName || '').trim();
+  if (!raw || raw === 'General_Procces' || raw === 'General Process') {
+    return await getActiveTenantKey();
+  }
+  return raw;
+}
+
 // Cliente para Clientes (Google / Customer Portal)
 export const supabaseGoogle = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -213,36 +311,30 @@ export async function uploadToCatalogsStorage(content, path, mimeType = 'text/pl
  */
 export async function upsertGeneralProcessRecord(payload, companyName = 'General_Procces') {
   try {
-    const cleanCompany = (payload?.company_name || companyName || 'General_Procces').trim();
+    const cleanCompany = await resolveTenantKey(payload?.company_name || companyName);
     const updateFields = { ...payload };
     delete updateFields.company_name;
     delete updateFields.user_id;
 
-    // 1. Localizar la fila existente en ClientsSERVEX_General_Procces (evita duplicidad)
+    // 1. Localizar exclusivamente la fila perteneciente a este usuario/tenant
     let targetRowId = null;
     const { data: rowMatch } = await supabase
       .from('ClientsSERVEX_General_Procces')
-      .select('id, company_name')
-      .or(`company_name.eq.${cleanCompany},company_name.eq.General_Procces,company_name.eq.General Process`)
+      .select('id, company_name, user_id')
+      .eq('company_name', cleanCompany)
       .order('id', { ascending: true })
       .limit(1)
       .maybeSingle();
 
     if (rowMatch?.id) {
       targetRowId = rowMatch.id;
-    } else {
-      const { data: anyRow } = await supabase
-        .from('ClientsSERVEX_General_Procces')
-        .select('id, company_name')
-        .order('id', { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (anyRow?.id) {
-        targetRowId = anyRow.id;
-      }
     }
 
     if (targetRowId) {
+      if (!rowMatch.user_id) {
+        const uid = getActiveUserIdSync();
+        if (uid) updateFields.user_id = uid;
+      }
       let { data, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .update(updateFields)
@@ -264,11 +356,11 @@ export async function upsertGeneralProcessRecord(payload, companyName = 'General
       return { data, error, rlsBypassed: false };
     }
 
-    // 2. Si no existe la fila aún (tabla vacía), crearla con upsert
+    // 2. Si no existe la fila aún para este usuario/tenant, crearla con upsert
     const fullPayload = { ...payload, company_name: cleanCompany };
     if (!fullPayload.user_id) {
       const { data: sessionData } = await supabase.auth.getSession().catch(() => ({ data: {} }));
-      const currentUserId = sessionData?.session?.user?.id || null;
+      const currentUserId = sessionData?.session?.user?.id || getActiveUserIdSync() || null;
       if (currentUserId) {
         fullPayload.user_id = currentUserId;
       }
@@ -299,20 +391,20 @@ export async function upsertGeneralProcessRecord(payload, companyName = 'General
 }
 
 /**
- * Garantiza de forma proactiva e inmediata que la fila base para 'General_Procces'
+ * Garantiza de forma proactiva e inmediata que la fila base para el usuario/tenant actual
  * exista en 'ClientsSERVEX_General_Procces' con todas sus columnas inicializadas.
  * Evita que la DB aparezca vacía al ingresar o reiniciar el proceso, y previene
  * cualquier retraso de montaje cuando el usuario envía su primera consulta al chat.
  */
 export async function ensureGeneralProcessBaseRecord(companyName = 'General_Procces') {
   try {
-    const cleanCompany = (companyName || 'General_Procces').trim();
+    const cleanCompany = await resolveTenantKey(companyName);
 
-    // 1. Verificación rápida de la fila existente (< 20ms)
+    // 1. Verificación rápida de la fila existente (< 20ms) exclusiva de este usuario
     const { data: existing } = await supabase
       .from('ClientsSERVEX_General_Procces')
       .select('id, company_name')
-      .or(`company_name.eq.${cleanCompany},company_name.eq.General_Procces,company_name.eq.General Process`)
+      .eq('company_name', cleanCompany)
       .order('id', { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -321,24 +413,14 @@ export async function ensureGeneralProcessBaseRecord(companyName = 'General_Proc
       return existing;
     }
 
-    const { data: anyExisting } = await supabase
-      .from('ClientsSERVEX_General_Procces')
-      .select('id, company_name')
-      .order('id', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-
-    if (anyExisting?.id) {
-      return anyExisting;
+    // 2. Si no existe la fila para este usuario, montar de inmediato su estructura base aislada
+    let userId = getActiveUserIdSync();
+    if (!userId) {
+      try {
+        const { data: sData } = await supabase.auth.getSession().catch(() => ({ data: {} }));
+        userId = sData?.session?.user?.id || null;
+      } catch (_) {}
     }
-
-    // 2. Si no existe la fila (DB vacía por ingreso inicial o tras reinicio),
-    // montar de inmediato la estructura base completa
-    let userId = null;
-    try {
-      const { data: sData } = await supabase.auth.getSession().catch(() => ({ data: {} }));
-      userId = sData?.session?.user?.id || null;
-    } catch (_) {}
 
     const baseRow = {
       company_name: cleanCompany,

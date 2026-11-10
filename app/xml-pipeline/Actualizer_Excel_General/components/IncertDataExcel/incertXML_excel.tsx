@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
-import { supabase, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
+import { supabase, upsertGeneralProcessRecord, resolveTenantKey } from '@/app/lib/supabaseClient';
 import {
   FileCode,
   Building2,
@@ -33,10 +33,14 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
   const checkExistingFiles = useCallback(async () => {
     setCheckingExisting(true);
     try {
+      const isGeneralProcess = !moduleName || moduleName.startsWith('General_Procces') || moduleName === 'General Process';
+      const targetKey = isGeneralProcess ? await resolveTenantKey(moduleName) : moduleName;
+      const targetTable = isGeneralProcess ? 'ClientsSERVEX_General_Procces' : `ClientsSERVEX_${moduleName}`;
+
       const { data, error } = await supabase
-        .from(`ClientsSERVEX_${moduleName}`)
+        .from(targetTable)
         .select('XM_CET_import')
-        .eq('company_name', moduleName)
+        .eq('company_name', targetKey)
         .maybeSingle();
 
       if (error) {
@@ -114,9 +118,11 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const effectiveFileName = fileNameParam || xmlFileName;
+      const resolvedTenant = await resolveTenantKey(moduleName);
+      const isGeneralProcess = !moduleName || moduleName.startsWith('General_Procces') || moduleName === 'General Process';
 
       const payload: any = {
-        company_name: moduleName
+        company_name: isGeneralProcess ? resolvedTenant : moduleName
       };
       if (user?.id) {
         payload.user_id = user.id;
@@ -129,8 +135,8 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
       // --- OPTIMIZACIÓN SUPABASE STORAGE (catalogs-storage) ---
       let uploadedPublicUrl = '';
       try {
-        const cleanName = (effectiveFileName || `${moduleName}.xml`).replace(/[^a-zA-Z0-9._-]/g, '_');
-        const storageFilePath = `${moduleName}/${Date.now()}_${cleanName}`;
+        const cleanName = (effectiveFileName || `${payload.company_name}.xml`).replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storageFilePath = `${payload.company_name}/${Date.now()}_${cleanName}`;
         const xmlBlob = new Blob([rawContent], { type: 'application/xml' });
 
         const { data: storageData, error: storageErr } = await supabase.storage
@@ -162,8 +168,8 @@ export default function UploadClientXML({ moduleName }: { moduleName: string }) 
         payload.XM_CET_import = rawContent;
       }
 
-      const { error } = moduleName === 'General_Procces'
-        ? await upsertGeneralProcessRecord(payload, moduleName)
+      const { error } = isGeneralProcess
+        ? await upsertGeneralProcessRecord(payload, resolvedTenant)
         : await supabase.from(`ClientsSERVEX_${moduleName}`).upsert(payload, { onConflict: 'company_name' });
 
       if (error) {

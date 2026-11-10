@@ -3,7 +3,7 @@
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react';
-import { supabase, uploadToCatalogsStorage, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
+import { supabase, uploadToCatalogsStorage, upsertGeneralProcessRecord, getActiveTenantKeySync, getActiveTenantKey } from '@/app/lib/supabaseClient';
 import {
   FileCode,
   Building2,
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export default function UploadClientXML({ step = 'all' }: { step?: string }) {
-  const [companyName] = useState('General_Procces');
+  const [companyName, setCompanyName] = useState(() => getActiveTenantKeySync());
   const [xmlFileName, setXmlFileName] = useState('');
   const [xmlContent, setXmlContent] = useState('');
   const [csvContent, setCsvContent] = useState('');
@@ -47,14 +47,16 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
   // React Transition para prevenir bloqueos de renderizado en hilos de UI al cargar datasets grandes
   const [, startTransition] = useTransition();
 
-  // --- Verificar si ya existe un registro con XML/CSV guardados para esta compañía ---
+  // --- Verificar si ya existe un registro con XML/CSV guardados para este usuario/tenant ---
   const checkExistingFiles = useCallback(async () => {
     setCheckingExisting(true);
     try {
+      const tenantKey = await getActiveTenantKey();
+      setCompanyName(tenantKey);
       const { data, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('xml_raw, xml_name, file_name, csv_raw, csv_new_raw')
-        .eq('company_name', companyName)
+        .eq('company_name', tenantKey)
         .maybeSingle();
 
       const localCsvBase = typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') : null;
@@ -456,9 +458,10 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      const tenantKey = await getActiveTenantKey();
       
       const payload: any = {
-        company_name: 'General_Procces',
+        company_name: tenantKey,
       };
       if (user?.id) {
         payload.user_id = user.id;
@@ -471,11 +474,11 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           payload.file_name = fileName;
         }
 
-        // --- OPTIMIZACIÓN EN SUPABASE STORAGE (catalogs-storage) ---
+        // --- OPTIMIZACIÓN EN SUPABASE STORAGE (catalogs-storage) aislado por tenant ---
         let uploadedPublicUrl = '';
         try {
           const cleanName = (fileName || 'catalog.xml').replace(/[^a-zA-Z0-9._-]/g, '_');
-          const storageFilePath = `General_Procces/${Date.now()}_${cleanName}`;
+          const storageFilePath = `${tenantKey}/${Date.now()}_${cleanName}`;
           const xmlBlob = new Blob([prefixedContent], { type: 'application/xml' });
 
           const { data: storageData, error: storageErr } = await supabase.storage
@@ -517,7 +520,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
             try {
               storageGenUrl = await uploadToCatalogsStorage(
                 generatedCsv,
-                `csv_matrices/General_Procces/csv_raw_${Date.now()}.csv`,
+                `csv_matrices/${tenantKey}/csv_raw_${Date.now()}.csv`,
                 'text/csv'
               );
             } catch (_) {}
@@ -532,9 +535,9 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           try {
             const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
             const fdBase = new FormData();
-            fdBase.append('company_name', 'General_Procces');
+            fdBase.append('company_name', tenantKey);
             fdBase.append('csv_raw', generatedCsv);
-            fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-base`, {
+            fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenantKey)}/pipeline/cache-csv-base`, {
               method: 'POST',
               body: fdBase
             }).catch(() => {});
@@ -546,7 +549,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           try {
             storageCsvBaseUrl = await uploadToCatalogsStorage(
               rawContent,
-              `csv_matrices/General_Procces/csv_raw_${Date.now()}.csv`,
+              `csv_matrices/${tenantKey}/csv_raw_${Date.now()}.csv`,
               'text/csv'
             );
           } catch (_) {}
@@ -561,9 +564,9 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         try {
           const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
           const fdBase = new FormData();
-          fdBase.append('company_name', 'General_Procces');
+          fdBase.append('company_name', tenantKey);
           fdBase.append('csv_raw', rawContent);
-          fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-base`, {
+          fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenantKey)}/pipeline/cache-csv-base`, {
             method: 'POST',
             body: fdBase
           }).catch(() => {});
@@ -574,7 +577,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           try {
             storageCsvNewUrl = await uploadToCatalogsStorage(
               rawContent,
-              `csv_matrices/General_Procces/csv_new_${Date.now()}.csv`,
+              `csv_matrices/${tenantKey}/csv_new_${Date.now()}.csv`,
               'text/csv'
             );
           } catch (_) {}
@@ -591,10 +594,10 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         try {
           const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
           const fd = new FormData();
-          fd.append('company_name', 'General_Procces');
+          fd.append('company_name', tenantKey);
           // Enviar rawContent directamente para validación rápida en memoria sin round-trips
           fd.append('csv_new_raw', rawContent);
-          const cacheRes = await fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-new`, {
+          const cacheRes = await fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenantKey)}/pipeline/cache-csv-new`, {
             method: 'POST',
             body: fd
           });
@@ -610,7 +613,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
         } catch (_) {}
       }
 
-      const { error } = await upsertGeneralProcessRecord(payload, 'General_Procces');
+      const { error } = await upsertGeneralProcessRecord(payload, tenantKey);
 
       if (error) {
         console.warn('Supabase persistence warning:', error);

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { supabase, resolveXmlContent, uploadToCatalogsStorage, upsertGeneralProcessRecord } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent, uploadToCatalogsStorage, upsertGeneralProcessRecord, getActiveTenantKey, getActiveTenantKeySync } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RefreshCw, 
@@ -300,8 +300,9 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
   const yieldToMainThread = () => new Promise(resolve => setTimeout(resolve, 0));
 
   const recordTrackingEvent = async (eventType, description, title, details = {}) => {
+    const tenantKey = await getActiveTenantKey();
     recordClientAction({
-      companyName: 'General_Procces',
+      companyName: tenantKey,
       eventType,
       title,
       description,
@@ -374,39 +375,15 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
 
       let rawXmlStr = '';
       let existingCsvRaw = '';
+      const tenantKey = await getActiveTenantKey();
 
-      let record = null;
-      const { data, error: dbError } = await supabase
+      const { data: record, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
-        .or('company_name.eq.General_Procces,company_name.eq.General Process')
+        .eq('company_name', tenantKey)
         .order('id', { ascending: false })
         .limit(1)
         .maybeSingle();
-
-      if (data) {
-        record = data;
-      } else {
-        const { data: fallbackData } = await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
-          .order('id', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (fallbackData) record = fallbackData;
-      }
-
-      // Si la fila más reciente no contiene el XML maestro, buscar la que sí lo contiene
-      if (record && (!record.XM_CET_import && !record.xml_raw)) {
-        const { data: xmlRow } = await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .select('XM_CET_import, xml_raw, csv_raw, xml_name, file_name')
-          .not('xml_raw', 'is', null)
-          .order('id', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (xmlRow) record = xmlRow;
-      }
 
       if (record) {
         existingCsvRaw = record.csv_raw || '';
@@ -453,11 +430,11 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         }
       }
 
-      // Fallback 2: Intentar recuperar el XML activo directamente del backend en memoria
+      // Fallback 2: Intentar recuperar el XML activo directamente del backend en memoria del usuario/tenant actual
       if (!rawXmlStr) {
         try {
           const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://servex-ai-back.onrender.com';
-          const backRes = await fetch(`${backendUrl}/api/v1/General_Procces/agent/download-xml`);
+          const backRes = await fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenantKey)}/agent/download-xml?company_name=${encodeURIComponent(tenantKey)}`);
           if (backRes.ok) {
             const fetchedXml = await backRes.text();
             if (fetchedXml && fetchedXml.trim().startsWith('<')) {
@@ -677,12 +654,13 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
           }));
         }
 
+        const tenantKey = await getActiveTenantKey();
         try {
           const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://servex-ai-back.onrender.com';
           const fdBase = new FormData();
-          fdBase.append('company_name', 'General_Procces');
+          fdBase.append('company_name', tenantKey);
           fdBase.append('csv_raw', csvString);
-          fetch(`${backendUrl}/api/v1/General_Procces/pipeline/cache-csv-base`, {
+          fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenantKey)}/pipeline/cache-csv-base`, {
             method: 'POST',
             body: fdBase
           }).catch(() => {});
@@ -690,11 +668,11 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
 
         await upsertGeneralProcessRecord(
           {
-            company_name: 'General_Procces',
+            company_name: tenantKey,
             csv_raw: csvString,
             csv_edit_raw: csvString
           },
-          'General_Procces'
+          tenantKey
         );
       }
     } catch (err) {
@@ -782,13 +760,14 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         { total_products: rowsToSave.length, target_column: 'csv_edit_raw' }
       );
 
-      // Consultar en ClientsSERVEX_General_Procces si ya existe csv_raw / csv_edit_raw
+      // Consultar en ClientsSERVEX_General_Procces si ya existe csv_raw / csv_edit_raw para este usuario/tenant
+      const tenantKey = await getActiveTenantKey();
       let editCsvToUse = csv;
       try {
         const { data: existingRow } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('csv_raw, csv_edit_raw')
-          .eq('company_name', 'General_Procces')
+          .eq('company_name', tenantKey)
           .maybeSingle();
 
         const baseCsvToStore = (existingRow?.csv_raw && String(existingRow.csv_raw).trim())
@@ -798,14 +777,14 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         const hasExistingEditInDb = !!(existingRow?.csv_edit_raw && String(existingRow.csv_edit_raw).trim());
         editCsvToUse = hasExistingEditInDb ? existingRow.csv_edit_raw : baseCsvToStore;
 
-        // Copiar de forma exacta y directa csv_raw -> csv_edit_raw en la tabla ClientsSERVEX_General_Procces
+        // Copiar de forma exacta y directa csv_raw -> csv_edit_raw en la fila del tenant
         await supabase
           .from('ClientsSERVEX_General_Procces')
           .update({
             csv_raw: baseCsvToStore,
             csv_edit_raw: editCsvToUse
           })
-          .eq('company_name', 'General_Procces');
+          .eq('company_name', tenantKey);
       } catch (dbErr) {
         console.warn('⚠️ Error copiando csv_raw a csv_edit_raw en Supabase:', dbErr);
       }
@@ -814,7 +793,7 @@ const DynamicDataMatrix = ({ isDarkMode = true }) => {
         try {
           sessionStorage.setItem('csv_raw', csv);
           sessionStorage.setItem('csv_edit_raw', editCsvToUse);
-          localStorage.setItem('csv_edit_raw_General_Procces', editCsvToUse);
+          localStorage.setItem(`csv_edit_raw_${tenantKey}`, editCsvToUse);
         } catch (_) {}
 
         window.dispatchEvent(

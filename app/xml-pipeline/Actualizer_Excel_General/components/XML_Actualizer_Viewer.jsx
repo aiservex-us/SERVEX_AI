@@ -4,7 +4,9 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   supabase,
-  resolveStorageContent
+  resolveStorageContent,
+  getActiveTenantKey,
+  getActiveTenantKeySync
 } from '@/app/lib/supabaseClient';
 import { recordClientAction } from '@/app/lib/trackingClient';
 import {
@@ -184,39 +186,15 @@ export default function XMLActualizerViewer({
       const localUpdatedXml = typeof window !== 'undefined' ? sessionStorage.getItem('xml_actualizer_raw') : null;
       const localBaseXml = typeof window !== 'undefined' ? (sessionStorage.getItem('xml_raw') || sessionStorage.getItem('XM_CET_import')) : null;
 
-      // 2. Consultar en Supabase buscando registro con fallback elástico
-      let record = null;
-      const { data: rowMatch } = await supabase
+      // 2. Consultar en Supabase buscando el registro exclusivo del usuario/tenant actual
+      const tenantKey = await getActiveTenantKey();
+      const { data: record } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('id, company_name, xml_actualizer_raw, XM_CET_import, xml_raw, xml_name, file_name, created_at')
-        .or('company_name.eq.General_Procces,company_name.eq.General Process')
+        .eq('company_name', tenantKey)
         .order('id', { ascending: false })
         .limit(1)
         .maybeSingle();
-
-      if (rowMatch) {
-        record = rowMatch;
-      } else {
-        const { data: anyRow } = await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .select('id, company_name, xml_actualizer_raw, XM_CET_import, xml_raw, xml_name, file_name, created_at')
-          .order('id', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (anyRow) record = anyRow;
-      }
-
-      // Si el registro activo no tiene XML pero existe otra fila con el XML maestro, buscarla
-      if (!record?.xml_actualizer_raw && !record?.XM_CET_import && !record?.xml_raw) {
-        const { data: xmlRow } = await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .select('id, company_name, xml_actualizer_raw, XM_CET_import, xml_raw, xml_name, file_name, created_at')
-          .not('xml_raw', 'is', null)
-          .order('id', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (xmlRow) record = xmlRow;
-      }
 
       const name = (record?.xml_name || record?.file_name || 'Catalog').replace(/\.xml$/i, '').trim();
       setCatalogName(name);
@@ -703,7 +681,7 @@ export default function XMLActualizerViewer({
       }, 150);
 
       recordClientAction({
-        companyName: 'General_Procces',
+        companyName: getActiveTenantKeySync(),
         eventType: 'DOWNLOAD_RESULT_XML',
         title: 'Descarga XML Certificado desde Visor',
         description: `El usuario descargó el archivo XML actualizado '${catalogName}-xml_actualizer_raw.xml'.`

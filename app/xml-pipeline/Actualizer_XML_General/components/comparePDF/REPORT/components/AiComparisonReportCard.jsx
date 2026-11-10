@@ -139,11 +139,12 @@ export default function AiComparisonReportCard({
       setIsDownloadingXml(true);
       let xmlContent = typeof window !== 'undefined' ? sessionStorage.getItem('xml_actualizer_raw') : null;
       if (!xmlContent) {
-        const { supabase } = await import('@/app/lib/supabaseClient');
+        const { supabase, getActiveTenantKey } = await import('@/app/lib/supabaseClient');
+        const tenantKey = await getActiveTenantKey();
         const { data } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('xml_actualizer_raw, xml_raw, XM_CET_import')
-          .eq('company_name', 'General_Procces')
+          .eq('company_name', tenantKey)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();

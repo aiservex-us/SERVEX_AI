@@ -15,7 +15,7 @@ import {
   Loader2, 
   X 
 } from 'lucide-react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, resolveTenantKey } from '@/app/lib/supabaseClient';
 import { purgeTenantData, purgeTenantDataBeacon } from './comparePDF/IncertData/components/delete_data';
 
 export default function ExitPipelineModal({
@@ -54,11 +54,13 @@ export default function ExitPipelineModal({
         window.__BYPASS_BEFOREUNLOAD__ = true;
       }
 
-      // 1. Enviar beacon de descarga inmediata
-      purgeTenantDataBeacon(currentTenant);
+      const effectiveTenant = await resolveTenantKey(currentTenant);
 
-      // 2. Ejecutar la purga paralela de alta velocidad
-      await purgeTenantData(currentTenant);
+      // 1. Enviar beacon de descarga inmediata
+      purgeTenantDataBeacon(effectiveTenant);
+
+      // 2. Ejecutar la purga paralela de alta velocidad (aislada al tenant/usuario)
+      await purgeTenantData(effectiveTenant);
 
       if (onCompleted) {
         onCompleted();

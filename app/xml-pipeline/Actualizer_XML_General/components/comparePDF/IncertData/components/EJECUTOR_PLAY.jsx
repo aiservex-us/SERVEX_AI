@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiZap, FiTrash2, FiAlertCircle, FiCpu } from 'react-icons/fi';
 import { Zap, Loader2, Cpu } from 'lucide-react';
+import { getActiveTenantKey } from '@/app/lib/supabaseClient';
 
 const EJECUTOR_PLAY = ({ 
   handleUnifiedProcess, 
@@ -58,16 +59,16 @@ const EJECUTOR_PLAY = ({
     if (setIsProcessing) setIsProcessing(true);
   
     try {
-      // FORZADO A General Process: Eliminación de lógica condicional para asegurar persistencia única
-      const targetCompany = 'General_Procces';
+      const targetCompany = (currentTenant && currentTenant !== 'General_Procces')
+        ? currentTenant
+        : await getActiveTenantKey();
       
       const formData = new FormData();
       formData.append('company_name', targetCompany);
   
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com'; 
       
-      // RUTA ÚNICA: Gateway exclusivo para el motor universal General_Procces
-      const endpointUrl = `${baseUrl}/api/v1/General_Procces/pipeline/compare-only`;
+      const endpointUrl = `${baseUrl}/api/v1/${encodeURIComponent(targetCompany)}/pipeline/compare-only`;
   
       console.log(`[+] Despachando payload atómico a: ${endpointUrl}`);
   

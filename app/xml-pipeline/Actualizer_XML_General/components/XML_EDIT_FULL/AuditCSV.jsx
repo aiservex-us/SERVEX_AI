@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { FiUploadCloud, FiZap, FiCpu, FiArrowRight, FiCheck } from 'react-icons/fi';
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '../../../lib/supabaseClient';
 
 const Step = ({ icon, title, active, isLast }) => (
     <div className="flex items-center gap-2">
@@ -44,9 +44,13 @@ const AuditCSV = ({ onDiscrepancyFound, showAlert, onReset }) => {
         if (data.length === 0) return;
         setIsAnalyzing(true);
         try {
+            const tenantKey = await getActiveTenantKey();
             const { data: dbRows, error } = await supabase
                 .from('ClientsSERVEX_General_Procces')
-                .select('csv_raw').not('csv_raw', 'is', null).limit(1);
+                .select('csv_raw')
+                .eq('company_name', tenantKey)
+                .not('csv_raw', 'is', null)
+                .limit(1);
 
             if (error || !dbRows[0]) throw new Error("No master data");
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../../lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '../../../../lib/supabaseClient';
 import { 
   Database, 
   FileSpreadsheet, 
@@ -44,12 +44,14 @@ export default function DataViewer({ isDarkMode = true }) {
   const fetchLatestData = async () => {
     setLoading(true);
     try {
+      const tenantKey = await getActiveTenantKey();
       const { data: record, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('company_name, created_at, csv_new_raw')
+        .eq('company_name', tenantKey)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setData(record);

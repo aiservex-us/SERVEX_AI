@@ -4,7 +4,15 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { AnimatePresence, motion } from "framer-motion";
 import { marked } from "marked";
 import * as XLSX from "xlsx";
-import { supabase, resolveStorageContent, uploadToCatalogsStorage, upsertGeneralProcessRecord, ensureGeneralProcessBaseRecord } from '@/app/lib/supabaseClient';
+import {
+  supabase,
+  resolveStorageContent,
+  uploadToCatalogsStorage,
+  upsertGeneralProcessRecord,
+  ensureGeneralProcessBaseRecord,
+  getActiveTenantKey,
+  getActiveTenantKeySync
+} from '@/app/lib/supabaseClient';
 import {
   Plus, Mic, MicOff, ChevronDown, Database, Sparkles,
   Check, Settings, HelpCircle, Zap, SendHorizonal,
@@ -1553,19 +1561,20 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
         const modName = (typeof window !== 'undefined' && window.location.pathname.split('/')[1]) || 'xml-pipeline';
         const tableName = 'ClientsSERVEX_General_Procces';
+        const tenantKey = await getActiveTenantKey();
 
-        // 1. Consulta ultraligera de metadatos (< 2 KB) para no saturar la red al recargar la página
+        // 1. Consulta ultraligera de metadatos (< 2 KB) exclusiva para el usuario/tenant actual
         const { data: meta } = await supabase
           .from(tableName)
           .select('id, file_name, xml_name, xml_structure_context, audit_summary_markdown1')
-          .eq('company_name', 'General_Procces')
+          .eq('company_name', tenantKey)
           .maybeSingle();
 
         if (!meta) {
           setUnlockedPhase(1);
           localStorage.setItem('alysa_phase_' + modName, 1);
-          // Montar de inmediato el registro base en Supabase para que la DB no quede vacía
-          ensureGeneralProcessBaseRecord('General_Procces').catch(() => {});
+          // Montar de inmediato el registro base en Supabase para este usuario
+          ensureGeneralProcessBaseRecord(tenantKey).catch(() => {});
           return;
         }
 
@@ -1811,13 +1820,15 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
   // Carga de historial y precalentamiento prioritario
   useEffect(() => {
+    const tKey = getActiveTenantKeySync();
     // 0. Disparo proactivo de precalentamiento (warmup) del backend y Groq en paralelo desde el milisegundo 1
-    fetch(`${apiURL}/api/v1/General_Procces/agent/warmup`, { method: 'POST' }).catch(() => null);
-    fetch(`${apiURL}/api/v1/General_Procces/agent/history?warmup=1`).catch(() => null);
+    fetch(`${apiURL}/api/v1/${encodeURIComponent(tKey)}/agent/warmup`, { method: 'POST' }).catch(() => null);
+    fetch(`${apiURL}/api/v1/${encodeURIComponent(tKey)}/agent/history?warmup=1`).catch(() => null);
 
     const fetchHistory = async () => {
       try {
-        // 1. Cargar directamente desde Supabase 'ClientsSERVEX_General_Procces.general_procces_chat'
+        const resolvedKey = await getActiveTenantKey();
+        // 1. Cargar directamente desde Supabase 'ClientsSERVEX_General_Procces.general_procces_chat' del usuario actual
         const { history: dbHistory, catalogName: dbCat } = await loadGeneralProcessChat();
         if (dbHistory && dbHistory.length > 0) {
           setMessages(dbHistory);
@@ -1829,10 +1840,10 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         }
 
         // Si la BD no tenía historial o estaba vacía, asegurar registro base de inmediato
-        ensureGeneralProcessBaseRecord('General_Procces').catch(() => {});
+        ensureGeneralProcessBaseRecord(resolvedKey).catch(() => {});
 
         // 2. Si no había en BD o estaba vacía, consultar backend como fallback
-        const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/history`).catch(() => null);
+        const res = await fetch(`${apiURL}/api/v1/${encodeURIComponent(resolvedKey)}/agent/history`).catch(() => null);
         if (!res || !res.ok) return;
         const data = await res.json().catch(() => null);
         if (data && data.status === "success" && data.history && Array.isArray(data.history) && data.history.length > 0) {
@@ -1994,12 +2005,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       } catch (_) {}
     }
 
+    const tenantKey = await getActiveTenantKey();
+
     if (!targetCompData?.detected_changes?.length) {
       try {
         const { data: dbRec } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('audit_report_json')
-          .or('company_name.eq.General_Procces,company_name.eq.General Process')
+          .eq('company_name', tenantKey)
           .order('id', { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -2046,25 +2059,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const { data: xmlRow } = await supabase
           .from('ClientsSERVEX_General_Procces')
           .select('xml_raw, XM_CET_import')
-          .or('company_name.eq.General_Procces,company_name.eq.General Process')
+          .eq('company_name', tenantKey)
           .order('id', { ascending: false })
           .limit(1)
           .maybeSingle();
         if (xmlRow) {
           xmlRawToSend = xmlRow.xml_raw || xmlRow.XM_CET_import;
-        }
-      }
-
-      if (!xmlRawToSend) {
-        const { data: anyXml } = await supabase
-          .from('ClientsSERVEX_General_Procces')
-          .select('xml_raw, XM_CET_import')
-          .not('xml_raw', 'is', null)
-          .order('id', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (anyXml) {
-          xmlRawToSend = anyXml.xml_raw || anyXml.XM_CET_import;
         }
       }
 
@@ -2089,7 +2089,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       let xmlRefToPersist = finalUpdatedXml;
       if (finalUpdatedXml && finalUpdatedXml.length > 200_000) {
         try {
-          const fileName = `xml_results/General_Procces/xml_actualizer_${Date.now()}.xml`;
+          const fileName = `xml_results/${tenantKey}/xml_actualizer_${Date.now()}.xml`;
           const storageUrl = await uploadToCatalogsStorage(finalUpdatedXml, fileName, 'application/xml');
           if (storageUrl) {
             xmlRefToPersist = `[STORAGE_URL]: ${storageUrl}`;
@@ -2102,7 +2102,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       await upsertGeneralProcessRecord({
         xml_actualizer_raw: xmlRefToPersist
-      }, 'General_Procces');
+      }, tenantKey);
 
       // 4. Persistencia local segura en sessionStorage (con fallback si supera cuota)
       if (typeof window !== 'undefined') {
@@ -2278,7 +2278,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         } catch (_) {}
       }
       recordClientAction({
-        companyName: 'General_Procces',
+        companyName: getActiveTenantKeySync(),
         eventType: 'OPEN_XML_MATRIX',
         title: 'Apertura de Matriz de Catálogo',
         description: 'El usuario solicitó abrir la tabla y matriz de exportación del catálogo.'
@@ -2340,27 +2340,19 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           null;
         let xmlRawToSend = dbXmlRaw || (typeof window !== 'undefined' ? (sessionStorage.getItem('xml_raw') || sessionStorage.getItem('XM_CET_import')) : null) || null;
 
-        // 2. Si falta alguno, enriquecer desde Supabase con la fila maestra
+        const tenantKey = await getActiveTenantKey();
+
+        // 2. Si falta alguno, enriquecer desde Supabase con la fila exclusiva del usuario/tenant
         try {
-          let catData = null;
           const { data: rowMatch } = await supabase
             .from('ClientsSERVEX_General_Procces')
             .select('csv_raw, csv_new_raw, csv_edit_raw, xml_raw, XM_CET_import, xml_actualizer_raw')
-            .or('company_name.eq.General_Procces,company_name.eq.General Process')
+            .eq('company_name', tenantKey)
             .order('id', { ascending: false })
             .limit(1)
             .maybeSingle();
 
-          if (rowMatch) catData = rowMatch;
-          else {
-            const { data: anyRow } = await supabase
-              .from('ClientsSERVEX_General_Procces')
-              .select('csv_raw, csv_new_raw, csv_edit_raw, xml_raw, XM_CET_import, xml_actualizer_raw')
-              .order('id', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            if (anyRow) catData = anyRow;
-          }
+          const catData = rowMatch || null;
 
           if (catData) {
             if (!csvNewRawToSend) csvNewRawToSend = catData.csv_edit_raw || catData.csv_new_raw;
@@ -2369,26 +2361,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               xmlRawToSend = catData.xml_raw || catData.XM_CET_import;
             }
           }
-
-          // Si el registro activo aún no tiene xml_raw, buscar la fila que contenga el XML maestro
-          if (!xmlRawToSend) {
-            const { data: xmlRow } = await supabase
-              .from('ClientsSERVEX_General_Procces')
-              .select('xml_raw, XM_CET_import')
-              .not('xml_raw', 'is', null)
-              .order('id', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            if (xmlRow) {
-              xmlRawToSend = xmlRow.xml_raw || xmlRow.XM_CET_import;
-            }
-          }
         } catch (dbErr) {
           console.warn('[-] Advertencia en consulta Supabase previa a comparación:', dbErr);
         }
 
         const formData = new FormData();
-        formData.append('company_name', 'General_Procces');
+        formData.append('company_name', tenantKey);
         if (csvRawToSend) {
           formData.append('csv_raw', typeof csvRawToSend === 'string' ? csvRawToSend : JSON.stringify(csvRawToSend));
         }
@@ -2409,7 +2387,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           }
         } catch (_) {}
 
-        const response = await fetch(`${apiURL}/api/v1/General_Procces/pipeline/compare-only`, {
+        const response = await fetch(`${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/pipeline/compare-only`, {
           method: 'POST',
           headers,
           body: formData,
@@ -2442,13 +2420,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             const { data: authUser } = await supabase.auth.getUser().catch(() => ({ data: {} }));
             const currentUserId = authUser?.user?.id || null;
             const persistencePayload = {
-              company_name: 'General_Procces',
+              company_name: tenantKey,
               audit_summary_markdown1: resData.markdown_report_1,
               audit_report_json: resData
             };
             if (currentUserId) persistencePayload.user_id = currentUserId;
 
-            await upsertGeneralProcessRecord(persistencePayload, 'General_Procces');
+            await upsertGeneralProcessRecord(persistencePayload, tenantKey);
             console.log('[+] Auditoría comparativa matricial sincronizada con éxito en ClientsSERVEX_General_Procces');
           } catch (syncErr) {
             console.warn('[-] Advertencia persistiendo auditoría en Supabase:', syncErr);
@@ -2506,16 +2484,17 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }));
       historyPayload.push({ role: "user", content: queryToSend });
 
-      // Lectura instantánea (0ms) de user_id cacheado sin bloquear el envío con llamadas de red a Supabase Auth
+      // Lectura instantánea (0ms) de user_id y tenantKey cacheados sin bloquear el envío
       const chatUserId = userIdRef.current || null;
+      const tenantKey = await getActiveTenantKey();
 
-      const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/chat`, {
+      const res = await fetch(`${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/agent/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: historyPayload,
           raw_messages: [...messages.filter(msg => msg.text).slice(-15), { from: "user", text: queryToSend, time: now }],
-          company_name: 'General_Procces',
+          company_name: tenantKey,
           current_section: currentSection,
           unlocked_phase: unlockedPhase,
           user_id: chatUserId
@@ -2606,20 +2585,22 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     });
 
     try {
+      const tenantKey = await getActiveTenantKey();
       const fileText = await file.text().catch(() => '');
       if (fileText) setDbXmlRaw(fileText);
       if (typeof window !== 'undefined') {
         try {
           sessionStorage.removeItem('csv_edit_raw');
+          localStorage.removeItem(`csv_edit_raw_${tenantKey}`);
           localStorage.removeItem('csv_edit_raw_General_Procces');
         } catch (_) {}
       }
 
-      // ── PASO 1: Subida ultrarrápida al bucket de Supabase (catalogs-storage) ──
+      // ── PASO 1: Subida ultrarrápida al bucket de Supabase (catalogs-storage) aislado por tenant ──
       let uploadedPublicUrl = '';
       try {
         const cleanName = (file.name || 'catalog.xml').replace(/[^a-zA-Z0-9._-]/g, '_');
-        const storageFilePath = `General_Procces/${Date.now()}_${cleanName}`;
+        const storageFilePath = `${tenantKey}/${Date.now()}_${cleanName}`;
 
         const { data: storageData, error: storageErr } = await supabase.storage
           .from('catalogs-storage')
@@ -2641,7 +2622,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         // Persistir referencia en la tabla de Supabase sin saturar postgres
         const baseXmlName = (file.name || '').replace(/\.xml$/i, '').trim();
         const payload = {
-          company_name: 'General_Procces',
+          company_name: tenantKey,
           file_name: file.name,
           xml_name: baseXmlName,
           xml_raw: uploadedPublicUrl ? `[STORAGE_URL]: ${uploadedPublicUrl}` : fileText,
@@ -2649,7 +2630,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         };
         if (currentUser?.id) payload.user_id = currentUser.id;
 
-        await upsertGeneralProcessRecord(payload, 'General_Procces');
+        await upsertGeneralProcessRecord(payload, tenantKey);
       } catch (stgErr) {
         console.warn('[-] Advertencia en almacenamiento primario Supabase:', stgErr);
       }
@@ -2679,7 +2660,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       // ── PASO 2: Ingesta y análisis estructural en el motor de memoria ──
       const formData = new FormData();
-      formData.append('company_name', 'General_Procces');
+      formData.append('company_name', tenantKey);
       formData.append('xml_file', file);
       if (currentUser?.id) {
         formData.append('user_id', currentUser.id);
@@ -2688,7 +2669,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         formData.append('storage_url', uploadedPublicUrl);
       }
 
-      const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/upload-xml`, {
+      const res = await fetch(`${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/agent/upload-xml`, {
         method: 'POST',
         body: formData
       });
@@ -2711,14 +2692,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         delete structureToStore.options;
 
         const payloadContext = {
-          company_name: 'General_Procces',
+          company_name: tenantKey,
           file_name: file.name,
           xml_name: (file.name || '').replace(/\.xml$/i, '').trim(),
           xml_structure_context: structureToStore
         };
         if (currentUser?.id) payloadContext.user_id = currentUser.id;
 
-        await upsertGeneralProcessRecord(payloadContext, 'General_Procces');
+        await upsertGeneralProcessRecord(payloadContext, tenantKey);
         console.log('[+] xml_structure_context persistido exitosamente en ClientsSERVEX_General_Procces');
       } catch (saveContextErr) {
         console.warn('[-] Advertencia persistiendo xml_structure_context en Supabase:', saveContextErr);
@@ -2934,13 +2915,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const baseCsvContent = dbCsvRaw || (typeof window !== 'undefined' ? sessionStorage.getItem('csv_raw') : null);
       const clientCoh = checkClientCsvCoherence(baseCsvContent, fileText);
 
-      // Notificar y consultar al backend para validación contra DB y memoria viva
+      // Notificar y consultar al backend para validación contra DB y memoria viva del usuario/tenant actual
+      const tenantKey = await getActiveTenantKey();
       let backendCoh = null;
       try {
         const fd = new FormData();
-        fd.append('company_name', 'General_Procces');
+        fd.append('company_name', tenantKey);
         fd.append('csv_new_raw', fileText);
-        const cacheRes = await fetch(`${apiURL}/api/v1/General_Procces/pipeline/cache-csv-new`, {
+        const cacheRes = await fetch(`${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/pipeline/cache-csv-new`, {
           method: 'POST',
           body: fd
         });
@@ -2989,11 +2971,11 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }
 
       let valToStore = fileText;
-      // Subir a catalogs-storage si supera 200 KB
+      // Subir a catalogs-storage si supera 200 KB (aislado por tenant)
       if (fileText.length > 200 * 1024) {
         try {
           const cleanName = (file.name || 'csv_new.csv').replace(/\.(xlsx|xls)$/i, '.csv').replace(/[^a-zA-Z0-9._-]/g, '_');
-          const storageFilePath = `General_Procces/csv_new_${Date.now()}_${cleanName}`;
+          const storageFilePath = `${tenantKey}/csv_new_${Date.now()}_${cleanName}`;
           const csvBlob = new Blob([fileText], { type: 'text/csv;charset=utf-8;' });
 
           const { data: storageData, error: storageErr } = await supabase.storage
@@ -3019,13 +3001,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       // Guardar en tabla ClientsSERVEX_General_Procces
       const payload = {
-        company_name: 'General_Procces',
+        company_name: tenantKey,
         csv_new_raw: valToStore,
         CSV_final: valToStore
       };
       if (currentUser?.id) payload.user_id = currentUser.id;
 
-      await upsertGeneralProcessRecord(payload, 'General_Procces');
+      await upsertGeneralProcessRecord(payload, tenantKey);
 
       // Desbloquear fase 3 y emitir step 'done'
       window.dispatchEvent(new CustomEvent('wbsImportStep', { detail: { step: 'done' } }));
@@ -3092,11 +3074,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     if (!stagedItems || stagedItems.length === 0) return;
     setIsCommitting(true);
     try {
-      const res = await fetch(`${apiURL}/api/v1/General_Procces/agent/commit`, {
+      const tenantKey = await getActiveTenantKey();
+      const res = await fetch(`${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/agent/commit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          company_name: 'General_Procces',
+          company_name: tenantKey,
           staged_items: stagedItems
         })
       });
@@ -3109,7 +3092,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const data = await res.json();
 
       recordClientAction({
-        companyName: 'General_Procces',
+        companyName: tenantKey,
         eventType: 'COMMIT_XML',
         title: 'Inyección Quirúrgica en XML',
         description: `El usuario confirmó y aplicó ${data.applied_count || stagedItems.length} cambio(s) directo(s) sobre el catálogo XML.`,
@@ -3151,8 +3134,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
   // Descarga directa del XML actualizado
   const handleDownloadXml = useCallback(async () => {
+    const tenantKey = await getActiveTenantKey();
     recordClientAction({
-      companyName: 'General_Procces',
+      companyName: tenantKey,
       eventType: 'DOWNLOAD_RESULT_XML',
       title: 'Descarga de Catálogo XML',
       description: 'El usuario descargó el archivo XML actualizado certificado.'
@@ -3177,12 +3161,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       } catch (_) {}
     }
 
-    // 2. Intentar recuperar desde Supabase (texto o URL de Storage)
+    // 2. Intentar recuperar desde Supabase (texto o URL de Storage) exclusivo del tenant
     try {
       const { data: row } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('xml_actualizer_raw, xml_raw')
-        .or('company_name.eq.General_Procces,company_name.eq.General Process')
+        .eq('company_name', tenantKey)
         .order('id', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -3208,7 +3192,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     } catch (_) {}
 
     // 3. Fallback al endpoint del backend
-    const url = `${apiURL}/api/v1/General_Procces/agent/download-xml?company_name=General_Procces`;
+    const url = `${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/agent/download-xml?company_name=${encodeURIComponent(tenantKey)}`;
     window.open(url, '_blank');
   }, [apiURL]);
 

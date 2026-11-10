@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import * as PH from "@phosphor-icons/react";
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '@/app/lib/supabaseClient';
 import { usePathname } from 'next/navigation';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
@@ -75,7 +75,7 @@ const ViewportGraphics = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        let moduleName = "General_Procces";
+        let moduleName = await getActiveTenantKey();
         let tableName = "ClientsSERVEX_General_Procces";
 
         const moduleMatch = pathname.match(/^\/([A-Z0-9_]+)\//i);

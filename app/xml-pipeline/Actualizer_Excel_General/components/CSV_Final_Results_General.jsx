@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/app/lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RefreshCw, 
@@ -34,10 +34,11 @@ const CSVFinalResultsGeneral = () => {
       setProducts([]);
       setProcessedIndex(0);
 
+      const tenantKey = await getActiveTenantKey();
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('CSV_final')
-        .eq('company_name', 'General_Procces')
+        .eq('company_name', tenantKey)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();

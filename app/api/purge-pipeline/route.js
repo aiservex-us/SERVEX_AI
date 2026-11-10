@@ -8,6 +8,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function handlePurge(req) {
   let tenant = 'General_Procces';
+  let userId = null;
 
   try {
     if (req.method === 'POST') {
@@ -16,6 +17,7 @@ async function handlePurge(req) {
         try {
           const body = JSON.parse(text);
           if (body?.tenant) tenant = body.tenant;
+          if (body?.user_id) userId = body.user_id;
         } catch (_) {
           // Si el body es un string plano
           tenant = text.trim() || 'General_Procces';
@@ -24,17 +26,17 @@ async function handlePurge(req) {
     } else {
       const { searchParams } = new URL(req.url);
       tenant = searchParams.get('tenant') || 'General_Procces';
+      userId = searchParams.get('user_id') || null;
     }
   } catch (_) {}
 
   try {
-    // 1. Prioridad #1: Eliminar completamente todos los registros de ClientsSERVEX_General_Procces de inmediato
+    // 1. Prioridad #1: Eliminar EXCLUSIVAMENTE el registro del tenant/usuario solicitante
     const dbDeletePromises = [
-      supabase.from('ClientsSERVEX_General_Procces').delete().neq('id', 0),
       supabase.from('ClientsSERVEX_General_Procces').delete().eq('company_name', tenant)
     ];
 
-    // 2. En paralelo: Limpiar archivos del storage bucket catalogs-storage
+    // 2. En paralelo: Limpiar archivos del storage bucket catalogs-storage solo para este tenant
     const storageCleanupPromise = (async () => {
       try {
         const prefixes = [tenant, `csv_matrices/${tenant}`, `xml_results/${tenant}`, `xml_originals/${tenant}`];
@@ -54,13 +56,13 @@ async function handlePurge(req) {
       }
     })();
 
-    // 3. En paralelo con timeout rápido: Notificar al backend de Python y activar precalentamiento (warmup)
+    // 3. En paralelo con timeout rápido: Notificar al backend de Python (solo cachés RAM de este tenant) y activar warmup
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
     const backendNotifyPromise = (async () => {
       try {
         await Promise.allSettled([
-          fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
-          fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/clear-session`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
+          fetch(`${backendUrl}/api/v1/cet-ai-engine/clear-session?company_name=${encodeURIComponent(tenant)}&skip_db=1`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
+          fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/clear-session?skip_db=1`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
           fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/agent/history`, { method: 'DELETE', signal: AbortSignal.timeout(1200) }),
           fetch(`${backendUrl}/api/v1/${encodeURIComponent(tenant)}/agent/warmup`, { method: 'POST', signal: AbortSignal.timeout(1200) }),
         ]);
@@ -70,7 +72,7 @@ async function handlePurge(req) {
     // Ejecutar borrado, almacenamiento y notificación en paralelo asegurando completitud
     await Promise.allSettled([...dbDeletePromises, storageCleanupPromise, backendNotifyPromise]);
 
-    // 4. Montar inmediatamente la fila base para que la DB NUNCA quede vacía y la estructura esté 100% lista
+    // 4. Montar inmediatamente la fila base del tenant/usuario para que su DB NUNCA quede vacía
     try {
       const cleanRow = {
         company_name: tenant,
@@ -93,6 +95,11 @@ async function handlePurge(req) {
           pending_updates: []
         }
       };
+      if (userId) {
+        cleanRow.user_id = userId;
+      } else if (tenant.startsWith('General_Procces_') && !tenant.startsWith('General_Procces_guest_')) {
+        cleanRow.user_id = tenant.replace('General_Procces_', '');
+      }
       await supabase.from('ClientsSERVEX_General_Procces').upsert(cleanRow, { onConflict: 'company_name' });
     } catch (recreateErr) {
       console.warn('Advertencia re-montando registro base en purge:', recreateErr);

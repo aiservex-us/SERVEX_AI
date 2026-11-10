@@ -1,4 +1,4 @@
-import { supabase, upsertGeneralProcessRecord } from './supabaseClient';
+import { supabase, upsertGeneralProcessRecord, getActiveTenantKey, getActiveUserIdSync } from './supabaseClient';
 
 /**
  * Sanitiza y serializa el historial de chat para almacenarlo en formato JSON/JSONB
@@ -65,17 +65,19 @@ export async function saveGeneralProcessChat(messages, catalogName = 'General Pr
   try {
     if (!messages || !Array.isArray(messages)) return;
     const formattedChat = formatChatForStorage(messages, catalogName);
+    const tenantKey = await getActiveTenantKey();
 
-    if (!_cachedUserId) {
+    let uid = getActiveUserIdSync();
+    if (!uid) {
       const { data: sessionData } = await supabase.auth.getSession().catch(() => ({ data: {} }));
-      _cachedUserId = sessionData?.session?.user?.id || null;
+      uid = sessionData?.session?.user?.id || null;
     }
 
     const payload = {
-      company_name: 'General_Procces',
+      company_name: tenantKey,
       general_procces_chat: formattedChat
     };
-    if (_cachedUserId) payload.user_id = _cachedUserId;
+    if (uid) payload.user_id = uid;
     if (catalogName && catalogName !== 'General Process') {
       payload.file_name = catalogName;
       payload.xml_name = catalogName.replace(/\.xml$/i, '');
@@ -90,11 +92,11 @@ export async function saveGeneralProcessChat(messages, catalogName = 'General Pr
     const { error, count } = await supabase
       .from('ClientsSERVEX_General_Procces')
       .update(updateObj)
-      .eq('company_name', 'General_Procces');
+      .eq('company_name', tenantKey);
 
     // Si falló o no existía la fila aún (0 filas afectadas), fallback seguro a upsert
     if (error || count === 0) {
-      await upsertGeneralProcessRecord(payload, 'General_Procces');
+      await upsertGeneralProcessRecord(payload, tenantKey);
     }
   } catch (err) {
     console.warn('[-] Advertencia persistiendo general_procces_chat en Supabase:', err);
@@ -102,14 +104,15 @@ export async function saveGeneralProcessChat(messages, catalogName = 'General Pr
 }
 
 /**
- * Obtiene el historial de chat almacenado en 'general_procces_chat'.
+ * Obtiene el historial de chat almacenado en 'general_procces_chat' para el usuario/tenant actual.
  */
 export async function loadGeneralProcessChat() {
   try {
+    const tenantKey = await getActiveTenantKey();
     const { data, error } = await supabase
       .from('ClientsSERVEX_General_Procces')
       .select('general_procces_chat, file_name, xml_name')
-      .eq('company_name', 'General_Procces')
+      .eq('company_name', tenantKey)
       .maybeSingle();
 
     if (error || !data) return { history: [], catalogName: '' };

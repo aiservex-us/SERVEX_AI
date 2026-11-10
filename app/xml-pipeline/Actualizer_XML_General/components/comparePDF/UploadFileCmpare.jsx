@@ -17,7 +17,7 @@ import {
   BsFileEarmarkArrowUp
 } from 'react-icons/bs';
 
-import { supabase } from '../../../../lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '../../../../lib/supabaseClient';
 
 const SVXCopilotEnterprise = () => {
   const [data, setData] = useState([]); 
@@ -72,9 +72,11 @@ const SVXCopilotEnterprise = () => {
     if (data.length === 0) return;
     setIsAnalyzing(true);
     try {
+      const tenantKey = await getActiveTenantKey();
       const { data: dbRows, error } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('csv_raw')
+        .eq('company_name', tenantKey)
         .not('csv_raw', 'is', null)
         .limit(1); 
 

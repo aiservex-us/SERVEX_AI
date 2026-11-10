@@ -7,7 +7,7 @@ import ImportCETXml from '../Actualizer_Excel_General/components/IncertDataExcel
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase, getCurrentUser, ensureGeneralProcessBaseRecord } from '../../lib/supabaseClient.js';
+import { supabase, getCurrentUser, ensureGeneralProcessBaseRecord, getActiveTenantKey, getActiveTenantKeySync } from '../../lib/supabaseClient.js';
 import { X, AlertCircle, Sparkles, Settings, RotateCcw, LogOut } from 'lucide-react';
 import TeamsAgentChat from './components/comparePDF/REPORT/components/AI_contact.jsx';
 import AnimatedChatBackground from './components/AnimatedChatBackground.jsx';
@@ -38,6 +38,7 @@ export default function MenuInicial() {
   const [exitActionType, setExitActionType] = useState('exit'); // 'exit' | 'reload' | 'signout'
   const [isMobileScreen, setIsMobileScreen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [activeTenant, setActiveTenant] = useState(() => getActiveTenantKeySync());
   const router = useRouter();
 
   useEffect(() => {
@@ -47,11 +48,17 @@ export default function MenuInicial() {
     } catch (_) {}
   }, []);
 
-  // Asegurar estructura base en Supabase y disparar precalentamiento inmediato del backend al ingresar
+  // Asegurar estructura base aislada por usuario en Supabase y disparar precalentamiento del backend al ingresar
   useEffect(() => {
-    ensureGeneralProcessBaseRecord('General_Procces').catch(() => {});
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
-    fetch(`${backendUrl}/api/v1/General_Procces/agent/warmup`, { method: 'POST' }).catch(() => {});
+    let cancelled = false;
+    (async () => {
+      const tKey = await getActiveTenantKey();
+      if (!cancelled) setActiveTenant(tKey);
+      ensureGeneralProcessBaseRecord(tKey).catch(() => {});
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://servex-ai-back.onrender.com';
+      fetch(`${backendUrl}/api/v1/${encodeURIComponent(tKey)}/agent/warmup`, { method: 'POST' }).catch(() => {});
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const handleToggleTheme = () => {
@@ -144,7 +151,7 @@ export default function MenuInicial() {
 
     const handlePageHide = () => {
       // Si el usuario confirmó la salida en el navegador o se cierra la pestaña
-      purgeTenantDataBeacon('General_Procces');
+      purgeTenantDataBeacon(getActiveTenantKeySync());
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -324,8 +331,8 @@ export default function MenuInicial() {
       case 'compare_cet':
       case 'compareCET': return <CETComparator isDarkMode={isDarkMode} />;
       case 'AI_reporter': return <Responce_ai isDarkMode={isDarkMode} />;
-      case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName="General_Procces" isDarkMode={isDarkMode} /></div>;
-      case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData isDarkMode={isDarkMode} /></div>;
+      case 'import_cet_xml': return <div className="w-full h-full overflow-y-auto"><ImportCETXml moduleName={activeTenant} isDarkMode={isDarkMode} /></div>;
+      case 'delete_data': return <div className="w-full max-w-sm mx-auto mt-4"><DeleteData currentTenant={activeTenant} isDarkMode={isDarkMode} /></div>;
       default:
         return <div className="p-6 text-gray-500">View under construction</div>;
     }
@@ -366,7 +373,7 @@ export default function MenuInicial() {
         isOpen={showExitModal}
         onClose={() => setShowExitModal(false)}
         exitType={exitActionType}
-        currentTenant="General_Procces"
+        currentTenant={activeTenant}
         isDarkMode={isDarkMode}
       />
 

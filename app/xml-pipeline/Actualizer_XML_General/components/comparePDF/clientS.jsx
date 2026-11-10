@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import { supabase, getActiveTenantKey } from '../../../lib/supabaseClient';
 import { 
   Trash2, 
   RefreshCw, 
@@ -39,9 +39,11 @@ const ClientsBatchManager = () => {
 
   const fetchData = async () => {
     setLoading(true);
+    const tenantKey = await getActiveTenantKey();
     const { data, error } = await supabase
       .from('ClientsSERVEX_General_Procces')
       .select('id, created_at, company_name, file_name, json_data')
+      .eq('company_name', tenantKey)
       .order('created_at', { ascending: false });
 
     if (!error) setRecords(data || []);

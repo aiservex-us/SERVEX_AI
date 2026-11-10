@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase, resolveXmlContent } from '@/app/lib/supabaseClient';
+import { supabase, resolveXmlContent, getActiveTenantKey, getActiveTenantKeySync } from '@/app/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Database, 
@@ -32,11 +32,12 @@ const WBDDataMatrix = () => {
       setLoading(true);
       setError(null);
 
-      // Ingestión desde la tabla correcta configurada en Supabase filtrando por la entidad General Process
+      const tenantKey = await getActiveTenantKey();
+      // Ingestión desde la tabla correcta configurada en Supabase filtrando exclusivamente por el usuario/tenant actual
       const { data, error: dbError } = await supabase
         .from('ClientsSERVEX_General_Procces')
         .select('xml_raw')
-        .eq('company_name', 'General_Procces')
+        .eq('company_name', tenantKey)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -119,7 +120,7 @@ const WBDDataMatrix = () => {
 
       // Registrar evento de apertura en seguimiento_client
       recordClientAction({
-        companyName: 'General_Procces',
+        companyName: getActiveTenantKeySync(),
         eventType: 'OPEN_XML_MATRIX',
         title: 'Apertura de Matriz XML Maestro',
         description: `El usuario abrió la matriz del catálogo XML para inspección (${extracted.length} productos).`,
