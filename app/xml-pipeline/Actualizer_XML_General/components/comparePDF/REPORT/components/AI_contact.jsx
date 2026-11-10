@@ -178,8 +178,16 @@ export const injectChangesIntoXml = (xmlString, detectedChanges = []) => {
       }
     }
 
-    // Todos los Options para fallback
+    // Todos los Options para fallback pre-indexados en Map O(1) para evitar bloqueos
     const allOptions = Array.from(xmlDoc.getElementsByTagName("Option"));
+    const optionsByCode = new Map();
+    const optionsByDesc = new Map();
+    for (const opt of allOptions) {
+      const oCode = (opt.getElementsByTagName("Code")[0]?.textContent || opt.getAttribute("Code") || "").trim().toLowerCase();
+      const oDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").trim().toLowerCase();
+      if (oCode && !optionsByCode.has(oCode)) optionsByCode.set(oCode, opt);
+      if (oDesc && !optionsByDesc.has(oDesc)) optionsByDesc.set(oDesc, opt);
+    }
 
     // PriceListRef por defecto
     let defaultPriceListRef = "P1";
@@ -281,15 +289,14 @@ export const injectChangesIntoXml = (xmlString, detectedChanges = []) => {
           }
         }
 
-        // 3. Fallback: buscar en todas las opciones globales
+        // 3. Fallback ultra-rápido O(1): buscar en índice de opciones globales pre-indexadas
         if (!matchedOpt) {
-          for (const opt of allOptions) {
-            const oCode = (opt.getElementsByTagName("Code")[0]?.textContent || opt.getAttribute("Code") || "").trim().toLowerCase();
-            const oDesc = (opt.getElementsByTagName("Description")[0]?.textContent || "").trim().toLowerCase();
-            if (candidates.includes(oCode) || (optDesc && oDesc === optDesc)) {
-              matchedOpt = opt;
-              break;
-            }
+          for (const cand of candidates) {
+            matchedOpt = optionsByCode.get(cand);
+            if (matchedOpt) break;
+          }
+          if (!matchedOpt && optDesc) {
+            matchedOpt = optionsByDesc.get(optDesc);
           }
         }
 
@@ -2078,14 +2085,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       const finalUpdatedXml = injectChangesIntoXml(baseXmlStr, detectedChangesList);
       const appliedXmlCount = detectedChangesList.length;
 
-      // 3. Persistencia segura en Supabase: Si es un archivo masivo (> 500KB), se sube a Storage para evitar límite de PostgREST
+      // 3. Persistencia segura en Supabase: Si es un archivo masivo (> 200KB), se sube a Storage para evitar límite de PostgREST
       let xmlRefToPersist = finalUpdatedXml;
-      if (finalUpdatedXml && finalUpdatedXml.length > 500_000) {
+      if (finalUpdatedXml && finalUpdatedXml.length > 200_000) {
         try {
-          const fileName = `General_Procces_actualizer_${Date.now()}.xml`;
+          const fileName = `xml_results/General_Procces/xml_actualizer_${Date.now()}.xml`;
           const storageUrl = await uploadToCatalogsStorage(finalUpdatedXml, fileName, 'application/xml');
           if (storageUrl) {
-            xmlRefToPersist = storageUrl;
+            xmlRefToPersist = `[STORAGE_URL]: ${storageUrl}`;
             console.log('[+] Catálogo masivo guardado en Storage:', storageUrl);
           }
         } catch (storageErr) {
@@ -2097,12 +2104,20 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         xml_actualizer_raw: xmlRefToPersist
       }, 'General_Procces');
 
-      // 4. Persistencia local segura en sessionStorage (con try/catch para evitar fallo por límite de cuota de 5MB)
+      // 4. Persistencia local segura en sessionStorage (con fallback si supera cuota)
       if (typeof window !== 'undefined') {
         try {
-          sessionStorage.setItem('xml_actualizer_raw', finalUpdatedXml);
+          if (finalUpdatedXml.length > 2_500_000) {
+            // Guardar referencia ligera para proteger los 5MB de sessionStorage
+            sessionStorage.setItem('xml_actualizer_raw', xmlRefToPersist);
+          } else {
+            sessionStorage.setItem('xml_actualizer_raw', finalUpdatedXml);
+          }
         } catch (quotaErr) {
           console.warn('[-] Cuota de sessionStorage excedida (catálogo masivo), conservado en memoria y Supabase:', quotaErr);
+          try {
+            sessionStorage.setItem('xml_actualizer_raw', xmlRefToPersist);
+          } catch (_) {}
         }
         window.dispatchEvent(new CustomEvent('xmlActualizerUpdated', {
           detail: {
