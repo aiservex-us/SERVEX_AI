@@ -412,8 +412,8 @@ export default function XMLActualizerViewer({
     const optionsFilters = [
       {
         id: 'opt-base',
-        label: 'Modelos Base (Sin recargos)',
-        prompt: 'Filtra modelos base',
+        label: 'Base Models (No surcharges)',
+        prompt: 'Filter base models',
         skus: sinOpciones,
         badge: `${sinOpciones.length} SKUs · Base`
       },
@@ -421,10 +421,10 @@ export default function XMLActualizerViewer({
         ? [
             {
               id: 'opt-configurable',
-              label: 'Modelos Configurables',
-              prompt: 'Filtra modelos configurables',
+              label: 'Configurable Models',
+              prompt: 'Filter configurable models',
               skus: conOpciones,
-              badge: `${conOpciones.length} SKUs · Opciones`
+              badge: `${conOpciones.length} SKUs · Options`
             }
           ]
         : []),
@@ -432,8 +432,8 @@ export default function XMLActualizerViewer({
         ? [
             {
               id: 'opt-multi',
-              label: 'Con múltiples recargos (≥2)',
-              prompt: 'Filtra modelos con múltiples recargos',
+              label: 'With multiple surcharges (≥2)',
+              prompt: 'Filter models with multiple surcharges',
               skus: multiOpciones,
               badge: `${multiOpciones.length} SKUs · Multi`
             }
@@ -466,7 +466,7 @@ export default function XMLActualizerViewer({
         id: `opt-dyn-${colName}`,
         label: cleanColName,
         targetCol: colName,
-        prompt: `Filtra productos con opción "${colName}"`,
+        prompt: `Filter products with option "${colName}"`,
         skus: colSkus,
         badge: `${colSkus.length} SKUs${rangeText ? ` · ${rangeText}` : ''}`
       });
@@ -503,7 +503,7 @@ export default function XMLActualizerViewer({
       .map(([tipo, skusList]) => ({
         id: `tipo-${tipo.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
         label: tipo,
-        prompt: `Filtra solo ${tipo.toLowerCase()}`,
+        prompt: `Filter only ${tipo.toLowerCase()}`,
         skus: skusList,
         badge: `${skusList.length} SKUs`
       }));
@@ -523,8 +523,8 @@ export default function XMLActualizerViewer({
       .slice(0, 10)
       .map(([fam, skusList]) => ({
         id: `fam-${fam}`,
-        label: `Familia ${fam}`,
-        prompt: `Filtra familia ${fam}`,
+        label: `Family ${fam}`,
+        prompt: `Filter family ${fam}`,
         skus: skusList,
         badge: `${skusList.length} SKUs`
       }));
@@ -535,8 +535,8 @@ export default function XMLActualizerViewer({
     if (sinPrecio.length > 0) {
       calidadFilters.push({
         id: 'cal-zero-price',
-        label: 'Modelos con precio $0 o nulo',
-        prompt: 'Aislar modelos sin precio ($0)',
+        label: 'Models with $0 or null price',
+        prompt: 'Isolate models without price ($0)',
         skus: sinPrecio,
         badge: `${sinPrecio.length} SKUs`
       });
@@ -722,20 +722,25 @@ export default function XMLActualizerViewer({
           q.includes('actualiza') ||
           q.includes('edita') ||
           q.includes('precio a ') ||
-          q.includes('borra')
+          q.includes('borra') ||
+          q.includes('change') ||
+          q.includes('update') ||
+          q.includes('increase') ||
+          q.includes('decrease') ||
+          q.includes('delete')
         ) {
           reply =
-            'Este visor opera exclusivamente en **modo lectura y certificación** para `xml_actualizer_raw`. Para aplicar modificaciones o ajustes por lote, utiliza la sección **Catalog Matrix Live Editor**.';
-        } else if (q.includes('quitar') || q.includes('limpiar') || q.includes('todos') || q.includes('reset')) {
+            'This viewer operates exclusively in **read-only and certification mode** for `xml_actualizer_raw`. To apply modifications or batch adjustments, use the **Catalog Matrix Live Editor** section.';
+        } else if (q.includes('quitar') || q.includes('limpiar') || q.includes('todos') || q.includes('reset') || q.includes('clear') || q.includes('all')) {
           setMcpActiveSkuFilter(null);
           setSelectedTypologyFilter('');
           setSelectedFamilyFilter('');
           setFilterMode('all');
           setSearchTerm('');
-          reply = `Filtros restablecidos. Mostrando la totalidad de los **${rows.length} productos** del XML certificado.`;
+          reply = `Filters reset. Showing all **${rows.length} products** from the certified XML.`;
         } else if (skusList && skusList.length > 0) {
           matched = skusList;
-          reply = `He aislado **${skusList.length} productos** correspondientes al filtro "${filterLabel || promptText}".`;
+          reply = `I have isolated **${skusList.length} products** matching the filter "${filterLabel || promptText}".`;
           setMcpActiveSkuFilter({
             label: filterLabel || `${skusList.length} SKUs`,
             targetCol: targetCol || null,
@@ -744,33 +749,33 @@ export default function XMLActualizerViewer({
         } else if (q.includes('silla') || q.includes('chair')) {
           const match = rows.filter((r) => (r._typology || getProductTypology(r['Model Name'], r['Model #'])) === 'Sillas');
           matched = match.map((r) => r['Model #']);
-          reply = `He aislado **${match.length} sillas** en la matriz.`;
+          reply = `I have isolated **${match.length} chairs** in the matrix.`;
           setMcpActiveSkuFilter({
-            label: `Sillas (${match.length} SKUs)`,
+            label: `Chairs (${match.length} SKUs)`,
             targetCol: null,
             skuSet: new Set(matched)
           });
         } else if (q.includes('mesa') || q.includes('table')) {
           const match = rows.filter((r) => (r._typology || getProductTypology(r['Model Name'], r['Model #'])) === 'Mesas');
           matched = match.map((r) => r['Model #']);
-          reply = `He aislado **${match.length} mesas** en la matriz.`;
+          reply = `I have isolated **${match.length} tables** in the matrix.`;
           setMcpActiveSkuFilter({
-            label: `Mesas (${match.length} SKUs)`,
+            label: `Tables (${match.length} SKUs)`,
             targetCol: null,
             skuSet: new Set(matched)
           });
         } else if (q.includes('escritorio') || q.includes('desk')) {
           const match = rows.filter((r) => (r._typology || getProductTypology(r['Model Name'], r['Model #'])) === 'Escritorios');
           matched = match.map((r) => r['Model #']);
-          reply = `He aislado **${match.length} escritorios** en la matriz.`;
+          reply = `I have isolated **${match.length} desks** in the matrix.`;
           setMcpActiveSkuFilter({
-            label: `Escritorios (${match.length} SKUs)`,
+            label: `Desks (${match.length} SKUs)`,
             targetCol: null,
             skuSet: new Set(matched)
           });
         } else {
           setSearchTerm(userTxt);
-          reply = `Aplicando filtro de búsqueda por término: "${userTxt}". Revisa las coincidencias en la matriz.`;
+          reply = `Applying search filter for term: "${userTxt}". Check the matches in the matrix.`;
         }
 
         setChatMessages((prev) => [
@@ -810,11 +815,11 @@ export default function XMLActualizerViewer({
           label: `/${cleanSlug}`,
           displayName: t.label,
           desc: `${t.skus.length} SKUs`,
-          category: 'Tipologías de Producto',
+          category: 'Product Typologies',
           icon: Layers,
-          prompt: `Filtra solo las ${t.label.toLowerCase()}`,
+          prompt: `Filter only ${t.label.toLowerCase()}`,
           skus: t.skus,
-          filterLabel: `Tipología: ${t.label} (${t.skus.length} SKUs)`,
+          filterLabel: `Typology: ${t.label} (${t.skus.length} SKUs)`,
           targetCol: null
         });
       });
@@ -841,7 +846,7 @@ export default function XMLActualizerViewer({
           label: `/${cleanSlug}`,
           displayName: o.label,
           desc: o.badge || `${o.skus.length} SKUs`,
-          category: 'Opciones & Recargos XML',
+          category: 'XML Options & Surcharges',
           icon: SlidersHorizontal,
           prompt: o.prompt,
           skus: o.skus,
@@ -866,7 +871,7 @@ export default function XMLActualizerViewer({
           label: `/${cleanSlug}`,
           displayName: c.label,
           desc: c.badge || `${c.skus.length} SKUs`,
-          category: 'Auditoría Esquema XML',
+          category: 'XML Schema Audit',
           icon: AlertCircle,
           prompt: c.prompt,
           skus: c.skus,
@@ -880,11 +885,11 @@ export default function XMLActualizerViewer({
     tools.push({
       id: 'cmd-global-todos',
       label: '/todos',
-      displayName: 'Ver Catálogo Completo',
-      desc: `Restablecer filtros (${rows.length} SKUs)`,
-      category: 'Vistas Globales & Inspección',
+      displayName: 'View Full Catalog',
+      desc: `Reset filters (${rows.length} SKUs)`,
+      category: 'Global Views & Inspection',
       icon: Sparkles,
-      prompt: 'Muestra todos los productos del catálogo completo',
+      prompt: 'Show all products in the full catalog',
       skus: rows.map((r) => r['Model #']).filter(Boolean),
       filterLabel: null,
       targetCol: null
@@ -893,11 +898,11 @@ export default function XMLActualizerViewer({
     tools.push({
       id: 'cmd-global-resumen',
       label: '/resumen',
-      displayName: 'Resumen General del XML',
-      desc: 'Métricas de precio, familias y opciones comerciales',
-      category: 'Vistas Globales & Inspección',
+      displayName: 'General XML Summary',
+      desc: 'Price metrics, families, and commercial options',
+      category: 'Global Views & Inspection',
       icon: Filter,
-      prompt: 'Dame un resumen general del catálogo XML certificado',
+      prompt: 'Give me a general summary of the certified XML catalog',
       skus: [],
       filterLabel: null,
       targetCol: null
@@ -954,7 +959,7 @@ export default function XMLActualizerViewer({
           targetCol: tool.targetCol || null,
           skuSet: new Set(tool.skus)
         });
-        if (tool.category === 'Tipologías de Producto') {
+        if (tool.category === 'Tipologías de Producto' || tool.category === 'Product Typologies') {
           setSelectedTypologyFilter(tool.displayName);
         }
       }
@@ -1507,7 +1512,7 @@ export default function XMLActualizerViewer({
                     Alysa
                   </span>
                   <span className={`text-[9px] font-mono ${isDarkMode ? 'text-zinc-500' : 'text-gray-400'}`}>
-                    xml_actualizer_raw + RAG (Modo Lectura)
+                    xml_actualizer_raw + RAG (Read-Only Mode)
                   </span>
                 </div>
 
@@ -1519,11 +1524,11 @@ export default function XMLActualizerViewer({
                   }`}
                 >
                   <p>
-                    Bienvenido al visor certificado del archivo <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>xml_actualizer_raw</code>. Estoy conectada para asistirte con filtros y consultas de inspección sobre el catálogo final para CET Designer.
+                    Welcome to the certified viewer for <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>xml_actualizer_raw</code>. I am connected to assist you with filters and inspection queries on the final catalog for CET Designer.
                   </p>
 
                   <div className={`pt-2 border-t text-[10px] font-mono leading-relaxed ${isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-600'}`}>
-                    Escribe <strong className={`font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>/</strong> en el chat para desplegar la paleta de herramientas de inspección por tipología, recargo u opciones XML.
+                    Type <strong className={`font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>/</strong> in the chat to open the inspection tool palette by typology, surcharge, or XML options.
                   </div>
                 </div>
               </div>
@@ -1662,12 +1667,12 @@ export default function XMLActualizerViewer({
                             {mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`) ? (
                               <>
                                 <Check size={10} className="shrink-0 text-white" />
-                                <span>Filtro activo en tabla ({msg.matchedSkus.length} SKUs) · Quitar</span>
+                                <span>Active filter in table ({msg.matchedSkus.length} SKUs) · Clear</span>
                               </>
                             ) : (
                               <>
                                 <Filter size={10} className="shrink-0" />
-                                <span>Aislar en tabla ({msg.matchedSkus.length} SKUs)</span>
+                                <span>Isolate in table ({msg.matchedSkus.length} SKUs)</span>
                               </>
                             )}
                           </button>
@@ -1682,7 +1687,7 @@ export default function XMLActualizerViewer({
             {isChatLoading && (
               <div className="flex items-center gap-2 text-zinc-400 text-[10px] pl-8">
                 <RefreshCw size={11} className="animate-spin text-zinc-400" />
-                <span className="font-mono">Alysa procesando consulta en xml_actualizer_raw...</span>
+                <span className="font-mono">Alysa processing query in xml_actualizer_raw...</span>
               </div>
             )}
             <div ref={chatBottomRef} />
@@ -1711,12 +1716,12 @@ export default function XMLActualizerViewer({
                   <div className="p-2 max-h-[290px] overflow-y-auto custom-scrollbar">
                     {filteredSlashCommands.length === 0 ? (
                       <div className="py-3 px-3 text-center text-[10px] font-mono opacity-60">
-                        No se encontraron herramientas con &quot;{chatInput}&quot;
+                        No tools found matching &quot;{chatInput}&quot;
                       </div>
                     ) : (
                       Object.entries(
                         filteredSlashCommands.reduce((acc, cmd) => {
-                          const cat = cmd.category || 'Otras Herramientas';
+                          const cat = cmd.category || 'Other Tools';
                           if (!acc[cat]) acc[cat] = [];
                           acc[cat].push(cmd);
                           return acc;
@@ -1807,14 +1812,14 @@ export default function XMLActualizerViewer({
               <div className="flex items-center gap-1 text-zinc-400">
                 <button
                   type="button"
-                  title="Filtros por voz no disponibles"
+                  title="Voice filters unavailable"
                   className="p-1 rounded hover:text-zinc-200 opacity-50 cursor-not-allowed"
                 >
                   <Mic size={13} />
                 </button>
                 <button
                   type="button"
-                  title="Adjuntar archivo deshabilitado en modo lectura"
+                  title="File attachment disabled in read-only mode"
                   className="p-1 rounded hover:text-zinc-200 opacity-50 cursor-not-allowed"
                 >
                   <Paperclip size={13} />
@@ -1823,7 +1828,7 @@ export default function XMLActualizerViewer({
 
               <input
                 type="text"
-                placeholder="Escribe / para ver herramientas, o filtra productos..."
+                placeholder="Type / to view tools, or filter products..."
                 value={chatInput}
                 onChange={(e) => {
                   const val = e.target.value;

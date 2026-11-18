@@ -839,24 +839,24 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     const optionsFilters = [
       {
         id: 'opt-base',
-        label: 'Modelos Base (Sin recargos)',
-        prompt: 'Filtra modelos base',
+        label: 'Base Models (No surcharges)',
+        prompt: 'Filter base models',
         skus: sinOpciones,
         badge: `${sinOpciones.length} SKUs · Base`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { max_options: 0 } }
       },
       ...(conOpciones.length > 0 ? [{
         id: 'opt-configurable',
-        label: 'Modelos Configurables',
-        prompt: 'Filtra modelos configurables',
+        label: 'Configurable Models',
+        prompt: 'Filter configurable models',
         skus: conOpciones,
-        badge: `${conOpciones.length} SKUs · Opciones`,
+        badge: `${conOpciones.length} SKUs · Options`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 1 } }
       }] : []),
       ...(multiOpciones.length > 0 ? [{
         id: 'opt-multi',
-        label: 'Con múltiples recargos (≥2)',
-        prompt: 'Filtra modelos con múltiples recargos',
+        label: 'With multiple surcharges (≥2)',
+        prompt: 'Filter models with multiple surcharges',
         skus: multiOpciones,
         badge: `${multiOpciones.length} SKUs · Multi`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { min_options: 2 } }
@@ -888,7 +888,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         id: `opt-dyn-${colName}`,
         label: cleanColName,
         targetCol: colName,
-        prompt: `Filtra productos con opción "${colName}"`,
+        prompt: `Filter products with option "${colName}"`,
         skus: colSkus,
         badge: `${colSkus.length} SKUs${rangeText ? ` · ${rangeText}` : ''}`,
         toolCall: {
@@ -922,7 +922,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       .map(([tipo, skus]) => ({
         id: `tipo-${tipo}`,
         label: tipo,
-        prompt: `Filtra tipología "${tipo}"`,
+        prompt: `Filter typology "${tipo}"`,
         skus,
         badge: `${skus.length} SKUs`,
         toolCall: { name: 'mcp::csv_edit_matrix.filter_by_category', parameters: { category: tipo } }
@@ -940,8 +940,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       .sort((a, b) => b[1].length - a[1].length)
       .map(([fam, skus]) => ({
         id: `fam-${fam}`,
-        label: `Familia ${fam}`,
-        prompt: `Filtra familia "${fam}"`,
+        label: `Family ${fam}`,
+        prompt: `Filter family "${fam}"`,
         skus,
         badge: `${skus.length} SKUs`,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { families: [fam], sku_prefix: fam.toLowerCase() } }
@@ -956,37 +956,37 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     const calidadFilters = [
       ...(sinPrecio.length > 0 ? [{
         id: 'audit-price',
-        label: 'Sin List Price ($0 o vacío)',
-        prompt: 'Auditoría: Productos sin List Price',
+        label: 'Missing List Price ($0 or empty)',
+        prompt: 'Audit: Products without List Price',
         skus: sinPrecio,
-        badge: `${sinPrecio.length} SKUs · Alerta`,
+        badge: `${sinPrecio.length} SKUs · Alert`,
         isAudit: true,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['price'] } }
       }] : []),
       ...(sinPeso.length > 0 ? [{
         id: 'audit-weight',
-        label: 'Sin peso registrado (Weight)',
-        prompt: 'Auditoría: Productos sin Weight',
+        label: 'Missing registered weight (Weight)',
+        prompt: 'Audit: Products without Weight',
         skus: sinPeso,
-        badge: `${sinPeso.length} SKUs · Alerta`,
+        badge: `${sinPeso.length} SKUs · Alert`,
         isAudit: true,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['weight'] } }
       }] : []),
       ...(sinCat.length > 0 ? [{
         id: 'audit-cat',
-        label: 'Sin gama / categoría comercial',
-        prompt: 'Auditoría: Productos sin Classic/ Premium',
+        label: 'Missing tier / commercial category',
+        prompt: 'Audit: Products without Classic/ Premium',
         skus: sinCat,
-        badge: `${sinCat.length} SKUs · Alerta`,
+        badge: `${sinCat.length} SKUs · Alert`,
         isAudit: true,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['category'] } }
       }] : []),
       ...(sinNombre.length > 0 ? [{
         id: 'audit-name',
-        label: 'Sin Model Name / Descripción',
-        prompt: 'Auditoría: Productos sin Model Name',
+        label: 'Missing Model Name / Description',
+        prompt: 'Audit: Products without Model Name',
         skus: sinNombre,
-        badge: `${sinNombre.length} SKUs · Alerta`,
+        badge: `${sinNombre.length} SKUs · Alert`,
         isAudit: true,
         toolCall: { name: 'mcp::csv_edit_matrix.advanced_filter', parameters: { missing: ['name'] } }
       }] : [])
@@ -1099,13 +1099,13 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         }
       }
 
-      const isFilterIntent = /\b(filtra|filtrar|filtro|muestra|muestrame|mostrar|tabla|solo\s+los|solo\s+las|pasame|pásame|dame|aislar)\b/i.test(qLower);
+      const isFilterIntent = /\b(filtra|filtrar|filtro|muestra|muestrame|mostrar|tabla|solo\s+los|solo\s+las|pasame|pásame|dame|aislar|filter|show|only|isolate)\b/i.test(qLower);
       if (naturalTypoMatch && isFilterIntent) {
         if (!precomputedSkus || precomputedSkus.length === 0) {
           precomputedSkus = naturalTypoMatch.skus;
         }
         if (!filterLabelOverride) {
-          filterLabelOverride = `Tipología: ${naturalTypoMatch.label}`;
+          filterLabelOverride = `Typology: ${naturalTypoMatch.label}`;
         }
       }
 
@@ -1192,12 +1192,12 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           if (fallbackRes.ok) {
             const fallbackData = await fallbackRes.json();
             data = {
-              reply: fallbackData?.reply || 'Respuesta generada por el agente.',
+              reply: fallbackData?.reply || 'Response generated by the agent.',
               matched_skus: fallbackData?.matched_skus || [],
               mcp_traces: fallbackData?.mcp_traces || []
             };
           } else {
-            throw new Error('No se pudo conectar con el servidor MCP en el backend');
+            throw new Error('Could not connect to the MCP server in the backend');
           }
         }
 
@@ -1253,7 +1253,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
         // Si el usuario solicitó filtrar o aislar los productos en la tabla, activar filtro automáticamente
         if (
           matchedSkus.length > 0 &&
-          /\b(filtra|filtrar|filtro|muestra|muestrame|mostrar|tabla|solo\s+los|solo\s+las|deja\s+solo|pasame|pásame|dame|aislar)\b/.test(qLower)
+          /\b(filtra|filtrar|filtro|muestra|muestrame|mostrar|tabla|solo\s+los|solo\s+las|deja\s+solo|pasame|pásame|dame|aislar|filter|show|only|isolate)\b/.test(qLower)
         ) {
           const filterTag = filterLabelOverride || (primaryFilter
             ? `${primaryFilter.tool.replace('mcp::csv_edit_matrix.', '')} (${matchedSkus.length})`
@@ -1272,8 +1272,8 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           id: `mcp-b-${Date.now()}`,
           role: 'assistant',
           text: stripEmojis(data?.reply) || (naturalTypoMatch && isFilterIntent
-            ? `He aislado en la matriz los ${matchedSkus.length} productos pertenecientes a la tipología ${naturalTypoMatch.label}.`
-            : 'Consulta procesada sobre `csv_edit_raw`.'),
+            ? `I have isolated in the matrix the ${matchedSkus.length} products belonging to the ${naturalTypoMatch.label} typology.`
+            : 'Query processed on `csv_edit_raw`.'),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           mcpTraces,
           matchedSkus,
@@ -1287,7 +1287,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
       } catch (err) {
         if (naturalTypoMatch && isFilterIntent && precomputedSkus?.length > 0) {
           setMcpActiveSkuFilter({
-            label: `Tipología: ${naturalTypoMatch.label}`,
+            label: `Typology: ${naturalTypoMatch.label}`,
             targetCol: null,
             skuSet: new Set(precomputedSkus)
           });
@@ -1297,11 +1297,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             {
               id: `mcp-b-${Date.now()}`,
               role: 'assistant',
-              text: `He aislado determinísticamente en la matriz los ${precomputedSkus.length} productos de la tipología ${naturalTypoMatch.label}.`,
+              text: `I have deterministically isolated in the matrix the ${precomputedSkus.length} products of the ${naturalTypoMatch.label} typology.`,
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               mcpTraces: [],
               matchedSkus: precomputedSkus,
-              filterLabel: `Tipología: ${naturalTypoMatch.label} (${precomputedSkus.length} SKUs)`
+              filterLabel: `Typology: ${naturalTypoMatch.label} (${precomputedSkus.length} SKUs)`
             }
           ]);
         } else {
@@ -1310,7 +1310,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             {
               id: `mcp-err-${Date.now()}`,
               role: 'assistant',
-              text: `Error consultando el MCP en el backend: ${err?.message || 'Fallo de red'}`,
+              text: `Error querying backend MCP: ${err?.message || 'Network failure'}`,
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               mcpTraces: [],
               matchedSkus: []
@@ -1346,11 +1346,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           label: `/${cleanSlug}`,
           displayName: t.label,
           desc: `${t.skus.length} SKUs`,
-          category: 'Tipologías de Producto',
+          category: 'Product Typologies',
           icon: Layers,
-          prompt: `Filtra solo las ${t.label.toLowerCase()}`,
+          prompt: `Filter only ${t.label.toLowerCase()}`,
           skus: t.skus,
-          filterLabel: `Tipología: ${t.label} (${t.skus.length} SKUs)`,
+          filterLabel: `Typology: ${t.label} (${t.skus.length} SKUs)`,
           targetCol: null,
           toolCall: t.toolCall
         });
@@ -1378,7 +1378,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           label: `/${cleanSlug}`,
           displayName: o.label,
           desc: o.badge || `${o.skus.length} SKUs`,
-          category: 'Opciones & Recargos XML',
+          category: 'XML Options & Surcharges',
           icon: SlidersHorizontal,
           prompt: o.prompt,
           skus: o.skus,
@@ -1404,7 +1404,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           label: `/${cleanSlug}`,
           displayName: c.label,
           desc: c.badge || `${c.skus.length} SKUs`,
-          category: 'Auditoría Esquema XML',
+          category: 'XML Schema Audit',
           icon: AlertCircle,
           prompt: c.prompt,
           skus: c.skus,
@@ -1419,11 +1419,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     tools.push({
       id: 'cmd-global-todos',
       label: '/todos',
-      displayName: 'Ver Catálogo Completo',
-      desc: `Restablecer filtros (${editRows.length} SKUs)`,
-      category: 'Vistas Globales & Diagnóstico',
+      displayName: 'View Full Catalog',
+      desc: `Reset filters (${editRows.length} SKUs)`,
+      category: 'Global Views & Diagnostics',
       icon: Sparkles,
-      prompt: 'Muestra todos los productos del catálogo completo sin ningún filtro activo',
+      prompt: 'Show all products in the full catalog without any active filter',
       skus: editRows.map((r) => r[0]).filter(Boolean),
       filterLabel: null,
       targetCol: null,
@@ -1433,11 +1433,11 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
     tools.push({
       id: 'cmd-global-resumen',
       label: '/resumen',
-      displayName: 'Resumen General del Catálogo',
-      desc: 'Métricas de precio, familias y opciones comerciales',
-      category: 'Vistas Globales & Diagnóstico',
+      displayName: 'General Catalog Summary',
+      desc: 'Price metrics, families, and commercial options',
+      category: 'Global Views & Diagnostics',
       icon: Filter,
-      prompt: 'Dame un resumen ejecutivo completo del catálogo, con métricas de precios, tipologías y opciones de recargo detectadas',
+      prompt: 'Give me a complete executive summary of the catalog, with price metrics, typologies, and detected surcharge options',
       skus: [],
       filterLabel: null,
       targetCol: null,
@@ -1497,7 +1497,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
           targetCol: tool.targetCol || null,
           skuSet: new Set(tool.skus)
         });
-        if (tool.category === 'Tipologías de Producto') {
+        if (tool.category === 'Tipologías de Producto' || tool.category === 'Product Typologies') {
           setSelectedTypologyFilter(tool.displayName);
         }
       }
@@ -2820,27 +2820,27 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   }`}
                 >
                   <p>
-                    Bienvenido al <strong className={isDarkMode ? 'text-white font-semibold' : 'text-slate-900 font-semibold'}>Catalog Matrix Live Editor</strong>. Estoy conectada mediante RAG y el servidor <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>CsvEditMatrixMCP</code> exclusivamente sobre <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>csv_edit_raw</code>.
+                    Welcome to the <strong className={isDarkMode ? 'text-white font-semibold' : 'text-slate-900 font-semibold'}>Catalog Matrix Live Editor</strong>. I am connected via RAG and the <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>CsvEditMatrixMCP</code> server exclusively on <code className={`px-1 py-0.5 text-[10px] font-mono border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-slate-100 border-slate-200 text-slate-800'}`}>csv_edit_raw</code>.
                   </p>
 
                   <p className={`text-[10px] font-bold uppercase tracking-wider pt-0.5 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-                    Funciones MCP activas en este panel:
+                    Active MCP functions in this panel:
                   </p>
 
                   <ul className="space-y-1.5 pl-3.5 list-disc text-[10.5px]">
                     <li>
-                      <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>Filtrar por precios:</strong> Consulta precios mayores, menores, rangos o rankings (ej. <em>&ldquo;productos mayores a $500&rdquo;</em> o <em>&ldquo;los 10 más baratos&rdquo;</em>).
+                      <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>Filter by price:</strong> Query prices above, below, ranges, or rankings (e.g. <em>&ldquo;products above $500&rdquo;</em> or <em>&ldquo;top 10 cheapest&rdquo;</em>).
                     </li>
                     <li>
-                      <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>Filtrar por categoría:</strong> Filtra por <code className="font-mono text-[9.5px]">Classic/ Premium</code>, línea de SKU o tipo de mueble.
+                      <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>Filter by category:</strong> Filter by <code className="font-mono text-[9.5px]">Classic/ Premium</code>, SKU line, or furniture type.
                     </li>
                     <li>
-                      <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>Búsqueda RAG de SKUs:</strong> Consulta cualquier <code className="font-mono text-[9.5px]">Model #</code> o descripción en tiempo real.
+                      <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>RAG SKU search:</strong> Query any <code className="font-mono text-[9.5px]">Model #</code> or description in real time.
                     </li>
                   </ul>
 
                   <div className={`pt-2 border-t text-[10px] font-mono leading-relaxed ${isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-600'}`}>
-                    Escribe <strong className={`font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>/</strong> en el chat para desplegar la paleta de herramientas por tipología, recargo u opciones XML.
+                    Type <strong className={`font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>/</strong> in the chat to open the tool palette by typology, surcharge, or XML options.
                   </div>
                 </div>
               </div>
@@ -2998,18 +2998,18 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                             {mcpActiveSkuFilter?.label === (msg.filterLabel || `${msg.matchedSkus.length} SKUs`) ? (
                               <>
                                 <Check size={10} className="shrink-0 text-white" />
-                                <span>Filtro activo en tabla ({msg.matchedSkus.length} SKUs) · Quitar</span>
+                                <span>Active filter in table ({msg.matchedSkus.length} SKUs) · Clear</span>
                               </>
                             ) : (
                               <>
                                 <Filter size={10} className="shrink-0" />
-                                <span>Aislar en tabla ({msg.matchedSkus.length} SKUs)</span>
+                                <span>Isolate in table ({msg.matchedSkus.length} SKUs)</span>
                               </>
                             )}
                           </button>
 
                           <span className="text-[9px] font-mono opacity-50 italic">
-                            Pídele a Alysa: &quot;Súbele 5%&quot;, &quot;Cambia ese precio a $14&quot; o &quot;+$2 a -FG&quot;
+                            Ask Alysa: &quot;Increase by 5%&quot;, &quot;Set price to $14&quot; or &quot;+$2 to -FG&quot;
                           </span>
                         </div>
                       )}
@@ -3022,7 +3022,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
             {isMcpThinking && (
               <div className="flex items-center gap-2 px-1 py-1 text-[10px] font-mono opacity-75">
                 <RefreshCw size={11} className="animate-spin" />
-                <span>Ejecutando MCP + RAG sobre csv_edit_raw en backend...</span>
+                <span>Executing MCP + RAG on csv_edit_raw in backend...</span>
               </div>
             )}
 
@@ -3048,12 +3048,12 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                   <div className="p-2 max-h-[290px] overflow-y-auto custom-scrollbar">
                     {filteredSlashCommands.length === 0 ? (
                       <div className="py-3 px-3 text-center text-[10px] font-mono opacity-60">
-                        No se encontraron herramientas con &quot;{chatInputUi}&quot;
+                        No tools found matching &quot;{chatInputUi}&quot;
                       </div>
                     ) : (
                       Object.entries(
                         filteredSlashCommands.reduce((acc, cmd) => {
-                          const cat = cmd.category || 'Otras Herramientas';
+                          const cat = cmd.category || 'Other Tools';
                           if (!acc[cat]) acc[cat] = [];
                           acc[cat].push(cmd);
                           return acc;
@@ -3172,7 +3172,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                         handleSendMatrixChat();
                       }
                     }}
-                    placeholder="Escribe / para ver herramientas, o consulta en csv_edit_raw…"
+                    placeholder="Type / to view tools, or query in csv_edit_raw…"
                     className={`flex-1 bg-transparent border-none outline-none resize-none text-[11px] ${
                       isDarkMode
                         ? 'text-zinc-100 placeholder-zinc-500 caret-white'
@@ -3187,7 +3187,7 @@ export default function CatalogEditorGeneral({ isDarkMode = true, onBack, onRunC
                 <div className="flex items-center gap-0.5">
                   <button
                     type="button"
-                    title="Adjuntar referencia"
+                    title="Attach reference"
                     className={`w-6 h-6 rounded-md flex items-center justify-center transition-colors cursor-pointer ${
                       isDarkMode
                         ? 'text-zinc-400 hover:bg-white/10 hover:text-white'

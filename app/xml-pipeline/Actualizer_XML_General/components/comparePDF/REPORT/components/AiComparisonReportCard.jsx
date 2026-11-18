@@ -68,7 +68,7 @@ export default function AiComparisonReportCard({
   const filteredChanges = useMemo(() => {
     if (!searchTerm.trim()) return changes;
     const q = searchTerm.toLowerCase().trim();
-    return changes.filter(c => 
+    return changes.filter(c =>
       String(c.model_id || '').toLowerCase().includes(q) ||
       String(c.column_name || '').toLowerCase().includes(q) ||
       String(c.original_column_name || '').toLowerCase().includes(q) ||
@@ -106,7 +106,7 @@ export default function AiComparisonReportCard({
         const pct = ((n - o) / Math.abs(o)) * 100;
         return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
       }
-    } catch (_) {}
+    } catch (_) { }
     return '---';
   };
 
@@ -152,7 +152,7 @@ export default function AiComparisonReportCard({
       }
 
       if (!xmlContent) {
-        alert("No se encontró contenido XML disponible para descargar.");
+        alert("No XML content available for download.");
         setIsDownloadingXml(false);
         return;
       }
@@ -180,16 +180,14 @@ export default function AiComparisonReportCard({
   };
 
   return (
-    <div className={`mt-3 space-y-3 font-sans text-left text-[13px] md:text-[13.5px] leading-relaxed  ${
-      isDarkMode ? 'text-zinc-100' : 'text-gray-800'
-    }`}>
+    <div className={`mt-3 space-y-3 font-sans text-left text-[13px] md:text-[13.5px] leading-relaxed  ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'
+      }`}>
       {/* ── TARJETA PRINCIPAL GLASSMORPHIC CON ESQUINAS RECTAS ── */}
       <div
-        className={`w-full rounded-xl border transition-colors overflow-hidden ${
-          isDarkMode
-            ? 'bg-[#09090b]/80 border-white/10 text-zinc-100 backdrop-blur-md shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)]'
-            : 'bg-white/90 border-slate-200/90 text-gray-800 shadow-sm backdrop-blur-md'
-        }`}
+        className={`w-full rounded-xl border transition-colors overflow-hidden ${isDarkMode
+          ? 'bg-[#09090b]/80 border-white/10 text-zinc-100 backdrop-blur-md shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)]'
+          : 'bg-white/90 border-slate-200/90 text-gray-800 shadow-sm backdrop-blur-md'
+          }`}
       >
         {/* Cabecera ejecutiva integrada */}
         <div className={`p-4 border-b  ${isDarkMode ? 'border-white/10 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
@@ -200,32 +198,29 @@ export default function AiComparisonReportCard({
                   <Sliders size={13} />
                 </div>
                 <h3 className={`text-[13.5px] font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
-                  Auditoría Comparativa Matricial
+                  Matrix Comparative Audit
                 </h3>
                 {changes.length > 0 ? (
                   isXmlInjected ? (
-                    <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
-                      isDarkMode ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    }`}>
-                      <CheckCircle2 size={11} className="inline mr-0.5 text-emerald-400" /> xml_actualizer_raw Actualizado ({changes.length})
+                    <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${isDarkMode ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      }`}>
+                      <CheckCircle2 size={11} className="inline mr-0.5 text-emerald-400" /> xml_actualizer_raw Updated ({changes.length})
                     </span>
                   ) : (
-                    <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
-                      isDarkMode ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : 'bg-amber-50 text-amber-800 border border-amber-200'
-                    }`}>
-                      <AlertCircle size={11} className="inline mr-0.5 text-amber-400" /> {changes.length} Cambios Detectados (Paso 1)
+                    <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${isDarkMode ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30' : 'bg-amber-50 text-amber-800 border border-amber-200'
+                      }`}>
+                      <AlertCircle size={11} className="inline mr-0.5 text-amber-400" /> {changes.length} Changes Detected (Step 1)
                     </span>
                   )
                 ) : (
-                  <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${
-                    isDarkMode ? 'bg-white/10 text-zinc-300 border border-white/15' : 'bg-slate-200 text-slate-700'
-                  }`}>
-                    <ShieldCheck size={11} className="inline mr-0.5 opacity-70" /> Catálogo Sincronizado
+                  <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold flex items-center gap-1 ${isDarkMode ? 'bg-white/10 text-zinc-300 border border-white/15' : 'bg-slate-200 text-slate-700'
+                    }`}>
+                    <ShieldCheck size={11} className="inline mr-0.5 opacity-70" /> Catalog Synchronized
                   </span>
                 )}
               </div>
               <p className={`text-xs mt-1 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-                Cotejo celda por celda entre catálogo base original y catálogo actualizado.
+                Cell-by-cell comparison between original base catalog and updated catalog.
               </p>
             </div>
 
@@ -233,43 +228,40 @@ export default function AiComparisonReportCard({
               <button
                 onClick={handleDownloadDiffCsv}
                 disabled={!changes.length}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${
-                  isDarkMode
-                    ? 'bg-zinc-900 text-zinc-200 hover:bg-zinc-800 border-zinc-700'
-                    : 'bg-white text-zinc-800 hover:bg-zinc-100 border-zinc-300'
-                }`}
-                title="Descargar solo las diferencias detectadas en CSV"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${isDarkMode
+                  ? 'bg-zinc-900 text-zinc-200 hover:bg-zinc-800 border-zinc-700'
+                  : 'bg-white text-zinc-800 hover:bg-zinc-100 border-zinc-300'
+                  }`}
+                title="Download only detected differences in CSV"
               >
                 <Download size={13} />
-                <span>Exportar Discrepancias (.csv)</span>
+                <span>Export Discrepancies (.csv)</span>
               </button>
 
               {changes.length > 0 && !isXmlInjected && onInjectXml ? (
                 <button
                   onClick={onInjectXml}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                    isDarkMode
-                      ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white font-bold'
-                      : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900 font-bold'
-                  }`}
-                  title="Inyectar las modificaciones en el árbol XML maestro para generar xml_actualizer_raw"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${isDarkMode
+                    ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white font-bold'
+                    : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900 font-bold'
+                    }`}
+                  title="Inject modifications into the master XML tree to generate xml_actualizer_raw"
                 >
                   <FileCode2 size={13} />
-                  <span>Inyectar al XML ({changes.length})</span>
+                  <span>Inject into XML ({changes.length})</span>
                 </button>
               ) : (
                 <button
                   onClick={handleDownloadUpdatedXml}
                   disabled={isDownloadingXml}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                    isDarkMode
-                      ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
-                      : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
-                  }`}
-                  title="Descargar el XML maestro con las modificaciones inyectadas listo para CET Designer"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${isDarkMode
+                    ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
+                    : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
+                    }`}
+                  title="Download the master XML with injected modifications ready for CET Designer"
                 >
                   <FileCode2 size={13} />
-                  <span>{isDownloadingXml ? 'Descargando...' : 'Descargar .xml Actualizado'}</span>
+                  <span>{isDownloadingXml ? 'Downloading...' : 'Download Updated .xml'}</span>
                 </button>
               )}
             </div>
@@ -277,117 +269,108 @@ export default function AiComparisonReportCard({
         </div>
 
         {/* ── KPIS / CONTADORES MÉTRICOS EN ESCALA ARMONIOSA ── */}
-        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 p-3.5 border-b  ${
-          isDarkMode ? 'bg-black/20 border-white/10' : 'bg-slate-50 border-slate-200'
-        }`}>
-          <div className={`p-2.5 rounded-lg border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 p-3.5 border-b  ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-slate-50 border-slate-200'
           }`}>
+          <div className={`p-2.5 rounded-lg border text-center transition-all ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+            }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Precios / Celdas
+              Prices / Cells
             </span>
             <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
               {changesCount}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Modificaciones
+              Modifications
             </span>
           </div>
 
-          <div className={`p-2.5 rounded-lg border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
-          }`}>
+          <div className={`p-2.5 rounded-lg border text-center transition-all ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+            }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Nuevos Productos
+              New Products
             </span>
             <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
               +{newCount}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Altas de catálogo
+              Catalog additions
             </span>
           </div>
 
-          <div className={`p-2.5 rounded-lg border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
-          }`}>
+          <div className={`p-2.5 rounded-lg border text-center transition-all ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+            }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Descatalogados
+              Discontinued
             </span>
             <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
               -{deletedCount}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Bajas de catálogo
+              Catalog removals
             </span>
           </div>
 
-          <div className={`p-2.5 rounded-lg border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
-          }`}>
+          <div className={`p-2.5 rounded-lg border text-center transition-all ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+            }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Modelos Evaluados
+              Models Evaluated
             </span>
             <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
               {totalEvaluated}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Catálogo común
+              Common catalog
             </span>
           </div>
         </div>
 
         {/* ── BARRA DE PESTAÑAS Y BUSCADOR MONOCROMÁTICA RECTA ── */}
-        <div className={`px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 border-b  ${
-          isDarkMode ? 'border-white/10 bg-white/[0.01]' : 'border-slate-200 bg-slate-50/60'
-        }`}>
+        <div className={`px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 border-b  ${isDarkMode ? 'border-white/10 bg-white/[0.01]' : 'border-slate-200 bg-slate-50/60'
+          }`}>
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => { setActiveTab('changes'); setCurrentPage(1); }}
-              className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                activeTab === 'changes'
-                  ? isDarkMode
-                    ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
-                    : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
-                  : isDarkMode
+              className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${activeTab === 'changes'
+                ? isDarkMode
+                  ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
+                  : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
+                : isDarkMode
                   ? 'text-zinc-400 hover:text-white hover:bg-white/5 border-transparent'
                   : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100 border-transparent'
-              }`}
+                }`}
             >
               <Table size={13} />
-              <span>Discrepancias ({changesCount})</span>
+              <span>Discrepancies ({changesCount})</span>
             </button>
 
             <button
               onClick={() => { setActiveTab('added'); setCurrentPage(1); }}
-              className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                activeTab === 'added'
-                  ? isDarkMode
-                    ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
-                    : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
-                  : isDarkMode
+              className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${activeTab === 'added'
+                ? isDarkMode
+                  ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
+                  : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
+                : isDarkMode
                   ? 'text-zinc-400 hover:text-white hover:bg-white/5 border-transparent'
                   : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100 border-transparent'
-              }`}
+                }`}
             >
               <PlusCircle size={13} />
-              <span>Altas (+{newCount})</span>
+              <span>Added (+{newCount})</span>
             </button>
 
             <button
               onClick={() => { setActiveTab('deleted'); setCurrentPage(1); }}
-              className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                activeTab === 'deleted'
-                  ? isDarkMode
-                    ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
-                    : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
-                  : isDarkMode
+              className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${activeTab === 'deleted'
+                ? isDarkMode
+                  ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
+                  : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
+                : isDarkMode
                   ? 'text-zinc-400 hover:text-white hover:bg-white/5 border-transparent'
                   : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100 border-transparent'
-              }`}
+                }`}
             >
               <MinusCircle size={13} />
-              <span>Bajas (-{deletedCount})</span>
+              <span>Removed (-{deletedCount})</span>
             </button>
           </div>
 
@@ -396,14 +379,13 @@ export default function AiComparisonReportCard({
               <Search size={12} className={`absolute left-2.5 pointer-events-none ${isDarkMode ? 'text-zinc-400' : 'text-slate-400'}`} />
               <input
                 type="text"
-                placeholder="Buscar SKU o columna..."
+                placeholder="Search SKU or column..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className={`rounded-md pl-7 pr-2.5 py-1 text-xs font-medium transition-all w-[160px] sm:w-[190px] border focus:outline-none ${
-                  isDarkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
-                    : 'bg-slate-100 border-slate-200 text-zinc-900 placeholder:text-slate-400 focus:border-zinc-400 focus:bg-white'
-                }`}
+                className={`rounded-md pl-7 pr-2.5 py-1 text-xs font-medium transition-all w-[160px] sm:w-[190px] border focus:outline-none ${isDarkMode
+                  ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
+                  : 'bg-slate-100 border-slate-200 text-zinc-900 placeholder:text-slate-400 focus:border-zinc-400 focus:bg-white'
+                  }`}
               />
             </div>
           )}
@@ -416,29 +398,27 @@ export default function AiComparisonReportCard({
               {filteredChanges.length === 0 ? (
                 <div className={`py-10 text-center text-xs  ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                   <CheckCircle2 size={22} className="mx-auto mb-2 opacity-60" />
-                  No se detectaron discrepancias en precios ni opciones para este filtro.
+                  No price or option discrepancies detected for this filter.
                 </div>
               ) : (
                 <div className="w-full overflow-x-auto ">
                   <table className="w-full text-left border-collapse min-w-[540px] ">
                     <thead>
-                      <tr className={`border-b text-[11px] font-bold uppercase tracking-wider select-none  ${
-                        isDarkMode
-                          ? 'border-white/10 bg-white/[0.04] text-zinc-400'
-                          : 'border-slate-200 bg-slate-50 text-slate-600'
-                      }`}>
+                      <tr className={`border-b text-[11px] font-bold uppercase tracking-wider select-none  ${isDarkMode
+                        ? 'border-white/10 bg-white/[0.04] text-zinc-400'
+                        : 'border-slate-200 bg-slate-50 text-slate-600'
+                        }`}>
                         <th className="py-2.5 px-3.5">Model # (SKU)</th>
-                        <th className="py-2.5 px-3.5">Campo / Opción</th>
-                        <th className="py-2.5 px-3.5 text-right">Base Anterior</th>
-                        <th className="py-2.5 px-3.5 text-right">Nuevo Valor</th>
-                        <th className="py-2.5 px-3.5 text-center">Variación</th>
+                        <th className="py-2.5 px-3.5">Field / Option</th>
+                        <th className="py-2.5 px-3.5 text-right">Previous Base</th>
+                        <th className="py-2.5 px-3.5 text-right">New Value</th>
+                        <th className="py-2.5 px-3.5 text-center">Variation</th>
                       </tr>
                     </thead>
                     <tbody
                       key={`changes-page-${currentPage}-${searchTerm}`}
-                      className={`divide-y text-xs  ${
-                      isDarkMode ? 'divide-white/[0.06] text-zinc-200' : 'divide-slate-100 text-slate-700'
-                    }`}>
+                      className={`divide-y text-xs  ${isDarkMode ? 'divide-white/[0.06] text-zinc-200' : 'divide-slate-100 text-slate-700'
+                        }`}>
                       {paginatedChanges.map((c, idx) => {
                         const impact = getImpact(c);
                         const isPositive = impact.startsWith('+');
@@ -446,29 +426,26 @@ export default function AiComparisonReportCard({
                         return (
                           <tr
                             key={`${c.model_id}-${c.column_name}-${idx}`}
-                            className={`transition-colors duration-150  ${
-                              isDarkMode ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'
-                            }`}
+                            className={`transition-colors duration-150  ${isDarkMode ? 'hover:bg-white/[0.03]' : 'hover:bg-slate-50'
+                              }`}
                           >
                             {/* Model # (SKU) */}
                             <td className="py-2.5 px-3.5 whitespace-nowrap ">
                               <div className="flex items-center gap-1.5">
-                                <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded tracking-wide ${
-                                  isDarkMode
-                                    ? 'bg-white text-zinc-950 shadow-2xs'
-                                    : 'bg-zinc-900 text-white'
-                                }`}>
+                                <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded tracking-wide ${isDarkMode
+                                  ? 'bg-white text-zinc-950 shadow-2xs'
+                                  : 'bg-zinc-900 text-white'
+                                  }`}>
                                   {c.model_id}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleCopySku(c.model_id)}
-                                  title="Copiar SKU"
-                                  className={`p-1  transition-colors cursor-pointer ${
-                                    isDarkMode
-                                      ? 'text-zinc-500 hover:text-white hover:bg-white/10'
-                                      : 'text-zinc-400 hover:text-zinc-900 hover:bg-slate-200'
-                                  }`}
+                                  title="Copy SKU"
+                                  className={`p-1  transition-colors cursor-pointer ${isDarkMode
+                                    ? 'text-zinc-500 hover:text-white hover:bg-white/10'
+                                    : 'text-zinc-400 hover:text-zinc-900 hover:bg-slate-200'
+                                    }`}
                                 >
                                   {copiedSku === c.model_id ? (
                                     <Check size={11} className={isDarkMode ? 'text-white' : 'text-zinc-900'} />
@@ -481,44 +458,40 @@ export default function AiComparisonReportCard({
 
                             {/* Campo / Opción */}
                             <td className="py-2.5 px-3.5 ">
-                              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium border ${
-                                isDarkMode
-                                  ? 'bg-white/5 border-white/10 text-zinc-300'
-                                  : 'bg-slate-100 border-slate-200 text-slate-700'
-                              }`}>
+                              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium border ${isDarkMode
+                                ? 'bg-white/5 border-white/10 text-zinc-300'
+                                : 'bg-slate-100 border-slate-200 text-slate-700'
+                                }`}>
                                 {c.column_name || c.original_column_name || 'List Price'}
                               </span>
                             </td>
 
                             {/* Base Anterior */}
-                            <td className={`py-2.5 px-3.5 font-mono text-xs text-right  ${
-                              isDarkMode ? 'text-zinc-400' : 'text-slate-500'
-                            }`}>
+                            <td className={`py-2.5 px-3.5 font-mono text-xs text-right  ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'
+                              }`}>
                               {formatVal(c.old_value)}
                             </td>
 
                             {/* Nuevo Valor */}
-                            <td className={`py-2.5 px-3.5 font-mono font-bold text-xs text-right  ${
-                              isDarkMode ? 'text-white' : 'text-zinc-900'
-                            }`}>
+                            <td className={`py-2.5 px-3.5 font-mono font-bold text-xs text-right  ${isDarkMode ? 'text-white' : 'text-zinc-900'
+                              }`}>
                               {formatVal(c.new_value)}
                             </td>
 
                             {/* Variación */}
                             <td className="py-2.5 px-3.5 text-center ">
-                              <span className={`px-2 py-0.5 rounded text-xs font-mono font-bold inline-flex items-center gap-1 border shadow-2xs ${
-                                isPositive
-                                  ? isDarkMode
-                                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : isNegative
+                              <span className={`px-2 py-0.5 rounded text-xs font-mono font-bold inline-flex items-center gap-1 border shadow-2xs ${isPositive
+                                ? isDarkMode
+                                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : isNegative
                                   ? isDarkMode
                                     ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
                                     : 'bg-rose-50 text-rose-700 border-rose-200'
                                   : isDarkMode
-                                  ? 'bg-white/5 text-zinc-400 border-white/10'
-                                  : 'bg-slate-100 text-slate-600 border-slate-200'
-                              }`}>
+                                    ? 'bg-white/5 text-zinc-400 border-white/10'
+                                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                                }`}>
                                 {isPositive && <TrendingUp size={11} />}
                                 {isNegative && <TrendingDown size={11} />}
                                 {impact}
@@ -534,21 +507,19 @@ export default function AiComparisonReportCard({
 
               {/* Paginación monocromática recta */}
               {totalPages > 1 && (
-                <div className={`flex items-center justify-between px-3.5 py-2.5 border-t text-xs select-none  ${
-                  isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-500'
-                }`}>
+                <div className={`flex items-center justify-between px-3.5 py-2.5 border-t text-xs select-none  ${isDarkMode ? 'border-white/10 text-zinc-400' : 'border-slate-200 text-slate-500'
+                  }`}>
                   <span>
-                    Mostrando <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{paginatedChanges.length}</strong> de <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{filteredChanges.length}</strong> discrepancias
+                    Showing <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{paginatedChanges.length}</strong> of <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{filteredChanges.length}</strong> discrepancies
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                      className={`p-1  border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-                        isDarkMode
-                          ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
-                          : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
-                      }`}
+                      className={`p-1  border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode
+                        ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
+                        : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
+                        }`}
                     >
                       <ChevronLeft size={13} />
                     </button>
@@ -558,11 +529,10 @@ export default function AiComparisonReportCard({
                     <button
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                      className={`p-1  border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-                        isDarkMode
-                          ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
-                          : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
-                      }`}
+                      className={`p-1  border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode
+                        ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
+                        : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
+                        }`}
                     >
                       <ChevronRight size={13} />
                     </button>
@@ -577,7 +547,7 @@ export default function AiComparisonReportCard({
               {newCount === 0 ? (
                 <div className={`text-xs text-center py-8  ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                   <CheckCircle2 size={22} className="mx-auto mb-1.5 opacity-60" />
-                  No se agregaron nuevos modelos en esta versión.
+                  No new models were added in this version.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[260px] overflow-y-auto custom-scrollbar p-0.5  alysa-item-stagger">
@@ -586,22 +556,19 @@ export default function AiComparisonReportCard({
                     return (
                       <div
                         key={i}
-                        className={`p-2.5  border flex items-center justify-between ${
-                          isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'
-                        }`}
+                        className={`p-2.5  border flex items-center justify-between ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'
+                          }`}
                       >
                         <div className="flex items-center gap-2">
                           <PlusCircle size={13} className={isDarkMode ? 'text-zinc-400' : 'text-slate-500'} />
-                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded ${
-                            isDarkMode ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
-                          }`}>
+                          <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
+                            }`}>
                             {modelId}
                           </span>
                         </div>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${
-                          isDarkMode ? 'bg-white/5 text-zinc-300 border-white/10' : 'bg-white text-slate-700 border-slate-200'
-                        }`}>
-                          Nuevo SKU
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${isDarkMode ? 'bg-white/5 text-zinc-300 border-white/10' : 'bg-white text-slate-700 border-slate-200'
+                          }`}>
+                          New SKU
                         </span>
                       </div>
                     );
@@ -616,7 +583,7 @@ export default function AiComparisonReportCard({
               {deletedCount === 0 ? (
                 <div className={`text-xs text-center py-8  ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                   <CheckCircle2 size={22} className="mx-auto mb-1.5 opacity-60" />
-                  No se eliminó ningún modelo del catálogo base.
+                  No models were removed from the base catalog.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[260px] overflow-y-auto custom-scrollbar p-0.5  alysa-item-stagger">
@@ -625,22 +592,19 @@ export default function AiComparisonReportCard({
                     return (
                       <div
                         key={i}
-                        className={`p-2.5  border flex items-center justify-between ${
-                          isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'
-                        }`}
+                        className={`p-2.5  border flex items-center justify-between ${isDarkMode ? 'bg-white/[0.03] border-white/10' : 'bg-slate-50 border-slate-200'
+                          }`}
                       >
                         <div className="flex items-center gap-2">
                           <MinusCircle size={13} className={isDarkMode ? 'text-zinc-400' : 'text-slate-500'} />
-                          <span className={`font-mono font-bold text-xs line-through ${
-                            isDarkMode ? 'text-zinc-400' : 'text-slate-500'
-                          }`}>
+                          <span className={`font-mono font-bold text-xs line-through ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'
+                            }`}>
                             {modelId}
                           </span>
                         </div>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${
-                          isDarkMode ? 'bg-white/5 text-zinc-400 border-white/10' : 'bg-white text-slate-500 border-slate-200'
-                        }`}>
-                          Descatalogado
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${isDarkMode ? 'bg-white/5 text-zinc-400 border-white/10' : 'bg-white text-slate-500 border-slate-200'
+                          }`}>
+                          Discontinued
                         </span>
                       </div>
                     );
@@ -652,14 +616,13 @@ export default function AiComparisonReportCard({
         </div>
 
         {/* ── FOOTER DE AYUDA CONVERSACIONAL MONOCROMÁTICO RECTO ── */}
-        <div className={`px-3.5 py-2.5 border-t flex flex-wrap items-center justify-between gap-2 text-xs  ${
-          isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
-        }`}>
+        <div className={`px-3.5 py-2.5 border-t flex flex-wrap items-center justify-between gap-2 text-xs  ${isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
+          }`}>
           <span>
-            Auditoría comparativa matricial completada celda por celda.
+            Cell-by-cell matrix comparative audit completed.
           </span>
           <span className="text-[11px] font-medium">
-            Motor de Cotejo: <strong className={isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}>SERVEX Deterministic Engine</strong>
+            Comparison Engine: <strong className={isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}>SERVEX Deterministic Engine</strong>
           </span>
         </div>
       </div>

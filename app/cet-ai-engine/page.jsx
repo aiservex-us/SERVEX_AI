@@ -155,11 +155,11 @@ const extractCatalogMatrixColumns = (xmlText) => {
 
 const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw = null) => {
   const DEFAULT_BASE_COLUMNS = [
-    { code: "Model #", label: "Model #", type: "Identificador SKU", desc: "Código de modelo del producto base" },
-    { code: "List Price", label: "List Price", type: "Precio Base (USD)", desc: "Precio de lista estándar sin recargos" },
-    { code: "Weight", label: "Weight", type: "Especificación", desc: "Peso físico del producto (N/A si no aplica)" },
-    { code: "Classic/ Premium", label: "Classic/ Premium", type: "Clasificación", desc: "Gama o categoría de producto" },
-    { code: "Model Name", label: "Model Name", type: "Descripción", desc: "Nombre y descripción comercial del modelo" }
+    { code: "Model #", label: "Model #", type: "SKU Identifier", desc: "Base product model code" },
+    { code: "List Price", label: "List Price", type: "Base Price (USD)", desc: "Standard list price without surcharges" },
+    { code: "Weight", label: "Weight", type: "Specification", desc: "Physical product weight (N/A if not applicable)" },
+    { code: "Classic/ Premium", label: "Classic/ Premium", type: "Classification", desc: "Product tier or category" },
+    { code: "Model Name", label: "Model Name", type: "Description", desc: "Commercial model name and description" }
   ];
 
   let safeSummary = (typeof summary === 'object' && summary !== null) ? summary : {};
@@ -212,8 +212,8 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
             baseCols.push({
               code: h,
               label: h,
-              type: "Campo Base",
-              desc: `Columna estándar #${idx + 1}`
+              type: "Base Field",
+              desc: `Standard column #${idx + 1}`
             });
           } else {
             let code = h;
@@ -230,8 +230,8 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
             commCols.push({
               code: code,
               label: h,
-              price: matchedOpt?.price || (matchedOpt?.prices ? matchedOpt.prices.join(' / ') : 'Recargo'),
-              featureName: matchedOpt?.feature_name || matchedOpt?.feature_code || 'Opción Comercial Activa'
+              price: matchedOpt?.price || (matchedOpt?.prices ? matchedOpt.prices.join(' / ') : 'Surcharge'),
+              featureName: matchedOpt?.feature_name || matchedOpt?.feature_code || 'Active Commercial Option'
             });
           }
         });
@@ -274,7 +274,7 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
         code: c.optCode,
         label: c.label,
         price: String(c.maxPrice),
-        featureName: c.featureCode || 'Opción Comercial'
+        featureName: c.featureCode || 'Commercial Option'
       }));
       return {
         baseColumns: DEFAULT_BASE_COLUMNS,
@@ -291,7 +291,7 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
       code: opt.code,
       label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
       price: opt.price || (opt.prices ? opt.prices.join(' / ') : '0'),
-      featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
+      featureName: opt.feature_name || opt.feature_code || 'Commercial Option'
     }));
   } else if (safeSummary?.price_options_list && safeSummary.price_options_list.some(p => p.has_upcharge || parseFloat(p.price || 0) > 0)) {
     commCols = safeSummary.price_options_list
@@ -300,7 +300,7 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
         code: opt.code,
         label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
         price: opt.price,
-        featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
+        featureName: opt.feature_name || opt.feature_code || 'Commercial Option'
       }));
   }
 
@@ -333,7 +333,7 @@ export default function CETDirectPipelinePage() {
       id: 1,
       from: 'bot',
       text:
-        '¡Hola! Puedes arrastrar y soltar tu archivo **.xml maestro de CET Designer** aquí, o indicarme directamente los cambios de precios o consultas que deseas realizar sobre el catálogo.\n\nEl análisis en tiempo real, la tabla de Staging y la descarga se generarán de forma directa en esta conversación.',
+        'Hello! You can drag and drop your **master CET Designer .xml** file here, or tell me directly the price changes or queries you want to run on the catalog.\n\nReal-time analysis, the Staging table, and downloads will be generated directly in this conversation.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       showInitialUploader: true
     }
@@ -389,7 +389,7 @@ export default function CETDirectPipelinePage() {
   const handleXmlFileSelected = async (file) => {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith('.xml')) {
-      alert('Solo se admiten archivos en formato .xml (CET Designer / Catalog Creator).');
+      alert('Only .xml format files (CET Designer / Catalog Creator) are supported.');
       return;
     }
 
@@ -418,7 +418,7 @@ export default function CETDirectPipelinePage() {
         fileName: file.name,
         fileSizeKb: (file.size / 1024).toFixed(1),
         uploadStatus: 'uploading',
-        text: `**Archivo XML adjunto para ingestión:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
+        text: `**XML file attached for ingestion:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
         time: userTime
       }
     ]);
@@ -487,7 +487,7 @@ export default function CETDirectPipelinePage() {
         {
           id: processConsoleId,
           from: 'bot',
-          text: `**Catálogo guardado exitosamente en Supabase Storage.**\n\nEl archivo \`${file.name}\` ha sido respaldado en el bucket seguro. Iniciando ahora la desestructuración y análisis en memoria de sus productos, precios y características...`,
+          text: `**Catalog successfully saved to Supabase Storage.**\n\nThe file \`${file.name}\` has been backed up in the secure bucket. Starting in-memory destructuring and analysis of its products, prices, and features...`,
           isProcessingConsole: true,
           processFileName: file.name,
           processCompleted: false,
@@ -510,7 +510,7 @@ export default function CETDirectPipelinePage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Falla al desestructurar XML');
+        throw new Error(errData.detail || 'Failed to destructure XML');
       }
 
       const data = await res.json();
@@ -576,7 +576,7 @@ export default function CETDirectPipelinePage() {
         {
           id: Date.now() + 2,
           from: 'bot',
-          text: `**Catálogo XML Maestro Ingerido y Desestructurado en Memoria**\n\nEl archivo \`${file.name}\` fue analizado sin tocar Excel. El catálogo está listo para recibir instrucciones de actualización de precios o consulta de características.`,
+          text: `**Master XML Catalog Ingested and Destructured in Memory**\n\nThe file \`${file.name}\` was analyzed without touching Excel. The catalog is ready to receive price update instructions or feature queries.`,
           uploadSummary: data,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
@@ -594,7 +594,7 @@ export default function CETDirectPipelinePage() {
         {
           id: Date.now() + 3,
           from: 'bot',
-          text: `**Error al ingerir el archivo XML:** ${err.message}`,
+          text: `**Error ingesting XML file:** ${err.message}`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -675,7 +675,7 @@ export default function CETDirectPipelinePage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Error en comunicación con CET AI Agent');
+        throw new Error(errData.detail || 'Error communicating with CET AI Agent');
       }
 
       const data = await res.json();
@@ -684,7 +684,7 @@ export default function CETDirectPipelinePage() {
       const botMsgObj = {
         id: Date.now() + 1,
         from: 'bot',
-        text: data.reply || 'Análisis completado.',
+        text: data.reply || 'Analysis completed.',
         time: botTime,
         companyName: compToUse,
         stagedResult: data.staged_result || null,
@@ -701,7 +701,7 @@ export default function CETDirectPipelinePage() {
         {
           id: Date.now() + 1,
           from: 'bot',
-          text: `❌ **Error de conexión con el motor CET AI:** ${err.message}`,
+          text: `❌ **Connection error with CET AI engine:** ${err.message}`,
           time: botTime
         }
       ]);
@@ -723,7 +723,7 @@ export default function CETDirectPipelinePage() {
       {
         id: Date.now(),
         from: 'user',
-        text: `🔍 **Inspeccionar SKU:** \`${inspectTarget}\``,
+        text: `🔍 **Inspect SKU:** \`${inspectTarget}\``,
         time: userTime
       }
     ]);
@@ -740,7 +740,7 @@ export default function CETDirectPipelinePage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || 'No se encontró el elemento en el XML');
+        throw new Error(errData.detail || 'Element not found in XML');
       }
 
       const data = await res.json();
@@ -750,7 +750,7 @@ export default function CETDirectPipelinePage() {
         {
           id: Date.now() + 1,
           from: 'bot',
-          text: `🔍 **Inspección de Nodos para \`${inspectTarget}\` en el XML maestro:**`,
+          text: `🔍 **Node Inspection for \`${inspectTarget}\` in master XML:**`,
           inspectionResult: data.report,
           time: botTime
         }
@@ -763,7 +763,7 @@ export default function CETDirectPipelinePage() {
         {
           id: Date.now() + 1,
           from: 'bot',
-          text: `⚠️ **No se pudo inspeccionar el código \`${inspectTarget}\`:** ${err.message}`,
+          text: `⚠️ **Could not inspect code \`${inspectTarget}\`:** ${err.message}`,
           time: botTime
         }
       ]);
@@ -789,7 +789,7 @@ export default function CETDirectPipelinePage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Falla durante la inyección quirúrgica');
+        throw new Error(errData.detail || 'Failure during surgical injection');
       }
 
       const data = await res.json();
@@ -806,7 +806,7 @@ export default function CETDirectPipelinePage() {
         {
           id: Date.now(),
           from: 'bot',
-          text: `🎯 **Inyección Quirúrgica 1-to-1 Completada con Éxito**\n\n• **Nodos Modificados:** **${data.applied_count || stagedItems.length}**\n• **Catálogo Afectado:** \`${targetComp}\`\n• **Integridad XML:** 100% Certificada para CET Designer y Catalog Creator.\n\nEl archivo XML maestro ya contiene los nuevos precios. Puedes descargarlo directamente a continuación:`,
+          text: `🎯 **1-to-1 Surgical Injection Completed Successfully**\n\n• **Modified Nodes:** **${data.applied_count || stagedItems.length}**\n• **Affected Catalog:** \`${targetComp}\`\n• **XML Integrity:** 100% Certified for CET Designer and Catalog Creator.\n\nThe master XML file now contains the new prices. You can download it directly below:`,
           showDownloadCard: true,
           downloadCompany: targetComp,
           time: botTime
@@ -814,7 +814,7 @@ export default function CETDirectPipelinePage() {
       ]);
     } catch (err) {
       console.error('Error inyectando en XML:', err);
-      alert(`Error al aplicar cambios: ${err.message}`);
+      alert(`Error applying changes: ${err.message}`);
     } finally {
       setIsCommitting(false);
     }
@@ -832,7 +832,7 @@ export default function CETDirectPipelinePage() {
       <div className="w-full h-screen flex flex-col items-center justify-center bg-white text-slate-400 select-none">
         <div className="w-8 h-8 border-2 border-[#464775]/20 border-t-[#464775] rounded-full animate-spin mb-3" />
         <span className="text-xs font-semibold tracking-wider uppercase text-slate-500">
-          Iniciando...
+          Starting...
         </span>
       </div>
     );
@@ -848,16 +848,16 @@ export default function CETDirectPipelinePage() {
               <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
                 <AlertCircle size={24} />
               </div>
-              <h3 className="text-base font-bold text-slate-800 mb-1">¿Cerrar sesión?</h3>
+              <h3 className="text-base font-bold text-slate-800 mb-1">Sign out?</h3>
               <p className="text-xs text-slate-500 mb-4">
-                Los cambios no guardados se mantendrán en el historial de sesión.
+                Unsaved changes will remain in your session history.
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowExitModal(false)}
                   className="flex-1 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   onClick={async () => {
@@ -866,7 +866,7 @@ export default function CETDirectPipelinePage() {
                   }}
                   className="flex-1 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-all shadow-xs"
                 >
-                  Confirmar Salida
+                  Confirm Sign Out
                 </button>
               </div>
             </div>
@@ -906,14 +906,14 @@ export default function CETDirectPipelinePage() {
                     {
                       id: Date.now(),
                       from: 'bot',
-                      text: 'Conversación y memoria reiniciadas. Por favor arrastra o selecciona tu archivo XML maestro de CET Designer para comenzar.',
+                      text: 'Conversation and memory reset. Please drag or select your master CET Designer XML file to begin.',
                       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                       showInitialUploader: true
                     }
                   ]);
                 }}
                 className="p-2 rounded-xl bg-white/80 hover:bg-white text-slate-400 hover:text-slate-600 shadow-xs border border-slate-200/60 transition-all cursor-pointer backdrop-blur-sm"
-                title="Limpiar chat"
+                title="Clear chat"
               >
                 <Trash2 size={14} />
               </button>
@@ -945,9 +945,9 @@ export default function CETDirectPipelinePage() {
                       className="absolute inset-0 z-30 bg-[#464775]/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-6"
                     >
                       <UploadCloud size={54} className="animate-bounce mb-3 text-white" />
-                      <h3 className="text-lg font-bold">Suelta tu archivo XML aquí</h3>
+                      <h3 className="text-lg font-bold">Drop your XML file here</h3>
                       <p className="text-xs text-white/80 max-w-sm text-center mt-1">
-                        El motor desestructurará el catálogo maestro de CET Designer en memoria sin intermediación de Excel.
+                        The engine will destructure the CET Designer master catalog in memory without Excel intermediation.
                       </p>
                     </motion.div>
                   )}
@@ -970,7 +970,7 @@ export default function CETDirectPipelinePage() {
                               isUser ? 'bg-slate-200 text-slate-700' : 'bg-[#464775] text-white'
                             }`}
                           >
-                            {isUser ? 'Tú' : <Sparkles size={14} />}
+                            {isUser ? 'You' : <Sparkles size={14} />}
                           </div>
 
                           {/* Burbuja Principal */}
@@ -990,9 +990,9 @@ export default function CETDirectPipelinePage() {
                             )}
 
                             {/* Contenido Markdown Renderizado o Tarjeta Estilizada de XML */}
-                            {m.isXmlUpload || (m.text && m.text.includes("Archivo XML adjunto para ingestión:")) ? (
+                            {m.isXmlUpload || (m.text && (m.text.includes("Archivo XML adjunto para ingestión:") || m.text.includes("XML file attached for ingestion:"))) ? (
                               (() => {
-                                const fnMatch = m.fileName || (m.text.match(/`([^`]+)`/) ? m.text.match(/`([^`]+)`/)[1] : "catálogo.xml");
+                                const fnMatch = m.fileName || (m.text.match(/`([^`]+)`/) ? m.text.match(/`([^`]+)`/)[1] : "catalog.xml");
                                 const sizeMatch = m.fileSizeKb || (m.text.match(/\(([0-9.]+)\s*KB\)/i) ? m.text.match(/\(([0-9.]+)\s*KB\)/i)[1] : null);
                                 const isUploading = m.uploadStatus === "uploading";
                                 const isError = m.uploadStatus === "error";
@@ -1005,7 +1005,7 @@ export default function CETDirectPipelinePage() {
                                       </div>
                                       <div className="min-w-0 flex-1">
                                         <span className="text-[11px] font-medium text-slate-500 block leading-tight">
-                                          Archivo XML adjunto para ingestión:
+                                          XML file attached for ingestion:
                                         </span>
                                         <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                                           <span className="font-mono font-bold text-xs bg-[#464775]/10 text-[#464775] px-2 py-0.5 rounded border border-[#464775]/20 tracking-wide">
@@ -1046,20 +1046,20 @@ export default function CETDirectPipelinePage() {
                                           <>
                                             <span className="flex items-center gap-1.5 font-medium text-[#464775]">
                                               <RefreshCw size={10} className="animate-spin text-[#464775]" />
-                                              Subiendo e ingiriendo en memoria...
+                                              Uploading and ingesting in memory...
                                             </span>
                                             <span>80%</span>
                                           </>
                                         ) : isError ? (
                                           <>
-                                            <span className="text-rose-600 font-medium">Error en la carga</span>
-                                            <span>Fallo</span>
+                                            <span className="text-rose-600 font-medium">Upload error</span>
+                                            <span>Failed</span>
                                           </>
                                         ) : (
                                           <>
                                             <span className="flex items-center gap-1 font-semibold text-[#464775]">
                                               <Check size={12} className="text-[#464775]" />
-                                              Archivo cargado e ingerido
+                                              File uploaded and ingested
                                             </span>
                                             <span className="font-bold text-[#464775]">100%</span>
                                           </>
@@ -1086,10 +1086,10 @@ export default function CETDirectPipelinePage() {
                               >
                                 <UploadCloud size={28} className="mx-auto text-[#464775] mb-1.5 group-hover:scale-110 transition-transform" />
                                 <h4 className="text-xs font-bold text-[#464775]">
-                                  Arrastra o haz clic para subir tu catálogo XML maestro
+                                  Drag or click to upload your master XML catalog
                                 </h4>
                                 <p className="text-[10.5px] text-slate-500 mt-0.5">
-                                  Formatos soportados: .xml de CET Designer o Catalog Creator. Se montará al instante en memoria.
+                                  Supported formats: .xml from CET Designer or Catalog Creator. It will be mounted instantly in memory.
                                 </p>
                               </div>
                             )}
@@ -1127,18 +1127,18 @@ export default function CETDirectPipelinePage() {
                                         Surgical Staging & XML Diff Board
                                       </h4>
                                       <span className="px-2 py-0.5 rounded-full bg-[#464775] text-white text-[9.5px] font-mono font-bold shadow-xs">
-                                        {m.stagedResult.items.length} {m.stagedResult.items.length === 1 ? 'Cambio' : 'Cambios'}
+                                        {m.stagedResult.items.length} {m.stagedResult.items.length === 1 ? 'Change' : 'Changes'}
                                       </span>
                                     </div>
                                     <p className="text-[11px] text-[#464775]/75 mt-0.5 font-medium">
-                                      Registro estructurado en memoria de los cambios recopilados durante la conversación.
+                                      Structured in-memory record of changes collected during the conversation.
                                     </p>
                                   </div>
 
                                   {/* Estado de recopilación en memoria (Sin inyección al XML) */}
                                   <div className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#464775]/10 border border-[#464775]/15 text-[#464775] flex items-center gap-1.5">
                                     <Layers size={13} className="text-[#464775]" />
-                                    <span>Cambios Recopilados</span>
+                                    <span>Collected Changes</span>
                                   </div>
                                 </div>
 
@@ -1147,13 +1147,13 @@ export default function CETDirectPipelinePage() {
                                   <table className="w-full text-left text-xs text-slate-700">
                                     <thead className="bg-[#464775]/5 sticky top-0 z-10 border-b border-[#464775]/15 text-[#464775] font-bold text-[10px] uppercase tracking-wider">
                                       <tr>
-                                        <th className="px-3.5 py-2.5">SKU / Nodo</th>
-                                        <th className="px-3.5 py-2.5">Tipo de Nodo</th>
-                                        <th className="px-3.5 py-2.5">Detalle / Opción</th>
-                                        <th className="px-3.5 py-2.5 text-right">Actual</th>
-                                        <th className="px-3.5 py-2.5 text-right">Nuevo</th>
-                                        <th className="px-3.5 py-2.5 text-right">Variación</th>
-                                        <th className="px-3.5 py-2.5 text-center">Estado</th>
+                                        <th className="px-3.5 py-2.5">SKU / Node</th>
+                                        <th className="px-3.5 py-2.5">Node Type</th>
+                                        <th className="px-3.5 py-2.5">Detail / Option</th>
+                                        <th className="px-3.5 py-2.5 text-right">Current</th>
+                                        <th className="px-3.5 py-2.5 text-right">New</th>
+                                        <th className="px-3.5 py-2.5 text-right">Variation</th>
+                                        <th className="px-3.5 py-2.5 text-center">Status</th>
                                       </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[#464775]/10">
@@ -1185,7 +1185,7 @@ export default function CETDirectPipelinePage() {
                                               className="px-3.5 py-2.5 text-[11px] text-[#464775]/80 max-w-[140px] truncate font-medium"
                                               title={item.matched_option_name || item.option_name || item.option_code || item.option}
                                             >
-                                              {item.matched_option_name || item.option_name || item.option_code || item.option || 'Precio Base'}
+                                              {item.matched_option_name || item.option_name || item.option_code || item.option || 'Base Price'}
                                             </td>
                                             <td className="px-3.5 py-2.5 text-right font-mono text-[#464775]/60 text-xs">
                                               {item.old_price != null ? `$${item.old_price}` : <span className="text-[#464775]/40">—</span>}
@@ -1206,7 +1206,7 @@ export default function CETDirectPipelinePage() {
                                               {isMatched ? (
                                                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#464775] bg-[#464775]/12 px-2 py-0.5 rounded-full border border-[#464775]/25">
                                                   <CheckCircle2 size={10} className="text-[#464775]" />
-                                                  Verificado
+                                                  Verified
                                                 </span>
                                               ) : (
                                                 <span
@@ -1214,7 +1214,7 @@ export default function CETDirectPipelinePage() {
                                                   title={item.reason}
                                                 >
                                                   <AlertCircle size={10} className="text-[#6264A7]" />
-                                                  No en XML
+                                                  Not in XML
                                                 </span>
                                               )}
                                             </td>
@@ -1228,7 +1228,7 @@ export default function CETDirectPipelinePage() {
                                 {/* Footer de la tarjeta con botón de descarga si ya se aplicó */}
                                 <div className="p-2.5 bg-[#464775]/5 border-t border-[#464775]/15 flex items-center justify-between">
                                   <span className="text-[10.5px] text-[#464775]/80 font-medium">
-                                    Catálogo: <strong className="text-[#464775]">{m.companyName || selectedCompany}</strong>
+                                    Catalog: <strong className="text-[#464775]">{m.companyName || selectedCompany}</strong>
                                   </span>
                                   {m.committed && (
                                     <button
@@ -1236,7 +1236,7 @@ export default function CETDirectPipelinePage() {
                                       className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#464775] hover:bg-[#38395f] text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer"
                                     >
                                       <Download size={12} />
-                                      Descargar XML Actualizado
+                                      Download Updated XML
                                     </button>
                                   )}
                                 </div>
@@ -1252,10 +1252,10 @@ export default function CETDirectPipelinePage() {
                                   </div>
                                   <div>
                                     <h4 className="text-xs font-bold text-[#464775]">
-                                      Catálogo XML Certificado y Actualizado
+                                      Certified & Updated XML Catalog
                                     </h4>
                                     <p className="text-[10.5px] text-[#464775]/75 font-medium">
-                                      Listo para importar directamente en CET Designer sin errores de formato.
+                                      Ready to import directly into CET Designer without formatting errors.
                                     </p>
                                   </div>
                                 </div>
@@ -1264,7 +1264,7 @@ export default function CETDirectPipelinePage() {
                                   className="px-3.5 py-1.5 bg-[#464775] hover:bg-[#38395f] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                                 >
                                   <Download size={13} />
-                                  Descargar .XML
+                                  Download .XML
                                 </button>
                               </div>
                             )}
@@ -1277,25 +1277,25 @@ export default function CETDirectPipelinePage() {
                                     SKU: {m.inspectionResult.code}
                                   </span>
                                   <span className="font-mono text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
-                                    Precio Base: ${m.inspectionResult.current_list_price}
+                                    Base Price: ${m.inspectionResult.current_list_price}
                                   </span>
                                 </div>
                                 <p className="text-[11px] text-slate-600">
-                                  <strong>Descripción:</strong> {m.inspectionResult.description}
+                                  <strong>Description:</strong> {m.inspectionResult.description}
                                 </p>
                                 {m.inspectionResult.features_tree && m.inspectionResult.features_tree.length > 0 && (
                                   <div className="mt-2">
                                     <span className="font-bold text-[#464775] text-[11px] block mb-1">
-                                      Árbol de Opciones (CET Designer):
+                                      Options Tree (CET Designer):
                                     </span>
                                     <div className="max-h-40 overflow-y-auto custom-scrollbar border border-slate-200 rounded-lg bg-white">
                                       <table className="w-full text-left text-[11px]">
                                         <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
                                           <tr>
                                             <th className="px-2 py-1">Feature</th>
-                                            <th className="px-2 py-1">Opción</th>
-                                            <th className="px-2 py-1">Nombre</th>
-                                            <th className="px-2 py-1 text-right">Recargo</th>
+                                            <th className="px-2 py-1">Option</th>
+                                            <th className="px-2 py-1">Name</th>
+                                            <th className="px-2 py-1 text-right">Surcharge</th>
                                           </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
@@ -1338,7 +1338,7 @@ export default function CETDirectPipelinePage() {
                           <div className="w-2 h-2 rounded-full bg-[#464775] animate-bounce [animation-delay:0.2s]" />
                           <div className="w-2 h-2 rounded-full bg-[#464775] animate-bounce [animation-delay:0.4s]" />
                           <span className="text-xs text-slate-500 font-medium ml-1">
-                            Analizando catálogo y verificando nodos en el XML maestro...
+                            Analyzing catalog and verifying nodes in master XML...
                           </span>
                         </div>
                       </div>
@@ -1362,7 +1362,7 @@ export default function CETDirectPipelinePage() {
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Escribe cambios de precio, consulta productos o features del catálogo... [Shift+Enter para nueva línea]"
+                      placeholder="Enter price changes, query catalog products or features... [Shift+Enter for new line]"
                       className="w-full bg-transparent border-0 outline-none resize-none text-[13px] text-slate-800 placeholder-slate-400 px-2 py-1 max-h-[160px] custom-scrollbar"
                     />
 
@@ -1385,12 +1385,12 @@ export default function CETDirectPipelinePage() {
                           type="button"
                           onClick={() => xmlFileInputRef.current?.click()}
                           disabled={isUploadingXml}
-                          title="Adjuntar archivo XML maestro de CET Designer"
+                          title="Attach CET Designer master XML file"
                           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-600 hover:text-[#464775] hover:bg-slate-100 text-[11px] font-semibold transition-colors disabled:opacity-50 cursor-pointer"
                         >
                           <Paperclip size={13} className="text-[#464775]" />
                           <span className="hidden sm:inline">
-                            {isUploadingXml ? 'Cargando XML...' : 'Subir XML'}
+                            {isUploadingXml ? 'Uploading XML...' : 'Upload XML'}
                           </span>
                         </button>
 
@@ -1401,7 +1401,7 @@ export default function CETDirectPipelinePage() {
                             value={quickInspectCode}
                             onChange={(e) => setQuickInspectCode(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleQuickInspect()}
-                            placeholder="Inspeccionar SKU..."
+                            placeholder="Inspect SKU..."
                             className="w-32 px-2 py-0.5 text-[11px] bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-[#464775]"
                           />
                           <button
@@ -1409,7 +1409,7 @@ export default function CETDirectPipelinePage() {
                             onClick={handleQuickInspect}
                             disabled={isInspecting}
                             className="p-1 rounded-md text-slate-500 hover:text-[#464775] hover:bg-slate-100 cursor-pointer"
-                            title="Inspeccionar estructura"
+                            title="Inspect structure"
                           >
                             <Search size={13} />
                           </button>

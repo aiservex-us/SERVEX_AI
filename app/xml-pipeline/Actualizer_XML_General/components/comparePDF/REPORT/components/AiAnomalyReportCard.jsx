@@ -75,8 +75,8 @@ export default function AiAnomalyReportCard({
           pct_change: null,
           severity: 'CRITICAL',
           type: 'NEGATIVE_PRICE',
-          title: 'Precio Negativo Inválido',
-          description: `El valor resultante (${newVal}) es un número negativo, lo cual es comercialmente inválido.`
+          title: 'Invalid Negative Price',
+          description: `The resulting value (${newVal}) is a negative number, which is commercially invalid.`
         });
         continue;
       }
@@ -91,8 +91,8 @@ export default function AiAnomalyReportCard({
           pct_change: -100.0,
           severity: 'CRITICAL',
           type: 'ZERO_PRICE',
-          title: 'Precio Colapsado a $0.00',
-          description: `El precio de '${col}' cayó a $0.00 desde ${oldVal}. Posible omisión involuntaria al guardar en Excel.`
+          title: 'Price Collapsed to $0.00',
+          description: `The price for '${col}' dropped to $0.00 from ${oldVal}. Possible unintended omission when saving in Excel.`
         });
         continue;
       }
@@ -109,8 +109,8 @@ export default function AiAnomalyReportCard({
             pct_change: Number(pct.toFixed(1)),
             severity: pct >= 300 ? 'CRITICAL' : 'WARNING',
             type: 'EXTREME_INCREASE',
-            title: `Aumento Drástico (+${pct.toFixed(1)}%)`,
-            description: `El precio subió de ${oldVal} a ${newVal} (+${pct.toFixed(1)}%), superando con creces el rango de incremento comercial normal.`
+            title: `Drastic Increase (+${pct.toFixed(1)}%)`,
+            description: `The price increased from ${oldVal} to ${newVal} (+${pct.toFixed(1)}%), far exceeding the normal commercial increase range.`
           });
         } else if (pct < -40) {
           detected.push({
@@ -121,8 +121,8 @@ export default function AiAnomalyReportCard({
             pct_change: Number(pct.toFixed(1)),
             severity: pct <= -60 ? 'CRITICAL' : 'WARNING',
             type: 'EXTREME_DECREASE',
-            title: `Reducción Drástica (${pct.toFixed(1)}%)`,
-            description: `El precio cayó de ${oldVal} a ${newVal} (${pct.toFixed(1)}%). Verifique si este descuento abrupto es intencional para evitar pérdida de margen.`
+            title: `Drastic Decrease (${pct.toFixed(1)}%)`,
+            description: `The price dropped from ${oldVal} to ${newVal} (${pct.toFixed(1)}%). Verify whether this steep discount is intentional to prevent margin loss.`
           });
         }
       } else if (oldVal && !newVal) {
@@ -131,12 +131,12 @@ export default function AiAnomalyReportCard({
           model_id: m,
           column_name: col,
           old_value: oldVal,
-          new_value: '--- (Vacío)',
+          new_value: '--- (Empty)',
           pct_change: null,
           severity: 'WARNING',
           type: 'CLEARED_CELL',
-          title: 'Celda Vaciada o Nula',
-          description: `La columna '${col}' tenía el valor '${oldVal}' en el catálogo original y ahora quedó vacía.`
+          title: 'Cleared or Null Cell',
+          description: `The column '${col}' had the value '${oldVal}' in the original catalog and is now empty.`
         });
       }
     }
@@ -158,13 +158,13 @@ export default function AiAnomalyReportCard({
           detected.push({
             model_id: m,
             column_name: 'List Price',
-            old_value: 'N/A (Alta)',
+            old_value: 'N/A (New)',
             new_value: lpVal || '$0.00',
             pct_change: null,
             severity: 'WARNING',
             type: 'NEW_PRODUCT_ZERO_PRICE',
-            title: 'Alta de SKU con Precio $0.00',
-            description: `El nuevo producto '${m}' fue añadido al catálogo pero tiene precio de lista en $0.00.`
+            title: 'New SKU with $0.00 Price',
+            description: `The new product '${m}' was added to the catalog with a $0.00 list price.`
           });
         }
       }
@@ -236,16 +236,14 @@ export default function AiAnomalyReportCard({
   };
 
   return (
-    <div className={`mt-3 space-y-3 font-sans text-left text-[13px] md:text-[13.5px] leading-relaxed  ${
-      isDarkMode ? 'text-zinc-100' : 'text-gray-800'
-    }`}>
+    <div className={`mt-3 space-y-3 font-sans text-left text-[13px] md:text-[13.5px] leading-relaxed  ${isDarkMode ? 'text-zinc-100' : 'text-gray-800'
+      }`}>
       {/* ── TARJETA PRINCIPAL DE ANOMALÍAS CON ESQUINAS RECTAS ── */}
       <div
-        className={`w-full rounded-xl border transition-colors overflow-hidden ${
-          isDarkMode
-            ? 'bg-[#09090b]/80 border-white/10 text-zinc-100 backdrop-blur-md shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)]'
-            : 'bg-white/90 border-slate-200/90 text-gray-800 shadow-sm backdrop-blur-md'
-        }`}
+        className={`w-full rounded-xl border transition-colors overflow-hidden ${isDarkMode
+          ? 'bg-[#09090b]/80 border-white/10 text-zinc-100 backdrop-blur-md shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)]'
+          : 'bg-white/90 border-slate-200/90 text-gray-800 shadow-sm backdrop-blur-md'
+          }`}
       >
         {/* Cabecera ejecutiva */}
         {/* Cabecera ejecutiva */}
@@ -257,159 +255,147 @@ export default function AiAnomalyReportCard({
                   {anomalies.length > 0 ? <ShieldAlert size={13} className="opacity-90" /> : <ShieldCheck size={13} className="opacity-80" />}
                 </div>
                 <h3 className={`text-[13.5px] font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
-                  Detección de Anomalías e Inconsistencias
+                  Anomaly &amp; Inconsistency Detection
                 </h3>
-                <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold border inline-flex items-center ${
-                  isDarkMode
-                    ? 'bg-white/10 text-zinc-200 border-white/15'
-                    : 'bg-slate-200 text-slate-800 border-slate-300'
-                }`}>
+                <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold border inline-flex items-center ${isDarkMode
+                  ? 'bg-white/10 text-zinc-200 border-white/15'
+                  : 'bg-slate-200 text-slate-800 border-slate-300'
+                  }`}>
                   {criticalCount > 0 && (
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500/80 mr-1.5 shrink-0" />
                   )}
-                  {anomalies.length === 0 ? 'Catálogo 100% Seguro' : `${anomalies.length} Casos Inusuales`}
+                  {anomalies.length === 0 ? '100% Safe Catalog' : `${anomalies.length} Unusual Cases`}
                 </span>
               </div>
               <p className={`text-xs mt-1 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-                Identificación automática de saltos de precio desmedidos, valores en $0, celdas vacías y posibles errores tipográficos.
+                Automatic identification of extreme price jumps, $0 values, empty cells, and potential typographical errors.
               </p>
             </div>
 
             {anomalies.length > 0 && (
               <button
                 onClick={handleDownloadAnomaliesCsv}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                  isDarkMode
-                    ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
-                    : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
-                }`}
-                title="Descargar listado de anomalías e inconsistencias en CSV"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold border transition-all cursor-pointer shadow-2xs ${isDarkMode
+                  ? 'bg-white text-zinc-950 hover:bg-zinc-200 border-white'
+                  : 'bg-zinc-900 text-white hover:bg-zinc-800 border-zinc-900'
+                  }`}
+                title="Download anomalies and inconsistencies list in CSV"
               >
                 <Download size={13} />
-                <span>Exportar Anomalías (.csv)</span>
+                <span>Export Anomalies (.csv)</span>
               </button>
             )}
           </div>
         </div>
 
         {/* ── KPIS DE ANOMALÍAS EN ESCALA SOBRIA Y ARMONIOSA ── */}
-        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 p-3.5 border-b  ${
-          isDarkMode ? 'bg-black/20 border-white/10' : 'bg-slate-50 border-slate-200'
-        }`}>
-          <div className={`p-2.5 rounded-lg border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+        <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 p-3.5 border-b  ${isDarkMode ? 'bg-black/20 border-white/10' : 'bg-slate-50 border-slate-200'
           }`}>
+          <div className={`p-2.5 rounded-lg border text-center transition-all ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+            }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Total Inconsistencias
+              Total Inconsistencies
             </span>
             <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
               {anomalies.length}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Casos atípicos
+              Atypical cases
             </span>
           </div>
 
-          <div className={`p-2.5 rounded-lg border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
-          }`}>
+          <div className={`p-2.5 rounded-lg border text-center transition-all ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+            }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Riesgo Crítico
+              Critical Risk
             </span>
             <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 inline-flex items-center justify-center gap-1.5 ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
               <span>{criticalCount}</span>
               {criticalCount > 0 && (
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500/80 inline-block" title="Incidencias críticas detectadas" />
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500/80 inline-block" title="Critical issues detected" />
               )}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Precios $0 o caídas &gt; 40%
+              $0 prices or drops &gt; 40%
             </span>
           </div>
 
-          <div className={`p-2.5 rounded-lg border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
-          }`}>
+          <div className={`p-2.5 rounded-lg border text-center transition-all ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
+            }`}>
             <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Advertencias
+              Warnings
             </span>
             <span className={`text-base sm:text-[17px] font-mono font-extrabold mt-0.5 block ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
               {warningCount}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Aumentos &gt; 100% o vacíos
+              Increases &gt; 100% or empty
             </span>
           </div>
 
-          <div className={`p-2.5 rounded-lg border text-center transition-all ${
-            isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
-          }`}>
-            <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Dictamen de IA
-            </span>
-            <span className={`text-xs font-mono font-bold mt-1 block uppercase ${
-              isDarkMode ? 'text-zinc-200' : 'text-zinc-800'
+          <div className={`p-2.5 rounded-lg border text-center transition-all ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08]' : 'bg-white border-slate-200'
             }`}>
-              {anomalies.length === 0 ? 'Confiable' : criticalCount > 0 ? 'Requiere Ajuste' : 'Bajo Revisión'}
+            <span className={`text-[9.5px] font-bold uppercase tracking-wider block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
+              AI Assessment
+            </span>
+            <span className={`text-xs font-mono font-bold mt-1 block uppercase ${isDarkMode ? 'text-zinc-200' : 'text-zinc-800'
+              }`}>
+              {anomalies.length === 0 ? 'Reliable' : criticalCount > 0 ? 'Adjustment Needed' : 'Under Review'}
             </span>
             <span className={`text-[9.5px] font-medium block ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Heurística de Catálogo
+              Catalog Heuristics
             </span>
           </div>
         </div>
 
         {/* ── BARRA DE PESTAÑAS Y BUSCADOR (SI EXISTEN ANOMALÍAS) ── */}
         {anomalies.length > 0 && (
-          <div className={`px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 border-b  ${
-            isDarkMode ? 'border-white/10 bg-white/[0.01]' : 'border-slate-200 bg-slate-50/60'
-          }`}>
+          <div className={`px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 border-b  ${isDarkMode ? 'border-white/10 bg-white/[0.01]' : 'border-slate-200 bg-slate-50/60'
+            }`}>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
-                className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                  activeTab === 'all'
-                    ? isDarkMode
-                      ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
-                      : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
-                    : isDarkMode
+                className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${activeTab === 'all'
+                  ? isDarkMode
+                    ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
+                    : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
+                  : isDarkMode
                     ? 'text-zinc-400 hover:text-white hover:bg-white/5 border-transparent'
                     : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100 border-transparent'
-                }`}
+                  }`}
               >
                 <Filter size={12} />
-                <span>Todas ({anomalies.length})</span>
+                <span>All ({anomalies.length})</span>
               </button>
 
               <button
                 onClick={() => { setActiveTab('critical'); setCurrentPage(1); }}
-                className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                  activeTab === 'critical'
-                    ? isDarkMode
-                      ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
-                      : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
-                    : isDarkMode
+                className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${activeTab === 'critical'
+                  ? isDarkMode
+                    ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
+                    : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
+                  : isDarkMode
                     ? 'text-zinc-400 hover:text-white hover:bg-white/5 border-transparent'
                     : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100 border-transparent'
-                }`}
+                  }`}
               >
                 <AlertTriangle size={12} className={criticalCount > 0 ? 'text-rose-400/80' : 'opacity-70'} />
-                <span>Críticas ({criticalCount})</span>
+                <span>Critical ({criticalCount})</span>
               </button>
 
               <button
                 onClick={() => { setActiveTab('warning'); setCurrentPage(1); }}
-                className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                  activeTab === 'warning'
-                    ? isDarkMode
-                      ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
-                      : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
-                    : isDarkMode
+                className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${activeTab === 'warning'
+                  ? isDarkMode
+                    ? 'bg-white text-zinc-950 border-white shadow-2xs font-bold'
+                    : 'bg-zinc-900 text-white border-zinc-900 shadow-2xs font-bold'
+                  : isDarkMode
                     ? 'text-zinc-400 hover:text-white hover:bg-white/5 border-transparent'
                     : 'text-slate-600 hover:text-zinc-900 hover:bg-slate-100 border-transparent'
-                }`}
+                  }`}
               >
                 <AlertCircle size={12} className="opacity-70" />
-                <span>Advertencias ({warningCount})</span>
+                <span>Warnings ({warningCount})</span>
               </button>
             </div>
 
@@ -417,14 +403,13 @@ export default function AiAnomalyReportCard({
               <Search size={12} className={`absolute left-2.5 pointer-events-none ${isDarkMode ? 'text-zinc-400' : 'text-slate-400'}`} />
               <input
                 type="text"
-                placeholder="Buscar en anomalías..."
+                placeholder="Search anomalies..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className={`rounded-md pl-7 pr-2.5 py-1 text-xs font-medium transition-all w-[160px] sm:w-[190px] border focus:outline-none ${
-                  isDarkMode
-                    ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
-                    : 'bg-slate-100 border-slate-200 text-zinc-900 placeholder:text-slate-400 focus:border-zinc-400 focus:bg-white'
-                }`}
+                className={`rounded-md pl-7 pr-2.5 py-1 text-xs font-medium transition-all w-[160px] sm:w-[190px] border focus:outline-none ${isDarkMode
+                  ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-white/30 focus:bg-white/10'
+                  : 'bg-slate-100 border-slate-200 text-zinc-900 placeholder:text-slate-400 focus:border-zinc-400 focus:bg-white'
+                  }`}
               />
             </div>
           </div>
@@ -433,23 +418,22 @@ export default function AiAnomalyReportCard({
         {/* ── CONTENIDO PRINCIPAL: LISTA DE ANOMALÍAS O BANNER DE INTEGRIDAD ── */}
         <div className="p-3.5 space-y-2.5 ">
           {anomalies.length === 0 ? (
-            <div className={`p-6 text-center rounded-xl border ${
-              isDarkMode
-                ? 'bg-white/[0.02] border-white/10 text-zinc-300'
-                : 'bg-slate-50 border-slate-200 text-slate-700'
-            }`}>
+            <div className={`p-6 text-center rounded-xl border ${isDarkMode
+              ? 'bg-white/[0.02] border-white/10 text-zinc-300'
+              : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}>
               <CheckCircle2 size={24} className="mx-auto mb-2 text-zinc-300 opacity-80" />
               <h4 className={`text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                Auditoría de Integridad Certificada
+                Certified Integrity Audit
               </h4>
               <p className={`text-xs mt-1 max-w-xl mx-auto ${isDarkMode ? 'text-zinc-400' : 'text-slate-600'}`}>
-                No se detectaron valores anómalos ni inconsistencias comerciales. Todos los precios actualizados, opciones y celdas cumplen con los márgenes y reglas esperadas del catálogo.
+                No anomalous values or commercial inconsistencies were detected. All updated prices, options, and cells comply with expected catalog margins and rules.
               </p>
             </div>
           ) : filteredAnomalies.length === 0 ? (
             <div className={`py-10 text-center text-xs  ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
               <CheckCircle2 size={22} className="mx-auto mb-2 opacity-60" />
-              No hay anomalías que coincidan con el filtro seleccionado.
+              No anomalies match the selected filter.
             </div>
           ) : (
             <div key={`anom-${activeTab}-${currentPage}-${searchTerm}`} className="grid grid-cols-1 gap-2  alysa-item-stagger">
@@ -458,34 +442,31 @@ export default function AiAnomalyReportCard({
                 return (
                   <div
                     key={`${anom.model_id}-${anom.column_name}-${idx}`}
-                    className={`p-3 rounded-lg border transition-all ${
-                      isCrit
-                        ? isDarkMode
-                          ? 'bg-white/[0.02] border-white/10 hover:border-white/20 border-l-2 border-l-rose-500/60'
-                          : 'bg-white border-slate-200 hover:border-slate-300 border-l-2 border-l-rose-500/70'
-                        : isDarkMode
+                    className={`p-3 rounded-lg border transition-all ${isCrit
+                      ? isDarkMode
+                        ? 'bg-white/[0.02] border-white/10 hover:border-white/20 border-l-2 border-l-rose-500/60'
+                        : 'bg-white border-slate-200 hover:border-slate-300 border-l-2 border-l-rose-500/70'
+                      : isDarkMode
                         ? 'bg-white/[0.02] border-white/10 hover:border-white/20'
                         : 'bg-white border-slate-200 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     {/* Header de la tarjeta de anomalía */}
-                    <div className={`flex flex-wrap items-center justify-between gap-2 border-b pb-2  ${
-                      isDarkMode ? 'border-white/10' : 'border-slate-100'
-                    }`}>
+                    <div className={`flex flex-wrap items-center justify-between gap-2 border-b pb-2  ${isDarkMode ? 'border-white/10' : 'border-slate-100'
+                      }`}>
                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase border tracking-wider inline-flex items-center ${
-                          isCrit
-                            ? isDarkMode
-                              ? 'bg-white/5 text-zinc-200 border-white/15'
-                              : 'bg-slate-100 text-slate-800 border-slate-200'
-                            : isDarkMode
+                        <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase border tracking-wider inline-flex items-center ${isCrit
+                          ? isDarkMode
+                            ? 'bg-white/5 text-zinc-200 border-white/15'
+                            : 'bg-slate-100 text-slate-800 border-slate-200'
+                          : isDarkMode
                             ? 'bg-white/5 text-zinc-400 border-white/10'
                             : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}>
+                          }`}>
                           {isCrit && (
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500/80 mr-1.5 shrink-0" />
                           )}
-                          {isCrit ? 'Crítica' : 'Advertencia'}
+                          {isCrit ? 'Critical' : 'Warning'}
                         </span>
                         <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
                           {anom.title}
@@ -494,20 +475,18 @@ export default function AiAnomalyReportCard({
 
                       {/* SKU con copiado rápido */}
                       <div className="flex items-center gap-1.5">
-                        <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded ${
-                          isDarkMode ? 'bg-white text-zinc-950 shadow-2xs' : 'bg-zinc-900 text-white'
-                        }`}>
+                        <span className={`font-mono text-xs font-bold px-2 py-0.5 rounded ${isDarkMode ? 'bg-white text-zinc-950 shadow-2xs' : 'bg-zinc-900 text-white'
+                          }`}>
                           {anom.model_id}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleCopySku(anom.model_id)}
-                          title="Copiar SKU"
-                          className={`p-1 rounded transition-colors cursor-pointer ${
-                            isDarkMode
-                              ? 'text-zinc-500 hover:text-white hover:bg-white/10'
-                              : 'text-zinc-400 hover:text-zinc-900 hover:bg-slate-200'
-                          }`}
+                          title="Copy SKU"
+                          className={`p-1 rounded transition-colors cursor-pointer ${isDarkMode
+                            ? 'text-zinc-500 hover:text-white hover:bg-white/10'
+                            : 'text-zinc-400 hover:text-zinc-900 hover:bg-slate-200'
+                            }`}
                         >
                           {copiedSku === anom.model_id ? (
                             <Check size={11} className={isDarkMode ? 'text-white' : 'text-zinc-900'} />
@@ -524,23 +503,21 @@ export default function AiAnomalyReportCard({
                     </p>
 
                     {/* Comparación de valores en píldoras sobrias */}
-                    <div className={`flex flex-wrap items-center gap-2.5 mt-2.5 pt-2 border-t border-dashed ${
-                      isDarkMode ? 'border-white/10' : 'border-slate-100'
-                    } text-xs`}>
+                    <div className={`flex flex-wrap items-center gap-2.5 mt-2.5 pt-2 border-t border-dashed ${isDarkMode ? 'border-white/10' : 'border-slate-100'
+                      } text-xs`}>
                       <div className="flex items-center gap-1.5">
                         <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
-                          Campo:
+                          Field:
                         </span>
-                        <span className={`font-mono px-1.5 py-0.5  text-xs border ${
-                          isDarkMode ? 'bg-white/5 border-white/10 text-zinc-300' : 'bg-slate-100 border-slate-200 text-slate-800'
-                        }`}>
+                        <span className={`font-mono px-1.5 py-0.5  text-xs border ${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-300' : 'bg-slate-100 border-slate-200 text-slate-800'
+                          }`}>
                           {anom.column_name}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-1.5">
                         <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
-                          Base Original:
+                          Original Base:
                         </span>
                         <span className={`font-mono text-xs ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                           {anom.old_value || '---'}
@@ -549,7 +526,7 @@ export default function AiAnomalyReportCard({
 
                       <div className="flex items-center gap-1.5">
                         <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
-                          Nuevo Valor:
+                          New Value:
                         </span>
                         <span className={`font-mono text-xs font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>
                           {anom.new_value || '---'}
@@ -559,17 +536,16 @@ export default function AiAnomalyReportCard({
                       {anom.pct_change !== null && (
                         <div className="flex items-center gap-1.5">
                           <span className={`text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
-                            Variación:
+                            Variation:
                           </span>
-                          <span className={`px-2 py-0.5 rounded font-mono text-xs font-bold border ${
-                            anom.pct_change < 0
-                              ? isDarkMode
-                                ? 'bg-rose-500/10 text-rose-300/90 border-rose-500/20'
-                                : 'bg-rose-50 text-rose-700 border-rose-200'
-                              : isDarkMode
+                          <span className={`px-2 py-0.5 rounded font-mono text-xs font-bold border ${anom.pct_change < 0
+                            ? isDarkMode
+                              ? 'bg-rose-500/10 text-rose-300/90 border-rose-500/20'
+                              : 'bg-rose-50 text-rose-700 border-rose-200'
+                            : isDarkMode
                               ? 'bg-white/5 text-zinc-200 border-white/10'
                               : 'bg-slate-100 text-slate-800 border-slate-200'
-                          }`}>
+                            }`}>
                             {anom.pct_change > 0 ? `+${anom.pct_change}%` : `${anom.pct_change}%`}
                           </span>
                         </div>
@@ -583,21 +559,19 @@ export default function AiAnomalyReportCard({
 
           {/* Paginación */}
           {totalPages > 1 && (
-            <div className={`flex items-center justify-between pt-2 px-1 text-xs select-none  ${
-              isDarkMode ? 'text-zinc-400' : 'text-slate-500'
-            }`}>
+            <div className={`flex items-center justify-between pt-2 px-1 text-xs select-none  ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'
+              }`}>
               <span>
-                Mostrando <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{paginatedAnomalies.length}</strong> de <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{filteredAnomalies.length}</strong> inconsistencias
+                Showing <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{paginatedAnomalies.length}</strong> of <strong className={isDarkMode ? 'text-white' : 'text-zinc-900'}>{filteredAnomalies.length}</strong> inconsistencies
               </span>
               <div className="flex items-center gap-1.5">
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                  className={`p-1 rounded border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-                    isDarkMode
-                      ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
-                      : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
-                  }`}
+                  className={`p-1 rounded border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode
+                    ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
+                    : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
+                    }`}
                 >
                   <ChevronLeft size={13} />
                 </button>
@@ -607,11 +581,10 @@ export default function AiAnomalyReportCard({
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                  className={`p-1 rounded border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-                    isDarkMode
-                      ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
-                      : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
-                  }`}
+                  className={`p-1 rounded border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${isDarkMode
+                    ? 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-200'
+                    : 'bg-white hover:bg-slate-100 border-slate-200 text-zinc-700'
+                    }`}
                 >
                   <ChevronRight size={13} />
                 </button>
@@ -621,18 +594,17 @@ export default function AiAnomalyReportCard({
         </div>
 
         {/* ── FOOTER DE ACCIÓN RECOMENDADA ── */}
-        <div className={`px-3.5 py-2.5 border-t flex flex-wrap items-center justify-between gap-2 text-xs  ${
-          isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
-        }`}>
+        <div className={`px-3.5 py-2.5 border-t flex flex-wrap items-center justify-between gap-2 text-xs  ${isDarkMode ? 'border-white/10 bg-black/40 text-zinc-400' : 'border-slate-100 bg-slate-50 text-slate-500'
+          }`}>
           <span>
             {anomalies.length > 0 ? (
-              'Se recomienda revisar las inconsistencias detectadas antes de publicar el catálogo.'
+              'Reviewing the detected inconsistencies is recommended before publishing the catalog.'
             ) : (
-              'El catálogo ha superado todas las pruebas de validación heurística con 100% de consistencia.'
+              'The catalog has passed all heuristic validation tests with 100% consistency.'
             )}
           </span>
           <span className="text-[11px] font-medium">
-            Monitor de Integridad: <strong className={isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}>SERVEX Heuristic Engine</strong>
+            Integrity Monitor: <strong className={isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}>SERVEX Heuristic Engine</strong>
           </span>
         </div>
       </div>

@@ -248,7 +248,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           content = e.target?.result as string;
         }
         setCsvNewContent(content);
-        setMessage({ text: 'Matriz de nuevos precios cargada con éxito', type: 'success' });
+        setMessage({ text: 'New price matrix loaded successfully', type: 'success' });
         setReadingNewCsv(false);
         if (step === 'csv_new' || step === 'all') {
           saveSingleStep('csv_new', content);
@@ -604,7 +604,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
           const cacheData = await cacheRes.json().catch(() => ({}));
           if (cacheData?.coherent === false) {
             setMessage({
-              text: `⚠️ El dataset no coincide con el catálogo base (${cacheData.common_count || 0} modelos comunes). Por favor sube el archivo CSV correcto.`,
+              text: `⚠️ Dataset does not match base catalog (${cacheData.common_count || 0} common models). Please upload the correct CSV file.`,
               type: 'error'
             });
             setLoading(false);
@@ -746,7 +746,7 @@ export default function UploadClientXML({ step = 'all' }: { step?: string }) {
                   ? 'Checking...'
                   : showNewCsvExistingNotice
                     ? 'File already exists in DB'
-                    : 'Upload CSV Nuevo'}
+                    : 'Upload New CSV'}
             </p>
             <p className="text-[9px] sm:text-[10px] text-zinc-400 mt-1 font-medium leading-tight">New catalog to compare</p>
             {showNewCsvExistingNotice && (

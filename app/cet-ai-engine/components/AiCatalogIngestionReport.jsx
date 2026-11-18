@@ -39,11 +39,11 @@ function AiCatalogIngestionReport({
   const [expandedFamilies, setExpandedFamilies] = useState(false);
 
   const DEFAULT_BASE_COLUMNS = [
-    { code: 'Model #', label: 'Model #', desc: 'Identificador único del producto o SKU', type: 'Alfanumérico' },
-    { code: 'List Price', label: 'List Price', desc: 'Precio de lista base oficial del catálogo', type: 'Moneda USD' },
-    { code: 'Weight', label: 'Weight', desc: 'Peso neto estructural de la unidad', type: 'Decimal' },
-    { code: 'Classic/ Premium', label: 'Classic/ Premium', desc: 'Clasificación de línea y acabado del producto', type: 'Texto' },
-    { code: 'Model Name', label: 'Model Name', desc: 'Descripción o denominación comercial extendida', type: 'Texto' }
+    { code: 'Model #', label: 'Model #', desc: 'Unique product or SKU identifier', type: 'Alphanumeric' },
+    { code: 'List Price', label: 'List Price', desc: 'Official catalog base list price', type: 'USD Currency' },
+    { code: 'Weight', label: 'Weight', desc: 'Structural net weight of the unit', type: 'Decimal' },
+    { code: 'Classic/ Premium', label: 'Classic/ Premium', desc: 'Product line and finish classification', type: 'Text' },
+    { code: 'Model Name', label: 'Model Name', desc: 'Extended commercial name or description', type: 'Text' }
   ];
 
   // 1. Columnas y Matriz generadas determinísticamente a partir del XML
@@ -77,7 +77,7 @@ function AiCatalogIngestionReport({
     // 2. Extracción heurística de respaldo a partir de summary
     const commCols = (summary?.commercial_columns || summary?.commercial_features || summary?.commercial_options_list || []).map((f, i) => ({
       code: f.code || `OPC-${i + 1}`,
-      label: f.label || f.description || f.name || `Opción ${f.code}`,
+      label: f.label || f.description || f.name || `Option ${f.code}`,
       price: f.price || '0.00',
       featureName: f.featureName || f.feature_name || f.code
     }));
@@ -188,49 +188,49 @@ function AiCatalogIngestionReport({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-none">
             <div className={`p-2.5 rounded-none ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20' : 'bg-white/90 border-slate-200/80 hover:bg-white hover:border-slate-300'} border transition-all shadow-2xs`}>
               <span className={`text-[9px] font-bold ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} uppercase tracking-wider block`}>
-                SKUs Base Indexados
+                Indexed Base SKUs
               </span>
               <span className={`text-base font-extrabold ${isDarkMode ? 'text-white' : 'text-slate-900'} font-mono block mt-0.5`}>
                 {totalSkus}
               </span>
               <span className={`text-[9px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-medium block`}>
-                Modelos de producto únicos
+                Unique product models
               </span>
             </div>
 
             <div className={`p-2.5 rounded-none ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20' : 'bg-white/90 border-slate-200/80 hover:bg-white hover:border-slate-300'} border transition-all shadow-2xs`}>
               <span className={`text-[9px] font-bold ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} uppercase tracking-wider block`}>
-                Features Estructurales
+                Structural Features
               </span>
               <span className={`text-base font-extrabold ${isDarkMode ? 'text-white' : 'text-slate-900'} font-mono block mt-0.5`}>
                 {totalFeatures}
               </span>
               <span className={`text-[9px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-medium block`}>
-                Familias de configuración
+                Configuration families
               </span>
             </div>
 
             <div className={`p-2.5 rounded-none ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20' : 'bg-white/90 border-slate-200/80 hover:bg-white hover:border-slate-300'} border transition-all shadow-2xs`}>
               <span className={`text-[9px] font-bold ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} uppercase tracking-wider block`}>
-                Opciones Comerciales
+                Commercial Options
               </span>
               <span className={`text-base font-extrabold ${isDarkMode ? 'text-white' : 'text-slate-900'} font-mono block mt-0.5`}>
                 {totalOptions}
               </span>
               <span className={`text-[9px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-medium block`}>
-                Opciones y acabados parseados
+                Parsed options and finishes
               </span>
             </div>
 
             <div className={`p-2.5 rounded-none ${isDarkMode ? 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20' : 'bg-white/90 border-slate-200/80 hover:bg-white hover:border-slate-300'} border transition-all shadow-2xs`}>
               <span className={`text-[9px] font-bold ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} uppercase tracking-wider block`}>
-                Integridad de Datos
+                Data Integrity
               </span>
               <span className={`text-base font-extrabold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'} font-mono block mt-0.5`}>
                 {integrity}
               </span>
               <span className={`text-[9px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-medium block`}>
-                Esquema CET Designer validado
+                Validated CET Designer schema
               </span>
             </div>
           </div>
@@ -245,19 +245,19 @@ function AiCatalogIngestionReport({
           {/* Mensaje Explicativo de la IA */}
           <div className="space-y-1 rounded-none">
             <h4 className={`text-[13.5px] font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'} flex items-center gap-1.5`}>
-              <span>2. Estructura de Columnas de la Matriz Excel (.xlsx / .csv)</span>
+              <span>2. Excel Matrix Column Structure (.xlsx / .csv)</span>
             </h4>
             <p className={`text-[13px] ${isDarkMode ? 'text-zinc-300' : 'text-gray-700'} leading-relaxed`}>
-              A partir de la desestructuración del catálogo y los registros almacenados en <code className={`px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>csv_raw</code>, he calculado la matriz determinista de <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalColumns} columnas</strong> con las que el motor construye el archivo. Se compone de <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{baseColumns.length} campos fijos</strong> del producto base y <strong className={`font-semibold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>{commercialColumns.length} columnas dinámicas de recargo comercial activo</strong>:
+              Based on the catalog destructuring and the records stored in <code className={`px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>csv_raw</code>, I have calculated the deterministic matrix of <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{totalColumns} columns</strong> used by the engine to build the file. It consists of <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{baseColumns.length} fixed fields</strong> for the base product and <strong className={`font-semibold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>{commercialColumns.length} dynamic active commercial surcharge columns</strong>:
             </p>
           </div>
 
           <div className={`flex items-center justify-between gap-2 border-t border-b ${isDarkMode ? 'border-white/10' : 'border-slate-200/80'} py-2 rounded-none`}>
             <span className={`text-[11px] font-bold ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'} uppercase tracking-wider`}>
-              Columnas en Matriz Excel
+              Columns in Excel Matrix
             </span>
             <span className={`px-2.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white text-zinc-950 font-black' : 'bg-slate-900 text-white font-bold'} text-[9.5px] font-mono shadow-2xs`}>
-              {totalColumns} columnas en total
+              {totalColumns} total columns
             </span>
           </div>
 
@@ -266,10 +266,10 @@ function AiCatalogIngestionReport({
             <div className="flex items-center justify-between text-[10px]">
               <div className={`flex items-center gap-1 font-bold ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'} uppercase tracking-wider`}>
                 <Layers size={12} className={isDarkMode ? 'text-zinc-300' : 'text-slate-700'} />
-                <span>Columnas Base del Modelo (Campos Fijos del Producto)</span>
+                <span>Base Model Columns (Fixed Product Fields)</span>
               </div>
               <span className={`text-[9px] font-mono ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-medium`}>
-                {baseColumns.length} columnas fijas
+                {baseColumns.length} fixed columns
               </span>
             </div>
 
@@ -301,8 +301,8 @@ function AiCatalogIngestionReport({
           {/* Tira de Vista Previa de Encabezados (Excel / CSV) */}
           <div className={`p-2.5 rounded-none ${isDarkMode ? 'bg-black/50 border-white/15' : 'bg-white/90 border-slate-200/90'} border space-y-1.5 shadow-2xs`}>
             <div className={`flex items-center justify-between text-[9px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-600'} font-bold uppercase tracking-wider`}>
-              <span>Vista Previa de Fila de Encabezados (Excel / CSV)</span>
-              <span className={`font-mono ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'}`}>Fila 1 · {totalColumns} Columnas</span>
+              <span>Header Row Preview (Excel / CSV)</span>
+              <span className={`font-mono ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'}`}>Row 1 · {totalColumns} Columns</span>
             </div>
             <div className={`flex items-center gap-1 overflow-x-auto pb-1 ${isDarkMode ? 'scrollbar-thumb-zinc-700' : 'scrollbar-thumb-slate-300'} scrollbar-thin text-[9px] font-mono font-bold rounded-none`}>
               {baseColumns.map((c, i) => (
@@ -329,19 +329,19 @@ function AiCatalogIngestionReport({
           {/* Mensaje Explicativo de la IA */}
           <div className="space-y-1 rounded-none">
             <h4 className={`text-[13.5px] font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'} flex items-center gap-1.5`}>
-              <span>3. Familias y Acabados Base Incluidos a Costo Estándar ($0 USD)</span>
+              <span>3. Base Families &amp; Finishes Included at Standard Cost ($0 USD)</span>
             </h4>
             <p className={`text-[13px] ${isDarkMode ? 'text-zinc-300' : 'text-gray-700'} leading-relaxed`}>
-              En el catálogo identifiqué <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{baseFeatures.length} familias base</strong> (como telas, pinturas, laminados y opciones estructurales) que están incluidas al costo estándar de <strong className={`font-semibold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>$0 USD</strong>. Los diseñadores de CET pueden configurar estas opciones libremente sin incrementar el precio de lista del producto:
+              In the catalog I identified <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{baseFeatures.length} base families</strong> (such as fabrics, paints, laminates, and structural options) included at the standard cost of <strong className={`font-semibold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>$0 USD</strong>. CET designers can configure these options freely without increasing the product list price:
             </p>
           </div>
 
           <div className={`flex items-center justify-between gap-2 border-t border-b ${isDarkMode ? 'border-white/10' : 'border-slate-200/80'} py-2 rounded-none`}>
             <span className={`text-[11px] font-bold ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'} uppercase tracking-wider`}>
-              Familias y Acabados Base
+              Base Families &amp; Finishes
             </span>
             <span className={`px-2.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-200' : 'bg-slate-100 text-slate-700'} font-mono font-bold text-[9.5px]`}>
-              {baseFeatures.length} familias base
+              {baseFeatures.length} base families
             </span>
           </div>
 
@@ -353,7 +353,7 @@ function AiCatalogIngestionReport({
                 type="text"
                 value={familySearch}
                 onChange={(e) => setFamilySearch(e.target.value)}
-                placeholder="Buscar familia base o acabado (ej: AE, CASEBODY, TOTE, -MB)..."
+                placeholder="Search base family or finish (e.g., AE, CASEBODY, TOTE, -MB)..."
                 className={`w-full pl-8 pr-3 py-1.5 rounded-none ${isDarkMode ? 'bg-white/5 border-white/15 text-zinc-100 placeholder-zinc-500 focus:border-white/40' : 'bg-slate-50 border-slate-200 text-slate-700 placeholder-slate-400 focus:border-slate-800'} border text-[10.5px] focus:outline-none transition-colors shadow-2xs`}
               />
             </div>
@@ -366,12 +366,12 @@ function AiCatalogIngestionReport({
                 {expandedFamilies ? (
                   <>
                     <ChevronUp size={13} />
-                    <span>Mostrar menos</span>
+                    <span>Show less</span>
                   </>
                 ) : (
                   <>
                     <ChevronDown size={13} />
-                    <span>Ver todas ({baseFeatures.length})</span>
+                    <span>View all ({baseFeatures.length})</span>
                   </>
                 )}
               </button>
@@ -384,7 +384,7 @@ function AiCatalogIngestionReport({
               const code = item.code || item.feature_code || 'CODE';
               const name = item.name || item.feature_name || code;
               const optsCount = item.options_count || item.total_options || (Array.isArray(item.options) ? item.options.length : null);
-              const category = item.sub_type || item.feature_name || 'Tela / Color / Acabado';
+              const category = item.sub_type || item.feature_name || 'Fabric / Color / Finish';
 
               return (
                 <div
@@ -397,7 +397,7 @@ function AiCatalogIngestionReport({
                     </span>
                     {optsCount ? (
                       <span className={`text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-300' : 'bg-slate-100 text-slate-600'} shrink-0`}>
-                        {optsCount} {optsCount === 1 ? 'opción' : 'opciones'}
+                        {optsCount} {optsCount === 1 ? 'option' : 'options'}
                       </span>
                     ) : (
                       <span className={`text-[8px] font-mono font-semibold px-1 py-0.2 rounded-none ${isDarkMode ? 'bg-white/5 text-zinc-400' : 'bg-slate-100 text-slate-500'} shrink-0`}>
@@ -411,7 +411,7 @@ function AiCatalogIngestionReport({
                   </p>
 
                   <div className={`flex items-center gap-1 text-[8.5px] ${isDarkMode ? 'text-zinc-500 border-white/10' : 'text-slate-400 border-slate-100'} font-medium truncate pt-1 border-t`}>
-                    <span className={`${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-semibold`}>Tipo:</span>
+                    <span className={`${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-semibold`}>Type:</span>
                     <span className="truncate">{category}</span>
                   </div>
                 </div>
@@ -431,35 +431,35 @@ function AiCatalogIngestionReport({
           {/* Mensaje Explicativo de la IA */}
           <div className="space-y-1 rounded-none">
             <h4 className={`text-[13.5px] font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'} flex items-center gap-1.5`}>
-              <span>4. Auditoría Estructural de Producto Modelo (Muestra en Memoria)</span>
+              <span>4. Sample Product Structural Audit (In-Memory Sample)</span>
             </h4>
             <p className={`text-[13px] ${isDarkMode ? 'text-zinc-300' : 'text-gray-700'} leading-relaxed`}>
-              Para validar que las relaciones relacionales funcionan correctamente, seleccioné de la memoria una muestra real: el SKU <strong className={`font-mono font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{sampleProduct.sku}</strong> (Precio Base: <strong className={`font-mono font-bold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>${sampleProduct.base_price || '0'} USD</strong>). Aquí puedes verificar cómo se enlazan sus características y opciones hijas:
+              To validate that relational links work properly, I selected a real sample from memory: SKU <strong className={`font-mono font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{sampleProduct.sku}</strong> (Base Price: <strong className={`font-mono font-bold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>${sampleProduct.base_price || '0'} USD</strong>). Here you can verify how its child features and options are linked:
             </p>
           </div>
 
           <div className={`flex items-center justify-between gap-2 border-t border-b ${isDarkMode ? 'border-white/10' : 'border-slate-200/80'} py-2 rounded-none`}>
             <span className={`text-[11px] font-bold ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'} uppercase tracking-wider`}>
-              Ejemplo de Producto en Memoria
+              In-Memory Product Sample
             </span>
             <div className="flex items-center gap-1.5">
               <span className={`px-2 py-0.5 rounded-none ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-slate-900 text-white'} text-[10px] font-mono font-bold`}>
                 SKU: {sampleProduct.sku}
               </span>
               <span className={`px-2 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-white border-white/20' : 'bg-[#18181b]/10 text-[#18181b] border-[#18181b]/20'} border text-[10px] font-mono font-bold`}>
-                Precio Base: ${sampleProduct.base_price || '0'}
+                Base Price: ${sampleProduct.base_price || '0'}
               </span>
             </div>
           </div>
 
           <p className={`text-[11px] ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'} font-medium leading-relaxed`}>
-            {sampleProduct.description || 'Producto modelo desestructurado con sus dependencias en memoria activa.'}
+            {sampleProduct.description || 'Sample product destructured with its dependencies in active memory.'}
           </p>
 
           {sampleProduct.features && sampleProduct.features.length > 0 && (
             <div className="space-y-1.5 pt-1 rounded-none">
               <span className={`text-[9.5px] font-bold ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} uppercase tracking-wider block`}>
-                Árbol de Features y Opciones Vinculadas al Producto:
+                Product Linked Features &amp; Options Tree:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-none">
                 {sampleProduct.features.map((feat, featIdx) => (
@@ -472,7 +472,7 @@ function AiCatalogIngestionReport({
                         {feat.feature_code}
                       </span>
                       <span className={`text-[8.5px] font-mono ${isDarkMode ? 'text-zinc-400 bg-white/10 border-white/15' : 'text-slate-500 bg-white border-slate-200'} font-medium px-1.5 py-0.2 rounded-none border`}>
-                        {feat.total_options || feat.options?.length || 0} opciones
+                        {feat.total_options || feat.options?.length || 0} options
                       </span>
                     </div>
                     <p className={`text-[9.5px] ${isDarkMode ? 'text-zinc-300' : 'text-slate-600'} font-medium truncate`} title={feat.feature_name}>
@@ -512,7 +512,7 @@ function AiCatalogIngestionReport({
       {/* ── CONCLUSIÓN Y BARRA DE ACCIÓN RÁPIDA DE LA IA ── */}
       <div className={`p-4 ${isDarkMode ? 'bg-[#09090b]/60 border-white/10 text-zinc-100 shadow-[0_8px_32px_0_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.12)]' : 'bg-white/80 border-slate-200/90 text-gray-800 shadow-sm'} backdrop-blur-2xl rounded-none border space-y-3 transition-colors`}>
         <p className={`text-[13px] ${isDarkMode ? 'text-zinc-300' : 'text-gray-700'} leading-relaxed`}>
-          El catálogo maestro está listo en memoria para recibir instrucciones de actualización de precios, consulta de características o generación de matrices de exportación:
+          The master catalog is ready in memory to receive price update instructions, feature queries, or export matrix generation:
         </p>
 
         {/* Barra de Acciones Rápidas con Botones en Blanco/Grises/Negro */}

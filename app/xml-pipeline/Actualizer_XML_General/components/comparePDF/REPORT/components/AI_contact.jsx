@@ -45,11 +45,11 @@ export const stripEmojis = (str) => {
 const CONTEXTS = ['Servex US', 'Servex LATAM', 'General HQ'];
 
 const SLASH_COMMANDS = [
-  { id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Exportar catálogo procesado en CSV/Excel', phase: 4, category: 'Export Data From CET or Client' },
-  { id: 'import', icon: Database, label: '/importBase', desc: 'Subir matriz CSV de nuevos precios (csv_new_raw)', phase: 1, category: 'Step 1: Data Ingestion' },
+  { id: 'exportCETcsv', icon: Download, label: '/exportCETcsv', desc: 'Export processed catalog to CSV/Excel', phase: 4, category: 'Export Data From CET or Client' },
+  { id: 'import', icon: Database, label: '/importBase', desc: 'Upload new price CSV matrix (csv_new_raw)', phase: 1, category: 'Step 1: Data Ingestion' },
   { id: 'deleteData', icon: Trash2, label: '/deleteData', desc: 'Delete Tenant Data', phase: 2, category: 'Step 1: Data Ingestion' },
-  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Comparar matrices y auditar catálogo (Paso 1)', phase: 3, category: 'Step 2: XML ETL Engine' },
-  { id: 'injectXML', icon: FileCode2, label: '/injectXML', desc: 'Inyectar discrepancias detectadas al XML maestro (Paso 2)', phase: 3, category: 'Step 2: XML ETL Engine' }
+  { id: 'execute', icon: Cpu, label: '/executeProcess', desc: 'Compare matrices and audit catalog (Step 1)', phase: 3, category: 'Step 2: XML ETL Engine' },
+  { id: 'injectXML', icon: FileCode2, label: '/injectXML', desc: 'Inject detected discrepancies into master XML (Step 2)', phase: 3, category: 'Step 2: XML ETL Engine' }
 ];
 
 // Cache en memoria para evitar re-parsear el mismo XML con DOMParser más de una vez
@@ -339,11 +339,11 @@ export const injectChangesIntoXml = (xmlString, detectedChanges = []) => {
 
 const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw = null) => {
   const DEFAULT_BASE_COLUMNS = [
-    { code: "Model #", label: "Model #", type: "Identificador SKU", desc: "Código de modelo del producto base" },
-    { code: "List Price", label: "List Price", type: "Precio Base (USD)", desc: "Precio de lista estándar sin recargos" },
-    { code: "Weight", label: "Weight", type: "Especificación", desc: "Peso físico del producto (N/A si no aplica)" },
-    { code: "Classic/ Premium", label: "Classic/ Premium", type: "Clasificación", desc: "Gama o categoría de producto" },
-    { code: "Model Name", label: "Model Name", type: "Descripción", desc: "Nombre y descripción comercial del modelo" }
+    { code: "Model #", label: "Model #", type: "SKU Identifier", desc: "Base product model code" },
+    { code: "List Price", label: "List Price", type: "Base Price (USD)", desc: "Standard list price without surcharges" },
+    { code: "Weight", label: "Weight", type: "Specification", desc: "Physical product weight (N/A if not applicable)" },
+    { code: "Classic/ Premium", label: "Classic/ Premium", type: "Classification", desc: "Product tier or category" },
+    { code: "Model Name", label: "Model Name", type: "Description", desc: "Commercial model name and description" }
   ];
 
   let safeSummary = (typeof summary === 'object' && summary !== null) ? summary : {};
@@ -396,8 +396,8 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
             baseCols.push({
               code: h,
               label: h,
-              type: "Campo Base",
-              desc: `Columna estándar #${idx + 1}`
+              type: "Base Field",
+              desc: `Standard column #${idx + 1}`
             });
           } else {
             let code = h;
@@ -414,8 +414,8 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
             commCols.push({
               code: code,
               label: h,
-              price: matchedOpt?.price || (matchedOpt?.prices ? matchedOpt.prices.join(' / ') : 'Recargo'),
-              featureName: matchedOpt?.feature_name || matchedOpt?.feature_code || 'Opción Comercial Activa'
+              price: matchedOpt?.price || (matchedOpt?.prices ? matchedOpt.prices.join(' / ') : 'Surcharge'),
+              featureName: matchedOpt?.feature_name || matchedOpt?.feature_code || 'Active Commercial Option'
             });
           }
         });
@@ -428,7 +428,7 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
         };
       }
     } catch (e) {
-      console.warn("Error resolviendo columnas desde csv_raw:", e);
+      console.warn("Error resolving columns from csv_raw:", e);
     }
   }
 
@@ -458,7 +458,7 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
         code: c.optCode,
         label: c.label,
         price: String(c.maxPrice),
-        featureName: c.featureCode || 'Opción Comercial'
+        featureName: c.featureCode || 'Commercial Option'
       }));
       return {
         baseColumns: DEFAULT_BASE_COLUMNS,
@@ -475,7 +475,7 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
       code: opt.code,
       label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
       price: opt.price || (opt.prices ? opt.prices.join(' / ') : '0'),
-      featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
+      featureName: opt.feature_name || opt.feature_code || 'Commercial Option'
     }));
   } else if (safeSummary?.price_options_list && safeSummary.price_options_list.some(p => p.has_upcharge || parseFloat(p.price || 0) > 0)) {
     commCols = safeSummary.price_options_list
@@ -484,7 +484,7 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
         code: opt.code,
         label: opt.label || (opt.name && !opt.name.includes(opt.code) ? `${opt.code} (${opt.name})` : (opt.name || opt.code)),
         price: opt.price,
-        featureName: opt.feature_name || opt.feature_code || 'Opción Comercial'
+        featureName: opt.feature_name || opt.feature_code || 'Commercial Option'
       }));
   }
 
@@ -499,23 +499,23 @@ const getCatalogExcelColumns = (summary, fallbackCsvRaw = null, fallbackXmlRaw =
 const QUICK_PROMPTS = [
   {
     icon: Database,
-    label: "Conversión XML a Excel",
-    q: "¿Cómo transforma Alysa mi archivo XML en una matriz estructurada de Excel lista para descargar?"
+    label: "XML to Excel Conversion",
+    q: "How does Alysa transform my XML file into a structured Excel matrix ready for download?"
   },
   {
     icon: Cpu,
-    label: "Actualización en Vivo",
-    q: "¿Cuáles son las dos formas que tengo para explorar productos y actualizar precios en el catálogo?"
+    label: "Live Update",
+    q: "What are the two ways I can explore products and update prices in the catalog?"
   },
   {
     icon: BarChart2,
-    label: "Auditoría de Precios",
-    q: "¿Cómo auditas y comparas las variaciones de precios, productos nuevos y dados de baja?"
+    label: "Price Audit",
+    q: "How do you audit and compare price variations, new products, and discontinued items?"
   },
   {
     icon: Shield,
-    label: "Estado de mi Sesión",
-    q: "¿Qué archivos tengo cargados actualmente en esta sesión y cuál es el siguiente paso recomendado?"
+    label: "Session Status",
+    q: "What files do I currently have loaded in this session and what is the recommended next step?"
   },
 ];
 
@@ -835,10 +835,10 @@ marked.use({
 const parseProductInspection = (text, inspectionReport = null) => {
   // Fast path: Si el backend ya devolvió el reporte estructurado en JSON
   if (inspectionReport && Array.isArray(inspectionReport) && inspectionReport.length > 0) {
-    const catMatch = text?.match(/Cat[aá]logo Activo:\s*\**([^\*|\n]+?)\**\s*(?:\||$)/i);
+    const catMatch = text?.match(/(?:Cat[aá]logo Activo|Active Catalog):\s*\**([^\*|\n]+?)\**\s*(?:\||$)/i);
     const catalog = catMatch ? catMatch[1].trim() : 'XML';
-    const matchCount = text?.match(/Coincidencias Exactas:\s*\**([^\*|\n]+?)\**(?:\s*consultados|\n|$)/i);
-    const matchesStr = matchCount ? matchCount[1].trim() : `${inspectionReport.length} de ${inspectionReport.length}`;
+    const matchCount = text?.match(/(?:Coincidencias Exactas|Exact Matches):\s*\**([^\*|\n]+?)\**(?:\s*(?:consultados|queried)|\n|$)/i);
+    const matchesStr = matchCount ? matchCount[1].trim() : `${inspectionReport.length} of ${inspectionReport.length}`;
 
     const products = inspectionReport.map(p => {
       const options = [];
@@ -876,20 +876,23 @@ const parseProductInspection = (text, inspectionReport = null) => {
   if (!text || typeof text !== 'string') return null;
   const isInspection =
     text.includes('Filtrado de Productos') ||
+    text.includes('Product Filtering') ||
     text.includes('Desglose de Opciones y Recargos') ||
-    (text.includes('Producto:') && (text.includes('Precio Base') || text.includes('Recargo')));
+    text.includes('Options & Surcharges Breakdown') ||
+    (text.includes('Producto:') && (text.includes('Precio Base') || text.includes('Recargo'))) ||
+    (text.includes('Product:') && (text.includes('Base Price') || text.includes('Surcharge')));
 
   if (!isInspection) return null;
 
   try {
-    const catMatch = text.match(/Cat[aá]logo Activo:\s*\**([^\*|\n]+?)\**\s*(?:\||$)/i);
+    const catMatch = text.match(/(?:Cat[aá]logo Activo|Active Catalog):\s*\**([^\*|\n]+?)\**\s*(?:\||$)/i);
     const catalog = catMatch ? catMatch[1].trim() : 'XML';
 
-    const matchCount = text.match(/Coincidencias Exactas:\s*\**([^\*|\n]+?)\**(?:\s*consultados|\n|$)/i);
+    const matchCount = text.match(/(?:Coincidencias Exactas|Exact Matches):\s*\**([^\*|\n]+?)\**(?:\s*(?:consultados|queried)|\n|$)/i);
     const matchesStr = matchCount ? matchCount[1].trim() : '';
 
     const products = [];
-    const prodBlocks = text.split(/(?:####\s*Producto:|\bProducto:)\s*/i);
+    const prodBlocks = text.split(/(?:####\s*(?:Producto|Product):|\b(?:Producto|Product):)\s*/i);
 
     if (prodBlocks.length > 1) {
       for (let i = 1; i < prodBlocks.length; i++) {
@@ -898,9 +901,9 @@ const parseProductInspection = (text, inspectionReport = null) => {
         const sku = lines[0].replace(/[`*]/g, '').trim();
         const body = lines.slice(1).join('\n');
 
-        const descM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?(?:Descripci[oó]n|Estado)(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
-        const priceM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?Precio Base(?: de Lista)?(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
-        const featCountM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?Total Caracter[ií]sticas Vinculadas(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
+        const descM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?(?:Descripci[oó]n|Description|Estado|Status)(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
+        const priceM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?(?:Precio Base(?: de Lista)?|Base(?: List)? Price)(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
+        const featCountM = body.match(/(?:^|\n)\s*(?:-\s*)?(?:\*\*|__)?(?:Total Caracter[ií]sticas Vinculadas|Total Linked Features)(?:\*\*|__)?\s*:?\s*(?:\*\*|__)?([^\n]+)/i);
 
         const options = [];
         const bodyLines = body.split('\n');
@@ -964,7 +967,7 @@ const parseProductInspection = (text, inspectionReport = null) => {
 const parseCatalogSummary = (text, catalogData = null) => {
   // Fast path: Si el backend envió catalog_data estructurado
   if (catalogData && typeof catalogData === 'object' && catalogData.features) {
-    const catalog = catalogData.company || catalogData.catalog || 'Catálogo XML';
+    const catalog = catalogData.company || catalogData.catalog || 'XML Catalog';
     const pricelists = (catalogData.pricelists && catalogData.pricelists.length > 0)
       ? catalogData.pricelists.map(pl => ({ code: pl.code, currency: pl.currency || 'USD' }))
       : [{ code: 'P1', currency: 'USD' }];
@@ -989,16 +992,16 @@ const parseCatalogSummary = (text, catalogData = null) => {
     let tipText = '';
     let note = '';
     if (text && typeof text === 'string') {
-      const exMatch = text.match(/(?:📋\s*)?Ejemplo(?: listo para copiar)?[\s\S]*?(?=💡\s*Tip|###|$)/i);
+      const exMatch = text.match(/(?:📋\s*)?(?:Ejemplo(?: listo para copiar)?|Example(?: ready to copy)?)[\s\S]*?(?=💡\s*Tip|###|$)/i);
       if (exMatch) {
-        const promptM = exMatch[0].match(/(Hola,\s*por favor[\s\S]*?)(?=\n\s*(?:Solo copia|💡|Tip|$))/i);
+        const promptM = exMatch[0].match(/((?:Hola,\s*por favor|Hello,\s*please)[\s\S]*?)(?=\n\s*(?:Solo copia|Just copy|💡|Tip|$))/i);
         if (promptM) examplePrompt = promptM[1].trim();
-        const introM = exMatch[0].match(/Si deseas aplicar[\s\S]*?:/i);
+        const introM = exMatch[0].match(/(?:Si deseas aplicar|If you wish to apply)[\s\S]*?:/i);
         if (introM) exampleIntro = introM[0].trim();
       }
       const tipM = text.match(/(?:💡\s*)?Tip(?: amigable)?[\s\S]*$/i);
       if (tipM) tipText = tipM[0].replace(/^(?:💡\s*)?Tip(?: amigable)?\s*/i, '').trim();
-      const noteM = text.match(/Nota:\s*([^\n]+(?:\n(?!📋|💡|✨)[^\n]+)*)/i);
+      const noteM = text.match(/(?:Nota|Note):\s*([^\n]+(?:\n(?!📋|💡|✨)[^\n]+)*)/i);
       if (noteM) note = noteM[1].trim();
     }
 
@@ -1018,8 +1021,10 @@ const parseCatalogSummary = (text, catalogData = null) => {
   const isSummary =
     text.includes('Resumen de Catálogo & Listas de Precios') ||
     text.includes('Resumen de Catalogo & Listas de Precios') ||
+    text.includes('Catalog Summary & Price Lists') ||
     text.includes('Características con recargo') ||
     text.includes('Caracteristicas con recargo') ||
+    text.includes('Up-charge Features') ||
     text.includes('up‑charge') ||
     text.includes('up-charge') ||
     (text.includes('Lista de precios activa') && (text.includes('Código de característica') || text.includes('Codigo de caracteristica')));
@@ -1027,11 +1032,11 @@ const parseCatalogSummary = (text, catalogData = null) => {
   if (!isSummary) return null;
 
   try {
-    const catM = text.match(/cat[aá]logo\s+([A-Za-z0-9_\-]+)/i) || text.match(/cat[aá]logo\s*[`*]+([A-Za-z0-9_\-]+)[`*]+/i);
-    const catalog = catM ? catM[1].trim() : 'Catálogo XML';
+    const catM = text.match(/(?:cat[aá]logo|catalog)\s+([A-Za-z0-9_\-]+)/i) || text.match(/(?:cat[aá]logo|catalog)\s*[`*]+([A-Za-z0-9_\-]+)[`*]+/i);
+    const catalog = catM ? catM[1].trim() : 'XML Catalog';
 
     const pricelists = [];
-    const plBlockM = text.match(/Lista(?:s)? de precios activa(?:s)?[\s\S]*?(?=✨|Características|Caracteristicas|Código de característica|Codigo de caracteristica|$)/i);
+    const plBlockM = text.match(/(?:Lista(?:s)? de precios activa(?:s)?|Active price list(?:s)?)[\s\S]*?(?=✨|Características|Caracteristicas|Código de característica|Codigo de caracteristica|Feature Code|$)/i);
     if (plBlockM) {
       const plLines = plBlockM[0].split('\n');
       for (const line of plLines) {
@@ -1047,7 +1052,7 @@ const parseCatalogSummary = (text, catalogData = null) => {
             pricelists.push({ code: parts[0], currency: parts[1] });
           }
         } else if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
-          const m = trimmed.match(/[•\-]\s*[`*]*([A-Za-z0-9_\-]+)[`*]*\s*(?:[—–-]\s*Moneda:\s*[`*]*([A-Za-z0-9_\-]+)[`*]*)?/i);
+          const m = trimmed.match(/[•\-]\s*[`*]*([A-Za-z0-9_\-]+)[`*]*\s*(?:[—–-]\s*(?:Moneda|Currency):\s*[`*]*([A-Za-z0-9_\-]+)[`*]*)?/i);
           if (m && m[1] && !m[1].toLowerCase().includes('lista')) {
             pricelists.push({ code: m[1], currency: m[2] || 'USD' });
           }
@@ -1060,7 +1065,7 @@ const parseCatalogSummary = (text, catalogData = null) => {
 
     const features = [];
     let featSection = '';
-    const featSectionM = text.match(/(?:Caracter[ií]sticas con recargo[\s\S]*?)(?=📋\s*Ejemplo|💡\s*Tip|###|$)/i);
+    const featSectionM = text.match(/(?:(?:Caracter[ií]sticas con recargo|Up-charge Features)[\s\S]*?)(?=📋\s*(?:Ejemplo|Example)|💡\s*Tip|###|$)/i);
     if (featSectionM) {
       featSection = featSectionM[0];
     } else {
@@ -1068,7 +1073,7 @@ const parseCatalogSummary = (text, catalogData = null) => {
     }
 
     let note = '';
-    const noteM = featSection.match(/Nota:\s*([^\n]+(?:\n(?!📋|💡|✨)[^\n]+)*)/i);
+    const noteM = featSection.match(/(?:Nota|Note):\s*([^\n]+(?:\n(?!📋|💡|✨)[^\n]+)*)/i);
     if (noteM) {
       note = noteM[1].trim();
     }
@@ -1108,12 +1113,12 @@ const parseCatalogSummary = (text, catalogData = null) => {
       const line = lines[i];
       const trimmed = line.trim();
 
-      if (trimmed.toLowerCase().includes('código de característica') || trimmed.toLowerCase().includes('codigo de caracteristica')) {
+      if (trimmed.toLowerCase().includes('código de característica') || trimmed.toLowerCase().includes('codigo de caracteristica') || trimmed.toLowerCase().includes('feature code')) {
         inTable = true;
         continue;
       }
       if (!inTable) continue;
-      if (trimmed.toLowerCase().startsWith('nota:') || trimmed.startsWith('📋') || trimmed.startsWith('💡')) {
+      if (trimmed.toLowerCase().startsWith('nota:') || trimmed.toLowerCase().startsWith('note:') || trimmed.startsWith('📋') || trimmed.startsWith('💡')) {
         inTable = false;
         break;
       }
@@ -1161,14 +1166,14 @@ const parseCatalogSummary = (text, catalogData = null) => {
 
     let examplePrompt = '';
     let exampleIntro = '';
-    const exMatch = text.match(/(?:📋\s*)?Ejemplo(?: listo para copiar)?[\s\S]*?(?=💡\s*Tip|###|$)/i);
+    const exMatch = text.match(/(?:📋\s*)?(?:Ejemplo(?: listo para copiar)?|Example(?: ready to copy)?)[\s\S]*?(?=💡\s*Tip|###|$)/i);
     if (exMatch) {
       const exBlock = exMatch[0];
-      const promptM = exBlock.match(/(Hola,\s*por favor[\s\S]*?)(?=\n\s*(?:Solo copia|💡|Tip|$))/i);
+      const promptM = exBlock.match(/((?:Hola,\s*por favor|Hello,\s*please)[\s\S]*?)(?=\n\s*(?:Solo copia|Just copy|💡|Tip|$))/i);
       if (promptM) {
         examplePrompt = promptM[1].trim();
       }
-      const introM = exBlock.match(/Si deseas aplicar[\s\S]*?:/i);
+      const introM = exBlock.match(/(?:Si deseas aplicar|If you wish to apply)[\s\S]*?:/i);
       if (introM) {
         exampleIntro = introM[0].trim();
       }
@@ -1203,14 +1208,14 @@ const parseCatalogAnalytics = (text) => {
   if (!text || typeof text !== 'string') return null;
 
   const isAnalytics =
-    (text.includes('Total de Modelos') || text.includes('SKU / Modelo') || text.includes('Precio de Lista Base')) &&
-    (text.includes('Primeros') || text.includes('Últimos') || text.includes('Ultimos') || text.includes('Top') || text.includes('Productos del Catálogo') || text.includes('Productos con Precio') || text.includes('Resumen General de Productos') || text.includes('📋'));
+    (text.includes('Total de Modelos') || text.includes('Total Models') || text.includes('SKU / Modelo') || text.includes('SKU / Model') || text.includes('Precio de Lista Base') || text.includes('Base List Price')) &&
+    (text.includes('Primeros') || text.includes('First') || text.includes('Últimos') || text.includes('Ultimos') || text.includes('Last') || text.includes('Top') || text.includes('Productos del Catálogo') || text.includes('Catalog Products') || text.includes('Productos con Precio') || text.includes('Resumen General de Productos') || text.includes('📋'));
 
   if (!isAnalytics) return null;
 
   try {
     // 1. Extraer Título y Empresa
-    let title = "Exploración de Productos del Catálogo";
+    let title = "Catalog Product Exploration";
     let company = "";
 
     const titleMatch = text.match(/(?:###\s*)?📋\s*([^\n(]+)(?:\(([^)]+)\))?/i);
@@ -1221,7 +1226,7 @@ const parseCatalogAnalytics = (text) => {
 
     // 2. Extraer KPIs
     let totalSkus = "";
-    const totalMatch = text.match(/Total de Modelos(?: en Cat[aá]logo)?\s*[*:]+\s*[`*]*([0-9]+(?:\s*[^\n•`*]+)?)/i);
+    const totalMatch = text.match(/(?:Total de Modelos(?: en Cat[aá]logo)?|Total Models(?: in Catalog)?)\s*[*:]+\s*[`*]*([0-9]+(?:\s*[^\n•`*]+)?)/i);
     if (totalMatch) {
       totalSkus = totalMatch[1].replace(/[`*]/g, '').trim();
     }
@@ -1229,8 +1234,8 @@ const parseCatalogAnalytics = (text) => {
     let priceRange = "";
     let minPrice = "";
     let maxPrice = "";
-    const minM = text.match(/M[ií]nimo\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
-    const maxM = text.match(/M[aá]ximo\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
+    const minM = text.match(/(?:M[ií]nimo|Minimum|Min)\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
+    const maxM = text.match(/(?:M[aá]ximo|Maximum|Max)\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
     if (minM) minPrice = minM[1].includes('$') ? minM[1] : `$${minM[1]}`;
     if (maxM) maxPrice = maxM[1].includes('$') ? maxM[1] : `$${maxM[1]}`;
     if (minPrice && !minPrice.includes('USD')) minPrice += ' USD';
@@ -1240,14 +1245,14 @@ const parseCatalogAnalytics = (text) => {
     }
 
     let avgPrice = "";
-    const avgM = text.match(/Precio de Lista Promedio\s*[*:]+\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
+    const avgM = text.match(/(?:Precio de Lista Promedio|Average List Price)\s*[*:]+\s*[`*]*\$?([0-9,.]+(?:\s*USD)?)[`*]*/i);
     if (avgM) {
       avgPrice = avgM[1].includes('$') ? avgM[1] : `$${avgM[1]}`;
       if (!avgPrice.includes('USD')) avgPrice += ' USD';
     }
 
     let filterBadge = "";
-    const filterM = text.match(/Filtro Aplicado\s*[*:]+\s*[`*]*([^\n`*•]+)[`*]*/i);
+    const filterM = text.match(/(?:Filtro Aplicado|Applied Filter)\s*[*:]+\s*[`*]*([^\n`*•]+)[`*]*/i);
     if (filterM) {
       filterBadge = filterM[1].replace(/[`*]/g, '').trim();
     }
@@ -1261,12 +1266,12 @@ const parseCatalogAnalytics = (text) => {
       const trimmed = line.trim();
       if (!trimmed) continue;
 
-      if (trimmed.includes('SKU / Modelo') || (trimmed.startsWith('#') && trimmed.includes('SKU'))) {
+      if (trimmed.includes('SKU / Modelo') || trimmed.includes('SKU / Model') || (trimmed.startsWith('#') && trimmed.includes('SKU'))) {
         inTable = true;
         continue;
       }
       if (trimmed.includes('---')) continue;
-      if (trimmed.startsWith('💡') || trimmed.toLowerCase().startsWith('nota:')) {
+      if (trimmed.startsWith('💡') || trimmed.toLowerCase().startsWith('nota:') || trimmed.toLowerCase().startsWith('note:')) {
         inTable = false;
         continue;
       }
@@ -1285,9 +1290,9 @@ const parseCatalogAnalytics = (text) => {
           const desc = cols[2].replace(/[`*]/g, '').trim();
           let price = cols[3].replace(/[`*]/g, '').trim();
           if (price && !price.startsWith('$')) price = `$${price}`;
-          const feat = cols[4] ? cols[4].replace(/[`*]/g, '').trim() : 'Base Estándar';
+          const feat = cols[4] ? cols[4].replace(/[`*]/g, '').trim() : 'Standard Base';
 
-          if (sku && sku !== 'SKU / Modelo') {
+          if (sku && sku !== 'SKU / Modelo' && sku !== 'SKU / Model') {
             products.push({
               index: idx,
               sku,
@@ -1309,37 +1314,37 @@ const parseCatalogAnalytics = (text) => {
 
     // 5. Sugerencias interactivas
     const suggestions = [];
-    const isFirstN = title.toLowerCase().includes('primeros') || (filterBadge && filterBadge.toLowerCase().includes('posición 1'));
+    const isFirstN = title.toLowerCase().includes('primeros') || title.toLowerCase().includes('first') || (filterBadge && (filterBadge.toLowerCase().includes('posición 1') || filterBadge.toLowerCase().includes('position 1')));
     if (isFirstN) {
       suggestions.push({
-        label: 'Ver siguientes 5',
-        command: 'ver los siguientes 5 productos del catálogo'
+        label: 'View next 5',
+        command: 'show the next 5 products in the catalog'
       });
     }
     suggestions.push({
-      label: 'Los más caros',
-      command: 'mostrar los 5 productos más caros del catálogo'
+      label: 'Most expensive',
+      command: 'show the 5 most expensive products in the catalog'
     });
     suggestions.push({
-      label: 'Los más económicos',
-      command: 'mostrar los 5 productos más económicos del catálogo'
+      label: 'Most affordable',
+      command: 'show the 5 most affordable products in the catalog'
     });
     if (products.length > 0 && products[0].sku) {
       suggestions.push({
-        label: `Opciones de ${products[0].sku}`,
-        command: `consultar opciones del modelo ${products[0].sku}`
+        label: `Options for ${products[0].sku}`,
+        command: `inspect options for model ${products[0].sku}`
       });
     }
 
     return {
       title,
-      company: company || 'Catálogo XML',
+      company: company || 'XML Catalog',
       totalSkus: totalSkus || `${products.length} SKUs`,
       priceRange,
       minPrice,
       maxPrice,
       avgPrice,
-      filterBadge: filterBadge || `${products.length} productos mostrados`,
+      filterBadge: filterBadge || `${products.length} products shown`,
       products,
       tipText,
       suggestions
@@ -1467,7 +1472,7 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
     <div
       onClick={handleClick}
       className={`alysa-markdown-flow text-sm font-sans flex flex-col gap-2 w-full max-w-full overflow-x-auto overflow-y-hidden ${isDarkMode
-          ? `text-zinc-100 
+        ? `text-zinc-100 
              [&_p]:text-zinc-100 [&_p]:leading-relaxed [&_p]:my-1.5
              [&_strong]:text-white [&_strong]:font-bold
              [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-white [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:tracking-tight
@@ -1491,7 +1496,7 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
              [&_td]:px-3.5 [&_td]:py-2.5 [&_td]:text-xs [&_td]:text-zinc-300 [&_td]:border-b [&_td]:border-white/[0.05]
              [&_tr:last-child_td]:border-b-0
              [&_tbody_tr]:transition-colors hover:[&_tbody_tr]:bg-white/[0.04]`
-          : `text-gray-800
+        : `text-gray-800
              [&_p]:text-gray-800 [&_p]:leading-relaxed [&_p]:my-1.5
              [&_strong]:text-gray-900 [&_strong]:font-bold
              [&_h1]:text-lg [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mt-4 [&_h1]:mb-2
@@ -1515,7 +1520,7 @@ const BotMessage = React.memo(({ text, inspectionReport, catalogData, onCommandS
              [&_td]:px-3.5 [&_td]:py-2.5 [&_td]:text-xs [&_td]:text-slate-700 [&_td]:border-b [&_td]:border-slate-100
              [&_tr:last-child_td]:border-b-0
              [&_tbody_tr]:transition-colors hover:[&_tbody_tr]:bg-slate-50`
-      }`}
+        }`}
       dangerouslySetInnerHTML={innerHtmlObj}
     />
   );
@@ -1557,7 +1562,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           if (sData?.session?.user?.id) {
             userIdRef.current = sData.session.user.id;
           }
-        }).catch(() => {});
+        }).catch(() => { });
 
         const modName = (typeof window !== 'undefined' && window.location.pathname.split('/')[1]) || 'xml-pipeline';
         const tableName = 'ClientsSERVEX_General_Procces';
@@ -1574,7 +1579,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           setUnlockedPhase(1);
           localStorage.setItem('alysa_phase_' + modName, 1);
           // Montar de inmediato el registro base en Supabase para este usuario
-          ensureGeneralProcessBaseRecord(tenantKey).catch(() => {});
+          ensureGeneralProcessBaseRecord(tenantKey).catch(() => { });
           return;
         }
 
@@ -1645,7 +1650,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                 localStorage.setItem('alysa_phase_' + modName, 1);
               }
             }
-          } catch (_) {}
+          } catch (_) { }
         }, 1200);
       } catch (err) {
         console.error("Error validando la fase en DB:", err);
@@ -1693,14 +1698,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         setDbCsvRaw(csvRaw);
         try {
           sessionStorage.setItem('csv_raw', csvRaw);
-        } catch (_) {}
+        } catch (_) { }
       }
       if (csvEditRaw) {
         setDbCsvNewRaw(csvEditRaw);
         try {
           sessionStorage.setItem('csv_edit_raw', csvEditRaw);
           sessionStorage.setItem('csv_new_raw', csvEditRaw);
-        } catch (_) {}
+        } catch (_) { }
       }
       if (unlockedPhase < 3) updatePhase(3);
       setTimeout(() => {
@@ -1840,7 +1845,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         }
 
         // Si la BD no tenía historial o estaba vacía, asegurar registro base de inmediato
-        ensureGeneralProcessBaseRecord(resolvedKey).catch(() => {});
+        ensureGeneralProcessBaseRecord(resolvedKey).catch(() => { });
 
         // 2. Si no había en BD o estaba vacía, consultar backend como fallback
         const res = await fetch(`${apiURL}/api/v1/${encodeURIComponent(resolvedKey)}/agent/history`).catch(() => null);
@@ -2002,7 +2007,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (stored) {
           targetCompData = { detected_changes: JSON.parse(stored) };
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const tenantKey = await getActiveTenantKey();
@@ -2019,7 +2024,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (dbRec?.audit_report_json?.detected_changes?.length) {
           targetCompData = dbRec.audit_report_json;
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const detectedChangesList = targetCompData?.detected_changes || [];
@@ -2031,7 +2036,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           id: `no-changes-${Date.now()}`,
           from: "bot",
           role: "assistant",
-          text: "No se encontraron modificaciones pendientes para inyectar al catálogo XML maestro. Ejecuta primero **/executeProcess** para auditar el catálogo.",
+          text: "No pending modifications were found to inject into the master XML catalog. Run **/executeProcess** first to audit the catalog.",
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -2046,7 +2051,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         id: `injecting-start-${Date.now()}`,
         from: "bot",
         role: "assistant",
-        text: `Iniciando **inyección precisa de ${detectedChangesList.length} modificaciones** en el árbol XML maestro original... Preservando 100% de la estructura, namespaces y etiquetas comerciales.`,
+        text: `Starting **precise injection of ${detectedChangesList.length} modifications** into the original master XML tree... Preserving 100% of the structure, namespaces, and commercial tags.`,
         time: startMsgTime
       }
     ]);
@@ -2069,7 +2074,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       }
 
       if (!xmlRawToSend) {
-        throw new Error("No se localizó el archivo XML maestro ('xml_raw') en la base de datos para inyectar las modificaciones. Por favor asegúrate de haber cargado el catálogo XML.");
+        throw new Error("Master XML file ('xml_raw') was not found in the database to inject the modifications. Please make sure you have uploaded the XML catalog.");
       }
 
       let baseXmlStr = xmlRawToSend;
@@ -2117,7 +2122,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           console.warn('[-] Cuota de sessionStorage excedida (catálogo masivo), conservado en memoria y Supabase:', quotaErr);
           try {
             sessionStorage.setItem('xml_actualizer_raw', xmlRefToPersist);
-          } catch (_) {}
+          } catch (_) { }
         }
         window.dispatchEvent(new CustomEvent('xmlActualizerUpdated', {
           detail: {
@@ -2141,7 +2146,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           id: `inject-success-${Date.now()}`,
           from: "bot",
           role: "assistant",
-          text: `**Actualización de Catálogo XML Completada (Paso 2 de 2)**\n\nSe inyectaron **${appliedXmlCount} modificaciones de forma precisa** en el árbol XML maestro original. El archivo resultante quedó guardado en \`xml_actualizer_raw\` con su estructura, etiquetas y namespaces íntegros, **100% listo para CET Designer**.\n\nPuedes descargarlo directamente a continuación o abrirlo en **XML Actualizer Viewer** desde el menú lateral.`,
+          text: `**XML Catalog Update Completed (Step 2 of 2)**\n\n**${appliedXmlCount} modifications were precisely injected** into the original master XML tree. The resulting file has been saved in \`xml_actualizer_raw\` with its structure, tags, and namespaces intact, **100% ready for CET Designer**.\n\nYou can download it directly below or open it in **XML Actualizer Viewer** from the sidebar.`,
           isXmlSuccess: true,
           xmlDownloadAvailable: true,
           time: successTime
@@ -2155,7 +2160,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           id: `inject-err-${Date.now()}`,
           from: "bot",
           role: "assistant",
-          text: `**Error durante la inyección de cambios al XML**\n\n${err.message}`,
+          text: `**Error during XML changes injection**\n\n${err.message}`,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -2243,7 +2248,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           ...prev,
           {
             from: 'bot',
-            text: '**Carga Directa de Catálogo XML Maestro**\n\nEl comando `/importCETxml` ha sido retirado. Ahora el catálogo XML se sube y desestructura directamente desde la opción del input (haciendo clic en el icono de adjunto o arrastrando y soltando tu archivo `.xml` aquí).',
+            text: '**Direct Master XML Catalog Upload**\n\nThe `/importCETxml` command has been retired. The XML catalog is now uploaded and destructured directly from the input option (by clicking the attachment icon or dragging and dropping your `.xml` file here).',
             needs_upload: true,
             isNew: true
           }
@@ -2260,7 +2265,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           ...prev,
           {
             from: 'bot',
-            text: 'Por favor sube o arrastra tu archivo de matriz de nuevos precios (**CSV / Excel**) para actualizar el catálogo (`csv_new_raw`).\n\nPuedes arrastrarlo directamente al chat o utilizar el módulo a continuación:',
+            text: 'Please upload or drag your new price matrix file (**CSV / Excel**) to update the catalog (`csv_new_raw`).\n\nYou can drag it directly into the chat or use the module below:',
             isNew: true
           },
           { from: 'tool', toolId: 'incert_wbs_csv_new' }
@@ -2275,7 +2280,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       if (typeof window !== 'undefined') {
         try {
           sessionStorage.setItem('init_csv_edit_on_export', 'true');
-        } catch (_) {}
+        } catch (_) { }
       }
       recordClientAction({
         companyName: getActiveTenantKeySync(),
@@ -2288,9 +2293,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           ...prev, 
           { 
             from: 'bot', 
-            text: 'Aquí tienes la tabla y matriz de exportación para clientes (**Export Data Client**):\nPuedes descargar el catálogo en formato **Excel (.xlsx)** o **CSV** con un solo clic desde la barra superior de la matriz.', 
+            text: 'Here is the client export table and matrix (**Export Data Client**):\nYou can download the catalog in **Excel (.xlsx)** or **CSV** format with a single click from the top bar of the matrix.', 
             toolId: 'xml_results',
-            isNew: true 
+            isNew: true
           }
         ]);
         setIsLoading(false);
@@ -2305,7 +2310,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           ...prev,
           {
             from: 'bot',
-            text: 'Aquí tienes el **Comparador CET** integrado para auditar cambios:',
+            text: 'Here is the integrated **CET Comparator** to audit changes:',
             toolId: 'compare_cet',
             isNew: true
           }
@@ -2324,7 +2329,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         ...prev, 
         { 
           from: "bot", 
-          text: "**Iniciando auditoría comparativa matricial** (`csv_raw` vs `csv_new_raw`)...\nAnalizando diferencias en catálogo, precios base, opciones, altas y bajas de productos.", 
+          text: "**Starting matrix comparative audit** (`csv_raw` vs `csv_new_raw`)...\nAnalyzing differences in catalog, base prices, options, new additions, and discontinued products.", 
           time: nowTime 
         }
       ]);
@@ -2385,7 +2390,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           if (authData?.session?.user?.id) {
             formData.append('user_id', authData.session.user.id);
           }
-        } catch (_) {}
+        } catch (_) { }
 
         const response = await fetch(`${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/pipeline/compare-only`, {
           method: 'POST',
@@ -2411,7 +2416,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         if (typeof window !== 'undefined') {
           try {
             sessionStorage.setItem('pending_comparison_changes', JSON.stringify(resData.detected_changes || []));
-          } catch (_) {}
+          } catch (_) { }
         }
 
         // ── PERSISTENCIA EXCLUSIVA DE LA AUDITORÍA EN SUPABASE (SIN TOCAR xml_actualizer_raw EN EL PASO 1) ──
@@ -2437,8 +2442,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const botReplyTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         const summaryText = hasDifferences
-          ? `He completado la **auditoría comparativa matricial** (Paso 1 de 2).\n\nHe identificado **${changesCount} cambios en precios/celdas**, **${newCount} productos nuevos** y **${deletedCount} productos dados de baja** (${totalEvaluated} modelos evaluados).\n\nRevisa las discrepancias en el reporte inferior. Para transferir e inyectar estas modificaciones en el árbol XML maestro original, pulsa el botón **Inyectar Cambios al XML** o escribe **/injectXML**.`
-          : `He completado la **auditoría comparativa matricial**. Ambas matrices de datos son **100% idénticas** (${totalEvaluated} modelos evaluados). El catálogo base está sincronizado y no requiere modificaciones.`;
+          ? `I have completed the **matrix comparative audit** (Step 1 of 2).\n\nI identified **${changesCount} price/cell changes**, **${newCount} new products**, and **${deletedCount} discontinued products** (${totalEvaluated} models evaluated).\n\nReview the discrepancies in the report below. To transfer and inject these modifications into the original master XML tree, click the **Inject Changes into XML** button or type **/injectXML**.`
+          : `I have completed the **matrix comparative audit**. Both data matrices are **100% identical** (${totalEvaluated} models evaluated). The base catalog is synchronized and requires no modifications.`;
 
         setMessages(prev => [
           ...prev,
@@ -2456,17 +2461,18 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         const isMismatch =
           err.message?.toLowerCase().includes('no coincide') ||
           err.message?.toLowerCase().includes('productos diferentes') ||
-          err.message?.toLowerCase().includes('no corresponden');
+          err.message?.toLowerCase().includes('no corresponden') ||
+          err.message?.toLowerCase().includes('does not match');
 
         setMessages(prev => [
-          ...prev, 
-          { 
+          ...prev,
+          {
             id: `err-comp-${Date.now()}`,
-            from: "bot", 
+            from: "bot",
             role: "assistant",
-            text: isMismatch 
-              ? `**Dataset Incompatible con el Catálogo Base**\n\n${err.message}\n\nPor favor usa **/importBase** para subir la matriz CSV con los productos correctos correspondientes a este catálogo.`
-              : `Error durante la comparación de matrices: ${err.message}`, 
+            text: isMismatch
+              ? `**Dataset Incompatible with Base Catalog**\n\n${err.message}\n\nPlease use **/importBase** to upload the CSV matrix with the correct products corresponding to this catalog.`
+              : `Error during matrix comparison: ${err.message}`, 
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
           }
         ]);
@@ -2529,8 +2535,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         id: `msg-err-${Date.now()}`,
         from: "bot",
         role: "assistant",
-        text: "Error de conexión.",
-        content: "Error de conexión.",
+        text: "Connection error.",
+        content: "Connection error.",
         time: errTime,
         timestamp: new Date().toISOString(),
         catalog: activeCatalogRef.current || 'General Process.xml'
@@ -2550,7 +2556,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
   const handleXmlFileUpload = async (file) => {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith('.xml')) {
-      alert('Solo se admiten archivos en formato .xml (CET Designer / Catalog Creator).');
+      alert('Only .xml files (CET Designer / Catalog Creator) are supported.');
       return;
     }
 
@@ -2572,8 +2578,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       fileName: file.name,
       fileSizeKb: (file.size / 1024).toFixed(1),
       uploadStatus: 'uploading',
-      text: `**Archivo XML adjunto para ingestión:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
-      content: `Archivo XML adjunto para ingestión: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
+      text: `**XML file attached for ingestion:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
+      content: `XML file attached for ingestion: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
       time: userTime,
       timestamp: new Date().toISOString(),
       catalog: file.name
@@ -2593,7 +2599,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           sessionStorage.removeItem('csv_edit_raw');
           localStorage.removeItem(`csv_edit_raw_${tenantKey}`);
           localStorage.removeItem('csv_edit_raw_General_Procces');
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // ── PASO 1: Subida ultrarrápida al bucket de Supabase (catalogs-storage) aislado por tenant ──
@@ -2650,7 +2656,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         {
           id: processConsoleId,
           from: 'bot',
-          text: `**Catálogo guardado exitosamente en Supabase Storage.**\n\nEl archivo \`${file.name}\` ha sido respaldado en el bucket seguro. Iniciando ahora la desestructuración y análisis en memoria de sus productos, precios y características...`,
+          text: `**Catalog saved successfully in Supabase Storage.**\n\nThe file \`${file.name}\` has been backed up in the secure bucket. Starting in-memory destructuring and analysis of its products, prices, and features...`,
           isProcessingConsole: true,
           processFileName: file.name,
           processCompleted: false,
@@ -2676,7 +2682,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Falla al desestructurar XML');
+        throw new Error(errData.detail || 'Failed to destructure XML');
       }
 
       const data = await res.json();
@@ -2723,8 +2729,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         id: Date.now() + 2,
         from: 'bot',
         role: 'assistant',
-        text: `**Catálogo XML Maestro Ingerido y Desestructurado en Memoria**\n\nEl archivo \`${file.name}\` fue analizado sin tocar Excel. El catálogo está listo para recibir instrucciones de actualización de precios o consulta de características.`,
-        content: `Catálogo XML Maestro Ingerido y Desestructurado en Memoria: ${file.name}. Listo para recibir instrucciones.`,
+        text: `**Master XML Catalog Ingested and Destructured in Memory**\n\nThe file \`${file.name}\` was analyzed without touching Excel. The catalog is ready to receive price update instructions or feature queries.`,
+        content: `Master XML Catalog Ingested and Destructured in Memory: ${file.name}. Ready to receive instructions.`,
         uploadSummary: data,
         time: botTime,
         timestamp: new Date().toISOString(),
@@ -2748,7 +2754,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         ...prev,
         {
           from: 'bot',
-          text: `**Error al ingerir el archivo XML:** ${err.message}`,
+          text: `**Error ingesting XML file:** ${err.message}`,
           time: botTime
         }
       ]);
@@ -2779,7 +2785,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               if (val && String(val).trim()) models.add(String(val).trim().toUpperCase());
             });
             return models;
-          } catch (_) {}
+          } catch (_) { }
         }
         const lines = str.split(/\r?\n/).filter(l => l.trim().length > 0 && !l.trim().startsWith('#') && !l.trim().startsWith('<!--'));
         if (lines.length <= 1) return models;
@@ -2864,7 +2870,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     if (!file) return;
     const isCsvOrExcel = file.name.toLowerCase().endsWith('.csv') || file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
     if (!isCsvOrExcel) {
-      alert('Solo se admiten archivos en formato .csv o .xlsx para la matriz de nuevos precios.');
+      alert('Only .csv or .xlsx files are supported for the new price matrix.');
       return;
     }
 
@@ -2884,8 +2890,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       fileName: file.name,
       fileSizeKb: (file.size / 1024).toFixed(1),
       uploadStatus: 'uploading',
-      text: `**Matriz CSV de Nuevos Precios adjunta:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
-      content: `Matriz CSV de Nuevos Precios adjunta: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
+      text: `**New Price CSV Matrix attached:** \`${file.name}\` (${(file.size / 1024).toFixed(1)} KB)`,
+      content: `New Price CSV Matrix attached: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`,
       time: userTime,
       timestamp: new Date().toISOString()
     };
@@ -2908,7 +2914,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         fileText = await file.text().catch(() => '');
       }
       if (!fileText || !fileText.trim()) {
-        throw new Error('El archivo seleccionado está vacío o no pudo ser leído.');
+        throw new Error('The selected file is empty or could not be read.');
       }
 
       // ── PASO 0: Validación Previa de Coherencia entre Datasets ──
@@ -2933,7 +2939,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       const isMismatch = (clientCoh.canEvaluate && !clientCoh.coherent) || (backendCoh && backendCoh.coherent === false);
       if (isMismatch) {
-        const totalB = backendCoh?.total_base ?? clientCoh.totalBase ?? 'Registrados';
+        const totalB = backendCoh?.total_base ?? clientCoh.totalBase ?? 'Registered';
         const commonC = backendCoh?.common_count ?? clientCoh.commonCount ?? 0;
         const totalN = backendCoh?.total_new ?? clientCoh.totalNew ?? 'N/A';
 
@@ -2949,8 +2955,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           id: Date.now() + 2,
           from: 'bot',
           role: 'assistant',
-          text: `**El dataset cargado no coincide con el catálogo en proceso**\n\nEl archivo \`${file.name}\` contiene productos y modelos diferentes que **no corresponden** a la matriz descargada/base de este catálogo.\n\n• **Modelos esperados en catálogo base:** ${totalB}\n• **Modelos en el archivo cargado:** ${totalN}\n• **Modelos coincidentes encontrados:** ${commonC}\n\n**No es coherente para la comparación.** Por favor verifica el archivo y sube el dataset CSV correcto correspondiente a este catálogo para continuar.`,
-          content: `El dataset cargado no coincide con el catálogo en proceso. Por favor sube el archivo CSV correcto.`,
+          text: `**The uploaded dataset does not match the catalog in process**\n\nThe file \`${file.name}\` contains different products and models that **do not correspond** to the downloaded/base matrix of this catalog.\n\n• **Expected models in base catalog:** ${totalB}\n• **Models in uploaded file:** ${totalN}\n• **Matching models found:** ${commonC}\n\n**It is not coherent for comparison.** Please verify the file and upload the correct CSV dataset corresponding to this catalog to continue.`,
+          content: `The uploaded dataset does not match the catalog in process. Please upload the correct CSV file.`,
           time: botTime,
           timestamp: new Date().toISOString()
         };
@@ -3025,8 +3031,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         id: Date.now() + 2,
         from: 'bot',
         role: 'assistant',
-        text: `**Matriz de Nuevos Precios Ingerida con Éxito**\n\nEl archivo \`${file.name}\` ha sido respaldado y registrado en la base de datos como \`csv_new_raw\`.\n\nEl catálogo base y la nueva lista de precios están sincronizados y listos para ser auditados.\n\nEjecuta **/executeProcess** para comparar ambas matrices y calcular la auditoría completa con detección de anomalías.`,
-        content: `Matriz de Nuevos Precios Ingerida con Éxito: ${file.name}. Listo para ejecutar /executeProcess.`,
+        text: `**New Price Matrix Ingested Successfully**\n\nThe file \`${file.name}\` has been backed up and registered in the database as \`csv_new_raw\`.\n\nThe base catalog and the new price list are synchronized and ready to be audited.\n\nRun **/executeProcess** to compare both matrices and calculate the full audit with anomaly detection.`,
+        content: `New Price Matrix Ingested Successfully: ${file.name}. Ready to run /executeProcess.`,
         time: botTime,
         timestamp: new Date().toISOString()
       };
@@ -3047,7 +3053,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         ...prev,
         {
           from: 'bot',
-          text: `**Error al ingerir el archivo CSV:** ${err.message}`,
+          text: `**Error ingesting CSV file:** ${err.message}`,
           time: botTime
         }
       ]);
@@ -3065,7 +3071,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
     } else if (nameLower.endsWith('.csv') || nameLower.endsWith('.xlsx') || nameLower.endsWith('.xls')) {
       handleCsvFileUpload(file);
     } else {
-      alert('Formato no soportado. Por favor arrastra un archivo maestro .xml o una matriz de precios en .csv / .xlsx.');
+      alert('Unsupported format. Please drag a master .xml file or a price matrix in .csv / .xlsx.');
     }
   };
 
@@ -3086,7 +3092,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Falla durante la inyección en el catálogo');
+        throw new Error(errData.detail || 'Failed during catalog injection');
       }
 
       const data = await res.json();
@@ -3110,8 +3116,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         id: `msg-commit-${Date.now()}`,
         from: 'bot',
         role: 'assistant',
-        text: `**Inyección Quirúrgica 1-to-1 Completada con Éxito**\n\n• **Nodos Modificados:** **${data.applied_count || stagedItems.length}**\n• **Catálogo Afectado:** \`${activeCatalogRef.current || 'General_Procces'}\`\n• **Integridad XML:** 100% Certificada para CET Designer y Catalog Creator.\n\nEl archivo XML maestro ya contiene los nuevos precios. Puedes descargarlo directamente a continuación:`,
-        content: `Inyección Quirúrgica 1-to-1 Completada con Éxito. Nodos Modificados: ${data.applied_count || stagedItems.length}. Catálogo: ${activeCatalogRef.current || 'General Process'}`,
+        text: `**1-to-1 Surgical Injection Completed Successfully**\n\n• **Modified Nodes:** **${data.applied_count || stagedItems.length}**\n• **Affected Catalog:** \`${activeCatalogRef.current || 'General_Procces'}\`\n• **XML Integrity:** 100% Certified for CET Designer and Catalog Creator.\n\nThe master XML file now contains the new prices. You can download it directly below:`,
+        content: `1-to-1 Surgical Injection Completed Successfully. Modified Nodes: ${data.applied_count || stagedItems.length}. Catalog: ${activeCatalogRef.current || 'General Process'}`,
         showDownloadCard: true,
         time: botTime,
         timestamp: new Date().toISOString(),
@@ -3124,7 +3130,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       });
     } catch (err) {
       console.error('Error inyectando en XML:', err);
-      alert(`Error al aplicar cambios: ${err.message}`);
+      alert(`Error applying changes: ${err.message}`);
     } finally {
       setIsCommitting(false);
     }
@@ -3158,7 +3164,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
           URL.revokeObjectURL(url);
           return;
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     // 2. Intentar recuperar desde Supabase (texto o URL de Storage) exclusivo del tenant
@@ -3189,7 +3195,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
         URL.revokeObjectURL(url);
         return;
       }
-    } catch (_) {}
+    } catch (_) { }
 
     // 3. Fallback al endpoint del backend
     const url = `${apiURL}/api/v1/${encodeURIComponent(tenantKey)}/agent/download-xml?company_name=${encodeURIComponent(tenantKey)}`;
@@ -3292,7 +3298,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               ref={inputRef}
               rows={1}
               className={`flex-1 bg-transparent border-none outline-none resize-none text-[15px] max-[700px]:text-[14px] ${isDarkMode ? 'text-zinc-100 placeholder-zinc-500 caret-white' : 'text-gray-800 placeholder-gray-400 caret-[#18181b]'} leading-relaxed min-h-[38px] max-h-[140px] overflow-y-auto font-sans`}
-              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Indica cambios de precio, consulta productos o features del catálogo, o escribe '/' para comandos…"}
+              placeholder={isRecording ? "Listening to your voice... Speak now..." : "Enter price changes, query catalog products or features, or type '/' for commands…"}
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
@@ -3355,7 +3361,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
             <button
               type="button"
               disabled={isUploadingXml}
-              title="Adjuntar catálogo XML maestro (.xml) o matriz de precios (.csv/.xlsx)"
+              title="Attach master XML catalog (.xml) or price matrix (.csv/.xlsx)"
               onClick={() => xmlFileInputRef.current?.click()}
               className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isUploadingXml
                 ? isDarkMode ? 'bg-white/20 text-white animate-pulse' : 'bg-[#18181b]/10 text-[#18181b] animate-pulse'
@@ -3486,15 +3492,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                 )}
 
                 <div
-                  className={`text-[13.5px] leading-relaxed relative break-words min-w-0 transition-all duration-200 ${
-                    isUser
-                      ? isStructuredUser
-                        ? 'w-full p-0 bg-transparent border-none shadow-none'
-                        : isDarkMode
-                          ? 'px-4 py-2.5 rounded-2xl shadow-md bg-zinc-100 text-zinc-950 border border-zinc-200 font-medium hover:shadow-lg'
-                          : 'px-4 py-2.5 rounded-2xl shadow-sm bg-[#18181b] text-white border border-[#18181b] hover:shadow-md'
-                      : 'w-full space-y-2'
-                  }`}
+                  className={`text-[13.5px] leading-relaxed relative break-words min-w-0 transition-all duration-200 ${isUser
+                    ? isStructuredUser
+                      ? 'w-full p-0 bg-transparent border-none shadow-none'
+                      : isDarkMode
+                        ? 'px-4 py-2.5 rounded-2xl shadow-md bg-zinc-100 text-zinc-950 border border-zinc-200 font-medium hover:shadow-lg'
+                        : 'px-4 py-2.5 rounded-2xl shadow-sm bg-[#18181b] text-white border border-[#18181b] hover:shadow-md'
+                    : 'w-full space-y-2'
+                    }`}
                 >
                   {msg.from === "bot" ? (
                     <>
@@ -3604,43 +3609,41 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.26, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                              className={`p-4 border rounded-none ${
-                                isDarkMode
-                                  ? 'bg-[#09090b]/90 border-white/20 text-zinc-100 shadow-md'
-                                  : 'bg-white border-zinc-300 text-zinc-900 shadow-sm'
-                              }`}
+                              className={`p-4 border rounded-none ${isDarkMode
+                                ? 'bg-[#09090b]/90 border-white/20 text-zinc-100 shadow-md'
+                                : 'bg-white border-zinc-300 text-zinc-900 shadow-sm'
+                                }`}
                             >
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
                                 <div>
                                   <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 bg-amber-400 shrink-0" />
                                     <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${isDarkMode ? 'text-zinc-200' : 'text-zinc-800'}`}>
-                                      Paso 2 de 2: Inyección al Catálogo XML
+                                      Step 2 of 2: XML Catalog Injection
                                     </span>
                                   </div>
                                   <p className={`text-[11.5px] mt-1 ${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                                    Se auditaron y cotejaron {msg.comparisonReport.detected_changes.length} modificaciones comerciales. Haz clic para inyectar estos cambios en el archivo XML maestro (<span className="font-mono text-zinc-300">xml_actualizer_raw</span>) preservando la estructura y namespaces de CET.
+                                    Audited and cross-referenced {msg.comparisonReport.detected_changes.length} commercial modifications. Click to inject these changes into the master XML file (<span className="font-mono text-zinc-300">xml_actualizer_raw</span>) while preserving CET structure and namespaces.
                                   </p>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => handleExecuteXmlInjection(msg.comparisonReport)}
                                   disabled={isInjectingXml}
-                                  className={`px-4 py-2.5 text-xs font-mono font-bold tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 ${
-                                    isDarkMode
-                                      ? 'bg-white hover:bg-zinc-200 text-zinc-950 disabled:bg-zinc-700 disabled:text-zinc-400'
-                                      : 'bg-zinc-950 hover:bg-zinc-800 text-white disabled:bg-zinc-300 disabled:text-zinc-500'
-                                  }`}
+                                  className={`px-4 py-2.5 text-xs font-mono font-bold tracking-wider uppercase inline-flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 ${isDarkMode
+                                    ? 'bg-white hover:bg-zinc-200 text-zinc-950 disabled:bg-zinc-700 disabled:text-zinc-400'
+                                    : 'bg-zinc-950 hover:bg-zinc-800 text-white disabled:bg-zinc-300 disabled:text-zinc-500'
+                                    }`}
                                 >
                                   {isInjectingXml ? (
                                     <>
                                       <RefreshCw size={13} className="animate-spin" />
-                                      <span>Inyectando al XML...</span>
+                                      <span>Injecting into XML...</span>
                                     </>
                                   ) : (
                                     <>
                                       <Zap size={13} />
-                                      <span>Inyectar {msg.comparisonReport.detected_changes.length} Cambios al XML</span>
+                                      <span>Inject {msg.comparisonReport.detected_changes.length} Changes into XML</span>
                                     </>
                                   )}
                                 </button>
@@ -3658,16 +3661,16 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           transition={{ delay: 0.08, duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
                           onClick={() => xmlFileInputRef.current?.click()}
                           className={`mt-3 p-4 border-2 border-dashed rounded-xl backdrop-blur-xl transition-all text-center cursor-pointer group shadow-sm ${isDarkMode
-                              ? 'border-white/15 hover:border-white/40 bg-[#09090b]/55 hover:bg-[#09090b]/75 text-zinc-200'
-                              : 'border-slate-300 hover:border-slate-800 bg-white/75 hover:bg-white/90 text-slate-800'
+                            ? 'border-white/15 hover:border-white/40 bg-[#09090b]/55 hover:bg-[#09090b]/75 text-zinc-200'
+                            : 'border-slate-300 hover:border-slate-800 bg-white/75 hover:bg-white/90 text-slate-800'
                             }`}
                         >
                           <UploadCloud size={28} className={`mx-auto mb-1.5 group-hover:scale-110 transition-transform ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`} />
                           <h4 className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                            Arrastra o haz clic para subir tu catálogo XML maestro
+                            Drag or click to upload your master XML catalog
                           </h4>
                           <p className={`text-[10.5px] mt-0.5 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>
-                            Formatos soportados: .xml de CET Designer o Catalog Creator. Se montará al instante en memoria.
+                            Supported formats: .xml from CET Designer or Catalog Creator. It will be mounted instantly in memory.
                           </p>
                         </motion.div>
                       )}
@@ -3688,20 +3691,19 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                   Surgical Staging & XML Diff Board
                                 </h4>
                                 <span className={`px-2 py-0.5 rounded-md text-[9.5px] font-mono font-bold shadow-xs ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'}`}>
-                                  {msg.staged_result.items.length} {msg.staged_result.items.length === 1 ? 'Cambio' : 'Cambios'}
+                                  {msg.staged_result.items.length} {msg.staged_result.items.length === 1 ? 'Change' : 'Changes'}
                                 </span>
                               </div>
                               <p className={`text-[11px] mt-0.5 font-medium ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'}`}>
-                                Registro estructurado en memoria de los cambios recopilados durante la conversación.
+                                Structured in-memory record of changes collected during the conversation.
                               </p>
                             </div>
 
                             {/* Estado de recopilación en memoria (Sin inyección al XML) */}
-                            <div className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 border shadow-xs ${
-                              isDarkMode ? 'bg-white/10 border-white/15 text-zinc-200' : 'bg-[#18181b]/10 border-[#18181b]/15 text-[#18181b]'
-                            }`}>
+                            <div className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 border shadow-xs ${isDarkMode ? 'bg-white/10 border-white/15 text-zinc-200' : 'bg-[#18181b]/10 border-[#18181b]/15 text-[#18181b]'
+                              }`}>
                               <Layers size={13} className={isDarkMode ? 'text-zinc-300' : 'text-[#18181b]'} />
-                              <span>Cambios Recopilados</span>
+                              <span>Collected Changes</span>
                             </div>
                           </div>
 
@@ -3709,13 +3711,13 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                             <table className={`w-full text-left text-xs ${isDarkMode ? 'text-zinc-300' : 'text-slate-700'}`}>
                               <thead className={`${isDarkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-[#18181b]/5 border-[#18181b]/15 text-[#18181b]'} sticky top-0 z-10 border-b font-bold text-[10px] uppercase tracking-wider`}>
                                 <tr>
-                                  <th className="px-3.5 py-2.5">SKU / Nodo</th>
-                                  <th className="px-3.5 py-2.5">Tipo de Nodo</th>
-                                  <th className="px-3.5 py-2.5">Detalle / Opción</th>
-                                  <th className="px-3.5 py-2.5 text-right">Actual</th>
-                                  <th className="px-3.5 py-2.5 text-right">Nuevo</th>
-                                  <th className="px-3.5 py-2.5 text-right">Variación</th>
-                                  <th className="px-3.5 py-2.5 text-center">Estado</th>
+                                  <th className="px-3.5 py-2.5">SKU / Node</th>
+                                  <th className="px-3.5 py-2.5">Node Type</th>
+                                  <th className="px-3.5 py-2.5">Detail / Option</th>
+                                  <th className="px-3.5 py-2.5 text-right">Current</th>
+                                  <th className="px-3.5 py-2.5 text-right">New</th>
+                                  <th className="px-3.5 py-2.5 text-right">Variation</th>
+                                  <th className="px-3.5 py-2.5 text-center">Status</th>
                                 </tr>
                               </thead>
                               <tbody className={`divide-y ${isDarkMode ? 'divide-white/10' : 'divide-[#18181b]/10'}`}>
@@ -3746,7 +3748,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                         className={`px-3.5 py-2.5 text-[11px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} max-w-[140px] truncate font-medium`}
                                         title={item.matched_option_name || item.option_name || item.option_code || item.option}
                                       >
-                                        {item.matched_option_name || item.option_name || item.option_code || item.option || 'Precio Base'}
+                                        {item.matched_option_name || item.option_name || item.option_code || item.option || 'Base Price'}
                                       </td>
                                       <td className={`px-3.5 py-2.5 text-right font-mono ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/60'} text-xs`}>
                                         {item.old_price != null ? `$${item.old_price}` : <span className={isDarkMode ? 'text-zinc-600' : 'text-[#18181b]/40'}>—</span>}
@@ -3767,7 +3769,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                         {isMatched ? (
                                           <span className={`inline-flex items-center gap-1 text-[10px] font-semibold ${isDarkMode ? 'text-white bg-white/10 border-white/20' : 'text-[#18181b] bg-[#18181b]/12 border-[#18181b]/25'} px-2 py-0.5 rounded-md border`}>
                                             <CheckCircle2 size={10} className={isDarkMode ? 'text-white' : 'text-[#18181b]'} />
-                                            Verificado
+                                            Verified
                                           </span>
                                         ) : (
                                           <span
@@ -3775,7 +3777,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                             title={item.reason}
                                           >
                                             <AlertCircle size={10} className={isDarkMode ? 'text-zinc-400' : 'text-[#18181b]'} />
-                                            No en XML
+                                            Not in XML
                                           </span>
                                         )}
                                       </td>
@@ -3788,7 +3790,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
                           <div className={`p-2.5 border-t flex items-center justify-between ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-[#18181b]/5 border-[#18181b]/15'}`}>
                             <span className={`text-[10.5px] ${isDarkMode ? 'text-zinc-300' : 'text-[#18181b]/80'} font-medium`}>
-                              Catálogo: <strong className={isDarkMode ? 'text-white' : 'text-[#18181b]'}>{activeCatalogName || context || 'General Process'}</strong>
+                              Catalog: <strong className={isDarkMode ? 'text-white' : 'text-[#18181b]'}>{activeCatalogName || context || 'General Process'}</strong>
                             </span>
                             {msg.committed && (
                               <button
@@ -3796,7 +3798,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                 className={`flex items-center gap-1.5 px-3 py-1 rounded-md ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-[11px] font-bold shadow-xs transition-all cursor-pointer`}
                               >
                                 <Download size={12} />
-                                Descargar XML Actualizado
+                                Download Updated XML
                               </button>
                             )}
                           </div>
@@ -3809,11 +3811,10 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           initial={{ opacity: 0, y: 10, scale: 0.99 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ delay: 0.1, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-                          className={`mt-3 p-3.5 border rounded-none flex items-center justify-between ${
-                            isDarkMode
-                              ? 'bg-[#09090b]/85 border-white/20 text-zinc-100 shadow-md'
-                              : 'bg-zinc-50 border-zinc-300 text-zinc-900 shadow-sm'
-                          }`}
+                          className={`mt-3 p-3.5 border rounded-none flex items-center justify-between ${isDarkMode
+                            ? 'bg-[#09090b]/85 border-white/20 text-zinc-100 shadow-md'
+                            : 'bg-zinc-50 border-zinc-300 text-zinc-900 shadow-sm'
+                            }`}
                         >
                           <div className="flex items-center gap-2.5">
                             <div className={`w-8 h-8 ${isDarkMode ? 'bg-white text-zinc-950' : 'bg-[#18181b] text-white'} flex items-center justify-center shadow-xs shrink-0`}>
@@ -3821,10 +3822,10 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                             </div>
                             <div>
                               <h4 className={`text-xs font-mono font-bold ${isDarkMode ? 'text-white' : 'text-[#18181b]'}`}>
-                                Catálogo XML Certificado y Actualizado (xml_actualizer_raw)
+                                Certified & Updated XML Catalog (xml_actualizer_raw)
                               </h4>
                               <p className={`text-[10.5px] ${isDarkMode ? 'text-zinc-400' : 'text-[#18181b]/75'} font-medium`}>
-                                Árbol XML 100% íntegro con estructura y namespaces válidos para CET Designer.
+                                100% intact XML tree with valid structure and namespaces for CET Designer.
                               </p>
                             </div>
                           </div>
@@ -3833,14 +3834,14 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                             className={`px-3.5 py-1.5 ${isDarkMode ? 'bg-white text-zinc-950 font-bold hover:bg-zinc-200' : 'bg-[#18181b] hover:bg-[#09090b] text-white'} text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0`}
                           >
                             <Download size={13} />
-                            Descargar .XML
+                            Download .XML
                           </button>
                         </motion.div>
                       )}
                     </>
-                  ) : msg.isXmlUpload || (msg.text && msg.text.includes("Archivo XML adjunto para ingestión:")) ? (
+                  ) : msg.isXmlUpload || (msg.text && (msg.text.includes("Archivo XML adjunto para ingestión:") || msg.text.includes("XML file attached for ingestion:"))) ? (
                     (() => {
-                      const fnMatch = msg.fileName || (msg.text.match(/`([^`]+)`/) ? msg.text.match(/`([^`]+)`/)[1] : "catálogo.xml");
+                      const fnMatch = msg.fileName || (msg.text.match(/`([^`]+)`/) ? msg.text.match(/`([^`]+)`/)[1] : "catalog.xml");
                       const sizeMatch = msg.fileSizeKb || (msg.text.match(/\(([0-9.]+)\s*KB\)/i) ? msg.text.match(/\(([0-9.]+)\s*KB\)/i)[1] : null);
                       const isUploading = msg.uploadStatus === "uploading";
                       const isError = msg.uploadStatus === "error";
@@ -3853,7 +3854,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                             </div>
                             <div className="min-w-0 flex-1">
                               <span className={`text-[11px] font-medium ${isDarkMode ? 'text-zinc-700' : 'text-white/80'} block leading-tight`}>
-                                Archivo XML adjunto para ingestión:
+                                XML file attached for ingestion:
                               </span>
                               <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
                                 <span className={`font-mono font-bold text-xs ${isDarkMode ? 'bg-zinc-900/10 text-zinc-950' : 'bg-white/20 text-white'} px-2 py-0.5 rounded-md tracking-wide`}>
@@ -3893,20 +3894,20 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                                 <>
                                   <span className="flex items-center gap-1.5 font-medium">
                                     <RefreshCw size={10} className={`animate-spin ${isDarkMode ? 'text-zinc-950' : 'text-white'}`} />
-                                    Subiendo e ingiriendo en memoria...
+                                    Uploading and ingesting in memory...
                                   </span>
                                   <span>80%</span>
                                 </>
                               ) : isError ? (
                                 <>
-                                  <span className="text-rose-600 font-medium">Error en la carga</span>
-                                  <span>Fallo</span>
+                                  <span className="text-rose-600 font-medium">Upload error</span>
+                                  <span>Failed</span>
                                 </>
                               ) : (
                                 <>
                                   <span className={`flex items-center gap-1 font-semibold ${isDarkMode ? 'text-zinc-950' : 'text-white'}`}>
                                     <Check size={12} className={isDarkMode ? 'text-zinc-950' : 'text-white'} />
-                                    Archivo cargado e ingerido
+                                    File uploaded and ingested
                                   </span>
                                   <span className={`font-bold ${isDarkMode ? 'text-zinc-950' : 'text-white'}`}>100%</span>
                                 </>
@@ -3948,9 +3949,9 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
       {dragActiveXml && (
         <div className="absolute inset-0 z-50 bg-[#09090b]/80 backdrop-blur-md border-2 border-dashed border-white/40 rounded-xl flex flex-col items-center justify-center pointer-events-none p-6 animate-fadeIn">
           <UploadCloud size={56} className="text-white animate-bounce mb-3" />
-          <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">Suelta tu archivo XML maestro o Matriz CSV aquí</h3>
+          <h3 className="text-base sm:text-lg font-bold text-white tracking-wide">Drop your master XML file or CSV Matrix here</h3>
           <p className="text-xs sm:text-sm text-zinc-300 mt-1.5 max-w-md text-center">
-            Admite catálogos <strong className="text-white">.xml</strong> de CET Designer o matrices <strong className="text-white">.csv / .xlsx</strong> de nuevos precios (<span className="font-mono text-zinc-200">csv_new_raw</span>)
+            Supports CET Designer <strong className="text-white">.xml</strong> catalogs or new price <strong className="text-white">.csv / .xlsx</strong> matrices (<span className="font-mono text-zinc-200">csv_new_raw</span>)
           </p>
         </div>
       )}
@@ -4047,7 +4048,7 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   <div className="flex flex-col items-start gap-1">
                     <div className="flex items-baseline gap-2">
                       <span className={`text-[10.5px] ${isDarkMode ? 'text-zinc-300' : 'text-gray-500'} font-medium animate-pulse`}>
-                        Alysa está analizando tu consulta en memoria...
+                        Alysa is analyzing your query in memory...
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 py-2.5">
@@ -4100,19 +4101,19 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className={`w-full max-w-3xl max-h-[85vh] rounded-2xl flex flex-col overflow-hidden shadow-2xl transition-colors ${isDarkMode
-                  ? "bg-[#09090b]/85 border border-white/15 text-zinc-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-2xl"
-                  : "bg-white border border-slate-200/90 text-slate-800"
+                ? "bg-[#09090b]/85 border border-white/15 text-zinc-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-2xl"
+                : "bg-white border border-slate-200/90 text-slate-800"
                 }`}
             >
               {/* Header del Modal */}
               <div className={`px-5 py-4 border-b flex items-center justify-between flex-shrink-0 transition-colors ${isDarkMode
-                  ? "bg-gradient-to-r from-white/[0.04] via-transparent to-white/[0.04] border-white/10"
-                  : "bg-gradient-to-r from-slate-50 via-white to-slate-50 border-slate-100"
+                ? "bg-gradient-to-r from-white/[0.04] via-transparent to-white/[0.04] border-white/10"
+                : "bg-gradient-to-r from-slate-50 via-white to-slate-50 border-slate-100"
                 }`}>
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center shadow-sm transition-colors ${isDarkMode
-                      ? "bg-white/10 border border-white/20 text-white"
-                      : "bg-[#18181b]/10 border border-[#18181b]/20 text-[#18181b]"
+                    ? "bg-white/10 border border-white/20 text-white"
+                    : "bg-[#18181b]/10 border border-[#18181b]/20 text-[#18181b]"
                     }`}>
                     <Sparkles size={18} />
                   </div>
@@ -4138,8 +4139,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   type="button"
                   onClick={() => setShowAiGuideModal(false)}
                   className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isDarkMode
-                      ? "text-zinc-400 hover:text-white hover:bg-white/10"
-                      : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                    ? "text-zinc-400 hover:text-white hover:bg-white/10"
+                    : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"
                     }`}
                 >
                   <X size={18} />
@@ -4148,8 +4149,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
               {/* Filtro y Búsqueda */}
               <div className={`px-5 py-3 border-b flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between flex-shrink-0 transition-colors ${isDarkMode
-                  ? "border-white/10 bg-white/[0.02]"
-                  : "border-slate-100 bg-slate-50/50"
+                ? "border-white/10 bg-white/[0.02]"
+                : "border-slate-100 bg-slate-50/50"
                 }`}>
                 <div className="relative flex-1">
                   <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDarkMode ? "text-zinc-400" : "text-gray-400"}`} />
@@ -4159,8 +4160,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                     onChange={(e) => setGuideSearch(e.target.value)}
                     placeholder="Filter questions by keyword (XML, audit, margins, CET, etc.)..."
                     className={`w-full rounded-lg pl-9 pr-3 py-1.5 text-[12.5px] transition-all focus:outline-none ${isDarkMode
-                        ? "bg-white/[0.05] border border-white/15 text-white placeholder-zinc-500 focus:border-white/40 focus:ring-2 focus:ring-white/10"
-                        : "bg-white border border-slate-200 text-gray-800 placeholder-gray-400 focus:border-[#18181b] focus:ring-2 focus:ring-[#18181b]/10"
+                      ? "bg-white/[0.05] border border-white/15 text-white placeholder-zinc-500 focus:border-white/40 focus:ring-2 focus:ring-white/10"
+                      : "bg-white border border-slate-200 text-gray-800 placeholder-gray-400 focus:border-[#18181b] focus:ring-2 focus:ring-[#18181b]/10"
                       }`}
                   />
                   {guideSearch && (
@@ -4186,12 +4187,12 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                       key={cat.id}
                       onClick={() => setGuideCategory(cat.id)}
                       className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all whitespace-nowrap ${guideCategory === cat.id
-                          ? isDarkMode
-                            ? "bg-white text-zinc-950 shadow-sm"
-                            : "bg-[#18181b] text-white shadow-sm"
-                          : isDarkMode
-                            ? "bg-white/[0.04] border border-white/10 text-zinc-300 hover:border-white/30 hover:text-white"
-                            : "bg-white border border-slate-200 text-gray-600 hover:border-[#18181b]/30 hover:text-[#18181b]"
+                        ? isDarkMode
+                          ? "bg-white text-zinc-950 shadow-sm"
+                          : "bg-[#18181b] text-white shadow-sm"
+                        : isDarkMode
+                          ? "bg-white/[0.04] border border-white/10 text-zinc-300 hover:border-white/30 hover:text-white"
+                          : "bg-white border border-slate-200 text-gray-600 hover:border-[#18181b]/30 hover:text-[#18181b]"
                         }`}
                     >
                       {cat.label}
@@ -4224,26 +4225,26 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                           sendMessage(item.q);
                         }}
                         className={`group flex flex-col justify-between p-3.5 rounded-xl transition-all text-left ${isDarkMode
-                            ? "bg-white/[0.03] border border-white/10 hover:border-white/30 hover:bg-white/[0.06] hover:shadow-lg"
-                            : "bg-white border border-slate-200/90 hover:border-[#18181b]/50 hover:bg-[#18181b]/[0.03] hover:shadow-md"
+                          ? "bg-white/[0.03] border border-white/10 hover:border-white/30 hover:bg-white/[0.06] hover:shadow-lg"
+                          : "bg-white border border-slate-200/90 hover:border-[#18181b]/50 hover:bg-[#18181b]/[0.03] hover:shadow-md"
                           }`}
                       >
                         <div>
                           <div className="flex items-center justify-between mb-1.5">
                             <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md transition-colors ${isDarkMode
-                                ? "bg-white/10 text-zinc-300 group-hover:bg-white/20 group-hover:text-white"
-                                : "bg-slate-100 text-slate-600 group-hover:bg-[#18181b]/10 group-hover:text-[#18181b]"
+                              ? "bg-white/10 text-zinc-300 group-hover:bg-white/20 group-hover:text-white"
+                              : "bg-slate-100 text-slate-600 group-hover:bg-[#18181b]/10 group-hover:text-[#18181b]"
                               }`}>
                               {item.category} · {item.tag}
                             </span>
                             <ChevronRight size={14} className={`transition-all ${isDarkMode
-                                ? "text-zinc-500 group-hover:text-white group-hover:translate-x-0.5"
-                                : "text-gray-300 group-hover:text-[#18181b] group-hover:translate-x-0.5"
+                              ? "text-zinc-500 group-hover:text-white group-hover:translate-x-0.5"
+                              : "text-gray-300 group-hover:text-[#18181b] group-hover:translate-x-0.5"
                               }`} />
                           </div>
                           <h4 className={`text-[12.5px] font-semibold leading-snug transition-colors ${isDarkMode
-                              ? "text-zinc-100 group-hover:text-white"
-                              : "text-gray-800 group-hover:text-[#18181b]"
+                            ? "text-zinc-100 group-hover:text-white"
+                            : "text-gray-800 group-hover:text-[#18181b]"
                             }`}>
                             {item.q}
                           </h4>
@@ -4260,8 +4261,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
 
               {/* Footer del Modal */}
               <div className={`px-5 py-3 border-t flex items-center justify-between flex-shrink-0 transition-colors ${isDarkMode
-                  ? "bg-white/[0.02] border-white/10"
-                  : "bg-slate-50 border-slate-100"
+                ? "bg-white/[0.02] border-white/10"
+                : "bg-slate-50 border-slate-100"
                 }`}>
                 <span className={`text-[11px] flex items-center gap-1.5 ${isDarkMode ? "text-zinc-400" : "text-gray-500"
                   }`}>
@@ -4272,8 +4273,8 @@ export default function TeamsAgentChat({ currentSection, renderTool, onOpenToolP
                   type="button"
                   onClick={() => setShowAiGuideModal(false)}
                   className={`px-3.5 py-1.5 rounded-md border text-[12px] font-medium transition-colors ${isDarkMode
-                      ? "border-white/15 text-zinc-300 hover:bg-white/10 hover:text-white"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                    ? "border-white/15 text-zinc-300 hover:bg-white/10 hover:text-white"
+                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
                     }`}
                 >
                   Close

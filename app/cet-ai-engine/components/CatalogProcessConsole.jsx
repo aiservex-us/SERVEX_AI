@@ -22,105 +22,105 @@ const MCP_TOOL_PIPELINE = [
   {
     id: 'mcp_storage',
     tool: 'mcp::cet_storage.inspect_buffer',
-    label: 'Inspección de Buffer de Memoria',
+    label: 'Memory Buffer Inspection',
     badge: 'STORAGE_L1',
     latency: '14ms',
     queryText: 'inspect_buffer(source="Supabase_Storage", target_layer="RAM_L1")',
     logs: [
-      'Estableciendo canal de memoria zero-copy desde el bucket de almacenamiento...',
-      'Stream XML montado en búfer volátil de alta velocidad.',
-      'Integridad de bytes verificada: UTF-8 DataContract válido.'
+      'Establishing zero-copy memory channel from storage bucket...',
+      'XML stream mounted in high-speed volatile buffer.',
+      'Byte integrity verified: valid UTF-8 DataContract.'
     ]
   },
   {
     id: 'mcp_schema',
     tool: 'mcp::cet_xml_tools.parse_catalog_schema',
-    label: 'Validación de Jerarquía y Namespaces CET',
+    label: 'CET Hierarchy & Namespaces Validation',
     badge: 'DOM_PARSER',
     latency: '36ms',
     queryText: 'parse_catalog_schema(parser="lxml_c_speed", validate_tree=true)',
     logs: [
-      'Detectando raíz de contrato CET Designer: <Vendor>, <Product>, <Feature>...',
-      'Namespaces registrados: xmlns="http://schemas.datacontract.org/2004/07/Configura.CETDesigner"',
-      'Árbol estructural validado exitosamente: 0 inconsistencias de esquema.'
+      'Detecting CET Designer contract root: <Vendor>, <Product>, <Feature>...',
+      'Registered namespaces: xmlns="http://schemas.datacontract.org/2004/07/Configura.CETDesigner"',
+      'Structural tree validated successfully: 0 schema inconsistencies.'
     ]
   },
   {
     id: 'mcp_skus',
     tool: 'mcp::cet_xml_tools.extract_sku_index',
-    label: 'Indexación de SKUs y Precios Base en Memoria',
+    label: 'In-Memory SKU & Base Price Indexing',
     badge: 'SKU_INDEXER',
     latency: '112ms',
     queryText: 'extract_sku_index(target="//Product", extract_fields=["Code", "Description", "Price"])',
     logs: [
-      'Escaneando nodos <Product> en el DOM en memoria...',
-      'Identificando códigos base y valores de precio de lista base...',
-      'Mapeo relacional de SKUs base completado en búfer indexado.'
+      'Scanning <Product> nodes in in-memory DOM...',
+      'Identifying base codes and base list price values...',
+      'Relational mapping of base SKUs completed in indexed buffer.'
     ]
   },
   {
     id: 'mcp_features',
     tool: 'mcp::cet_xml_tools.scan_feature_matrix',
-    label: 'Clasificación de Matriz de Características',
+    label: 'Feature Matrix Classification',
     badge: 'FEATURE_MAP',
     latency: '82ms',
     queryText: 'scan_feature_matrix(classify_heuristics=true, split_physical_finishes=true)',
     logs: [
-      'Extrayendo familias <Feature>: separando Componentes Físicos y Acabados...',
-      'Detectando reglas de visualización y dependencias de ensamble...',
-      'Arquitectura de features indexada con descriptores normalizados.'
+      'Extracting <Feature> families: separating Physical Components and Finishes...',
+      'Detecting display rules and assembly dependencies...',
+      'Feature architecture indexed with normalized descriptors.'
     ]
   },
   {
     id: 'mcp_option_prices',
     tool: 'mcp::cet_xml_tools.parse_option_prices',
-    label: 'Extracción de Opciones y Recargos <OptionPrice>',
+    label: 'Options & Surcharges Extraction <OptionPrice>',
     badge: 'OPTION_PRICE',
     latency: '145ms',
     queryText: 'parse_option_prices(scan_upcharges=true, extract_deltas=true)',
     logs: [
-      'Extrayendo árbol de opciones comerciales y tags <OptionPrice>...',
-      'Indexando códigos de acabado y modificadores de precio comercial...',
-      'Generando grafo de deltas de precios para configuración en tiempo real.'
+      'Extracting commercial option tree and <OptionPrice> tags...',
+      'Indexing finish codes and commercial price modifiers...',
+      'Generating price delta graph for real-time configuration.'
     ]
   },
   {
     id: 'mcp_tree',
     tool: 'mcp::cet_xml_tools.build_relational_tree',
-    label: 'Construcción del Grafo Relacional SKU-Feature-Option',
+    label: 'SKU-Feature-Option Relational Graph Construction',
     badge: 'GRAPH_SYNTH',
     latency: '68ms',
     queryText: 'build_relational_tree(link_skus=true, resolve_feature_refs=true)',
     logs: [
-      'Vinculando <FeatureRef> de cada SKU a sus árboles de opciones reales...',
-      'Asociando productos y features vinculadas en grafo de memoria...',
-      'Grafo relacional bidireccional completamente ensamblado en memoria.'
+      'Linking <FeatureRef> of each SKU to its actual option trees...',
+      'Associating products and linked features in memory graph...',
+      'Bidirectional relational graph fully assembled in memory.'
     ]
   },
   {
     id: 'mcp_integrity',
     tool: 'mcp::cet_xml_tools.validate_cet_integrity',
-    label: 'Certificación de Integridad 100% CET en Memoria',
+    label: '100% CET In-Memory Integrity Certification',
     badge: 'VALIDATOR',
     latency: '22ms',
     queryText: 'validate_cet_integrity(zero_excel=true, memory_mode="active")',
     logs: [
-      'Verificando consistencia relacional de todo el catálogo en memoria...',
-      'Comprobando resolución de variables sin tocar archivos Excel...',
-      '100% Integridad CET Certificada. Catálogo listo para interacciones del agente.'
+      'Verifying relational consistency of the entire catalog in memory...',
+      'Checking variable resolution without touching Excel files...',
+      '100% CET Integrity Certified. Catalog ready for agent interactions.'
     ]
   }
 ];
 
 // Mensajes de log operacional que se transmiten durante la ejecución
 const OPERATIONAL_STREAM_LOGS = [
-  { tag: 'STORAGE', text: 'Conectando con buffer volátil en RAM (zero-copy read)...' },
-  { tag: 'SCHEMA', text: 'Verificando jerarquía <Vendor>, <Product>, <Feature>...' },
-  { tag: 'INDEXER', text: 'Indexando catálogo de SKUs y precios de lista en memoria...' },
-  { tag: 'FEATURE_MAP', text: 'Mapeando familias de componentes por modelo y acabados base...' },
-  { tag: 'OPTION_PRICE', text: 'Extrayendo árbol de opciones comerciales y deltas de recargo...' },
-  { tag: 'RELATIONAL', text: 'Sintetizando grafo de dependencias bidireccional en memoria...' },
-  { tag: 'VALIDATOR', text: 'Verificando integridad relacional CET 100% en memoria...' }
+  { tag: 'STORAGE', text: 'Connecting to volatile RAM buffer (zero-copy read)...' },
+  { tag: 'SCHEMA', text: 'Verifying <Vendor>, <Product>, <Feature> hierarchy...' },
+  { tag: 'INDEXER', text: 'Indexing SKU catalog and list prices in memory...' },
+  { tag: 'FEATURE_MAP', text: 'Mapping component families by model and base finishes...' },
+  { tag: 'OPTION_PRICE', text: 'Extracting commercial option tree and surcharge deltas...' },
+  { tag: 'RELATIONAL', text: 'Synthesizing bidirectional dependency graph in memory...' },
+  { tag: 'VALIDATOR', text: 'Verifying 100% CET relational integrity in memory...' }
 ];
 
 function CatalogProcessConsole({
@@ -180,7 +180,7 @@ function CatalogProcessConsole({
         {/* Encabezado y diagnóstico de ejecución nativa */}
         <div className="space-y-1 rounded-none">
           <h4 className={`text-[13.5px] font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'} flex items-center justify-between gap-2`}>
-            <span>Pipeline de Desestructuración y Análisis en Memoria</span>
+            <span>In-Memory Destructuring &amp; Analysis Pipeline</span>
             <span className={`font-mono text-[10.5px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-normal`}>
               {fileName} · {fileSizeKb} KB
             </span>
@@ -188,11 +188,11 @@ function CatalogProcessConsole({
           <p className={`text-[13px] ${isDarkMode ? 'text-zinc-300' : 'text-gray-700'} leading-relaxed`}>
             {!isCompleted ? (
               <>
-                Ejecutando subprocesos MCP para analizar el archivo maestro <code className={`px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>{fileName}</code> directamente en memoria RAM (Zero-Excel). A continuación puedes seguir el progreso en vivo:
+                Running MCP subprocesses to analyze the master file <code className={`px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>{fileName}</code> directly in RAM (Zero-Excel). Follow the live progress below:
               </>
             ) : (
               <>
-                Se completaron con éxito los <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>7 subprocesos MCP</strong> en <strong className={`font-mono ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>{elapsedSeconds}s</strong>. El catálogo <code className={`px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>{fileName}</code> quedó desestructurado en memoria con un nivel de integridad certificado al <strong className={`font-semibold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>100% CET</strong>:
+                Successfully completed all <strong className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>7 MCP subprocesses</strong> in <strong className={`font-mono ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>{elapsedSeconds}s</strong>. The catalog <code className={`px-1.5 py-0.5 rounded-none ${isDarkMode ? 'bg-white/10 text-zinc-100 border-white/20' : 'bg-slate-100 text-slate-800 border-slate-200'} font-mono text-[12px] font-semibold border`}>{fileName}</code> has been destructured in memory with a certified integrity level of <strong className={`font-semibold ${isDarkMode ? 'text-white font-bold' : 'text-slate-900'}`}>100% CET</strong>:
               </>
             )}
           </p>
@@ -208,19 +208,18 @@ function CatalogProcessConsole({
             return (
               <div
                 key={step.id}
-                className={`rounded-none border transition-all overflow-hidden shadow-2xs ${
-                  isRunning
-                    ? isDarkMode
-                      ? 'bg-white/15 border-white/40'
-                      : 'bg-slate-100 border-slate-400'
-                    : isDone
+                className={`rounded-none border transition-all overflow-hidden shadow-2xs ${isRunning
+                  ? isDarkMode
+                    ? 'bg-white/15 border-white/40'
+                    : 'bg-slate-100 border-slate-400'
+                  : isDone
                     ? isDarkMode
                       ? 'bg-white/[0.04] border-white/10 hover:border-white/25 hover:bg-white/[0.08]'
                       : 'bg-white/90 border-slate-200/90 hover:border-slate-300 hover:bg-white'
                     : isDarkMode
-                    ? 'bg-white/[0.02] border-white/5 opacity-50'
-                    : 'bg-slate-50/60 border-slate-200/60 opacity-60'
-                }`}
+                      ? 'bg-white/[0.02] border-white/5 opacity-50'
+                      : 'bg-slate-50/60 border-slate-200/60 opacity-60'
+                  }`}
               >
                 {/* Cabecera del Tool Call */}
                 <div
@@ -247,7 +246,7 @@ function CatalogProcessConsole({
 
                   <div className="flex items-center gap-2 shrink-0">
                     <span className={`font-mono text-[9px] ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'} font-medium`}>
-                      {isDone ? `completado · ${step.latency}` : isRunning ? 'procesando...' : 'en cola'}
+                      {isDone ? `completed · ${step.latency}` : isRunning ? 'processing...' : 'queued'}
                     </span>
                     {isStepExpanded ? (
                       <ChevronUp size={13} className={isDarkMode ? 'text-zinc-400' : 'text-slate-400'} />
@@ -287,8 +286,8 @@ function CatalogProcessConsole({
             <span>Pipeline:</span>
             <span className={`font-bold ${isDarkMode ? 'text-zinc-200' : 'text-slate-800'}`}>
               {isCompleted
-                ? `${MCP_TOOL_PIPELINE.length}/${MCP_TOOL_PIPELINE.length} subprocesos completados`
-                : `Paso ${Math.min(effectiveToolIndex + 1, MCP_TOOL_PIPELINE.length)} de ${MCP_TOOL_PIPELINE.length}`}
+                ? `${MCP_TOOL_PIPELINE.length}/${MCP_TOOL_PIPELINE.length} subprocesses completed`
+                : `Step ${Math.min(effectiveToolIndex + 1, MCP_TOOL_PIPELINE.length)} of ${MCP_TOOL_PIPELINE.length}`}
             </span>
           </div>
           <div className="flex items-center gap-1">

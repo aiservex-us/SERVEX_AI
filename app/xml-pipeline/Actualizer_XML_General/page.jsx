@@ -284,16 +284,16 @@ export default function MenuInicial() {
     let botText = '';
     switch (id) {
       case 'dashboard':
-        botText = 'Aquí tienes los resultados de la estructura XML y Diff (**XML Results & Diff**):';
+        botText = 'Here are the XML structure and Diff results (**XML Results & Diff**):';
         break;
       case 'inbox_updated':
-        botText = 'Aquí tienes el catálogo actual de productos y precios actualizados (**Current Catalog**):';
+        botText = 'Here is the current catalog of updated products and prices (**Current Catalog**):';
         break;
       case 'reporting':
-        botText = 'Aquí tienes la visión general y arquitectura del proceso (**General Process Overview**):';
+        botText = 'Here is the general process overview and architecture (**General Process Overview**):';
         break;
       default:
-        botText = `Aquí tienes la sección solicitada (**${id}**):`;
+        botText = `Here is the requested section (**${id}**):`;
         break;
     }
 

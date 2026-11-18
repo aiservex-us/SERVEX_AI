@@ -194,7 +194,7 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
         <div className="flex items-center justify-between mb-3.5 relative z-10">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold uppercase tracking-wider">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-            Zona Crítica
+            Critical Zone
           </div>
           <span className="text-[10px] text-zinc-400 font-mono bg-white/5 px-2 py-0.5 rounded-md border border-white/10">
             {displayTenant}
@@ -208,10 +208,10 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
           </div>
           <div className="flex flex-col gap-1">
             <h3 className="text-sm font-bold text-white tracking-tight">
-              Eliminación de Proceso y Datos
+              Process &amp; Data Deletion
             </h3>
             <p className="text-[11.5px] leading-relaxed text-zinc-400">
-              Gestión operativa crítica: purga de catálogos XML/CSV, registros en base de datos y memoria contextual de IA para <strong className="text-zinc-200 font-semibold">{displayTenant}</strong>.
+              Critical operational management: purge XML/CSV catalogs, database records, and AI contextual memory for <strong className="text-zinc-200 font-semibold">{displayTenant}</strong>.
             </p>
           </div>
         </div>
@@ -223,7 +223,7 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
           className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-xs text-rose-200 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-600 hover:text-white hover:border-rose-500 hover:shadow-[0_0_20px_rgba(225,29,72,0.4)] transition-all duration-300 active:scale-[0.98] cursor-pointer relative z-10 group/btn"
         >
           <Trash2 size={15} className="group-hover/btn:scale-110 transition-transform" />
-          <span>Eliminar Datos de {displayTenant}</span>
+          <span>Delete {displayTenant} Data</span>
         </button>
       </div>
 
@@ -254,14 +254,14 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-[14px] font-bold text-white tracking-tight">
-                      Eliminar Proceso de Datos
+                      Delete Data Process
                     </h2>
                     <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
                       Irreversible
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-400 mt-0.5">
-                    Confirmación de purga completa para {displayTenant}
+                    Full purge confirmation for {displayTenant}
                   </p>
                 </div>
               </div>
@@ -271,7 +271,7 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
                 disabled={isDeleting}
                 onClick={() => setIsModalOpen(false)} 
                 className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 cursor-pointer"
-                title="Cerrar modal"
+                title="Close modal"
               >
                 <X size={16} />
               </button>
@@ -280,33 +280,33 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
             {/* Cuerpo del modal */}
             <div className="p-6 space-y-4 relative z-10">
               <p className="text-[13px] text-zinc-200 leading-relaxed">
-                ¿Estás completamente seguro de que deseas eliminar los datos de <strong className="text-white font-semibold">{displayTenant}</strong>?
+                Are you completely sure you want to delete the data for <strong className="text-white font-semibold">{displayTenant}</strong>?
               </p>
 
               {/* Banner de advertencia */}
               <div className="bg-rose-950/30 border border-rose-500/25 rounded-xl p-3.5 flex items-start gap-3 text-left">
                 <ShieldAlert className="text-rose-400 shrink-0 mt-0.5" size={16} />
                 <p className="text-[11.5px] text-rose-200/90 leading-relaxed">
-                  Esta acción eliminará de forma permanente catálogos, archivos y análisis asociados. <strong>Esta operación no se puede deshacer</strong> y devolverá el módulo a su estado virgen.
+                  This action will permanently delete catalogs, files, and associated analysis. <strong>This operation cannot be undone</strong> and will reset the module to its initial state.
                 </p>
               </div>
 
               {/* Lista visual de componentes a purgar */}
               <div className="rounded-xl bg-white/[0.02] border border-white/10 p-3.5 space-y-2.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                  Elementos incluidos en la purga:
+                  Items included in the purge:
                 </span>
                 <div className="flex items-center gap-2.5 text-[11.5px] text-zinc-300">
                   <Database size={14} className="text-rose-400/80 shrink-0" />
-                  <span>Tablas y registros en Supabase DB</span>
+                  <span>Supabase DB tables and records</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-[11.5px] text-zinc-300">
                   <FileSpreadsheet size={14} className="text-rose-400/80 shrink-0" />
-                  <span>Archivos XML/CSV en Storage Bucket</span>
+                  <span>XML/CSV files in Storage Bucket</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-[11.5px] text-zinc-300">
                   <Sparkles size={14} className="text-rose-400/80 shrink-0" />
-                  <span>Memoria de sesión y contexto del Agente IA</span>
+                  <span>Session memory and AI Agent context</span>
                 </div>
               </div>
             </div>
@@ -319,7 +319,7 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
                 onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 text-xs font-semibold text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all cursor-pointer disabled:opacity-40"
               >
-                Cancelar
+                Cancel
               </button>
               <button 
                 type="button"
@@ -330,12 +330,12 @@ const DeleteTenantButton = ({ currentTenant = 'General_Procces', onDeleted }) =>
                 {isDeleting ? (
                   <>
                     <Loader2 size={14} className="animate-spin" />
-                    <span>Eliminando proceso...</span>
+                    <span>Deleting process...</span>
                   </>
                 ) : (
                   <>
                     <Trash2 size={14} />
-                    <span>Confirmar eliminación</span>
+                    <span>Confirm deletion</span>
                   </>
                 )}
               </button>
